@@ -4,6 +4,7 @@
   "references": [
     "KineTutor3D.Math",
     "KineTutor3D.Kinematics",
+    "KineTutor3D.Runtime",
     "KineTutor3D.Templates",
     "KineTutor3D.Types",
     "UnityEngine.TestRunner",

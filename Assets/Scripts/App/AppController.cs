@@ -30,23 +30,36 @@ namespace KineTutor3D.App
         [SerializeField] private FocusZoneHighlighter focusHighlighter;
         [SerializeField] private Slider jointSlider1;
         [SerializeField] private Slider jointSlider2;
+        [SerializeField] private DHTableEditor dhTableEditor;
+        [SerializeField] private TemplateSelector templateSelector;
+        [SerializeField] private MatrixDisplay matrixDisplay;
 
         private int currentStepIndex;
         private RobotTemplate currentTemplate;
+        private DHLink[] currentLinks = Array.Empty<DHLink>();
         private double[] currentJointValuesRad = Array.Empty<double>();
         private TutorPose currentEndEffectorPose;
         private Mat4D currentEndEffectorTransform = Mat4D.Identity;
+        private Mat4D currentA1 = Mat4D.Identity;
+        private Mat4D currentA2 = Mat4D.Identity;
+        private Mat4D currentT02 = Mat4D.Identity;
         private bool sliderListenersBound;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
+        public event Action<RobotTemplate> OnTemplateChanged;
+        public event Action<Mat4D, Mat4D, Mat4D, TutorPose> OnKinematicsUpdated;
 
         public int CurrentStep => currentStepIndex + 1;
         public int TotalSteps => stepConfigs?.Length ?? 0;
         public RobotTemplate CurrentTemplate => currentTemplate;
+        public DHLink[] CurrentLinks => (DHLink[])currentLinks.Clone();
         public double[] CurrentJointValuesRad => (double[])currentJointValuesRad.Clone();
         public TutorPose CurrentEndEffectorPose => currentEndEffectorPose;
         public Mat4D CurrentEndEffectorTransform => currentEndEffectorTransform;
+        public Mat4D CurrentA1 => currentA1;
+        public Mat4D CurrentA2 => currentA2;
+        public Mat4D CurrentT02 => currentT02;
 
         private void Awake()
         {
@@ -62,6 +75,7 @@ namespace KineTutor3D.App
         private void Start()
         {
             InitializeTemplateRuntime();
+            BindRuntimeUiControllers();
 
             if (TotalSteps <= 0)
             {
@@ -149,6 +163,50 @@ namespace KineTutor3D.App
         }
 
         /// <summary>
+        /// 템플릿 선택 드롭다운에 제공할 템플릿 목록을 반환합니다.
+        /// </summary>
+        public string[] GetAvailableTemplateNames()
+        {
+            return new[] { Template2DOF_RR.Name };
+        }
+
+        /// <summary>
+        /// 템플릿 이름으로 템플릿을 적용합니다.
+        /// </summary>
+        public void SelectTemplateByName(string templateName)
+        {
+            if (string.IsNullOrWhiteSpace(templateName))
+            {
+                return;
+            }
+
+            if (string.Equals(templateName, Template2DOF_RR.Name, StringComparison.Ordinal))
+            {
+                ApplyTemplate(Template2DOF_RR.Create());
+            }
+        }
+
+        /// <summary>
+        /// 템플릿을 적용하고 관련 런타임 상태를 초기화합니다.
+        /// </summary>
+        public void ApplyTemplate(RobotTemplate template)
+        {
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template));
+            }
+
+            currentTemplate = template;
+            currentLinks = template.GetLinks();
+            currentJointValuesRad = new double[template.Dof];
+
+            ConfigureJointSlider(0, jointSlider1);
+            ConfigureJointSlider(1, jointSlider2);
+            RecomputeForwardKinematics();
+            OnTemplateChanged?.Invoke(currentTemplate);
+        }
+
+        /// <summary>
         /// 특정 관절의 각도를 degree 단위로 설정하고 FK를 갱신합니다.
         /// </summary>
         public void SetJointAngleDegrees(int jointIndex, float degrees)
@@ -171,6 +229,61 @@ namespace KineTutor3D.App
             currentJointValuesRad[jointIndex] = DegreesToRadians(degrees);
             SetSliderValueWithoutCallback(jointIndex, degrees);
             RecomputeForwardKinematics();
+        }
+
+        /// <summary>
+        /// DH 필드를 갱신합니다. Theta는 읽기전용으로 거부됩니다.
+        /// </summary>
+        public bool TrySetDhParameter(int linkIndex, DhEditableField field, double value, out string error)
+        {
+            error = string.Empty;
+
+            if (currentTemplate == null || currentLinks == null || currentLinks.Length == 0)
+            {
+                error = "템플릿이 초기화되지 않았습니다.";
+                return false;
+            }
+
+            if (linkIndex < 0 || linkIndex >= currentLinks.Length)
+            {
+                error = $"유효하지 않은 링크 인덱스입니다: {linkIndex}";
+                return false;
+            }
+
+            if (double.IsNaN(value) || double.IsInfinity(value))
+            {
+                error = "NaN/Infinity는 허용되지 않습니다.";
+                return false;
+            }
+
+            if (field == DhEditableField.Theta)
+            {
+                error = "theta는 읽기전용입니다. 슬라이더를 사용하세요.";
+                return false;
+            }
+
+            var link = currentLinks[linkIndex];
+            DHLink updated;
+
+            switch (field)
+            {
+                case DhEditableField.D:
+                    updated = new DHLink(link.Theta, value, link.A, link.Alpha, link.JointType);
+                    break;
+                case DhEditableField.A:
+                    updated = new DHLink(link.Theta, link.D, value, link.Alpha, link.JointType);
+                    break;
+                case DhEditableField.Alpha:
+                    updated = new DHLink(link.Theta, link.D, link.A, value, link.JointType);
+                    break;
+                default:
+                    error = "지원하지 않는 DH 필드입니다.";
+                    return false;
+            }
+
+            currentLinks[linkIndex] = updated;
+            RecomputeForwardKinematics();
+            return true;
         }
 
         public void ReportInteraction(InteractionType interactionType, string targetId)
@@ -204,6 +317,9 @@ namespace KineTutor3D.App
             onboardingManager ??= FindFirstObjectByType<OnboardingManager>(FindObjectsInactive.Include);
             toastController ??= FindFirstObjectByType<ToastNotificationController>(FindObjectsInactive.Include);
             focusHighlighter ??= FindFirstObjectByType<FocusZoneHighlighter>(FindObjectsInactive.Include);
+            dhTableEditor ??= FindFirstObjectByType<DHTableEditor>(FindObjectsInactive.Include);
+            templateSelector ??= FindFirstObjectByType<TemplateSelector>(FindObjectsInactive.Include);
+            matrixDisplay ??= FindFirstObjectByType<MatrixDisplay>(FindObjectsInactive.Include);
 
             if (jointSlider1 == null)
             {
@@ -220,6 +336,33 @@ namespace KineTutor3D.App
                 if (go != null)
                 {
                     jointSlider2 = go.GetComponent<Slider>();
+                }
+            }
+
+            if (templateSelector == null)
+            {
+                var topBar = GameObject.Find("TopBar");
+                if (topBar != null)
+                {
+                    templateSelector = topBar.GetComponent<TemplateSelector>() ?? topBar.AddComponent<TemplateSelector>();
+                }
+            }
+
+            if (dhTableEditor == null)
+            {
+                var leftPanel = GameObject.Find("LeftPanel");
+                if (leftPanel != null)
+                {
+                    dhTableEditor = leftPanel.GetComponent<DHTableEditor>() ?? leftPanel.AddComponent<DHTableEditor>();
+                }
+            }
+
+            if (matrixDisplay == null)
+            {
+                var rightPanel = GameObject.Find("RightPanel");
+                if (rightPanel != null)
+                {
+                    matrixDisplay = rightPanel.GetComponent<MatrixDisplay>() ?? rightPanel.AddComponent<MatrixDisplay>();
                 }
             }
         }
@@ -243,21 +386,31 @@ namespace KineTutor3D.App
 
         private void InitializeTemplateRuntime()
         {
-            currentTemplate = Template2DOF_RR.Create();
-            currentJointValuesRad = new double[currentTemplate.Dof];
-
-            ConfigureJointSlider(0, jointSlider1);
-            ConfigureJointSlider(1, jointSlider2);
             BindSliderEvents();
-            RecomputeForwardKinematics();
+            ApplyTemplate(Template2DOF_RR.Create());
+        }
+
+        private void BindRuntimeUiControllers()
+        {
+            templateSelector?.Bind(this);
+            dhTableEditor?.Bind(this);
+            matrixDisplay?.Bind(this);
         }
 
         private void ConfigureJointSlider(int jointIndex, Slider slider)
         {
-            if (slider == null || currentTemplate == null || jointIndex >= currentTemplate.Dof)
+            if (slider == null)
             {
                 return;
             }
+
+            if (currentTemplate == null || jointIndex >= currentTemplate.Dof)
+            {
+                slider.gameObject.SetActive(false);
+                return;
+            }
+
+            slider.gameObject.SetActive(true);
 
             var limit = currentTemplate.GetJointLimit(jointIndex);
             var minDeg = (float)(limit.Min * Mathf.Rad2Deg);
@@ -333,17 +486,26 @@ namespace KineTutor3D.App
 
         private void RecomputeForwardKinematics()
         {
-            if (currentTemplate == null || currentJointValuesRad == null || currentJointValuesRad.Length == 0)
+            if (currentLinks == null || currentLinks.Length == 0 || currentJointValuesRad == null || currentJointValuesRad.Length == 0)
             {
+                currentA1 = Mat4D.Identity;
+                currentA2 = Mat4D.Identity;
+                currentT02 = Mat4D.Identity;
                 currentEndEffectorTransform = Mat4D.Identity;
                 currentEndEffectorPose = new TutorPose(currentEndEffectorTransform.ExtractPosition(), currentEndEffectorTransform.ExtractRotation());
+                OnKinematicsUpdated?.Invoke(currentA1, currentA2, currentT02, currentEndEffectorPose);
                 return;
             }
 
-            var links = currentTemplate.GetLinks();
-            var t0n = ForwardKinematics.ComputeEndEffectorTransform(links, currentJointValuesRad);
-            currentEndEffectorTransform = t0n;
-            currentEndEffectorPose = new TutorPose(t0n.ExtractPosition(), t0n.ExtractRotation());
+            currentA1 = currentLinks.Length > 0 ? DHStandard.ComputeA(currentLinks[0], currentJointValuesRad[0]) : Mat4D.Identity;
+            currentA2 = currentLinks.Length > 1 ? DHStandard.ComputeA(currentLinks[1], currentJointValuesRad[1]) : Mat4D.Identity;
+
+            var all = ForwardKinematics.ComputeAll(currentLinks, currentJointValuesRad);
+            currentEndEffectorTransform = all[all.Length - 1];
+            currentT02 = all[System.Math.Min(1, all.Length - 1)];
+            currentEndEffectorPose = new TutorPose(currentEndEffectorTransform.ExtractPosition(), currentEndEffectorTransform.ExtractRotation());
+
+            OnKinematicsUpdated?.Invoke(currentA1, currentA2, currentT02, currentEndEffectorPose);
         }
 
         private void SetSliderValueWithoutCallback(int jointIndex, float valueDegrees)

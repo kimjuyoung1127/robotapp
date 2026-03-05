@@ -14,8 +14,9 @@
 6. Phase 0 공식문서 근거 문서 추가 완료: `docs/ref/unity-official-evidence-phase01.md`.
 7. Phase 1 Types/Math + EditMode 테스트 자산 구현 완료.
 8. Phase 2 Kinematics(`DHStandard`, `ForwardKinematics`) 구현 및 수치 검증 완료.
-9. Phase 3 MVP 착수: `Template2DOF_RR` + `AppController` 슬라이더→FK 연동 시작.
-10. 검증 결과: Unity Test Runner EditMode 38/38, PlayMode 7/7 통과.
+9. Phase 3 확장: `TemplateSelector(2DOF 단일)`, `DHTableEditor(theta read-only, d/a/alpha editable)`, `MatrixDisplay(A1/A2/T02)` 실동작 연결 완료.
+10. CI 초안 추가: `.github/workflows/unity-tests.yml` (`self-hosted windows`, EditMode/PlayMode 자동 실행 + 결과 artifact 업로드).
+11. 검증 결과: Unity Test Runner EditMode 42/42, PlayMode 10/10 통과.
 
 ## 2) Locked Decisions
 
@@ -68,5 +69,5 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 
 ## 7) Next
 
-1. Phase 3 확장: DHTableEditor/TemplateSelector/MatrixDisplay 실동작 구현.
-2. CI에서 EditMode/PlayMode 자동 실행 파이프라인 고정.
+1. GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
+2. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.

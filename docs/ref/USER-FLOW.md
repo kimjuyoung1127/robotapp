@@ -14,6 +14,8 @@ Last Updated: 2026-03-05 (KST)
    - 학습 시작: Step 1 + 가이드 시퀀스 자동 재생
    - 건너뛰기: Step 8 샌드박스 진입
 4. Step 진행 중 입력(호버/클릭/슬라이더)
+   - Slider: `theta` 단일 소스(deg 입력 -> rad 변환)
+   - DH Table: `d/a/alpha`만 편집 가능(`theta` read-only)
 5. Gate 조건 평가
    - 미충족: Next 비활성, 힌트/토스트 안내
    - 충족: Next 활성, 완료 토스트 표시
@@ -59,3 +61,4 @@ flowchart TD
 2. 첫 방문 온보딩과 재방문 복귀가 분기대로 동작한다.
 3. Gate 완료 전 Next 비활성, 완료 후 활성으로 정확히 전환된다.
 4. Skip 사용 시 현재 Step을 건너뛰고 다음 Step으로 정상 진입한다.
+5. MatrixDisplay가 `A1/A2/T02`를 이벤트 기반으로 실시간 갱신한다.

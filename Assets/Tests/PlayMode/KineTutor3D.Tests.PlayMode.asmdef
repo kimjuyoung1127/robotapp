@@ -2,6 +2,7 @@
   "name": "KineTutor3D.Tests.PlayMode",
   "rootNamespace": "",
   "references": [
+    "KineTutor3D.Runtime",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "UnityEngine.UI"

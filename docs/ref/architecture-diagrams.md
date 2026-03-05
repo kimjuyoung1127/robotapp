@@ -13,6 +13,9 @@ flowchart LR
   A --> E["StepNavigator"]
   A --> F["FocusZoneHighlighter"]
   A --> G["ToastNotificationController"]
+  A --> P["TemplateSelector"]
+  A --> Q["DHTableEditor"]
+  A --> R["MatrixDisplay"]
 
   H["OnboardingManager"] --> I["SpotlightOverlay"]
   H --> A
@@ -42,6 +45,19 @@ flowchart TD
   J -->|"not met"| F
 ```
 
+## FK Runtime Data Flow (Phase 3 MVP+)
+
+```mermaid
+flowchart TD
+  A["Slider (deg)"] --> B["AppController deg->rad"]
+  C["DHTable d/a/alpha"] --> D["AppController TrySetDhParameter"]
+  B --> E["ForwardKinematics.ComputeAll"]
+  D --> E
+  E --> F["OnKinematicsUpdated(a1,a2,t02,pose)"]
+  F --> G["MatrixDisplay (A1/A2/T02)"]
+  F --> H["DHTableEditor theta/read-only row refresh"]
+```
+
 ## 신규 런타임 컴포넌트
 1. ProgressiveDisclosureController
 2. OnboardingManager
@@ -55,6 +71,9 @@ flowchart TD
 10. SpotlightOverlay
 11. FocusZoneHighlighter
 12. StepProgressSaver
+13. DHTableEditor
+14. TemplateSelector
+15. MatrixDisplay
 
 ## 설계 규칙
 1. 기구학 계산 로직은 UX 컴포넌트에 두지 않는다.

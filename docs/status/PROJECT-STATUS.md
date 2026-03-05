@@ -7,7 +7,8 @@
 - **Phase 0: Foundation** (완료)
 - **Phase 1: Types + Math (TDD)** (완료)
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
-- **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (진행 중)
+- **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (QA)
+- **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 
 ## Phase 0 체크리스트
@@ -20,19 +21,23 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 3 MVP 착수)
-1. 2DOF 템플릿 추가
-   - `Assets/Scripts/Templates/KineTutor3D.Templates.asmdef`
-   - `Assets/Scripts/Templates/Template2DOF_RR.cs`
-2. Runtime asmdef 분리
-   - `Assets/Scripts/KineTutor3D.Runtime.asmdef`
-   - App/UI에서 Types/Math/Kinematics/Templates 의존성 명시
-3. App/UI FK 연동
+## 이번 턴 반영 내용 (Phase 3 확장 + CI 고정)
+1. App/Runtime 인터페이스 확장
    - `Assets/Scripts/App/AppController.cs`
-   - `joint_slider_1/2` 자동 바인딩, degree→radian 변환, FK 결과 캐시
-4. 테스트 확장
-   - EditMode: `Template2DOF_RRTests`
-   - PlayMode: `SliderDrivenFk_*` 2케이스 추가
+   - `OnTemplateChanged`, `OnKinematicsUpdated` 이벤트 추가
+   - Slider 입력 + DHTable 입력을 단일 FK 파이프라인으로 통합
+2. UI 실기능 3개 구현
+   - `Assets/Scripts/UI/TemplateSelector.cs` (2DOF 단일 옵션)
+   - `Assets/Scripts/UI/DHTableEditor.cs` (`theta` read-only, `d/a/alpha` 편집)
+   - `Assets/Scripts/UI/MatrixDisplay.cs` (`A1/A2/T02` 실시간 표시)
+3. 테스트 확장
+   - EditMode: `DHTableEditorValidationTests`
+   - PlayMode: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 연동 3케이스 추가
+   - 결과: EditMode 42/42, PlayMode 10/10
+4. CI 자동 실행 워크플로우 추가
+   - `.github/workflows/unity-tests.yml`
+   - `push/pr/workflow_dispatch` 트리거
+   - self-hosted windows 러너에서 EditMode/PlayMode 분리 실행 + XML artifact 업로드
 
 ## 이전 턴 반영 내용 (Phase 0+1)
 1. 공식문서 근거 문서 추가
@@ -70,5 +75,5 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 3 확장: DHTableEditor/TemplateSelector/MatrixDisplay의 실 UI 기능화
-2. Unity Test Runner CLI 경로를 CI 파이프라인으로 고정
+1. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/UNITY_EXE/env 점검)
+2. `Assembly-CSharp.csproj` 로컬 빌드 실패 원인(생성 csproj 불일치) 문서화

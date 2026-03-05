@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Globalization;
 using System.Reflection;
+using KineTutor3D.UI;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -237,6 +239,106 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(pos.z, Is.EqualTo(0.0).Within(1e-4));
         }
 
+        [UnityTest]
+        public IEnumerator TemplateSelector_BindsSingleTemplateOption_AndSelectionKeepsRuntimeState()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Component app = null;
+            for (var i = 0; i < 60 && app == null; i++)
+            {
+                var appGo = Find("AppController");
+                app = appGo != null ? appGo.GetComponent("AppController") : null;
+                if (app == null) yield return null;
+            }
+
+            var selector = FindComponent<TemplateSelector>("TopBar");
+            Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
+            Assert.That(selector, Is.Not.Null, "TopBar에서 TemplateSelector 컴포넌트를 찾지 못했습니다.");
+
+            var templateNameBefore = GetCurrentTemplateName(app);
+            Assert.That(selector.OptionCount, Is.EqualTo(1), "1차 범위에서는 템플릿 옵션이 1개(2DOF_RR)여야 합니다.");
+            Assert.That(templateNameBefore, Is.EqualTo("2DOF_RR"));
+
+            selector.SelectByIndex(0);
+            yield return null;
+
+            var templateNameAfter = GetCurrentTemplateName(app);
+            Assert.That(templateNameAfter, Is.EqualTo("2DOF_RR"), "단일 옵션 선택 후 템플릿 이름이 유지되어야 합니다.");
+        }
+
+        [UnityTest]
+        public IEnumerator DHTableEditor_EditA_UpdatesT02()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Component app = null;
+            for (var i = 0; i < 60 && app == null; i++)
+            {
+                var appGo = Find("AppController");
+                app = appGo != null ? appGo.GetComponent("AppController") : null;
+                if (app == null) yield return null;
+            }
+
+            var dhTableEditor = FindComponent<DHTableEditor>("LeftPanel");
+            Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
+            Assert.That(dhTableEditor, Is.Not.Null, "LeftPanel에서 DHTableEditor 컴포넌트를 찾지 못했습니다.");
+
+            var before = GetCurrentT02Position(app);
+            Assert.That(before.x, Is.EqualTo(2.0).Within(1e-4));
+
+            var applied = dhTableEditor.TryApplyRawValue(0, KineTutor3D.App.DhEditableField.A, "1.5");
+            Assert.That(applied, Is.True, "DHTableEditor에서 a 값 반영에 실패했습니다.");
+            yield return null;
+
+            var after = GetCurrentT02Position(app);
+            Assert.That(after.x, Is.EqualTo(2.5).Within(1e-4), "a1 변경 후 T02 x 좌표가 즉시 갱신되어야 합니다.");
+            Assert.That(after.y, Is.EqualTo(0.0).Within(1e-4));
+            Assert.That(after.z, Is.EqualTo(0.0).Within(1e-4));
+        }
+
+        [UnityTest]
+        public IEnumerator MatrixDisplay_UpdatesFromOnKinematicsUpdated()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Component app = null;
+            for (var i = 0; i < 60 && app == null; i++)
+            {
+                var appGo = Find("AppController");
+                app = appGo != null ? appGo.GetComponent("AppController") : null;
+                if (app == null) yield return null;
+            }
+
+            var matrixDisplay = FindComponent<MatrixDisplay>("RightPanel");
+            var slider1 = FindComponent<Slider>("joint_slider_1");
+            var slider2 = FindComponent<Slider>("joint_slider_2");
+
+            Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
+            Assert.That(matrixDisplay, Is.Not.Null, "RightPanel에서 MatrixDisplay 컴포넌트를 찾지 못했습니다.");
+            Assert.That(slider1, Is.Not.Null, "joint_slider_1 Slider 컴포넌트를 찾지 못했습니다.");
+            Assert.That(slider2, Is.Not.Null, "joint_slider_2 Slider 컴포넌트를 찾지 못했습니다.");
+
+            slider1.value = 0f;
+            slider2.value = 0f;
+            yield return null;
+
+            var textBefore = matrixDisplay.T02RenderedText;
+            var expectedXBefore = GetCurrentT02Element(app, 0, 3).ToString("F4", CultureInfo.InvariantCulture);
+            Assert.That(textBefore, Does.Contain(expectedXBefore), "초기 T02 표시가 런타임 값과 일치해야 합니다.");
+
+            slider1.value = 90f;
+            slider2.value = 0f;
+            yield return null;
+
+            var textAfter = matrixDisplay.T02RenderedText;
+            var expectedXAfter = GetCurrentT02Element(app, 0, 3).ToString("F4", CultureInfo.InvariantCulture);
+            var expectedYAfter = GetCurrentT02Element(app, 1, 3).ToString("F4", CultureInfo.InvariantCulture);
+            Assert.That(textAfter, Does.Contain(expectedXAfter));
+            Assert.That(textAfter, Does.Contain(expectedYAfter));
+            Assert.That(textAfter, Is.Not.EqualTo(textBefore), "슬라이더 변화 후 T02 텍스트가 갱신되어야 합니다.");
+        }
+
         private static IEnumerator ReloadWithProgress(int hasVisited, int lastCompletedStep)
         {
             PlayerPrefs.SetInt("KineTutor3D.HasVisited", hasVisited);
@@ -283,6 +385,42 @@ namespace KineTutor3D.Tests.PlayMode
             var y = (double)positionType.GetProperty("Y", BindingFlags.Public | BindingFlags.Instance).GetValue(position);
             var z = (double)positionType.GetProperty("Z", BindingFlags.Public | BindingFlags.Instance).GetValue(position);
             return (x, y, z);
+        }
+
+        private static string GetCurrentTemplateName(Component app)
+        {
+            var templateProp = app.GetType().GetProperty("CurrentTemplate", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(templateProp, Is.Not.Null, "CurrentTemplate 프로퍼티를 찾지 못했습니다.");
+
+            var template = templateProp.GetValue(app);
+            Assert.That(template, Is.Not.Null, "CurrentTemplate 값이 비어 있습니다.");
+
+            var nameProp = template.GetType().GetProperty("Name", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(nameProp, Is.Not.Null, "RobotTemplate.Name 프로퍼티를 찾지 못했습니다.");
+            return (string)nameProp.GetValue(template);
+        }
+
+        private static (double x, double y, double z) GetCurrentT02Position(Component app)
+        {
+            return
+            (
+                GetCurrentT02Element(app, 0, 3),
+                GetCurrentT02Element(app, 1, 3),
+                GetCurrentT02Element(app, 2, 3)
+            );
+        }
+
+        private static double GetCurrentT02Element(Component app, int row, int col)
+        {
+            var t02Prop = app.GetType().GetProperty("CurrentT02", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(t02Prop, Is.Not.Null, "CurrentT02 프로퍼티를 찾지 못했습니다.");
+
+            var t02 = t02Prop.GetValue(app);
+            Assert.That(t02, Is.Not.Null, "CurrentT02 값이 비어 있습니다.");
+
+            var indexer = t02.GetType().GetProperty("Item", new[] { typeof(int), typeof(int) });
+            Assert.That(indexer, Is.Not.Null, "Mat4D 인덱서를 찾지 못했습니다.");
+            return (double)indexer.GetValue(t02, new object[] { row, col });
         }
 
         private static void InvokeReportInteraction(Component app, string interactionTypeName, string targetId)

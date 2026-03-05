@@ -9,14 +9,14 @@
 | Phase 1 | Math | P0 | Done | codex | math-module-add, editmode-test-add, unity-official-docs | docs/ref/dh-reference.md, docs/ref/test-reference-values.md, docs/ref/unity-official-evidence-phase01.md | 2026-03-05 |
 | Phase 2 | DH Standard | P0 | Done | codex | dh-algorithm-add, editmode-test-add | docs/ref/dh-reference.md, docs/ref/coordinate-mapping.md | 2026-03-05 |
 | Phase 2 | FK Engine | P0 | Done | codex | dh-algorithm-add, editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
-| Phase 3 | UI (DHTable/Sliders/Tutor) | P0 | InProgress | codex | tutor-step-add | docs/ref/architecture-diagrams.md | 2026-03-05 |
+| Phase 3 | UI (DHTable/Sliders/Tutor) | P0 | QA | codex | tutor-step-add, student-friendly-ux | docs/ref/architecture-diagrams.md | 2026-03-05 |
 | Phase 3 | Student-Friendly UX | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-05 |
-| Phase 3 | Template 2DOF | P0 | InProgress | codex | robot-template-add, tutor-step-add | docs/ref/test-reference-values.md, docs/ref/architecture-diagrams.md | 2026-03-05 |
+| Phase 3 | Template 2DOF | P0 | QA | codex | robot-template-add, tutor-step-add | docs/ref/test-reference-values.md, docs/ref/architecture-diagrams.md | 2026-03-05 |
 | Phase 4 | Visualization | P1 | Ready | - | - | docs/ref/coordinate-mapping.md | 2026-03-05 |
 | Phase 4 | Validator | P1 | Ready | - | editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | - | 2026-03-05 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | - | 2026-03-05 |
-| Phase 6 | CI/CD | P1 | Ready | - | pre-commit-validate | - | 2026-03-05 |
+| Phase 6 | CI/CD | P1 | InProgress | codex | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-05 |
 | Phase 7 | Documentation | P1 | Ready | - | sprint-docs-sync | - | 2026-03-05 |
 
 ## Zero-Drift 규칙

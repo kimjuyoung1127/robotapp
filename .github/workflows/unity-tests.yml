@@ -1,0 +1,64 @@
+﻿name: unity-tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  unity-tests:
+    runs-on:
+      - self-hosted
+      - windows
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PROJECT_PATH: ${{ github.workspace }}
+      RESULTS_DIR: Logs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Unity executable
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:UNITY_EXE)) {
+            throw 'UNITY_EXE environment variable is not set.'
+          }
+
+          if (-not (Test-Path $env:UNITY_EXE)) {
+            throw "UNITY_EXE path does not exist: $env:UNITY_EXE"
+          }
+
+      - name: Ensure results directory
+        run: |
+          New-Item -ItemType Directory -Path $env:RESULTS_DIR -Force | Out-Null
+
+      - name: Run EditMode tests
+        run: |
+          & "$env:UNITY_EXE" -batchmode -nographics -projectPath "$env:PROJECT_PATH" -runTests -testPlatform EditMode -testResults "$env:RESULTS_DIR/editmode-results.xml" -quit
+
+      - name: Upload EditMode results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editmode-results
+          path: Logs/editmode-results.xml
+          if-no-files-found: warn
+
+      - name: Run PlayMode tests
+        run: |
+          & "$env:UNITY_EXE" -batchmode -nographics -projectPath "$env:PROJECT_PATH" -runTests -testPlatform PlayMode -testResults "$env:RESULTS_DIR/playmode-results.xml" -quit
+
+      - name: Upload PlayMode results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playmode-results
+          path: Logs/playmode-results.xml
+          if-no-files-found: warn
