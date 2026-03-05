@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Task(*)",
+      "TodoWrite(*)",
+      "NotebookEdit(*)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:automaticaddison.com)",
+      "WebFetch(domain:petercorke.github.io)",
+      "WebFetch(domain:www.roboticsunveiled.com)",
+      "WebFetch(domain:users.cs.duke.edu)",
+      "WebFetch(domain:surajkiron.github.io)",
+      "WebFetch(domain:www.scribd.com)",
+      "WebFetch(domain:mr-iitkgp.vlabs.ac.in)",
+      "WebFetch(domain:gamedevdustin.medium.com)",
+      "WebFetch(domain:docs.unity3d.com)",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\Assets\\\\Scripts\\\\Math\\\\CLAUDE.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\Assets\\\\Scripts\\\\UI\\\\CLAUDE.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\status\\\\PROJECT-STATUS.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\status\\\\PHASE-EXECUTION-BOARD.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\architecture-diagrams.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\dh-reference.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\coordinate-mapping.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\test-reference-values.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\Assets\\\\Scenes\\\\CLAUDE.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\Assets\\\\Scripts\\\\Visualization\\\\CLAUDE.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\code-patterns.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\tutor-step-plan.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\.claude\\\\skills\\\\kinetutor-guide\\\\ops\\\\asmdef-setup\\\\SKILL.md\")",
+      "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\.claude\\\\skills\\\\kinetutor-guide\\\\ui\\\\scene-scaffold\\\\SKILL.md\")",
+      "Bash(git init)"
+    ],
+    "additionalDirectories": []
+  }
+}

@@ -1,0 +1,2 @@
+# Locked dependencies snapshot.
+# Currently empty because no Python packages are declared in requirements.txt.
