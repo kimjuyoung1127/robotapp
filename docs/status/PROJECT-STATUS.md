@@ -11,9 +11,10 @@
 - [x] Unity 프로젝트 생성 (3D Core 템플릿)
 - [x] unity-mcp 패키지 설치
 - [x] 문서 자동화 & 개발관리 시스템 구축
-- [ ] Git 저장소 초기화
-- [ ] .gitignore Unity 설정
+- [x] Git 저장소 초기화
+- [x] .gitignore Unity 설정
 - [ ] Unity 클린 컴파일 확인 (Console 에러 0)
+- [ ] 공식문서 근거 확인 완료 (docs.unity3d.com)
 
 ## 수용 기준 체크리스트
 - [ ] Windows 빌드 성공

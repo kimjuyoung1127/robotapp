@@ -24,6 +24,9 @@
 | tutor-step-add | HEALTHY | ✓ | ✓ |
 | editmode-test-add | HEALTHY | ✓ | ✓ |
 | pre-commit-validate | HEALTHY | ✓ | ✓ |
+| asmdef-setup | HEALTHY | ✓ | ✓ |
+| scene-scaffold | HEALTHY | ✓ | ✓ |
+| unity-official-docs | HEALTHY | ✓ | ✓ |
 | sprint-docs-sync | HEALTHY | ✓ | ✓ |
 
 ## 문서 정합성 요약

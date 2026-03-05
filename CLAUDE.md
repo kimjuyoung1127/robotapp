@@ -36,6 +36,7 @@
 | 7 | sprint-docs-sync | 문서 동기화, phase 완료 | meta/sprint-docs-sync/ |
 | 8 | asmdef-setup | assembly definition, asmdef, 모듈 경계 | kinetutor-guide/ops/asmdef-setup/ |
 | 9 | scene-scaffold | scene, Main.unity, 카메라, 씬 설정 | kinetutor-guide/ui/scene-scaffold/ |
+| 10 | unity-official-docs | unity 공식문서, asmdef, test runner, serialization, script compilation, API 호환성 | kinetutor-guide/ops/unity-official-docs/ |
 
 ### 스킬 의존성
 ```
@@ -44,6 +45,9 @@ tutor-step-add → robot-template-add (템플릿 존재 필수)
 pre-commit-validate → editmode-test-add (검증만)
 scene-scaffold → tutor-step-plan.md (UI 레이아웃 참조)
 asmdef-setup → architecture-diagrams.md (의존성 그래프 참조)
+asmdef-setup → unity-official-docs (공식 문서 근거 필수)
+pre-commit-validate → unity-official-docs (검증 근거 확인)
+Phase 0/1 의사결정 → unity-official-docs (공식 출처 강제)
 ```
 
 ### 스킬 사용법
@@ -123,6 +127,8 @@ Do 단계를 순서대로 실행, Validation 체크리스트로 확인.
 - 범위: [변경 내용]
 - 파일: [수정된 파일 목록]
 - 검증: [통과한 체크 항목]
+- 코드 리뷰 체크리스트:
+  - [ ] 공식 문서 링크 포함 (docs.unity3d.com)
 - 일일 동기화: [업데이트된 문서]
 - 위험 요소: [잠재적 문제]
 - 다음 권장: [다음 작업]

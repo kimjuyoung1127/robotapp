@@ -9,7 +9,7 @@ KineTutor3D Claude Code 대화형 개발 스킬 에셋.
   - `templates/` — robot-template-add
   - `ui/` — tutor-step-add, scene-scaffold
   - `test/` — editmode-test-add
-  - `ops/` — pre-commit-validate, asmdef-setup
+  - `ops/` — pre-commit-validate, asmdef-setup, unity-official-docs
 - `meta/` — 문서 오케스트레이션 스킬 (sprint-docs-sync)
 
 ## 스킬 포맷
@@ -24,6 +24,8 @@ tutor-step-add → robot-template-add
 pre-commit-validate → editmode-test-add (검증만)
 scene-scaffold → tutor-step-plan.md 참조
 asmdef-setup → architecture-diagrams.md 참조
+asmdef-setup → unity-official-docs 참조
+pre-commit-validate → unity-official-docs 참조
 ```
 
 ## 자동화 관계

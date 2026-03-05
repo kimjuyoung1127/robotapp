@@ -5,7 +5,7 @@ Schedule: daily 09:30 (Asia/Seoul)
 DRY_RUN: false (true 설정 시 파일 변경 없이 리포트만)
 
 ## 목표
-- 3개 자동화 + 7개 스킬의 통합 건강 대시보드 생성
+- 3개 자동화 + 10개 스킬의 통합 건강 대시보드 생성
 - 문서 정합성 요약 포함
 
 ## 레지스트리
@@ -18,7 +18,7 @@ DRY_RUN: false (true 설정 시 파일 변경 없이 리포트만)
 | code-doc-align | .claude/automations/code-doc-align.prompt.md | docs/status/.code-doc-align.lock | 26h |
 | automation-health-monitor | .claude/automations/automation-health-monitor.prompt.md | (없음) | - |
 
-### 스킬 레지스트리 (7개)
+### 스킬 레지스트리 (10개)
 
 | 이름 | SKILL 파일 | Read First 검증 대상 |
 |------|-----------|-------------------|
@@ -28,6 +28,9 @@ DRY_RUN: false (true 설정 시 파일 변경 없이 리포트만)
 | tutor-step-add | .claude/skills/kinetutor-guide/ui/tutor-step-add/SKILL.md | Assets/Scripts/UI/CLAUDE.md |
 | editmode-test-add | .claude/skills/kinetutor-guide/test/editmode-test-add/SKILL.md | Assets/Tests/EditMode/CLAUDE.md |
 | pre-commit-validate | .claude/skills/kinetutor-guide/ops/pre-commit-validate/SKILL.md | CLAUDE.md |
+| asmdef-setup | .claude/skills/kinetutor-guide/ops/asmdef-setup/SKILL.md | docs/ref/architecture-diagrams.md |
+| scene-scaffold | .claude/skills/kinetutor-guide/ui/scene-scaffold/SKILL.md | Assets/Scenes/CLAUDE.md |
+| unity-official-docs | .claude/skills/kinetutor-guide/ops/unity-official-docs/SKILL.md | .claude/skills/kinetutor-guide/ops/unity-official-docs/references/index.md |
 | sprint-docs-sync | .claude/skills/meta/sprint-docs-sync/SKILL.md | docs/status/PROJECT-STATUS.md |
 
 ## 상태 판정
@@ -78,7 +81,7 @@ docs/status/AUTOMATION-HEALTH-HISTORY.ndjson append:
 {
   "date_kst": "YYYY-MM-DD",
   "automation_summary": {"total": 3, "healthy": N, "stale": N, "stuck": N, "ready": N},
-  "skill_summary": {"total": 7, "healthy": N, "file_missing": N, "stale": N},
+  "skill_summary": {"total": 10, "healthy": N, "file_missing": N, "stale": N},
   "integrity_summary": {"drift": N, "auto_fix": N, "manual_required": N},
   "board_summary": {"Ready": N, "InProgress": N, "QA": N, "Done": N, "Hold": N}
 }

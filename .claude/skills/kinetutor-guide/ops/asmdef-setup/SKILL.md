@@ -15,6 +15,8 @@ Assembly Definition 파일 생성/수정 요청 시, 또는 모듈 경계 설정
 2. `CLAUDE.md` — 모듈 경계 규칙
 3. `ai-context/project-context.md` — 모듈별 UnityEngine 허용 정책
 4. `ai-context/coding-guideline.md` — pure C# 경계 규칙
+5. `../unity-official-docs/SKILL.md` — 공식 문서 기반 결정 형식
+6. `../unity-official-docs/references/index.md` — asmdef/컴파일 공식 링크
 
 ## Do (엄격한 순서)
 
@@ -31,6 +33,13 @@ KineTutor3D.App          → 전체
 KineTutor3D.Tests.EditMode → Types, Math, Kinematics + nunit.framework, UnityEngine.TestRunner
 KineTutor3D.Tests.PlayMode → 전체 + nunit.framework, UnityEngine.TestRunner
 ```
+
+### 1.5단계: 공식 문서 근거 고정
+`unity-official-docs` 스킬 포맷으로 아래 4개를 먼저 작성:
+1. 결론
+2. 공식 문서 근거(링크)
+3. 프로젝트 적용 규칙
+4. 버전 차이 메모(필요 시)
 
 ### 2단계: .asmdef 파일 생성
 각 모듈 폴더에 `.asmdef` JSON 파일 생성:
@@ -106,10 +115,12 @@ Unity Editor에서 컴파일 에러 0 확인.
 - [ ] 테스트 어셈블리: `nunit.framework.dll` + `UNITY_INCLUDE_TESTS`
 - [ ] Unity 컴파일: 에러 0
 - [ ] 각 .asmdef의 `rootNamespace`가 폴더 구조와 일치
+- [ ] 공식 문서 근거 링크 포함 (`docs.unity3d.com`)
 
 ## Output Template
 ```
 [asmdef-setup 완료]
+- 공식 근거: {docs.unity3d.com 링크 목록}
 - 생성된 .asmdef: {n}/9
 - noEngineReferences 모듈: Types, Math, Kinematics
 - 순환 참조: 없음
