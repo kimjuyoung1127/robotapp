@@ -36,7 +36,10 @@
       "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\docs\\\\ref\\\\tutor-step-plan.md\")",
       "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\.claude\\\\skills\\\\kinetutor-guide\\\\ops\\\\asmdef-setup\\\\SKILL.md\")",
       "Bash(test -f \"c:\\\\Users\\\\ezen601\\\\Desktop\\\\Jason\\\\robotapp2\\\\.claude\\\\skills\\\\kinetutor-guide\\\\ui\\\\scene-scaffold\\\\SKILL.md\")",
-      "Bash(git init)"
+      "Bash(git init)",
+      "Bash(git branch -M main)",
+      "Bash(git remote add origin https://github.com/kimjuyoung1127/robotapp.git)",
+      "Bash(git push -u origin main)"
     ],
     "additionalDirectories": []
   }

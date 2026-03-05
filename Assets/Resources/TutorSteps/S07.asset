@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8fef2150551f8f40bef017e2cd2cb3b, type: 3}
+  m_Name: S07
+  m_EditorClassIdentifier: 
+  showLeftPanel: 1
+  showRightPanel: 1
+  showBottomBar: 1
+  leftContent: 6
+  rightContent: 4
+  focusTarget: 7
+  focusHighlightColor: {r: 0.29, g: 0.62, b: 1, a: 1}
+  showFrameGizmos: 1
+  showMatrices: 1
+  showDHTable: 1
+  showSliders: 1
+  showAnimation: 1
+  showEEHighlight: 1
+  tooltips: []
+  conditions:
+  - interactionType: 1
+    targetId: pose_position_col
+    requiredCount: 1
+  - interactionType: 1
+    targetId: pose_rotation_col
+    requiredCount: 1
+  gateMeetToastKo: "EE \uC704\uCE58\uC640 \uBC29\uD5A5\uC744 \uCD94\uCD9C\uD560 \uC218
+    \uC788\uAC8C \uB418\uC5C8\uC2B5\uB2C8\uB2E4!"
+  stepTitleKo: "EE \uCD94\uCD9C"
+  objectiveKo: "T0n\uC5D0\uC11C \uC704\uCE58 \uBCA1\uD130 p\uC640 \uD68C\uC804 \uD589\uB82C
+    R\uC744 \uCD94\uCD9C\uD569\uB2C8\uB2E4."
+  hintKo: "\uC704\uCE58 \uC5F4/\uD68C\uC804 \uC5F4\uC744 \uAC01\uAC01 \uD074\uB9AD\uD558\uC138\uC694."
