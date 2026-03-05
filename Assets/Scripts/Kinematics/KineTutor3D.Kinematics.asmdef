@@ -1,0 +1,17 @@
+{
+  "name": "KineTutor3D.Kinematics",
+  "rootNamespace": "KineTutor3D.Kinematics",
+  "references": [
+    "KineTutor3D.Math",
+    "KineTutor3D.Types"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

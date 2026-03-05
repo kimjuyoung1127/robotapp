@@ -10,10 +10,12 @@
 2. MCP 연결 정상(telemetry/scene/console 조회 가능).
 3. `Assets/realvirtual` 패키지 임포트 완료(소스 자산 보존 전략).
 4. Student-Friendly UX 런타임/씬 배선/SO 데이터 실체화 완료.
-5. `Assets/Tests/PlayMode/UxFlowSmokeTests.cs` 스모크 테스트 유지(기준 5건).
+5. `Assets/Tests/PlayMode/UxFlowSmokeTests.cs` 스모크 테스트 확장(기준 7건).
 6. Phase 0 공식문서 근거 문서 추가 완료: `docs/ref/unity-official-evidence-phase01.md`.
 7. Phase 1 Types/Math + EditMode 테스트 자산 구현 완료.
-8. 검증 결과: Unity Test Runner EditMode 23/23, PlayMode 5/5 통과.
+8. Phase 2 Kinematics(`DHStandard`, `ForwardKinematics`) 구현 및 수치 검증 완료.
+9. Phase 3 MVP 착수: `Template2DOF_RR` + `AppController` 슬라이더→FK 연동 시작.
+10. 검증 결과: Unity Test Runner EditMode 38/38, PlayMode 7/7 통과.
 
 ## 2) Locked Decisions
 
@@ -66,5 +68,5 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 
 ## 7) Next
 
-1. Phase 2 착수: `DHStandard`, `ForwardKinematics` 구현 + 수치 검증.
+1. Phase 3 확장: DHTableEditor/TemplateSelector/MatrixDisplay 실동작 구현.
 2. CI에서 EditMode/PlayMode 자동 실행 파이프라인 고정.

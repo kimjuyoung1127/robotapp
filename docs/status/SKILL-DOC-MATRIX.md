@@ -5,8 +5,8 @@
 | skill | target_module | primary_code_paths | required_docs | dependent_skills | acceptance_checks |
 |-------|--------------|-------------------|---------------|-----------------|------------------|
 | math-module-add | Math | Assets/Scripts/Math/*.cs | docs/ref/dh-reference.md, docs/ref/test-reference-values.md | editmode-test-add | 컴파일 + EditMode 테스트 통과 |
-| dh-algorithm-add | Kinematics | Assets/Scripts/Kinematics/*.cs | docs/ref/dh-reference.md, docs/ref/coordinate-mapping.md | editmode-test-add | 수치 검증 허용 오차 만족 |
-| robot-template-add | Templates | Assets/Scripts/Templates/*.cs | docs/ref/test-reference-values.md | dh-algorithm-add, editmode-test-add | 템플릿 로드/FK 동작 확인 |
+| dh-algorithm-add | Kinematics | Assets/Scripts/Kinematics/*.cs, Assets/Tests/EditMode/DHStandardTests.cs, Assets/Tests/EditMode/FKTests.cs | docs/ref/dh-reference.md, docs/ref/coordinate-mapping.md, docs/ref/test-reference-values.md | editmode-test-add | 수치 검증 허용 오차 만족 + EditMode 테스트 통과 |
+| robot-template-add | Templates | Assets/Scripts/Templates/*.cs, Assets/Tests/EditMode/Template2DOF_RRTests.cs | docs/ref/test-reference-values.md | dh-algorithm-add, editmode-test-add | Template2DOF_RR 로드/FK 동작 확인 + 템플릿 테스트 통과 |
 | tutor-step-add | UI | Assets/Scripts/UI/StepTutorPanel.cs | docs/ref/architecture-diagrams.md | robot-template-add | 스텝 텍스트/행렬 갱신 연동 |
 | student-friendly-ux | UI/UX | Assets/Scripts/UI/*.cs, Assets/Scripts/UI/Data/*.cs | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | tutor-step-add, scene-scaffold | Step 매트릭스/게이트/온보딩 동작 일치 |
 | editmode-test-add | Tests | Assets/Tests/EditMode/*.cs | docs/ref/test-reference-values.md | - | 테스트 전수 통과 |

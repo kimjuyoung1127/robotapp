@@ -7,11 +7,11 @@
 | Phase 0 | Foundation | P0 | Done | codex | unity-official-docs, asmdef-setup | docs/status/PROJECT-STATUS.md, docs/ref/unity-official-evidence-phase01.md | 2026-03-05 |
 | Phase 1 | Types | P0 | Done | codex | math-module-add, unity-official-docs | docs/ref/dh-reference.md, docs/ref/unity-official-evidence-phase01.md | 2026-03-05 |
 | Phase 1 | Math | P0 | Done | codex | math-module-add, editmode-test-add, unity-official-docs | docs/ref/dh-reference.md, docs/ref/test-reference-values.md, docs/ref/unity-official-evidence-phase01.md | 2026-03-05 |
-| Phase 2 | DH Standard | P0 | Ready | - | dh-algorithm-add, editmode-test-add | docs/ref/dh-reference.md, docs/ref/coordinate-mapping.md | 2026-03-05 |
-| Phase 2 | FK Engine | P0 | Ready | - | dh-algorithm-add | docs/ref/test-reference-values.md | 2026-03-05 |
+| Phase 2 | DH Standard | P0 | Done | codex | dh-algorithm-add, editmode-test-add | docs/ref/dh-reference.md, docs/ref/coordinate-mapping.md | 2026-03-05 |
+| Phase 2 | FK Engine | P0 | Done | codex | dh-algorithm-add, editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
 | Phase 3 | UI (DHTable/Sliders/Tutor) | P0 | InProgress | codex | tutor-step-add | docs/ref/architecture-diagrams.md | 2026-03-05 |
 | Phase 3 | Student-Friendly UX | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-05 |
-| Phase 3 | Template 2DOF | P0 | Ready | - | robot-template-add | docs/ref/test-reference-values.md | 2026-03-05 |
+| Phase 3 | Template 2DOF | P0 | InProgress | codex | robot-template-add, tutor-step-add | docs/ref/test-reference-values.md, docs/ref/architecture-diagrams.md | 2026-03-05 |
 | Phase 4 | Visualization | P1 | Ready | - | - | docs/ref/coordinate-mapping.md | 2026-03-05 |
 | Phase 4 | Validator | P1 | Ready | - | editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | - | 2026-03-05 |

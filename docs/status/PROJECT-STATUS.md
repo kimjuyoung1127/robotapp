@@ -6,6 +6,8 @@
 ## 현재 Phase
 - **Phase 0: Foundation** (완료)
 - **Phase 1: Types + Math (TDD)** (완료)
+- **Phase 2: Kinematics Core (DH + FK)** (완료)
+- **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 
 ## Phase 0 체크리스트
@@ -18,7 +20,21 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 0+1)
+## 이번 턴 반영 내용 (Phase 3 MVP 착수)
+1. 2DOF 템플릿 추가
+   - `Assets/Scripts/Templates/KineTutor3D.Templates.asmdef`
+   - `Assets/Scripts/Templates/Template2DOF_RR.cs`
+2. Runtime asmdef 분리
+   - `Assets/Scripts/KineTutor3D.Runtime.asmdef`
+   - App/UI에서 Types/Math/Kinematics/Templates 의존성 명시
+3. App/UI FK 연동
+   - `Assets/Scripts/App/AppController.cs`
+   - `joint_slider_1/2` 자동 바인딩, degree→radian 변환, FK 결과 캐시
+4. 테스트 확장
+   - EditMode: `Template2DOF_RRTests`
+   - PlayMode: `SliderDrivenFk_*` 2케이스 추가
+
+## 이전 턴 반영 내용 (Phase 0+1)
 1. 공식문서 근거 문서 추가
    - `docs/ref/unity-official-evidence-phase01.md`
    - 주제: asmdef / test runner / serialization / script compilation / API compatibility
@@ -37,14 +53,14 @@
 
 ## Self-Review Gate (Cycle Result)
 1. 기능 리뷰
-   - Phase 1 타입/수학 계층은 `double` 기반 불변 타입으로 구현됨
-   - `Types/Math`에서 UnityEngine 참조를 사용하지 않음
+   - `DHStandard`/`ForwardKinematics` 구현으로 표준 DH 및 누적 FK 경로가 동작함
+   - `Types/Math/Kinematics`에서 UnityEngine 참조를 사용하지 않음
 2. 코드 리뷰
-   - NaN/Infinity 입력 가드가 생성자 경계에 반영됨
-   - `IEquatable<T>` + `GetHashCode`가 핵심 값 타입에 반영됨
+   - NaN/Infinity 입력 가드가 DH/FK 입력 경계에 반영됨
+   - Revolute/Prismatic 분기 처리 및 길이 불일치 가드가 반영됨
 3. 테스트 리뷰
-   - EditMode 테스트 추가 완료 (4개 테스트 클래스 + 2개 유틸)
-   - Unity Test Runner: EditMode 23/23 통과, PlayMode 5/5 통과
+   - EditMode 테스트 확장 완료 (`DHStandardTests`, `FKTests`, `Template2DOF_RRTests`)
+   - Unity Test Runner: EditMode 38/38 통과, PlayMode 7/7 통과
    - `dotnet build Assembly-CSharp.csproj` 오류 0 확인 (외부 패키지 경고만 존재)
    - Unity Console 에러는 MCP 시스템 로그 외 프로젝트 코드 에러 0
 4. 문서 리뷰
@@ -54,5 +70,5 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 2 착수: `DHStandard`, `ForwardKinematics` 구현 및 수치 검증
-2. Unity Test Runner에서 EditMode/PlayMode CI 실행 경로 고정
+1. Phase 3 확장: DHTableEditor/TemplateSelector/MatrixDisplay의 실 UI 기능화
+2. Unity Test Runner CLI 경로를 CI 파이프라인으로 고정

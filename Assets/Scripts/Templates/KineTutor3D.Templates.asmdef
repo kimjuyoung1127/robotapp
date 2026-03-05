@@ -1,0 +1,16 @@
+{
+  "name": "KineTutor3D.Templates",
+  "rootNamespace": "KineTutor3D.Templates",
+  "references": [
+    "KineTutor3D.Types"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

@@ -177,6 +177,66 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(glossaryPanel.activeSelf, Is.False, "용어 사전 닫기 후 GlossaryPanel은 비활성 상태여야 합니다.");
         }
 
+        [UnityTest]
+        public IEnumerator SliderDrivenFk_ZeroZero_MatchesReferencePosition()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Component app = null;
+            for (var i = 0; i < 60 && app == null; i++)
+            {
+                var appGo = Find("AppController");
+                app = appGo != null ? appGo.GetComponent("AppController") : null;
+                if (app == null) yield return null;
+            }
+
+            var slider1 = FindComponent<Slider>("joint_slider_1");
+            var slider2 = FindComponent<Slider>("joint_slider_2");
+
+            Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
+            Assert.That(slider1, Is.Not.Null, "joint_slider_1 Slider 컴포넌트를 찾지 못했습니다.");
+            Assert.That(slider2, Is.Not.Null, "joint_slider_2 Slider 컴포넌트를 찾지 못했습니다.");
+
+            slider1.value = 0f;
+            slider2.value = 0f;
+            yield return null;
+
+            var pos = GetCurrentEndEffectorPosition(app);
+            Assert.That(pos.x, Is.EqualTo(2.0).Within(1e-4));
+            Assert.That(pos.y, Is.EqualTo(0.0).Within(1e-4));
+            Assert.That(pos.z, Is.EqualTo(0.0).Within(1e-4));
+        }
+
+        [UnityTest]
+        public IEnumerator SliderDrivenFk_PiOver2Zero_MatchesReferencePosition()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Component app = null;
+            for (var i = 0; i < 60 && app == null; i++)
+            {
+                var appGo = Find("AppController");
+                app = appGo != null ? appGo.GetComponent("AppController") : null;
+                if (app == null) yield return null;
+            }
+
+            var slider1 = FindComponent<Slider>("joint_slider_1");
+            var slider2 = FindComponent<Slider>("joint_slider_2");
+
+            Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
+            Assert.That(slider1, Is.Not.Null, "joint_slider_1 Slider 컴포넌트를 찾지 못했습니다.");
+            Assert.That(slider2, Is.Not.Null, "joint_slider_2 Slider 컴포넌트를 찾지 못했습니다.");
+
+            slider1.value = 90f;
+            slider2.value = 0f;
+            yield return null;
+
+            var pos = GetCurrentEndEffectorPosition(app);
+            Assert.That(pos.x, Is.EqualTo(0.0).Within(1e-4));
+            Assert.That(pos.y, Is.EqualTo(2.0).Within(1e-4));
+            Assert.That(pos.z, Is.EqualTo(0.0).Within(1e-4));
+        }
+
         private static IEnumerator ReloadWithProgress(int hasVisited, int lastCompletedStep)
         {
             PlayerPrefs.SetInt("KineTutor3D.HasVisited", hasVisited);
@@ -202,6 +262,27 @@ namespace KineTutor3D.Tests.PlayMode
             var prop = app.GetType().GetProperty("CurrentStep", BindingFlags.Public | BindingFlags.Instance);
             Assert.That(prop, Is.Not.Null, "CurrentStep 프로퍼티를 찾지 못했습니다.");
             return (int)prop.GetValue(app);
+        }
+
+        private static (double x, double y, double z) GetCurrentEndEffectorPosition(Component app)
+        {
+            var poseProp = app.GetType().GetProperty("CurrentEndEffectorPose", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(poseProp, Is.Not.Null, "CurrentEndEffectorPose 프로퍼티를 찾지 못했습니다.");
+
+            var pose = poseProp.GetValue(app);
+            Assert.That(pose, Is.Not.Null, "CurrentEndEffectorPose 값이 비어 있습니다.");
+
+            var positionProp = pose.GetType().GetProperty("Position", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(positionProp, Is.Not.Null, "Pose.Position 프로퍼티를 찾지 못했습니다.");
+
+            var position = positionProp.GetValue(pose);
+            Assert.That(position, Is.Not.Null, "Pose.Position 값이 비어 있습니다.");
+
+            var positionType = position.GetType();
+            var x = (double)positionType.GetProperty("X", BindingFlags.Public | BindingFlags.Instance).GetValue(position);
+            var y = (double)positionType.GetProperty("Y", BindingFlags.Public | BindingFlags.Instance).GetValue(position);
+            var z = (double)positionType.GetProperty("Z", BindingFlags.Public | BindingFlags.Instance).GetValue(position);
+            return (x, y, z);
         }
 
         private static void InvokeReportInteraction(Component app, string interactionTypeName, string targetId)

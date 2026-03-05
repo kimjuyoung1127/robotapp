@@ -1,0 +1,20 @@
+{
+  "name": "KineTutor3D.Runtime",
+  "rootNamespace": "KineTutor3D",
+  "references": [
+    "KineTutor3D.Kinematics",
+    "KineTutor3D.Math",
+    "KineTutor3D.Templates",
+    "KineTutor3D.Types",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
