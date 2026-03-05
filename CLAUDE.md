@@ -1,69 +1,58 @@
-# KineTutor3D 오케스트레이션 인덱스
+﻿# KineTutor3D 프로젝트 인덱스
 
-로봇 기구학 학습 도구 — 자동화 우선 운영 인덱스.
+KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
+이 문서만 읽어도 현재 단계, 규칙, 다음 행동을 빠르게 파악할 수 있게 유지합니다.
 
 ## 저장소 경계
 - Write Repo: `C:\Users\ezen601\Desktop\Jason\robotapp2`
 
-## 컨텍스트 로딩 순서 (새 세션)
-1. 이 파일 — 구조 + 규칙 + 스킬/자동화 인덱스
-2. `ai-context/START-HERE.md` — 프로젝트 엔트리포인트
-3. `ai-context/master-plan.md` — 현재 Phase + 우선순위
-4. `docs/status/PROJECT-STATUS.md` — 기능 상태 + Phase 추적
-5. 대상 폴더 `CLAUDE.md` — 도메인 규칙
+## 시작 순서 (필수)
+1. `CLAUDE.md` (이 파일)
+2. `KineTutor3D_Execution_Plan.md`
+3. `docs/status/PROJECT-STATUS.md`
+4. `docs/status/PHASE-EXECUTION-BOARD.md`
+5. `docs/status/SKILL-DOC-MATRIX.md`
+
+## 현재 상태 (2026-03-05)
+- Phase 0: Done
+- Phase 1: Done
+- Phase 2: Done
+- Phase 3 (Template 2DOF + App/UI): QA
+- Phase 6 (CI/CD): InProgress
+
+최근 확정 사항:
+- Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
+- Unity Test Runner 결과: EditMode `42/42`, PlayMode `10/10`
+- CI 초안 추가: `.github/workflows/unity-tests.yml`
 
 ## 실행 규칙 (MUST)
-1. 수정 전 현재 파일 내용을 반드시 읽을 것.
-2. 기존 타입/수학/유틸리티 우선 재사용; 중복 구현 금지.
-3. 핵심 수학(Vec3D/Mat3D/Mat4D)은 순수 C# + double 정밀도 — UnityEngine 의존 금지.
-4. `Assets/Scripts/` 폴더 구조가 모듈 경계의 Source of Truth.
-5. CLAUDE.md는 간결하게 유지; 상세 내용은 `docs/` 또는 `ai-context/`에 기록.
-6. 명시적 요청 없이 파괴적 git 작업 금지.
-7. 작업 완료 시 일일 로그 + 보드 상태 + 정합성 노트 동기화.
-8. 모든 새 C# 파일에 XML doc summary (한국어 1-3줄) 필수.
-9. 모든 DH/FK 구현에 사용한 수학 공식 참조 포함.
+1. 기존 코드/타입/유틸 우선 재사용, 중복 구현 금지
+2. `Assets/Scripts/` 폴더 구조를 모듈 Source of Truth로 사용
+3. Math/Types/Kinematics는 pure C# `double` 유지, `UnityEngine` 참조 금지
+4. NaN/Infinity 입력은 FK 계산 전에 차단
+5. `theta`는 Slider 단일 소스, DHTable에서는 read-only
+6. 문서와 코드 상태가 다르면 코드/테스트 실제 상태를 우선
+7. 명시 요청 없이는 임의 Git 파괴 명령 금지
 
-## 스킬 (.claude/skills/)
+## Skill 인덱스 (.claude/skills)
+| # | Skill | Trigger 키워드 | 경로 |
+|---|---|---|---|
+| 1 | math-module-add | math, vector, matrix | `kinetutor-guide/core/math-module-add/` |
+| 2 | dh-algorithm-add | DH, FK, kinematics | `kinetutor-guide/kinematics/dh-algorithm-add/` |
+| 3 | robot-template-add | template, 2DOF/SCARA | `kinetutor-guide/templates/robot-template-add/` |
+| 4 | tutor-step-add | step tutor, learning step | `kinetutor-guide/ui/tutor-step-add/` |
+| 5 | editmode-test-add | editmode test | `kinetutor-guide/test/editmode-test-add/` |
+| 6 | pre-commit-validate | pre-commit, validate | `kinetutor-guide/ops/pre-commit-validate/` |
+| 7 | sprint-docs-sync | docs sync | `meta/sprint-docs-sync/` |
+| 8 | asmdef-setup | asmdef, assembly definition | `kinetutor-guide/ops/asmdef-setup/` |
+| 9 | scene-scaffold | Main.unity, scene scaffold | `kinetutor-guide/ui/scene-scaffold/` |
+| 10 | unity-official-docs | Unity 공식문서 근거 | `kinetutor-guide/ops/unity-official-docs/` |
 
-| # | 스킬명 | 트리거 키워드 | 경로 |
-|---|--------|------------|------|
-| 1 | math-module-add | 수학, vector, matrix, 새 타입 | kinetutor-guide/core/math-module-add/ |
-| 2 | dh-algorithm-add | DH, 역기구학, 자코비안 | kinetutor-guide/kinematics/dh-algorithm-add/ |
-| 3 | robot-template-add | 새 로봇, 4DOF, SCARA | kinetutor-guide/templates/robot-template-add/ |
-| 4 | tutor-step-add | 튜터, 학습 단계, step | kinetutor-guide/ui/tutor-step-add/ |
-| 5 | editmode-test-add | 테스트, EditMode | kinetutor-guide/test/editmode-test-add/ |
-| 6 | pre-commit-validate | 커밋, 검증, pre-commit | kinetutor-guide/ops/pre-commit-validate/ |
-| 7 | sprint-docs-sync | 문서 동기화, phase 완료 | meta/sprint-docs-sync/ |
-| 8 | asmdef-setup | assembly definition, asmdef, 모듈 경계 | kinetutor-guide/ops/asmdef-setup/ |
-| 9 | scene-scaffold | scene, Main.unity, 카메라, 씬 설정 | kinetutor-guide/ui/scene-scaffold/ |
-| 10 | unity-official-docs | unity 공식문서, asmdef, test runner, serialization, script compilation, API 호환성 | kinetutor-guide/ops/unity-official-docs/ |
-
-### 스킬 의존성
-```
-robot-template-add → dh-algorithm-add + editmode-test-add
-tutor-step-add → robot-template-add (템플릿 존재 필수)
-pre-commit-validate → editmode-test-add (검증만)
-scene-scaffold → tutor-step-plan.md (UI 레이아웃 참조)
-asmdef-setup → architecture-diagrams.md (의존성 그래프 참조)
-asmdef-setup → unity-official-docs (공식 문서 근거 필수)
-pre-commit-validate → unity-official-docs (검증 근거 확인)
-Phase 0/1 의사결정 → unity-official-docs (공식 출처 강제)
-```
-
-### 스킬 사용법
-작업 키워드가 스킬 트리거와 매칭되면, 해당 스킬의 Read First 파일을 읽고,
-Do 단계를 순서대로 실행, Validation 체크리스트로 확인.
-
-## 자동화 프롬프트 (외부 스케줄러)
-
-| 자동화 | 스케줄 | 목적 |
-|--------|--------|------|
-| docs-nightly-organizer | 22:00 KST | daily→weekly 롤업, 깨진 링크 체크 |
-| code-doc-align | 21:30 KST | Scripts/ vs BOARD vs MATRIX 드리프트 감지 |
-| automation-health-monitor | 09:30 KST | 자동화 + 스킬 건강 체크 |
-
-## 현재 상태
-- **Phase 0** — 문서/스킬/자동화 체계 구축 완료, C# 구현 대기
+## Skill 의존 규칙
+- `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
+- `tutor-step-add` -> `robot-template-add`
+- `asmdef-setup` -> `unity-official-docs`
+- `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
 
 ## Source of Truth 문서
 - 실행 계획: `KineTutor3D_Execution_Plan.md`
@@ -71,65 +60,22 @@ Do 단계를 순서대로 실행, Validation 체크리스트로 확인.
 - 실행 보드: `docs/status/PHASE-EXECUTION-BOARD.md`
 - 스킬 매트릭스: `docs/status/SKILL-DOC-MATRIX.md`
 - 아키텍처: `docs/ref/architecture-diagrams.md`
+- 사용자 흐름: `docs/ref/USER-FLOW.md`
+- 튜터 스텝: `docs/ref/tutor-step-plan.md`
 
-## 전문 참조 문서 (docs/ref/)
+## 테스트 표준
+- Local 우선 순서:
+1. EditMode 전체
+2. PlayMode 스모크
+- 현재 기준:
+1. EditMode: 42 passed
+2. PlayMode: 10 passed
+- CI 워크플로우:
+1. `.github/workflows/unity-tests.yml`
+2. runner: `self-hosted`, `windows`
+3. `UNITY_EXE` 환경변수 필요
 
-| 문서 | 내용 | 용도 |
-|------|------|------|
-| `dh-reference.md` | DH 수학 (기본 변환행렬, Standard/Modified DH, 회전행렬 성질) | 모든 기구학 구현의 수학 근거 |
-| `test-reference-values.md` | 검증 기준값 (2DOF 4×4 행렬, Vec/Mat 연산, SCARA, PUMA 560) | TDD 테스트 expected 값 |
-| `code-patterns.md` | C# 패턴 (readonly struct, NaN 가드, NUnit 보일러플레이트, 행렬 비교) | 코드 구현 템플릿 |
-| `tutor-step-plan.md` | 8개 튜토리얼 스텝 (학습목표, UI, 시각화, 인터랙션) | Step Tutor UI 스펙 |
-| `coordinate-mapping.md` | 로보틱스↔Unity 좌표 변환 규칙 | Visualization 모듈 전용 |
-| `architecture-diagrams.md` | 모듈 의존성, 데이터 흐름, 9개 asmdef 구조 | 전체 설계 참조 |
-
-## 폴더 CLAUDE.md 맵
-
-| 폴더 | 목적 |
-|------|------|
-| Assets/Scripts/ | 소스코드 루트 — 모듈 경계 정의 |
-| Assets/Scripts/Types/ | 도메인 타입 (JointType, DHLink, RobotTemplate, Pose) |
-| Assets/Scripts/Math/ | 수학 라이브러리 (Vec3D, Mat3D, Mat4D — pure C#, double) |
-| Assets/Scripts/Kinematics/ | DH/FK 알고리즘 (DHStandard 베이스라인 보호) |
-| Assets/Scripts/Templates/ | 로봇 설정 템플릿 |
-| Assets/Scripts/UI/ | UI 패널 |
-| Assets/Scripts/Visualization/ | 3D 렌더링 (double→float 변환 경계) |
-| Assets/Scripts/App/ | 앱 컨트롤러 |
-| Assets/Tests/ | 테스트 루트 |
-| Assets/Tests/EditMode/ | 순수 로직 테스트 (수학, 기구학) |
-| Assets/Tests/PlayMode/ | 통합/씬 테스트 (UI, 시각화) |
-| Assets/Scenes/ | 씬 관리 |
-
-## 테스트 정책
-
-| 영역 | 테스트 수준 | 방법 | 이유 |
-|------|-----------|------|------|
-| 수학 모듈 (Vec3D/Mat3D/Mat4D) | TDD | 실패 테스트 → 최소 구현 → 리팩터 | 입출력 결정적 |
-| 기구학 (DH, FK) | TDD | 알려진 수치 기준값 | 수학 정확성 필수 |
-| 템플릿 | 통합 | 로드 + FK 업데이트 사이클 | 템플릿-엔진 동기화 |
-| UI 컴포넌트 | 빌드 검증 | Unity 컴파일 + PlayMode 스모크 | 잦은 변경, 낮은 테스트 ROI |
-| 시각화 | PlayMode 스모크 | 검증 임계값 기반 시각 확인 | 시각 요소 단위 테스트 어려움 |
-
-### 테스트 규칙
-1. 수학/기구학 변경은 테스트 우선 (Red → Green → Refactor).
-2. 새 로봇 템플릿은 최소 1개 FK 수치 검증 필수.
-3. 구조 변경(리팩터)과 동작 변경(기능)은 별도 커밋.
-4. 테스트 실패 상태로 커밋 금지 (pre-commit-validate 스킬 사용).
-
-## 빠른 명령어
-- Unity 컴파일 체크: Unity Editor 열기, Console 에러 확인
-- EditMode 테스트: Unity > Window > General > Test Runner > EditMode > Run All
-- PlayMode 테스트: Unity > Window > General > Test Runner > PlayMode > Run All
-- 커밋 전 검증: pre-commit-validate 스킬 사용
-
-## 완료 보고 형식
-```
-- 범위: [변경 내용]
-- 파일: [수정된 파일 목록]
-- 검증: [통과한 체크 항목]
-- 코드 리뷰 체크리스트:
-  - [ ] 공식 문서 링크 포함 (docs.unity3d.com)
-- 일일 동기화: [업데이트된 문서]
-- 위험 요소: [잠재적 문제]
-- 다음 권장: [다음 작업]
-```
+## 즉시 다음 작업
+1. PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+2. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인 문서화
+3. Phase 3 QA 종료 후 상태 문서/보드 Done 반영
