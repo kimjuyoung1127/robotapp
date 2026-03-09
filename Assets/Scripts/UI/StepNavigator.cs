@@ -10,6 +10,7 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class StepNavigator : MonoBehaviour
     {
+        [SerializeField] private RectTransform bottomBarRoot;
         [SerializeField] private Button prevButton;
         [SerializeField] private Button nextButton;
         [SerializeField] private Button skipButton;
@@ -134,41 +135,47 @@ namespace KineTutor3D.UI
 
         private void EnsureBottomBarPresentation()
         {
-            var rect = transform as RectTransform;
-            if (rect != null)
-            {
-                UiRuntimeStyle.Stretch(rect, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 16f), new Vector2(-16f, 132f));
-            }
+            bottomBarRoot ??= UiRuntimeStyle.EnsureHostedRoot(this, "BottomBarRect");
+            UiRuntimeStyle.Stretch(bottomBarRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 16f), new Vector2(-16f, 132f));
 
             if (bottomBarBackground == null)
             {
-                bottomBarBackground = UiRuntimeStyle.EnsureImage(transform, "BottomBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+                bottomBarBackground = UiRuntimeStyle.EnsureImage(bottomBarRoot, "BottomBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(bottomBarBackground, bottomBarRoot);
             }
 
             UiRuntimeStyle.Stretch((RectTransform)bottomBarBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             if (jointSlider1 != null)
             {
+                UiRuntimeStyle.ReparentTo(jointSlider1, bottomBarRoot);
                 slider1ValueText = StyleSlider(jointSlider1, "Joint 1", new Vector2(210f, 0f));
             }
 
             if (jointSlider2 != null)
             {
+                UiRuntimeStyle.ReparentTo(jointSlider2, bottomBarRoot);
                 slider2ValueText = StyleSlider(jointSlider2, "Joint 2", new Vector2(560f, 0f));
             }
 
             if (prevButton != null)
             {
+                UiRuntimeStyle.ReparentTo(prevButton, bottomBarRoot);
                 StyleButton(prevButton, "Prev", new Vector2(-340f, 0f), UiRuntimeStyle.CardBackground);
             }
 
             if (skipButton != null)
             {
+                UiRuntimeStyle.ReparentTo(skipButton, bottomBarRoot);
                 StyleButton(skipButton, "Skip", new Vector2(-220f, 0f), UiRuntimeStyle.DangerMuted);
             }
 
             if (nextButton != null)
             {
+                UiRuntimeStyle.ReparentTo(nextButton, bottomBarRoot);
                 StyleButton(nextButton, "Next", new Vector2(-100f, 0f), UiRuntimeStyle.AccentBlue);
             }
         }

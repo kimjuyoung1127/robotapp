@@ -13,6 +13,7 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class TemplateSelector : MonoBehaviour
     {
+        [SerializeField] private RectTransform topBarRoot;
         [SerializeField] private Dropdown dropdown;
         [SerializeField] private Font fallbackFont;
         [SerializeField] private Text titleText;
@@ -116,12 +117,16 @@ namespace KineTutor3D.UI
             if (dropdown == null)
             {
                 var root = new GameObject("TemplateSelectorDropdown", typeof(RectTransform), typeof(Image), typeof(Dropdown));
-                root.transform.SetParent(transform, false);
+                root.transform.SetParent(topBarRoot, false);
                 dropdown = root.GetComponent<Dropdown>();
 
                 var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
                 labelGo.transform.SetParent(root.transform, false);
                 dropdown.captionText = labelGo.GetComponent<Text>();
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(dropdown, topBarRoot);
             }
 
             var rect = dropdown.transform as RectTransform;
@@ -152,15 +157,16 @@ namespace KineTutor3D.UI
 
         private void EnsureTopBarSurface()
         {
-            var rect = transform as RectTransform;
-            if (rect != null)
-            {
-                UiRuntimeStyle.Stretch(rect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -76f), new Vector2(-16f, -16f));
-            }
+            topBarRoot ??= UiRuntimeStyle.EnsureHostedRoot(this, "TopBarRect");
+            UiRuntimeStyle.Stretch(topBarRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -76f), new Vector2(-16f, -16f));
 
             if (topBarBackground == null)
             {
-                topBarBackground = UiRuntimeStyle.EnsureImage(transform, "TopBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+                topBarBackground = UiRuntimeStyle.EnsureImage(topBarRoot, "TopBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(topBarBackground, topBarRoot);
             }
 
             UiRuntimeStyle.Stretch((RectTransform)topBarBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -168,7 +174,11 @@ namespace KineTutor3D.UI
             titleText ??= GameObject.Find("TitleText")?.GetComponent<Text>();
             if (titleText == null)
             {
-                titleText = UiRuntimeStyle.EnsureText(transform, "TitleText", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+                titleText = UiRuntimeStyle.EnsureText(topBarRoot, "TitleText", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(titleText, topBarRoot);
             }
 
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
@@ -178,6 +188,7 @@ namespace KineTutor3D.UI
             var stepIndicator = GameObject.Find("StepIndicatorText")?.GetComponent<Text>();
             if (stepIndicator != null)
             {
+                UiRuntimeStyle.ReparentTo(stepIndicator, topBarRoot);
                 stepIndicator.font = fallbackFont;
                 stepIndicator.fontSize = 16;
                 stepIndicator.color = UiRuntimeStyle.TextSecondary;
@@ -188,6 +199,7 @@ namespace KineTutor3D.UI
             glossaryButton ??= GameObject.Find("BtnGlossaryOpen")?.GetComponent<Button>();
             if (glossaryButton != null)
             {
+                UiRuntimeStyle.ReparentTo(glossaryButton, topBarRoot);
                 UiRuntimeStyle.Anchor(glossaryButton.transform as RectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(40f, 36f), new Vector2(-24f, 0f));
                 UiRuntimeStyle.EnsureButtonLabel(glossaryButton, fallbackFont, "?", UiRuntimeStyle.AccentBlue);
             }

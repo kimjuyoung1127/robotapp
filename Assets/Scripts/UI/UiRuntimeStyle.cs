@@ -22,6 +22,37 @@ namespace KineTutor3D.UI
             return fallback != null ? fallback : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
+        public static RectTransform EnsureHostedRoot(Component host, string rootName)
+        {
+            if (host == null)
+            {
+                return null;
+            }
+
+            if (host.transform is RectTransform selfRect)
+            {
+                return selfRect;
+            }
+
+            var parentRect = host.transform.parent as RectTransform;
+            if (parentRect == null)
+            {
+                return null;
+            }
+
+            var existing = parentRect.Find(rootName) as RectTransform;
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var go = new GameObject(rootName, typeof(RectTransform));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parentRect, false);
+            rect.SetSiblingIndex(host.transform.GetSiblingIndex());
+            return rect;
+        }
+
         public static RectTransform EnsureRectChild(Transform parent, string name)
         {
             var existing = parent.Find(name);
@@ -47,6 +78,16 @@ namespace KineTutor3D.UI
             image.color = color;
             image.raycastTarget = false;
             return image;
+        }
+
+        public static T ReparentTo<T>(T component, Transform parent) where T : Component
+        {
+            if (component != null && parent != null && component.transform.parent != parent)
+            {
+                component.transform.SetParent(parent, false);
+            }
+
+            return component;
         }
 
         public static Text EnsureText(Transform parent, string name, Font font, int fontSize, FontStyle fontStyle, TextAnchor anchor, Color color)

@@ -15,6 +15,7 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class DHTableEditor : MonoBehaviour
     {
+        [SerializeField] private RectTransform panelRoot;
         [SerializeField] private RectTransform tableRoot;
         [SerializeField] private Font fallbackFont;
         [SerializeField] private int decimals = 4;
@@ -123,31 +124,35 @@ namespace KineTutor3D.UI
         private void EnsureRoot()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
-
-            var rect = transform as RectTransform;
-            if (rect != null)
-            {
-                UiRuntimeStyle.Stretch(rect, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(16f, 146f), new Vector2(372f, -92f));
-            }
+            panelRoot ??= UiRuntimeStyle.EnsureHostedRoot(this, "LeftPanelRect");
+            UiRuntimeStyle.Stretch(panelRoot, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(16f, 146f), new Vector2(372f, -92f));
 
             if (panelBackground == null)
             {
-                panelBackground = UiRuntimeStyle.EnsureImage(transform, "LeftPanelBackground", UiRuntimeStyle.PanelBackground);
+                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "LeftPanelBackground", UiRuntimeStyle.PanelBackground);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(panelBackground, panelRoot);
             }
 
             UiRuntimeStyle.Stretch((RectTransform)panelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            panelTitleText ??= UiRuntimeStyle.EnsureText(transform, "LeftPanelTitleText", fallbackFont, 22, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            panelTitleText = panelTitleText == null
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelTitleText", fallbackFont, 22, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary)
+                : UiRuntimeStyle.ReparentTo(panelTitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 28f), new Vector2(20f, -18f));
             panelTitleText.text = "DH Parameters";
 
-            panelSubtitleText ??= UiRuntimeStyle.EnsureText(transform, "LeftPanelSubtitleText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            panelSubtitleText = panelSubtitleText == null
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelSubtitleText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary)
+                : UiRuntimeStyle.ReparentTo(panelSubtitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelSubtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 24f), new Vector2(20f, -48f));
             panelSubtitleText.text = "theta is read-only. Edit d / a / alpha only.";
 
             if (tableRoot == null)
             {
-                var existing = transform.Find("DHTableRoot");
+                var existing = panelRoot.Find("DHTableRoot");
                 if (existing != null)
                 {
                     tableRoot = existing as RectTransform;
@@ -156,8 +161,12 @@ namespace KineTutor3D.UI
 
             if (tableRoot == null)
             {
-                tableRoot = UiRuntimeStyle.EnsureRectChild(transform, "DHTableRoot");
+                tableRoot = UiRuntimeStyle.EnsureRectChild(panelRoot, "DHTableRoot");
                 UiRuntimeStyle.EnsureVerticalLayout(tableRoot.gameObject, 8f, false);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(tableRoot, panelRoot);
             }
 
             UiRuntimeStyle.Stretch(tableRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(16f, 16f), new Vector2(-16f, -88f));
@@ -360,6 +369,7 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            rect.SetParent(panelRoot, false);
             UiRuntimeStyle.Anchor(rect, new Vector2(0f, 0f), new Vector2(0f, 0f), size, new Vector2(18f, 164f) + anchoredPosition);
 
             var image = go.GetComponent<Image>();

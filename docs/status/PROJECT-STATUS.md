@@ -45,6 +45,7 @@
    - `TemplateSelector`, `DHTableEditor`, `StepTutorPanel`, `MatrixDisplay`, `StepNavigator`가 씬 오브젝트 우선 배선 + 최소 fallback 생성 정책으로 동작
    - `TooltipSystem`, `ToastNotificationController`의 기본 시각을 디버그 텍스트에서 실제 패널 스타일로 교체
    - `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정
+   - Play 중 중앙 흰 사각형을 만들던 `WelcomeModal` placeholder와 viewport focus overlay를 기본 비활성으로 전환
 6. 테스트 확장
    - EditMode: `CoordConverterTests` 추가
    - PlayMode: `VisualizationSmokeTests`에 Canvas HUD, explicit donor path, on-screen EE motion 검증 추가
@@ -88,5 +89,7 @@
 
 ## 다음 작업
 1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, 실제 Scene/Game 수동 QA 마감
+   - 현재 상태: Play 중 중앙 흰 사각형 제거 확인
+   - 잔여 이슈: Scene 편집 상태에서는 placeholder 흔적이 남을 수 있어 수동 정리 필요
 2. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

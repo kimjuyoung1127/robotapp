@@ -6,6 +6,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 온보딩 스포트라이트 오버레이를 제어합니다.
     /// </summary>
+    [ExecuteAlways]
     public class SpotlightOverlay : MonoBehaviour
     {
         [SerializeField] private GameObject overlayRoot;
@@ -31,6 +32,13 @@ namespace KineTutor3D.UI
                 var go = GameObject.Find("SpotlightCutout");
                 if (go != null) spotlightCutout = go.GetComponent<RectTransform>();
             }
+
+            Hide();
+        }
+
+        private void OnEnable()
+        {
+            Hide();
         }
 
         public void Show(float dimAlpha)

@@ -14,6 +14,7 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class MatrixDisplay : MonoBehaviour
     {
+        [SerializeField] private RectTransform panelRoot;
         [SerializeField] private RectTransform matrixRoot;
         [SerializeField] private Text a1Text;
         [SerializeField] private Text a2Text;
@@ -79,10 +80,11 @@ namespace KineTutor3D.UI
         private void EnsureUi()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+            panelRoot ??= UiRuntimeStyle.EnsureHostedRoot(this, "RightPanelRect");
 
             if (matrixRoot == null)
             {
-                var existing = transform.Find("MatrixDisplayRuntime");
+                var existing = panelRoot.Find("MatrixDisplayRuntime");
                 if (existing != null)
                 {
                     matrixRoot = existing as RectTransform;
@@ -91,11 +93,15 @@ namespace KineTutor3D.UI
 
             if (matrixRoot == null)
             {
-                matrixRoot = UiRuntimeStyle.EnsureRectChild(transform, "MatrixDisplayRuntime");
+                matrixRoot = UiRuntimeStyle.EnsureRectChild(panelRoot, "MatrixDisplayRuntime");
                 UiRuntimeStyle.EnsureVerticalLayout(matrixRoot.gameObject, 8f, false);
             }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(matrixRoot, panelRoot);
+            }
 
-            UiRuntimeStyle.Stretch(matrixRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 20f), new Vector2(-16f, 304f));
+            UiRuntimeStyle.Stretch(matrixRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 20f), new Vector2(-16f, 240f));
 
             a1Text = EnsureMatrixCard("MatrixA1Card", "MatrixA1Text", ref a1Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
             a2Text = EnsureMatrixCard("MatrixA2Card", "MatrixA2Text", ref a2Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
@@ -157,8 +163,8 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            rect.SetParent(transform, false);
-            UiRuntimeStyle.Anchor(rect, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(132f, 40f), new Vector2(20f, 274f) + anchoredPosition);
+            rect.SetParent(panelRoot, false);
+            UiRuntimeStyle.Anchor(rect, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(132f, 40f), new Vector2(20f, 272f) + anchoredPosition);
 
             var image = go.GetComponent<Image>();
             if (image == null)

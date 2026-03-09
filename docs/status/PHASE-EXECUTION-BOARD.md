@@ -26,3 +26,4 @@
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
+7. Play 중 중앙 `WelcomeModal` placeholder와 viewport focus rectangle은 비활성 상태를 기준으로 유지한다.

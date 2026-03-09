@@ -10,6 +10,7 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class StepTutorPanel : MonoBehaviour
     {
+        [SerializeField] private RectTransform panelRoot;
         [SerializeField] private Text stepTitleText;
         [SerializeField] private Text objectiveText;
         [SerializeField] private Text hintText;
@@ -67,15 +68,16 @@ namespace KineTutor3D.UI
 
         private void EnsureLayout()
         {
-            var rect = transform as RectTransform;
-            if (rect != null)
-            {
-                UiRuntimeStyle.Stretch(rect, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-404f, 146f), new Vector2(-16f, -92f));
-            }
+            panelRoot ??= UiRuntimeStyle.EnsureHostedRoot(this, "RightPanelRect");
+            UiRuntimeStyle.Stretch(panelRoot, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-404f, 146f), new Vector2(-16f, -92f));
 
             if (tutorPanelBackground == null)
             {
-                tutorPanelBackground = UiRuntimeStyle.EnsureImage(transform, "RightPanelBackground", UiRuntimeStyle.PanelBackground);
+                tutorPanelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "RightPanelBackground", UiRuntimeStyle.PanelBackground);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(tutorPanelBackground, panelRoot);
             }
 
             UiRuntimeStyle.Stretch((RectTransform)tutorPanelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -91,7 +93,11 @@ namespace KineTutor3D.UI
             var text = GameObject.Find(objectName)?.GetComponent<Text>();
             if (text == null)
             {
-                text = UiRuntimeStyle.EnsureText(transform, objectName, fallbackFont, fontSize, fontStyle, anchor, color);
+                text = UiRuntimeStyle.EnsureText(panelRoot, objectName, fallbackFont, fontSize, fontStyle, anchor, color);
+            }
+            else
+            {
+                UiRuntimeStyle.ReparentTo(text, panelRoot);
             }
 
             text.font = fallbackFont;

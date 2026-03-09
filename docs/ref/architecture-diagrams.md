@@ -90,6 +90,7 @@ flowchart TB
   D --> D1["MatrixDisplay (A1 / A2 / T02)"]
   E --> E1["Joint Sliders + Prev / Next / Skip"]
   F --> F1["Tooltip / Toast / Spotlight / Glossary"]
+  F --> F2["No default center modal / no viewport fill box during Play"]
 ```
 
 ## 신규 런타임 컴포넌트
@@ -121,3 +122,4 @@ flowchart TB
 6. `realvirtual` 자산은 donor mesh source로만 사용하고 vendor runtime은 사용하지 않는다.
 7. UI는 `TopBar`, `LeftPanel`, `RightPanel`, `BottomBar` 4영역을 기준으로 정리하고 디버그성 임시 흰 패널을 제품 surface로 남기지 않는다.
 8. Phase 4 렌더 기준은 URP + Solid Color camera이며 donor mesh는 에러 셰이더 상태를 허용하지 않는다.
+9. Play 중 중앙을 덮는 placeholder modal과 viewport fill box는 허용하지 않는다.

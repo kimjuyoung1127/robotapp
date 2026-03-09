@@ -31,7 +31,15 @@ namespace KineTutor3D.UI
         private void Awake()
         {
             AutoWire();
+            HideInvalidWelcomeModal();
+            EnsureViewportTargetLayout();
             LoadSequenceIfNeeded();
+        }
+
+        private void OnEnable()
+        {
+            AutoWire();
+            HideInvalidWelcomeModal();
         }
 
         public void Initialize(AppController owner)
@@ -39,13 +47,18 @@ namespace KineTutor3D.UI
             appController = owner;
             BindButtons();
 
-            if (!StepProgressSaver.HasVisited())
+            if (!StepProgressSaver.HasVisited() && CanPresentWelcomeModal())
             {
                 SetModalVisible(true);
                 return;
             }
 
             SetModalVisible(false);
+            if (!StepProgressSaver.HasVisited())
+            {
+                StepProgressSaver.MarkVisited();
+            }
+
             var resumeStep = Mathf.Clamp(StepProgressSaver.GetResumeStep(1), 1, appController.TotalSteps);
             appController.SetCurrentStep(resumeStep);
         }
@@ -91,6 +104,15 @@ namespace KineTutor3D.UI
             {
                 guideText.text = string.Empty;
             }
+        }
+
+        private bool CanPresentWelcomeModal()
+        {
+            return welcomeModal != null &&
+                   welcomeModal.transform is RectTransform &&
+                   startLearningButton != null &&
+                   skipButton != null &&
+                   guideText != null;
         }
 
         private IEnumerator RunGuideSequence()
@@ -197,6 +219,63 @@ namespace KineTutor3D.UI
                 var go = GameObject.Find("DHCellTarget");
                 if (go != null) dhCellTarget = go.GetComponent<RectTransform>();
             }
+        }
+
+        private void HideInvalidWelcomeModal()
+        {
+            if (welcomeModal == null)
+            {
+                return;
+            }
+
+            if (welcomeModal.transform is RectTransform)
+            {
+                return;
+            }
+
+            welcomeModal.SetActive(false);
+
+            if (startLearningButton != null)
+            {
+                startLearningButton.gameObject.SetActive(false);
+            }
+
+            if (skipButton != null)
+            {
+                skipButton.gameObject.SetActive(false);
+            }
+
+            if (guideText != null)
+            {
+                guideText.gameObject.SetActive(false);
+                guideText.text = string.Empty;
+            }
+        }
+
+        private void EnsureViewportTargetLayout()
+        {
+            if (robotViewportTarget == null)
+            {
+                return;
+            }
+
+            var isDefaultPlaceholder =
+                robotViewportTarget.anchorMin == new Vector2(0.5f, 0.5f) &&
+                robotViewportTarget.anchorMax == new Vector2(0.5f, 0.5f) &&
+                robotViewportTarget.sizeDelta == new Vector2(100f, 100f);
+
+            if (!isDefaultPlaceholder)
+            {
+                return;
+            }
+
+            robotViewportTarget.anchorMin = new Vector2(0.22f, 0.18f);
+            robotViewportTarget.anchorMax = new Vector2(0.8f, 0.82f);
+            robotViewportTarget.offsetMin = new Vector2(12f, 12f);
+            robotViewportTarget.offsetMax = new Vector2(-12f, -12f);
+            robotViewportTarget.anchoredPosition = Vector2.zero;
+            robotViewportTarget.sizeDelta = Vector2.zero;
+            robotViewportTarget.pivot = new Vector2(0.5f, 0.5f);
         }
 
         private void LoadSequenceIfNeeded()
