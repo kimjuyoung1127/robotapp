@@ -7,6 +7,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 스텝 목표/힌트/게이트 진행 텍스트를 표시합니다.
     /// </summary>
+    [ExecuteAlways]
     public class StepTutorPanel : MonoBehaviour
     {
         [SerializeField] private Text stepTitleText;
@@ -17,6 +18,12 @@ namespace KineTutor3D.UI
         [SerializeField] private Graphic tutorPanelBackground;
 
         private void Awake()
+        {
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+            EnsureLayout();
+        }
+
+        private void OnEnable()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             EnsureLayout();

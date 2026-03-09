@@ -7,6 +7,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// Prev/Next/Skip 버튼과 스텝 인디케이터를 제어합니다.
     /// </summary>
+    [ExecuteAlways]
     public class StepNavigator : MonoBehaviour
     {
         [SerializeField] private Button prevButton;
@@ -23,6 +24,12 @@ namespace KineTutor3D.UI
         private Text slider2ValueText;
 
         private void Awake()
+        {
+            AutoWire();
+            EnsureBottomBarPresentation();
+        }
+
+        private void OnEnable()
         {
             AutoWire();
             EnsureBottomBarPresentation();

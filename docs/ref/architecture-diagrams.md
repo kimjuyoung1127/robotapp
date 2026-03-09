@@ -1,6 +1,6 @@
 ﻿# KineTutor3D Architecture Diagrams
 
-Version: 1.3.0
+Version: 1.4.0
 Last Updated: 2026-03-09 (KST)
 
 ## UX Module Map (Phase 3 확장)
@@ -66,11 +66,13 @@ flowchart TD
   B --> C["CoordConverter"]
   B --> D["Canonical Frames: frame_0 / frame_1 / Frame_EE"]
   B --> E["Hidden Donor Source: ScaraDonorProbe"]
+  C --> I["URP Main Camera / Solid Color View"]
   C --> D
   C --> F["Donor Mesh Anchors: BaseVisual / Link0Visual / Link1Visual / EndEffectorVisualMesh"]
   D --> G["FrameGizmo"]
   F --> H["RobotRoot Runtime Rig"]
   E --> F
+  H --> I
 ```
 
 ## Scene UI Layout (MVP)
@@ -118,3 +120,4 @@ flowchart TB
 5. Visualization의 frame ownership은 `frame_0`, `frame_1`, `Frame_EE`가 단일 source다.
 6. `realvirtual` 자산은 donor mesh source로만 사용하고 vendor runtime은 사용하지 않는다.
 7. UI는 `TopBar`, `LeftPanel`, `RightPanel`, `BottomBar` 4영역을 기준으로 정리하고 디버그성 임시 흰 패널을 제품 surface로 남기지 않는다.
+8. Phase 4 렌더 기준은 URP + Solid Color camera이며 donor mesh는 에러 셰이더 상태를 허용하지 않는다.

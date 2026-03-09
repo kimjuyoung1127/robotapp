@@ -7,6 +7,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 하단 토스트 메시지 표시를 담당합니다.
     /// </summary>
+    [ExecuteAlways]
     public class ToastNotificationController : MonoBehaviour
     {
         [SerializeField] private GameObject toastRoot;
@@ -67,6 +68,36 @@ namespace KineTutor3D.UI
             if (toastRoot != null)
             {
                 toastRoot.SetActive(false);
+            }
+        }
+
+        private void OnEnable()
+        {
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+
+            if (toastRoot == null)
+            {
+                var go = GameObject.Find("ToastRoot");
+                if (go != null) toastRoot = go;
+            }
+
+            if (messageText == null && toastRoot != null)
+            {
+                messageText = toastRoot.GetComponentInChildren<Text>(true);
+            }
+
+            if (background == null && toastRoot != null)
+            {
+                background = toastRoot.GetComponent<Image>();
+            }
+
+            if (toastRoot != null)
+            {
+                var rect = toastRoot.transform as RectTransform;
+                if (rect != null)
+                {
+                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, 48f), new Vector2(0f, 88f));
+                }
             }
         }
 

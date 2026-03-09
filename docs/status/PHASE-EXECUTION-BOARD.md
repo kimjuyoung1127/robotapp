@@ -25,3 +25,4 @@
 3. Phase 0/1의 asmdef/tests/compile/serialization 결정은 `docs.unity3d.com` 링크 근거를 필수로 남긴다.
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
+6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.

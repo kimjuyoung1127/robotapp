@@ -11,6 +11,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// A1/A2/T02 행렬을 실시간으로 표시합니다.
     /// </summary>
+    [ExecuteAlways]
     public class MatrixDisplay : MonoBehaviour
     {
         [SerializeField] private RectTransform matrixRoot;
@@ -21,6 +22,11 @@ namespace KineTutor3D.UI
         [SerializeField] private int decimals = 4;
 
         private AppController appController;
+
+        private void OnEnable()
+        {
+            EnsureUi();
+        }
 
         public string A1RenderedText => a1Text != null ? a1Text.text : string.Empty;
         public string A2RenderedText => a2Text != null ? a2Text.text : string.Empty;

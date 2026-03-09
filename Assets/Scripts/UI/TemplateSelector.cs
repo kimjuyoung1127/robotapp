@@ -10,6 +10,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 로봇 템플릿 드롭다운을 렌더하고 선택을 AppController에 전달합니다.
     /// </summary>
+    [ExecuteAlways]
     public class TemplateSelector : MonoBehaviour
     {
         [SerializeField] private Dropdown dropdown;
@@ -21,6 +22,11 @@ namespace KineTutor3D.UI
         private AppController appController;
         private readonly List<string> optionNames = new List<string>();
         private bool suppressCallback;
+
+        private void OnEnable()
+        {
+            EnsureDropdown();
+        }
 
         public int OptionCount => dropdown != null ? dropdown.options.Count : 0;
 

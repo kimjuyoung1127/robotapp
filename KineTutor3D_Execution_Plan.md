@@ -18,8 +18,9 @@
 10. CI 초안 추가: `.github/workflows/unity-tests.yml` (`self-hosted windows`, EditMode/PlayMode 자동 실행 + 결과 artifact 업로드).
 11. Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 승격하고 `Frame_EE`를 표준 EE frame으로 유지.
 12. Phase 4 확장: `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 hidden donor source로 배치하고, vendor runtime 없이 mesh-only donor visual로 재사용.
-13. 검증 결과: Unity Test Runner EditMode 45/45, PlayMode 15/15 통과, `Main.unity` 활성/Build index 0/프로젝트 코드 에러 0 확인.
+13. 검증 결과: Unity Test Runner EditMode 45/45, PlayMode 17/17 통과, `Main.unity` 활성/Build index 0/프로젝트 코드 에러 0 확인.
 14. 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface 구성, donor mesh offset/scale 보정 경로 및 교육용 카메라 구도 반영.
+15. Phase 4 디버그: Built-in -> URP(`com.unity.render-pipelines.universal@17.0.4`) 전환, `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정, `Main Camera`를 Solid Color로 전환.
 
 ## 2) Locked Decisions
 
@@ -69,14 +70,15 @@
 5. vendor script/drive/logic/runtime은 사용하지 않으며, 프로젝트 FK 결과만 시각 transform의 Source of Truth로 유지한다.
 6. 1차 범위는 2DOF 전용이며 추가 축(`Axis3` 등)은 donor source에 남기더라도 런타임 제어 대상에서 제외한다.
 7. UI는 씬 오브젝트 우선 배선 정책을 유지하고, `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar`에 공통 panel surface를 적용해 학습 화면 MVP를 유지한다.
-8. `Main Camera`는 `RobotRoot`, `frame_0`, `frame_1`, `Frame_EE`가 동시에 보이는 교육용 구도를 기본값으로 유지한다.
+8. 렌더 파이프라인은 URP 기준으로 고정하고 donor mesh는 Built-in fallback이 아닌 URP material 경로를 사용한다.
+9. `Main Camera`는 `RobotRoot`, `frame_0`, `frame_1`, `Frame_EE`가 동시에 보이는 Solid Color 교육용 구도를 기본값으로 유지한다.
 
 ## 6) Test Execution Standard
 
 ### A) Local
 1. Test Runner에서 EditMode 우선 실행
 2. UI/UX는 PlayMode 스모크로 온보딩/게이트/툴팁 경로 확인
-3. PlayMode 스모크 기준: 온보딩/게이트/Skip/패널가시성/툴팁+용어사전 + `TemplateSelector`/`DHTableEditor`/`MatrixDisplay` + canonical frame/donor mesh + UI MVP layout 검증을 포함한 총 15건 유지
+3. PlayMode 스모크 기준: 온보딩/게이트/Skip/패널가시성/툴팁+용어사전 + `TemplateSelector`/`DHTableEditor`/`MatrixDisplay` + canonical frame/donor mesh + UI MVP layout + URP 활성/가시성 검증을 포함한 총 17건 유지
 
 ### B) CLI
 ```powershell
@@ -89,6 +91,6 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 
 ## 7) Next
 
-1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 보정, `Frame_EE` 포함 수동 QA 마감
+1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 보정, 실제 Game View 수동 QA 마감
 2. GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.

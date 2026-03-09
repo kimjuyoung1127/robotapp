@@ -22,7 +22,7 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 4 Visualization + UI MVP 정리)
+## 이번 턴 반영 내용 (Phase 4 Visualization + URP 정상화)
 1. Visualization 코어 3개 유지
    - `Assets/Scripts/Visualization/CoordConverter.cs`
    - `Assets/Scripts/Visualization/FrameGizmo.cs`
@@ -35,15 +35,20 @@
    - `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 `ScaraDonorProbe` hidden donor source로 배치
    - vendor runtime 없이 `BaseVisual`, `Link0Visual`, `Link1Visual`, `EndEffectorVisualMesh`에 mesh-only 복제
    - 기존 primitive visual marker는 숨기고 FK 기반 anchor만 유지
-4. 학습 화면 MVP 정리
+4. 렌더 파이프라인/씬 정상화
+   - `Packages/manifest.json`에 `com.unity.render-pipelines.universal@17.0.4` 추가
+   - `ProjectSettings/GraphicsSettings.asset`, `ProjectSettings/QualitySettings.asset`를 `Assets/realvirtual/RenderPipelines/Resources/URP/URP-Default.asset`로 고정
+   - URP 전환 과정에서 생성된 global settings / volume profile 자산을 프로젝트 기준값으로 반영
+5. 학습 화면 MVP 정리
    - `TopBar` / `LeftPanel` / `RightPanel` / `BottomBar` 4영역 surface를 런타임 공통 스타일로 정리
+   - 주요 UI 스크립트에 `ExecuteAlways`를 적용해 Scene View에서도 배치 구조가 보이도록 정리
    - `TemplateSelector`, `DHTableEditor`, `StepTutorPanel`, `MatrixDisplay`, `StepNavigator`가 씬 오브젝트 우선 배선 + 최소 fallback 생성 정책으로 동작
    - `TooltipSystem`, `ToastNotificationController`의 기본 시각을 디버그 텍스트에서 실제 패널 스타일로 교체
-   - `Main Camera`를 2DOF 학습 구도로 조정
-5. 테스트 확장
+   - `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정
+6. 테스트 확장
    - EditMode: `CoordConverterTests` 추가
-   - PlayMode: `VisualizationSmokeTests` + UI layout smoke 추가
-   - 결과: EditMode 45/45, PlayMode 15/15
+   - PlayMode: `VisualizationSmokeTests`에 URP 활성/에러 셰이더 방지/카메라 frustum 검증 추가
+   - 결과: EditMode 45/45, PlayMode 17/17
 
 ## 이전 턴 반영 내용 (Phase 0+1)
 1. 공식문서 근거 문서 추가
@@ -70,9 +75,10 @@
    - UI 편집 경로가 기존 App/FK 파이프라인을 우회하지 않음을 유지함
    - `theta` 단일 소스 규칙(Slider only)과 입력 가드 정책이 유지됨
 3. 테스트 리뷰
-   - Unity Test Runner: EditMode 45/45 통과, PlayMode 15/15 통과
+   - Unity Test Runner: EditMode 45/45 통과, PlayMode 17/17 통과
    - 씬 저장 확인: `Main.unity` 활성, Build index 0, `RobotRoot` 저장 완료
    - Unity Console 에러는 MCP 시스템 로그 외 프로젝트 코드 에러 0
+   - `KineTutor3D.Runtime.csproj` 빌드는 경고만 있고 성공
    - `Assembly-CSharp.csproj`는 현재 QA 완료 기준이 아니며, 생성 csproj 불일치 이슈는 후속 추적으로 유지
 4. 문서 리뷰
    - `CLAUDE.md` / `KineTutor3D_Execution_Plan` / `PROJECT-STATUS` / `PHASE-EXECUTION-BOARD` / `SKILL-DOC-MATRIX` 정합성 동기화
@@ -81,6 +87,6 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 마감, `Frame_EE` 포함 수동 QA 마감
+1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 마감, 실제 Game View 수동 QA 마감
 2. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

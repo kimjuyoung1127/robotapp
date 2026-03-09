@@ -6,6 +6,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 한국어 툴팁 버블의 표시/숨김을 담당하는 싱글턴입니다.
     /// </summary>
+    [ExecuteAlways]
     public class TooltipSystem : MonoBehaviour
     {
         public static TooltipSystem Instance { get; private set; }
@@ -27,6 +28,21 @@ namespace KineTutor3D.UI
             Instance = this;
             AutoWire();
             Hide();
+        }
+
+        private void OnEnable()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+
+            AutoWire();
+
+            if (!Application.isPlaying)
+            {
+                Hide();
+            }
         }
 
         public void ShowScreen(Vector2 screenPosition, string titleKo, string bodyKo)

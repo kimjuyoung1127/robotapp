@@ -12,6 +12,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 2DOF DH 테이블을 렌더하고 d/a/alpha 편집 입력을 AppController에 전달합니다.
     /// </summary>
+    [ExecuteAlways]
     public class DHTableEditor : MonoBehaviour
     {
         [SerializeField] private RectTransform tableRoot;
@@ -32,6 +33,11 @@ namespace KineTutor3D.UI
             public InputField A;
             public InputField Alpha;
             public Text JointType;
+        }
+
+        private void OnEnable()
+        {
+            EnsureRoot();
         }
 
         public void Bind(AppController owner)

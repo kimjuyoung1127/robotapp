@@ -1,6 +1,7 @@
 using KineTutor3D.App;
 using KineTutor3D.Math;
 using UnityEngine;
+using UnityEngine.Rendering;
 using TutorPose = KineTutor3D.Types.Pose;
 
 namespace KineTutor3D.Visualization
@@ -45,7 +46,11 @@ namespace KineTutor3D.Visualization
         [Header("Display")]
         [SerializeField] private float frameAxisLength = 0.22f;
         [SerializeField] private float donorScale = 0.22f;
+        [SerializeField] private float baseScale = 0.22f;
+        [SerializeField] private float endEffectorScale = 0.22f;
         [SerializeField] private float segmentThicknessScale = 0.22f;
+        [SerializeField] private float link0ThicknessScale = 0.22f;
+        [SerializeField] private float link1ThicknessScale = 0.22f;
         [SerializeField] private Vector3 baseLocalOffset = new Vector3(0f, -0.04f, 0f);
         [SerializeField] private Vector3 baseLocalEuler = Vector3.zero;
         [SerializeField] private Vector3 link0LocalOffset = Vector3.zero;
@@ -57,6 +62,9 @@ namespace KineTutor3D.Visualization
 
         private float link0SourceLength = 1.0f;
         private float link1SourceLength = 1.0f;
+
+        public bool HasAllVisualAnchors => baseVisual != null && link0Visual != null && link1Visual != null && endEffectorVisual != null;
+        public bool HasAllDonorSources => donorBaseSource != null && donorLink0Source != null && donorLink1Source != null && donorEndEffectorSource != null;
 
         private void Awake()
         {
@@ -182,17 +190,17 @@ namespace KineTutor3D.Visualization
             {
                 baseVisual.localPosition = baseLocalOffset;
                 baseVisual.localRotation = Quaternion.Euler(baseLocalEuler);
-                baseVisual.localScale = Vector3.one * donorScale;
+                baseVisual.localScale = Vector3.one * ResolveBaseScale();
             }
 
-            UpdateSegmentVisual(link0Visual, Vector3.zero, frame1Unity, link0SourceLength, link0LocalOffset, link0LocalEuler);
-            UpdateSegmentVisual(link1Visual, frame1Unity, eeUnity, link1SourceLength, link1LocalOffset, link1LocalEuler);
+            UpdateSegmentVisual(link0Visual, Vector3.zero, frame1Unity, link0SourceLength, ResolveLink0Thickness(), link0LocalOffset, link0LocalEuler);
+            UpdateSegmentVisual(link1Visual, frame1Unity, eeUnity, link1SourceLength, ResolveLink1Thickness(), link1LocalOffset, link1LocalEuler);
 
             if (endEffectorVisual != null)
             {
                 endEffectorVisual.localPosition = eeUnity + endEffectorLocalOffset;
                 endEffectorVisual.localRotation = CoordConverter.ToUnityRotation(endEffectorTransformValue.ExtractRotation()) * Quaternion.Euler(endEffectorLocalEuler);
-                endEffectorVisual.localScale = Vector3.one * donorScale;
+                endEffectorVisual.localScale = Vector3.one * ResolveEndEffectorScale();
             }
         }
 
@@ -419,7 +427,73 @@ namespace KineTutor3D.Visualization
             return Mathf.Max(0.01f, candidate);
         }
 
-        private void UpdateSegmentVisual(Transform visual, Vector3 start, Vector3 end, float sourceLength, Vector3 localOffset, Vector3 localEuler)
+        public Bounds GetAggregateVisualBounds()
+        {
+            EnsureRig();
+
+            var renderers = GetComponentsInChildren<MeshRenderer>(true);
+            var hasBounds = false;
+            var aggregate = new Bounds(transform.position, Vector3.zero);
+
+            foreach (var renderer in renderers)
+            {
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (!hasBounds)
+                {
+                    aggregate = renderer.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    aggregate.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return aggregate;
+        }
+
+        public bool IsVisibleFrom(Camera camera)
+        {
+            if (camera == null)
+            {
+                return false;
+            }
+
+            var bounds = GetAggregateVisualBounds();
+            if (bounds.size.sqrMagnitude < 1e-6f)
+            {
+                return false;
+            }
+
+            var planes = GeometryUtility.CalculateFrustumPlanes(camera);
+            return GeometryUtility.TestPlanesAABB(planes, bounds);
+        }
+
+        private float ResolveBaseScale()
+        {
+            return baseScale > 0f ? baseScale : donorScale;
+        }
+
+        private float ResolveEndEffectorScale()
+        {
+            return endEffectorScale > 0f ? endEffectorScale : donorScale;
+        }
+
+        private float ResolveLink0Thickness()
+        {
+            return link0ThicknessScale > 0f ? link0ThicknessScale : segmentThicknessScale;
+        }
+
+        private float ResolveLink1Thickness()
+        {
+            return link1ThicknessScale > 0f ? link1ThicknessScale : segmentThicknessScale;
+        }
+
+        private void UpdateSegmentVisual(Transform visual, Vector3 start, Vector3 end, float sourceLength, float thicknessScale, Vector3 localOffset, Vector3 localEuler)
         {
             if (visual == null)
             {
@@ -437,7 +511,7 @@ namespace KineTutor3D.Visualization
             visual.gameObject.SetActive(true);
             visual.localPosition = (start + end) * 0.5f + localOffset;
             visual.localRotation = Quaternion.FromToRotation(Vector3.right, direction.normalized) * Quaternion.Euler(localEuler);
-            visual.localScale = new Vector3(length / Mathf.Max(0.01f, sourceLength), segmentThicknessScale, segmentThicknessScale);
+            visual.localScale = new Vector3(length / Mathf.Max(0.01f, sourceLength), thicknessScale, thicknessScale);
         }
     }
 }

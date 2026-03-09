@@ -3,6 +3,7 @@ using KineTutor3D.UI;
 using KineTutor3D.Visualization;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -112,6 +113,44 @@ namespace KineTutor3D.Tests.PlayMode
             var after = ee.transform.position;
 
             Assert.That(Vector3.Distance(before, after), Is.GreaterThan(0.5f), "FK 변경 후 donor EE visual이 이동해야 합니다.");
+        }
+
+        [UnityTest]
+        public IEnumerator UrpPipeline_IsActive_AndDonorMaterialsAreNotErrorShaders()
+        {
+            yield return null;
+
+            Assert.That(GraphicsSettings.currentRenderPipeline, Is.Not.Null, "URP render pipeline asset이 활성 상태여야 합니다.");
+
+            foreach (var name in new[] { "BaseVisual", "Link0Visual", "Link1Visual", "EndEffectorVisualMesh" })
+            {
+                var go = GameObject.Find(name);
+                Assert.That(go, Is.Not.Null, $"{name} 오브젝트를 찾지 못했습니다.");
+
+                var renderer = go.GetComponent<MeshRenderer>();
+                Assert.That(renderer, Is.Not.Null, $"{name} MeshRenderer가 필요합니다.");
+                Assert.That(renderer.sharedMaterial, Is.Not.Null, $"{name} material이 비어 있으면 안 됩니다.");
+                Assert.That(renderer.sharedMaterial.shader, Is.Not.Null, $"{name} shader가 비어 있으면 안 됩니다.");
+                Assert.That(renderer.sharedMaterial.shader.name, Is.Not.EqualTo("Hidden/InternalErrorShader"), $"{name}가 에러 셰이더로 렌더링되고 있습니다.");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RobotAggregateBounds_StayInsideMainCameraFrustum()
+        {
+            var renderer = Object.FindFirstObjectByType<RobotRenderer>();
+            var camera = Camera.main;
+
+            for (var i = 0; i < 60 && (renderer == null || camera == null); i++)
+            {
+                yield return null;
+                renderer = Object.FindFirstObjectByType<RobotRenderer>();
+                camera = Camera.main;
+            }
+
+            Assert.That(renderer, Is.Not.Null, "RobotRenderer를 찾지 못했습니다.");
+            Assert.That(camera, Is.Not.Null, "Main Camera가 필요합니다.");
+            Assert.That(renderer.IsVisibleFrom(camera), Is.True, "RobotRoot aggregate bounds가 Main Camera frustum 안에 있어야 합니다.");
         }
 
         private static Slider FindSlider(string name)
