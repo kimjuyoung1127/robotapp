@@ -8,7 +8,7 @@
 - **Phase 1: Types + Math (TDD)** (완료)
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
-- **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (진행 중)
+- **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 
@@ -22,7 +22,7 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 4 Visualization + URP 정상화)
+## 이번 턴 반영 내용 (Phase 4 Visualization 마감 + URP 정상화)
 1. Visualization 코어 3개 유지
    - `Assets/Scripts/Visualization/CoordConverter.cs`
    - `Assets/Scripts/Visualization/FrameGizmo.cs`
@@ -46,6 +46,7 @@
    - `TooltipSystem`, `ToastNotificationController`의 기본 시각을 디버그 텍스트에서 실제 패널 스타일로 교체
    - `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정
    - Play 중 중앙 흰 사각형을 만들던 `WelcomeModal` placeholder와 viewport focus overlay를 기본 비활성으로 전환
+   - 유효한 온보딩 모달이 없을 때는 placeholder를 띄우지 않고 Step 흐름으로 즉시 진입하도록 보정
 6. 테스트 확장
    - EditMode: `CoordConverterTests` 추가
    - PlayMode: `VisualizationSmokeTests`에 Canvas HUD, explicit donor path, on-screen EE motion 검증 추가
@@ -83,13 +84,11 @@
    - `Assembly-CSharp.csproj`는 현재 QA 완료 기준이 아니며, 생성 csproj 불일치 이슈는 후속 추적으로 유지
 4. 문서 리뷰
    - `CLAUDE.md` / `KineTutor3D_Execution_Plan` / `PROJECT-STATUS` / `PHASE-EXECUTION-BOARD` / `SKILL-DOC-MATRIX` 정합성 동기화
-   - Phase 4 Visualization을 `InProgress`로 유지하되 canonical frame ownership과 donor mesh 정책을 문서에 고정함
+   - Phase 4 Visualization을 `Done`으로 승격하고 canonical frame ownership, donor mesh 정책, HUD overlay 정책을 문서에 고정함
 5. 운영 스킬화
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, 실제 Scene/Game 수동 QA 마감
-   - 현재 상태: Play 중 중앙 흰 사각형 제거 확인
-   - 잔여 이슈: Scene 편집 상태에서는 placeholder 흔적이 남을 수 있어 수동 정리 필요
-2. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
+1. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
+2. editor polish: Scene 편집 상태 placeholder 흔적 정리와 donor mesh 미세 보정
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

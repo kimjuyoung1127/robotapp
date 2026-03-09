@@ -12,7 +12,7 @@
 | Phase 3 | UI (DHTable/Sliders/Tutor) | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 3 | Student-Friendly UX | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-05 |
 | Phase 3 | Template 2DOF | P0 | Done | codex | robot-template-add, tutor-step-add | docs/ref/test-reference-values.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
-| Phase 4 | Visualization | P1 | InProgress | codex | scene-scaffold, editmode-test-add | docs/ref/coordinate-mapping.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
+| Phase 4 | Visualization | P1 | Done | codex | scene-scaffold, editmode-test-add | docs/ref/coordinate-mapping.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 4 | Validator | P1 | Ready | - | editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | - | 2026-03-05 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | - | 2026-03-05 |

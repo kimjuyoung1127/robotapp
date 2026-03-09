@@ -18,7 +18,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 1: Done
 - Phase 2: Done
 - Phase 3 (Template 2DOF + App/UI): Done
-- Phase 4 (Visualization core): InProgress
+- Phase 4 (Visualization core): Done
 - Phase 6 (CI/CD): InProgress
 
 최근 확정 사항:
@@ -28,6 +28,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용
 - Phase 4B HUD 디버그: `WelcomeModal` placeholder와 중앙 viewport 포커스 하이라이트를 기본 비활성화해 Play 중 중앙 흰 사각형이 더 이상 표시되지 않도록 수정
+- 온보딩 정책 보정: 유효한 `RectTransform` 기반 모달이 없으면 placeholder 모달을 건너뛰고 즉시 Step 흐름으로 진입
 - 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역으로 정리하고 런타임 디버그성 흰 패널/텍스트를 공통 스타일 surface로 대체
 - Phase 4 디버그: Built-in에서 URP(`com.unity.render-pipelines.universal@17.0.4`)로 전환하고 `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정
 - Camera 정리: `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정하고 donor mesh local offset/scale 보정 경로를 `RobotRenderer`에 고정
@@ -85,6 +86,6 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 3. `UNITY_EXE` 환경변수 필요
 
 ## 즉시 다음 작업
-1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, Scene 편집 상태의 placeholder 잔존 여부 포함 수동 QA 마감
-2. PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+1. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+2. editor polish: Scene 편집 상태 placeholder/루트 정리와 donor mesh 미세 보정
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인 문서화

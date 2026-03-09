@@ -62,7 +62,7 @@
    - `StepNavigator` Next 잠금/Skip 처리
    - `StepTutorPanel` Step/게이트 상태 동기화
 
-## 5.5) Phase 4 Visualization (InProgress)
+## 5.5) Phase 4 Visualization (Done)
 
 1. `CoordConverter`가 robotics 좌표계를 Unity 좌표계로 변환하는 단일 경계를 담당한다.
 2. `FrameGizmo`는 `LineRenderer` 기반 RGB 축을 canonical frame object(`frame_0`, `frame_1`, `Frame_EE`)에 직접 부착해 표시한다.
@@ -74,6 +74,7 @@
 8. 렌더 파이프라인은 URP 기준으로 고정하고 donor mesh는 Built-in fallback이 아닌 URP material 경로를 사용한다.
 9. `Main Camera`는 `RobotRoot`, `frame_0`, `frame_1`, `Frame_EE`가 동시에 보이는 Solid Color 교육용 구도를 기본값으로 유지한다.
 10. 중앙 viewport를 덮는 큰 focus rectangle은 제품 HUD에서 사용하지 않으며, viewport focus는 문서/게이트 기준으로만 유지하고 시각 박스는 비활성화한다.
+11. 잘못된 `WelcomeModal` placeholder는 제품 온보딩 UI로 간주하지 않으며, 유효한 모달 구성이 없으면 즉시 스텝 흐름으로 진입한다.
 
 ## 6) Test Execution Standard
 
@@ -93,6 +94,6 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 
 ## 7) Next
 
-1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, Scene 편집 상태 placeholder 잔존 포함 실제 Scene/Game 수동 QA 마감
-2. GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
+1. Phase 6 CI/CD 계속: GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
+2. editor polish: Scene 편집 상태 placeholder 정리, donor mesh offset/scale 미세 보정.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.

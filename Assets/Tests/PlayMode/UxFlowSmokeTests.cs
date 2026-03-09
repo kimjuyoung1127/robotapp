@@ -25,7 +25,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_FirstRun_ShowsModal_And_StartEntersStep1()
+        public IEnumerator Onboarding_FirstRun_WithInvalidPlaceholder_SkipsModal_AndEntersStep1()
         {
             Component app = null;
             for (var i = 0; i < 60 && app == null; i++)
@@ -38,15 +38,10 @@ namespace KineTutor3D.Tests.PlayMode
 
             var modal = Find("WelcomeModal");
             Assert.That(modal, Is.Not.Null, "WelcomeModal 오브젝트를 찾지 못했습니다.");
-            Assert.That(modal.activeSelf, Is.True, "첫 실행 시 WelcomeModal은 활성 상태여야 합니다.");
-
-            var startButton = FindComponent<Button>("BtnStartLearning");
-            Assert.That(startButton, Is.Not.Null, "BtnStartLearning Button 컴포넌트를 찾지 못했습니다.");
-            startButton.onClick.Invoke();
+            Assert.That(modal.activeSelf, Is.False, "잘못된 placeholder WelcomeModal은 기본 비활성 상태여야 합니다.");
             yield return null;
 
-            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "학습 시작 클릭 후 Step 1로 진입해야 합니다.");
-            Assert.That(modal.activeSelf, Is.False, "학습 시작 후 WelcomeModal은 비활성 상태여야 합니다.");
+            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "유효한 모달이 없을 때는 즉시 Step 1로 진입해야 합니다.");
         }
 
         [UnityTest]
