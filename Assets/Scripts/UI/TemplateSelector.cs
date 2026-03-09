@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using System;
 using System.Collections.Generic;
 using KineTutor3D.App;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 로봇 템플릿 드롭다운을 렌더하고 선택을 AppController에 전달합니다.
+    /// 濡쒕큸 ?쒗뵆由??쒕∼?ㅼ슫???뚮뜑?섍퀬 ?좏깮??AppController???꾨떖?⑸땲??
     /// </summary>
     [ExecuteAlways]
     public class TemplateSelector : MonoBehaviour
@@ -243,3 +244,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

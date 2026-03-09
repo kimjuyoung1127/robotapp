@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace KineTutor3D.UI
@@ -87,3 +88,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

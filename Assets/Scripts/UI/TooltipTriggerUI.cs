@@ -1,3 +1,4 @@
+ï»¿// Folder: UI - HUD/view components only; no kinematics logic.
 using System;
 using KineTutor3D.App;
 using KineTutor3D.UI.Data;
@@ -7,13 +8,13 @@ using UnityEngine.EventSystems;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// UI ¿ä¼ÒÀÇ È£¹ö/Å¬¸¯À» ÅøÆÁ°ú °ÔÀÌÆ® ÀÌº¥Æ®·Î º¯È¯ÇÕ´Ï´Ù.
+    /// UI ìš”ì†Œì˜ í˜¸ë²„/í´ë¦­ì„ íˆ´íŒê³¼ ê²Œì´íŠ¸ ì´ë²¤íŠ¸ë¡œ ë³€í™˜í•©ë‹ˆë‹¤.
     /// </summary>
     public class TooltipTriggerUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         [SerializeField] private string targetId = "ui-target";
-        [SerializeField] private string titleKo = "¿ë¾î";
-        [TextArea(2, 6)] [SerializeField] private string bodyKo = "¼³¸í";
+        [SerializeField] private string titleKo = "ìš©ì–´";
+        [TextArea(2, 6)] [SerializeField] private string bodyKo = "ì„¤ëª…";
         [SerializeField] private bool clickOnly;
         [SerializeField] private bool reportHover = true;
         [SerializeField] private bool reportClick = true;
@@ -69,3 +70,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.UI.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 스텝 목표/힌트/게이트 진행 텍스트를 표시합니다.
+    /// ?ㅽ뀦 紐⑺몴/?뚰듃/寃뚯씠??吏꾪뻾 ?띿뒪?몃? ?쒖떆?⑸땲??
     /// </summary>
     [ExecuteAlways]
     public class StepTutorPanel : MonoBehaviour
@@ -110,3 +111,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

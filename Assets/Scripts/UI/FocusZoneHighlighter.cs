@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
 using KineTutor3D.UI.Data;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 현재 학습 포커스 영역의 펄스 하이라이트를 표시합니다.
+    /// ?꾩옱 ?숈뒿 ?ъ빱???곸뿭???꾩뒪 ?섏씠?쇱씠?몃? ?쒖떆?⑸땲??
     /// </summary>
     [ExecuteAlways]
     public class FocusZoneHighlighter : MonoBehaviour
@@ -195,3 +196,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

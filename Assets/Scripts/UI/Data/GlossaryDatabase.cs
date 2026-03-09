@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using UnityEngine;
 
 namespace KineTutor3D.UI.Data
 {
@@ -11,3 +12,4 @@ namespace KineTutor3D.UI.Data
         public GlossaryEntryConfig[] entries = new GlossaryEntryConfig[0];
     }
 }
+

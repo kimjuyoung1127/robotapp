@@ -18,7 +18,7 @@
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | - | 2026-03-05 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | - | 2026-03-05 |
 | Phase 6 | CI/CD | P1 | InProgress | codex | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-09 |
-| Phase 7 | Documentation | P1 | Ready | - | sprint-docs-sync | - | 2026-03-05 |
+| Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-09 |
 
 ## Zero-Drift 규칙
 1. `Assets/Scripts/` 구조를 코드 모듈 Source of Truth로 간주한다.
@@ -30,3 +30,4 @@
 7. 시작 흐름은 `Boot -> Onboarding/Main` 분기와 `LoadSceneMode.Single`을 기준으로 유지한다.
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
 9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.
+10. 루트 `AGENTS.md`와 폴더 `AGENTS.md`를 파일 탐색의 1차 진입점으로 사용하고, 전체 맥락은 `docs/ref/architecture-mermaid.md`로 먼저 파악한다.

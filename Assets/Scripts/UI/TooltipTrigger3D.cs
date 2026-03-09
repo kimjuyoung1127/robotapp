@@ -1,4 +1,5 @@
-﻿using KineTutor3D.App;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using KineTutor3D.App;
 using KineTutor3D.UI.Data;
 using UnityEngine;
 
@@ -37,3 +38,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

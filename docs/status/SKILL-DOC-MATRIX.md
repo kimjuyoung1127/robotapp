@@ -21,3 +21,4 @@
 1. 공식 출처는 `docs.unity3d.com`만 허용한다.
 2. 공식 링크 없는 asmdef/test/compile/serialization 규칙 추가를 금지한다.
 3. 문서 상태와 실제 프로젝트 상태가 다르면 실제 상태를 우선한다.
+4. 새 세션 탐색은 `AGENTS.md -> docs/ref/architecture-mermaid.md -> CLAUDE.md` 순서로 시작한다.

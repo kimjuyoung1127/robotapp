@@ -1,15 +1,12 @@
+﻿// Folder: Visualization - Unity-side rendering and FK binding.
 using System;
 using KineTutor3D.App;
 using KineTutor3D.Math;
 using UnityEngine;
-using UnityEngine.Rendering;
 using TutorPose = KineTutor3D.Types.Pose;
 
 namespace KineTutor3D.Visualization
 {
-    /// <summary>
-    /// Applies FK results to canonical frame objects and mesh-only donor visuals.
-    /// </summary>
     [ExecuteAlways]
     [DisallowMultipleComponent]
     public class RobotRenderer : MonoBehaviour
@@ -151,41 +148,41 @@ namespace KineTutor3D.Visualization
 
         private void EnsureRig()
         {
-            visualRoot ??= EnsureTransformChild("VisualRoot");
+            visualRoot ??= RobotRigBinder.EnsureTransformChild(transform, "VisualRoot");
             visualRoot.localScale = Vector3.one * donorScale;
 
-            frame0Transform ??= FindSceneTransform(Frame0Name);
-            frame1Transform ??= FindSceneTransform(Frame1Name);
-            frameEeTransform ??= EnsureTransformChild(FrameEeName);
+            frame0Transform ??= RobotRigBinder.FindSceneTransform(Frame0Name);
+            frame1Transform ??= RobotRigBinder.FindSceneTransform(Frame1Name);
+            frameEeTransform ??= RobotRigBinder.EnsureTransformChild(transform, FrameEeName);
 
-            frame0Gizmo = EnsureFrameGizmo(frame0Transform);
-            frame1Gizmo = EnsureFrameGizmo(frame1Transform);
-            frameEeGizmo = EnsureFrameGizmo(frameEeTransform);
+            frame0Gizmo = RobotRigBinder.EnsureFrameGizmo(frame0Transform);
+            frame1Gizmo = RobotRigBinder.EnsureFrameGizmo(frame1Transform);
+            frameEeGizmo = RobotRigBinder.EnsureFrameGizmo(frameEeTransform);
 
-            HideLegacyMarker(frame0Transform);
-            HideLegacyMarker(frame1Transform);
-            DisableLegacyFrame(LegacyWorldFrameName);
-            DisableLegacyFrame(LegacyFrame1Name);
-            DisableLegacyVisual("BaseJoint");
-            DisableLegacyVisual("ElbowJoint");
-            DisableLegacyVisual("Link0");
-            DisableLegacyVisual("Link1");
-            DisableLegacyVisual("EndEffectorVisual");
+            RobotRigBinder.HideLegacyMarker(frame0Transform);
+            RobotRigBinder.HideLegacyMarker(frame1Transform);
+            RobotRigBinder.DisableLegacyFrame(transform, LegacyWorldFrameName);
+            RobotRigBinder.DisableLegacyFrame(transform, LegacyFrame1Name);
+            RobotRigBinder.DisableLegacyVisual(visualRoot, "BaseJoint");
+            RobotRigBinder.DisableLegacyVisual(visualRoot, "ElbowJoint");
+            RobotRigBinder.DisableLegacyVisual(visualRoot, "Link0");
+            RobotRigBinder.DisableLegacyVisual(visualRoot, "Link1");
+            RobotRigBinder.DisableLegacyVisual(visualRoot, "EndEffectorVisual");
 
-            donorSourceRoot ??= ResolveDonorSource();
-            CacheDonorParts();
+            donorSourceRoot ??= ScaraDonorMapper.ResolveDonorSource(visualRoot, DonorSourceName, DonorFallbackName);
+            ScaraDonorMapper.CacheDonorParts(donorSourceRoot, ref donorBaseSource, ref donorLink0Source, ref donorLink1Source, ref donorAxis3Source, ref donorEndEffectorSource, ref donorPickSource);
 
-            baseVisual = NormalizeVisualReference(baseVisual, "BaseVisual");
-            link0Visual = NormalizeVisualReference(link0Visual, "Link0Visual");
-            link1Visual = NormalizeVisualReference(link1Visual, "Link1Visual");
-            endEffectorVisual = NormalizeVisualReference(endEffectorVisual, "EndEffectorVisualMesh");
-            axis3Pivot = NormalizeVisualReference(axis3Pivot, "Axis3Pivot");
+            baseVisual = RobotRigBinder.NormalizeVisualReference(baseVisual, "BaseVisual");
+            link0Visual = RobotRigBinder.NormalizeVisualReference(link0Visual, "Link0Visual");
+            link1Visual = RobotRigBinder.NormalizeVisualReference(link1Visual, "Link1Visual");
+            endEffectorVisual = RobotRigBinder.NormalizeVisualReference(endEffectorVisual, "EndEffectorVisualMesh");
+            axis3Pivot = RobotRigBinder.NormalizeVisualReference(axis3Pivot, "Axis3Pivot");
 
-            baseVisual ??= EnsureVisualAnchor("BaseVisual", visualRoot, donorBaseSource);
-            link0Visual ??= EnsureVisualAnchor("Link0Visual", baseVisual, donorLink0Source);
-            link1Visual ??= EnsureVisualAnchor("Link1Visual", link0Visual, donorLink1Source);
-            axis3Pivot ??= EnsurePivotChild(link1Visual, "Axis3Pivot");
-            endEffectorVisual ??= EnsureVisualAnchor("EndEffectorVisualMesh", axis3Pivot, donorEndEffectorSource);
+            baseVisual ??= RobotRigBinder.EnsureVisualAnchor("BaseVisual", visualRoot, donorBaseSource);
+            link0Visual ??= RobotRigBinder.EnsureVisualAnchor("Link0Visual", baseVisual, donorLink0Source);
+            link1Visual ??= RobotRigBinder.EnsureVisualAnchor("Link1Visual", link0Visual, donorLink1Source);
+            axis3Pivot ??= RobotRigBinder.EnsurePivotChild(link1Visual, "Axis3Pivot");
+            endEffectorVisual ??= RobotRigBinder.EnsureVisualAnchor("EndEffectorVisualMesh", axis3Pivot, donorEndEffectorSource);
 
             if (link0Visual != null && link0Visual.parent != baseVisual)
             {
@@ -249,272 +246,15 @@ namespace KineTutor3D.Visualization
             }
         }
 
-        private Transform EnsureTransformChild(string childName)
-        {
-            var child = transform.Find(childName);
-            if (child == null)
-            {
-                var go = new GameObject(childName);
-                go.transform.SetParent(transform, false);
-                child = go.transform;
-            }
-
-            return child;
-        }
-
-        private static Transform FindSceneTransform(string objectName)
-        {
-            var go = GameObject.Find(objectName);
-            if (go != null)
-            {
-                return go.transform;
-            }
-
-            foreach (var candidate in Resources.FindObjectsOfTypeAll<GameObject>())
-            {
-                if (candidate.name == objectName)
-                {
-                    return candidate.transform;
-                }
-            }
-
-            return null;
-        }
-
-        private static FrameGizmo EnsureFrameGizmo(Transform target)
-        {
-            if (target == null)
-            {
-                return null;
-            }
-
-            var gizmo = target.GetComponent<FrameGizmo>();
-            if (gizmo == null)
-            {
-                gizmo = target.gameObject.AddComponent<FrameGizmo>();
-            }
-
-            return gizmo;
-        }
-
-        private static void HideLegacyMarker(Transform frameTransform)
-        {
-            if (frameTransform == null)
-            {
-                return;
-            }
-
-            var renderer = frameTransform.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                renderer.enabled = false;
-            }
-        }
-
-        private void DisableLegacyFrame(string childName)
-        {
-            var legacy = transform.Find(childName);
-            if (legacy != null && legacy.gameObject.activeSelf)
-            {
-                legacy.gameObject.SetActive(false);
-            }
-        }
-
-        private void DisableLegacyVisual(string childName)
-        {
-            if (visualRoot == null)
-            {
-                return;
-            }
-
-            var legacy = visualRoot.Find(childName);
-            if (legacy != null && legacy.gameObject.activeSelf)
-            {
-                legacy.gameObject.SetActive(false);
-            }
-        }
-
-        private Transform ResolveDonorSource()
-        {
-            var donor = FindSceneTransform(DonorSourceName) ?? FindSceneTransform(DonorFallbackName);
-            if (donor == null)
-            {
-                return null;
-            }
-
-            donor.SetParent(visualRoot, false);
-            donor.localPosition = Vector3.zero;
-            donor.localRotation = Quaternion.identity;
-            donor.localScale = Vector3.one;
-
-            DisableRuntimeComponents(donor);
-            donor.gameObject.SetActive(false);
-            return donor;
-        }
-
-        private void CacheDonorParts()
-        {
-            if (donorSourceRoot == null)
-            {
-                return;
-            }
-
-            donorBaseSource ??= donorSourceRoot.Find("Base");
-            donorLink0Source ??= donorSourceRoot.Find("Base/Axis1");
-            donorLink1Source ??= donorSourceRoot.Find("Base/Axis1/Axis2");
-            donorAxis3Source ??= donorSourceRoot.Find("Base/Axis1/Axis2/Axis3");
-            donorEndEffectorSource ??= donorAxis3Source != null
-                ? donorAxis3Source.Find("Gripper")
-                : donorSourceRoot.Find("Base/Axis1/Axis2/Axis3/Gripper");
-            donorPickSource ??= donorSourceRoot.Find("Pick");
-        }
-
-        private Transform EnsureVisualAnchor(string childName, Transform parent, Transform source)
-        {
-            if (parent == null)
-            {
-                return null;
-            }
-
-            var anchor = parent.Find(childName);
-            if (anchor == null)
-            {
-                var go = new GameObject(childName);
-                go.transform.SetParent(parent, false);
-                anchor = go.transform;
-            }
-
-            CopyMeshOnly(anchor.gameObject, source);
-            return anchor;
-        }
-
-        private static Transform EnsurePivotChild(Transform parent, string childName)
-        {
-            if (parent == null)
-            {
-                return null;
-            }
-
-            var child = parent.Find(childName);
-            if (child == null)
-            {
-                var go = new GameObject(childName);
-                go.transform.SetParent(parent, false);
-                child = go.transform;
-            }
-
-            return child;
-        }
-
-        private Transform NormalizeVisualReference(Transform current, string expectedName)
-        {
-            if (current == null)
-            {
-                return null;
-            }
-
-            return current.name == expectedName ? current : null;
-        }
-
-        private static void CopyMeshOnly(GameObject target, Transform source)
-        {
-            if (target == null || source == null)
-            {
-                return;
-            }
-
-            var sourceFilter = source.GetComponent<MeshFilter>();
-            var sourceRenderer = source.GetComponent<MeshRenderer>();
-
-            if (sourceFilter != null)
-            {
-                var targetFilter = target.GetComponent<MeshFilter>();
-                if (targetFilter == null)
-                {
-                    targetFilter = target.AddComponent<MeshFilter>();
-                }
-
-                targetFilter.sharedMesh = sourceFilter.sharedMesh;
-            }
-
-            if (sourceRenderer != null)
-            {
-                var targetRenderer = target.GetComponent<MeshRenderer>();
-                if (targetRenderer == null)
-                {
-                    targetRenderer = target.AddComponent<MeshRenderer>();
-                }
-
-                targetRenderer.sharedMaterials = sourceRenderer.sharedMaterials;
-                targetRenderer.shadowCastingMode = sourceRenderer.shadowCastingMode;
-                targetRenderer.receiveShadows = sourceRenderer.receiveShadows;
-            }
-        }
-
-        private static void DisableRuntimeComponents(Transform donorRoot)
-        {
-            foreach (var behaviour in donorRoot.GetComponentsInChildren<MonoBehaviour>(true))
-            {
-                behaviour.enabled = false;
-            }
-
-            foreach (var rigidbody in donorRoot.GetComponentsInChildren<Rigidbody>(true))
-            {
-                rigidbody.isKinematic = true;
-                rigidbody.useGravity = false;
-                rigidbody.detectCollisions = false;
-            }
-
-            foreach (var collider in donorRoot.GetComponentsInChildren<Collider>(true))
-            {
-                collider.enabled = false;
-            }
-        }
-
         public Bounds GetAggregateVisualBounds()
         {
             EnsureRig();
-
-            var renderers = GetComponentsInChildren<MeshRenderer>(true);
-            var hasBounds = false;
-            var aggregate = new Bounds(transform.position, Vector3.zero);
-
-            foreach (var renderer in renderers)
-            {
-                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy)
-                {
-                    continue;
-                }
-
-                if (!hasBounds)
-                {
-                    aggregate = renderer.bounds;
-                    hasBounds = true;
-                }
-                else
-                {
-                    aggregate.Encapsulate(renderer.bounds);
-                }
-            }
-
-            return aggregate;
+            return RobotVisibilityProbe.GetAggregateVisualBounds(this);
         }
 
         public bool IsVisibleFrom(Camera camera)
         {
-            if (camera == null)
-            {
-                return false;
-            }
-
-            var bounds = GetAggregateVisualBounds();
-            if (bounds.size.sqrMagnitude < 1e-6f)
-            {
-                return false;
-            }
-
-            var planes = GeometryUtility.CalculateFrustumPlanes(camera);
-            return GeometryUtility.TestPlanesAABB(planes, bounds);
+            return RobotVisibilityProbe.IsVisibleFrom(this, camera);
         }
 
         private float ResolveBaseScale()
@@ -556,9 +296,7 @@ namespace KineTutor3D.Visualization
 
             visual.gameObject.SetActive(true);
             visual.localPosition = (source != null ? source.localPosition : Vector3.zero) + offset;
-            visual.localRotation = (source != null ? source.localRotation : Quaternion.identity)
-                * Quaternion.AngleAxis(jointAngleDegrees, Vector3.up)
-                * Quaternion.Euler(eulerOffset);
+            visual.localRotation = (source != null ? source.localRotation : Quaternion.identity) * Quaternion.AngleAxis(jointAngleDegrees, Vector3.up) * Quaternion.Euler(eulerOffset);
             visual.localScale = localScale;
         }
     }

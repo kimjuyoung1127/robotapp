@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using System;
 using UnityEngine;
 
 namespace KineTutor3D.UI.Data
@@ -16,3 +17,4 @@ namespace KineTutor3D.UI.Data
         public int step = 1;
     }
 }
+

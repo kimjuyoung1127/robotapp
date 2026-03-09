@@ -7,7 +7,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Write Repo: `C:\Users\ezen601\Desktop\Jason\robotapp2`
 
 ## 시작 순서 (필수)
-1. `CLAUDE.md` (이 파일)
+1. `AGENTS.md` (Codex) 또는 `CLAUDE.md` (Claude) - 동일 정책 진입 문서
 2. `KineTutor3D_Execution_Plan.md`
 3. `docs/status/PROJECT-STATUS.md`
 4. `docs/status/PHASE-EXECUTION-BOARD.md`
@@ -20,6 +20,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
 - Phase 6 (CI/CD): InProgress
+- Stability Refactor (App/UI/Visualization componentization): Done
 
 최근 확정 사항:
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
@@ -31,6 +32,10 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 4B HUD 디버그: `WelcomeModal` placeholder와 중앙 viewport 포커스 하이라이트를 기본 비활성화해 Play 중 중앙 흰 사각형이 더 이상 표시되지 않도록 수정
 - HUD 아티팩트 정리: `GlossaryPanel` 기본 활성 상태를 제거하고 inactive-safe 자동 배선을 적용해 중앙 파란 박스 원인 경로를 차단
 - HUD 아티팩트 정리: `SceneNavigationBar`/공통 UI 스타일 경로를 보강해 상단 네비 버튼의 red X/미표시 문제를 수정
+- 안정성 우선 리팩터링 완료: `RobotRenderer`를 facade + binder/mapper/copier/probe helper 구조로 분리
+- 안정성 우선 리팩터링 완료: `AppController`를 facade + `StepFlowService`/`KinematicsRuntimeService`/`AppUiBinder` 구조로 분리
+- 안정성 우선 리팩터링 완료: `DHTableEditor`에서 parse/build 책임을 `DHTableValueFormatter`/`DHTableViewBuilder`로 분리
+- 문서 탐색 규칙 추가: 루트 `AGENTS.md`와 `docs/ref/architecture-mermaid.md`를 새 세션 기본 진입점으로 고정
 - Main 순수화: `Main.unity`는 로봇/HUD 전용 씬으로 유지하고 `OnboardingManager` 런타임 의존 제거
 - 온보딩 분리: `Onboarding.unity`는 `OnboardingManager` + 전역 네비게이션만 담당
 - 전역 씬 이동 추가: `SceneNavigator`, `SceneCatalog`, `SceneNavigationBar`, `BootSceneRouter` 도입
@@ -62,19 +67,25 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 8 | asmdef-setup | asmdef, assembly definition | `kinetutor-guide/ops/asmdef-setup/` |
 | 9 | scene-scaffold | Main.unity, scene scaffold | `kinetutor-guide/ui/scene-scaffold/` |
 | 10 | unity-official-docs | Unity 공식문서 근거 | `kinetutor-guide/ops/unity-official-docs/` |
+| 11 | student-friendly-ux | UX, onboarding, glossary, gate | `kinetutor-guide/ui/student-friendly-ux/` |
+| 12 | debug-success-capture | debug, regression, playmode verification | `kinetutor-guide/ops/debug-success-capture/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
 - `tutor-step-add` -> `robot-template-add`
+- `student-friendly-ux` -> `tutor-step-add` + `scene-scaffold`
 - `asmdef-setup` -> `unity-official-docs`
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
+- `debug-success-capture` -> `pre-commit-validate` + `student-friendly-ux`
 
 ## Source of Truth 문서
+- 탐색 인덱스: `AGENTS.md`
 - 실행 계획: `KineTutor3D_Execution_Plan.md`
 - 운영 상태: `docs/status/PROJECT-STATUS.md`
 - 실행 보드: `docs/status/PHASE-EXECUTION-BOARD.md`
 - 스킬 매트릭스: `docs/status/SKILL-DOC-MATRIX.md`
 - 아키텍처: `docs/ref/architecture-diagrams.md`
+- 빠른 아키텍처 맥락: `docs/ref/architecture-mermaid.md`
 - 사용자 흐름: `docs/ref/USER-FLOW.md`
 - 튜터 스텝: `docs/ref/tutor-step-plan.md`
 
@@ -84,7 +95,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 2. PlayMode 스모크
 - 현재 기준:
 1. EditMode: 47 passed
-2. PlayMode: 20 passed
+2. PlayMode: 26 passed
 - CI 워크플로우:
 1. `.github/workflows/unity-tests.yml`
 2. runner: `self-hosted`, `windows`
@@ -92,5 +103,5 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 
 ## 즉시 다음 작업
 1. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-2. editor polish: `Main`의 남은 focus/highlight overlay와 중앙 회색 상태 박스 정리, donor mesh 미세 보정
+2. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인 문서화

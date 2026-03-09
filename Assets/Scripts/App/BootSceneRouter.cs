@@ -1,9 +1,10 @@
+﻿// Folder: App - application orchestration and runtime state.
 using UnityEngine;
 
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// 첫 방문 여부에 따라 시작 씬을 결정합니다.
+    /// 泥?諛⑸Ц ?щ????곕씪 ?쒖옉 ?ъ쓣 寃곗젙?⑸땲??
     /// </summary>
     public class BootSceneRouter : MonoBehaviour
     {
@@ -14,3 +15,4 @@ namespace KineTutor3D.App
         }
     }
 }
+

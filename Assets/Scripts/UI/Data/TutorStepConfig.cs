@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using System;
 using KineTutor3D.UI.Data;
 using UnityEngine;
 
@@ -85,3 +86,4 @@ namespace KineTutor3D.UI.Data
         EndEffectorFrame
     }
 }
+

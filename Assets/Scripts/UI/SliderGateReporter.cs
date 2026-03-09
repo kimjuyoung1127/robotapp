@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
 using KineTutor3D.UI.Data;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// Slider 값 변경을 게이트 상호작용 이벤트로 전달합니다.
+    /// Slider 媛?蹂寃쎌쓣 寃뚯씠???곹샇?묒슜 ?대깽?몃줈 ?꾨떖?⑸땲??
     /// </summary>
     public class SliderGateReporter : MonoBehaviour
     {
@@ -41,3 +42,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

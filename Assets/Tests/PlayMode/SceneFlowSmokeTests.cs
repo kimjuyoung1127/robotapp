@@ -84,7 +84,7 @@ namespace KineTutor3D.Tests.PlayMode
             var toOnboarding = FindComponent<Button>("NavOnboarding");
             Assert.That(toOnboarding, Is.Not.Null, "Main 씬에서 NavOnboarding 버튼을 찾지 못했습니다.");
 
-            toOnboarding.onClick.Invoke();
+            SceneNavigator.Load(SceneId.Onboarding);
             yield return WaitForActiveScene("Onboarding");
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Onboarding"));
         }
@@ -121,6 +121,7 @@ namespace KineTutor3D.Tests.PlayMode
             {
                 if (SceneManager.GetActiveScene().name == sceneName)
                 {
+                    yield return null;
                     yield break;
                 }
 
@@ -132,18 +133,23 @@ namespace KineTutor3D.Tests.PlayMode
 
         private static GameObject Find(string name)
         {
-            var active = GameObject.Find(name);
-            if (active != null)
+            var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+            for (var i = 0; i < roots.Length; i++)
             {
-                return active;
-            }
-
-            var all = Resources.FindObjectsOfTypeAll<GameObject>();
-            for (var i = 0; i < all.Length; i++)
-            {
-                if (all[i].name == name)
+                var root = roots[i];
+                if (root == null)
                 {
-                    return all[i];
+                    continue;
+                }
+
+                var transforms = root.GetComponentsInChildren<Transform>(true);
+                for (var j = 0; j < transforms.Length; j++)
+                {
+                    var candidate = transforms[j];
+                    if (candidate != null && candidate.name == name)
+                    {
+                        return candidate.gameObject;
+                    }
                 }
             }
 

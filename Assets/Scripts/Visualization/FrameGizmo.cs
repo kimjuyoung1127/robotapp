@@ -1,3 +1,4 @@
+﻿// Folder: Visualization - Unity-side rendering and FK binding.
 using KineTutor3D.Math;
 using UnityEngine;
 
@@ -129,3 +130,4 @@ namespace KineTutor3D.Visualization
         }
     }
 }
+

@@ -1,7 +1,8 @@
+﻿// Folder: App - application orchestration and runtime state.
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// DH 테이블에서 편집 가능한 필드 타입입니다.
+    /// DH ?뚯씠釉붿뿉???몄쭛 媛?ν븳 ?꾨뱶 ??낆엯?덈떎.
     /// </summary>
     public enum DhEditableField
     {
@@ -11,3 +12,4 @@ namespace KineTutor3D.App
         Alpha
     }
 }
+

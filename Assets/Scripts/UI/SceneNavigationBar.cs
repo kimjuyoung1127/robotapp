@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 모든 씬에서 공통으로 사용하는 상단 씬 전환 바입니다.
+    /// 紐⑤뱺 ?ъ뿉??怨듯넻?쇰줈 ?ъ슜?섎뒗 ?곷떒 ???꾪솚 諛붿엯?덈떎.
     /// </summary>
     [ExecuteAlways]
     public class SceneNavigationBar : MonoBehaviour
@@ -66,7 +67,7 @@ namespace KineTutor3D.UI
                 buttonContainer = UiRuntimeStyle.EnsureRectChild(topBarRoot, "SceneNavButtons");
             }
 
-            buttonContainer.gameObject.SetActive(false);
+            buttonContainer.gameObject.SetActive(true);
             RebuildButtons();
         }
 
@@ -84,9 +85,10 @@ namespace KineTutor3D.UI
             {
                 var entry = entries[i];
                 var button = ResolveOrCreateButton(i, entry, entry.Id == currentScene);
+                var targetScene = entry.Id;
                 button.interactable = true;
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => SceneNavigator.Load(entry.Id));
+                button.onClick.AddListener(() => SceneNavigator.Load(targetScene));
             }
 
             for (var i = entries.Count; i < buttonContainer.childCount; i++)
@@ -110,12 +112,12 @@ namespace KineTutor3D.UI
             if (button == null)
             {
                 var go = new GameObject($"Nav{entry.DisplayName}", typeof(RectTransform), typeof(Image), typeof(Button));
-                go.transform.SetParent(topBarRoot, false);
+                go.transform.SetParent(buttonContainer, false);
                 button = go.GetComponent<Button>();
             }
             else
             {
-                button.transform.SetParent(topBarRoot, false);
+                button.transform.SetParent(buttonContainer, false);
             }
 
             button.gameObject.SetActive(true);
@@ -132,3 +134,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

@@ -26,6 +26,10 @@
 18. 전역 이동 바 추가: `SceneCatalog` 기반 `SceneNavigationBar`가 `Onboarding`과 `Main`을 상단 HUD에서 전환.
 19. HUD 아티팩트 추가 정리: `GlossaryPanel` 기본 활성 상태를 제거하고 inactive-safe 자동 배선을 적용해 중앙 파란 박스 원인 경로를 차단.
 20. HUD 가시성 보강: `SceneNavigationBar`/공통 UI 스타일 경로를 조정해 상단 네비 버튼 red X/미표시 문제를 수정.
+21. 안정성 우선 리팩터링: `RobotRenderer`를 facade + `RobotRigBinder`/`ScaraDonorMapper`/`DonorMeshCopier`/`RobotVisibilityProbe`로 분리.
+22. 안정성 우선 리팩터링: `AppController`를 facade + `StepFlowService`/`KinematicsRuntimeService`/`AppUiBinder`로 분리.
+23. UI 경량 분리: `DHTableEditor`의 parse/build 책임을 `DHTableValueFormatter`/`DHTableViewBuilder`/`DHTableRowRefs`로 분리.
+24. 구조 문서화: 루트/핵심 폴더 `AGENTS.md` 추가 및 `docs/ref/architecture-mermaid.md`를 빠른 전체 맥락 문서로 고정.
 
 ## 2) Locked Decisions
 
@@ -101,5 +105,5 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 ## 7) Next
 
 1. Phase 6 CI/CD 계속: GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
-2. editor polish: `Main.unity`의 남은 focus/highlight overlay와 중앙 회색 상태 박스를 정리하고 HUD 레이아웃을 고정 자산으로 정리.
+2. `Main.unity`를 HUD prefab / robot rig prefab 중심으로 더 분리할지 검토해 씬 YAML 유지보수 비용을 낮춘다.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.

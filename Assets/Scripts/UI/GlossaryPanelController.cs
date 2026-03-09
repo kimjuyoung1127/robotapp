@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using System.Text;
 using KineTutor3D.UI.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -173,3 +174,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

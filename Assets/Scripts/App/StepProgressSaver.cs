@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// Folder: App - application orchestration and runtime state.
+using UnityEngine;
 
 namespace KineTutor3D.App
 {
@@ -51,3 +52,4 @@ namespace KineTutor3D.App
         }
     }
 }
+

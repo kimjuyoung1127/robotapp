@@ -1,3 +1,4 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 온보딩 전용 씬에서 환영 패널과 시작/건너뛰기 동작을 제어합니다.
+    /// ?⑤낫???꾩슜 ?ъ뿉???섏쁺 ?⑤꼸怨??쒖옉/嫄대꼫?곌린 ?숈옉???쒖뼱?⑸땲??
     /// </summary>
     [ExecuteAlways]
     public class OnboardingManager : MonoBehaviour
@@ -38,7 +39,7 @@ namespace KineTutor3D.UI
         }
 
         /// <summary>
-        /// 학습 시작 후 메인 씬으로 이동합니다.
+        /// ?숈뒿 ?쒖옉 ??硫붿씤 ?ъ쑝濡??대룞?⑸땲??
         /// </summary>
         public void BeginLearning()
         {
@@ -48,7 +49,7 @@ namespace KineTutor3D.UI
         }
 
         /// <summary>
-        /// 온보딩을 건너뛰고 메인 씬으로 이동합니다.
+        /// ?⑤낫?⑹쓣 嫄대꼫?곌퀬 硫붿씤 ?ъ쑝濡??대룞?⑸땲??
         /// </summary>
         public void SkipToMain()
         {
@@ -79,12 +80,12 @@ namespace KineTutor3D.UI
 
             var body = UiRuntimeStyle.EnsureText(modalRoot, "BodyText", fallbackFont, 17, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
             UiRuntimeStyle.Stretch(body.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 1f), new Vector2(34f, 34f), new Vector2(-34f, -108f));
-            body.text = "로봇 기구학을 눈으로 이해하세요.\n\n첫 방문에서는 온보딩을 보고 시작하고,\n이후에는 상단 네비게이션으로 언제든지 Onboarding과 Main을 오갈 수 있습니다.";
+            body.text = "濡쒕큸 湲곌뎄?숈쓣 ?덉쑝濡??댄빐?섏꽭??\n\n泥?諛⑸Ц?먯꽌???⑤낫?⑹쓣 蹂닿퀬 ?쒖옉?섍퀬,\n?댄썑?먮뒗 ?곷떒 ?ㅻ퉬寃뚯씠?섏쑝濡??몄젣?좎? Onboarding怨?Main???ㅺ컝 ???덉뒿?덈떎.";
             headlineText = title;
             bodyText = body;
 
-            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "학습 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(200f, 44f), new Vector2(-246f, 30f), UiRuntimeStyle.AccentBlue);
-            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "건너뛰기", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(160f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
+            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "?숈뒿 ?쒖옉", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(200f, 44f), new Vector2(-246f, 30f), UiRuntimeStyle.AccentBlue);
+            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "嫄대꼫?곌린", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(160f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
         }
 
         private void BindButtons()
@@ -145,3 +146,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

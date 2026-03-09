@@ -1,5 +1,5 @@
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using System.Collections.Generic;
-using System.Globalization;
 using KineTutor3D.App;
 using KineTutor3D.Math;
 using KineTutor3D.Types;
@@ -9,9 +9,6 @@ using TutorPose = KineTutor3D.Types.Pose;
 
 namespace KineTutor3D.UI
 {
-    /// <summary>
-    /// 2DOF DH 테이블을 렌더하고 d/a/alpha 편집 입력을 AppController에 전달합니다.
-    /// </summary>
     [ExecuteAlways]
     public class DHTableEditor : MonoBehaviour
     {
@@ -23,29 +20,28 @@ namespace KineTutor3D.UI
         [SerializeField] private Text panelTitleText;
         [SerializeField] private Text panelSubtitleText;
 
-        private readonly List<RowRefs> rows = new List<RowRefs>();
+        private readonly List<DHTableRowRefs> rows = new List<DHTableRowRefs>();
         private AppController appController;
-
-        private sealed class RowRefs
-        {
-            public int Index;
-            public InputField Theta;
-            public InputField D;
-            public InputField A;
-            public InputField Alpha;
-            public Text JointType;
-        }
 
         private void OnEnable()
         {
             EnsureRoot();
         }
 
+        public static bool TryParseFinite(string raw, out double value)
+        {
+            return DHTableValueFormatter.TryParseFinite(raw, out value);
+        }
+
+        public static string FormatDouble(double value, int decimals)
+        {
+            return DHTableValueFormatter.FormatDouble(value, decimals);
+        }
+
         public void Bind(AppController owner)
         {
             UnbindCurrent();
             appController = owner;
-
             EnsureRoot();
             RebuildRows();
             RefreshAllRows();
@@ -62,9 +58,6 @@ namespace KineTutor3D.UI
             UnbindCurrent();
         }
 
-        /// <summary>
-        /// 테스트/외부 호출용 원시 값 반영 진입점입니다.
-        /// </summary>
         public bool TryApplyRawValue(int rowIndex, DhEditableField field, string rawValue)
         {
             if (appController == null || rowIndex < 0 || rowIndex >= rows.Count)
@@ -72,7 +65,7 @@ namespace KineTutor3D.UI
                 return false;
             }
 
-            if (!TryParseFinite(rawValue, out var parsed))
+            if (!DHTableValueFormatter.TryParseFinite(rawValue, out var parsed))
             {
                 RefreshRow(rowIndex);
                 return false;
@@ -81,28 +74,6 @@ namespace KineTutor3D.UI
             var success = appController.TrySetDhParameter(rowIndex, field, parsed, out _);
             RefreshRow(rowIndex);
             return success;
-        }
-
-        public static bool TryParseFinite(string raw, out double value)
-        {
-            value = 0.0;
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                return false;
-            }
-
-            if (!double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
-            {
-                return false;
-            }
-
-            return !double.IsNaN(value) && !double.IsInfinity(value);
-        }
-
-        public static string FormatDouble(double value, int digits = 4)
-        {
-            var safeDigits = Mathf.Clamp(digits, 0, 10);
-            return value.ToString($"F{safeDigits}", CultureInfo.InvariantCulture);
         }
 
         private void HandleTemplateChanged(RobotTemplate _)
@@ -191,100 +162,13 @@ namespace KineTutor3D.UI
                 }
             }
 
-            CreateHeaderRow();
+            DHTableViewBuilder.CreateHeaderRow(tableRoot, fallbackFont);
 
             var dof = appController.CurrentTemplate.Dof;
             for (var i = 0; i < dof; i++)
             {
-                rows.Add(CreateDataRow(i));
+                rows.Add(DHTableViewBuilder.CreateDataRow(tableRoot, fallbackFont, i, value => OnEditableEndEdit(i, DhEditableField.D, value), value => OnEditableEndEdit(i, DhEditableField.A, value), value => OnEditableEndEdit(i, DhEditableField.Alpha, value)));
             }
-        }
-
-        private void CreateHeaderRow()
-        {
-            var header = new GameObject("DHHeaderRow", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
-            header.transform.SetParent(tableRoot, false);
-            header.GetComponent<Image>().color = UiRuntimeStyle.CardBackground;
-            var headerRect = header.GetComponent<RectTransform>();
-            headerRect.sizeDelta = new Vector2(0f, 34f);
-
-            var layout = UiRuntimeStyle.EnsureHorizontalLayout(header, 6f);
-            layout.padding = new RectOffset(10, 10, 6, 6);
-
-            CreateHeaderLabel(header.transform, "Joint", 64f);
-            CreateHeaderLabel(header.transform, "theta", 70f);
-            CreateHeaderLabel(header.transform, "d", 58f);
-            CreateHeaderLabel(header.transform, "a", 58f);
-            CreateHeaderLabel(header.transform, "alpha", 70f);
-        }
-
-        private RowRefs CreateDataRow(int rowIndex)
-        {
-            var row = new GameObject($"DHRow_{rowIndex}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
-            row.transform.SetParent(tableRoot, false);
-            row.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.22f, 0.88f);
-            row.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 38f);
-
-            var layout = UiRuntimeStyle.EnsureHorizontalLayout(row, 6f);
-            layout.padding = new RectOffset(10, 10, 6, 6);
-
-            var refs = new RowRefs { Index = rowIndex };
-            refs.JointType = CreateReadOnlyText(row.transform, $"JointType_{rowIndex}", 64f);
-            refs.Theta = CreateInput(row.transform, $"ThetaInput_{rowIndex}", false, 70f);
-            refs.D = CreateInput(row.transform, $"DInput_{rowIndex}", true, 58f);
-            refs.A = CreateInput(row.transform, $"AInput_{rowIndex}", true, 58f);
-            refs.Alpha = CreateInput(row.transform, $"AlphaInput_{rowIndex}", true, 70f);
-
-            refs.D.onEndEdit.AddListener(value => OnEditableEndEdit(rowIndex, DhEditableField.D, value));
-            refs.A.onEndEdit.AddListener(value => OnEditableEndEdit(rowIndex, DhEditableField.A, value));
-            refs.Alpha.onEndEdit.AddListener(value => OnEditableEndEdit(rowIndex, DhEditableField.Alpha, value));
-
-            return refs;
-        }
-
-        private Text CreateHeaderLabel(Transform parent, string text, float width)
-        {
-            var label = UiRuntimeStyle.EnsureText(parent, $"Header_{text}", fallbackFont, 13, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextSecondary);
-            var element = UiRuntimeStyle.EnsureLayoutElement(label);
-            element.minWidth = width;
-            element.preferredWidth = width;
-            label.text = text;
-            return label;
-        }
-
-        private Text CreateReadOnlyText(Transform parent, string name, float width)
-        {
-            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
-            var element = UiRuntimeStyle.EnsureLayoutElement(text);
-            element.minWidth = width;
-            element.preferredWidth = width;
-            text.text = "-";
-            return text;
-        }
-
-        private InputField CreateInput(Transform parent, string name, bool interactable, float width)
-        {
-            var root = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(InputField));
-            root.transform.SetParent(parent, false);
-
-            var element = UiRuntimeStyle.EnsureLayoutElement(root.GetComponent<InputField>());
-            element.minWidth = width;
-            element.preferredWidth = width;
-
-            var image = root.GetComponent<Image>();
-            image.color = interactable ? UiRuntimeStyle.PanelBackgroundAlt : new Color(0.09f, 0.10f, 0.15f, 0.75f);
-
-            var input = root.GetComponent<InputField>();
-            input.interactable = interactable;
-            input.contentType = InputField.ContentType.DecimalNumber;
-            input.lineType = InputField.LineType.SingleLine;
-
-            var text = UiRuntimeStyle.EnsureText(root.transform, "Text", fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
-            UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 1f), new Vector2(-4f, -1f));
-            input.textComponent = text;
-
-            input.SetTextWithoutNotify("0");
-            return input;
         }
 
         private void RefreshAllRows()
@@ -311,12 +195,11 @@ namespace KineTutor3D.UI
             var link = appController.CurrentLinks[index];
             var jointValues = appController.CurrentJointValuesRad;
             var thetaDeg = index < jointValues.Length ? jointValues[index] * Mathf.Rad2Deg : 0.0;
-
             refs.JointType.text = link.JointType.ToString();
-            refs.Theta.SetTextWithoutNotify(FormatDouble(thetaDeg, 1));
-            refs.D.SetTextWithoutNotify(FormatDouble(link.D, decimals));
-            refs.A.SetTextWithoutNotify(FormatDouble(link.A, decimals));
-            refs.Alpha.SetTextWithoutNotify(FormatDouble(link.Alpha, decimals));
+            refs.Theta.SetTextWithoutNotify(DHTableValueFormatter.FormatDouble(thetaDeg, 1));
+            refs.D.SetTextWithoutNotify(DHTableValueFormatter.FormatDouble(link.D, decimals));
+            refs.A.SetTextWithoutNotify(DHTableValueFormatter.FormatDouble(link.A, decimals));
+            refs.Alpha.SetTextWithoutNotify(DHTableValueFormatter.FormatDouble(link.Alpha, decimals));
         }
 
         private void StyleInteractiveCards()
@@ -332,12 +215,7 @@ namespace KineTutor3D.UI
             if (tableTarget != null)
             {
                 UiRuntimeStyle.Stretch(tableTarget, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(12f, -88f), new Vector2(-12f, -40f));
-                var image = tableTarget.GetComponent<Image>();
-                if (image == null)
-                {
-                    image = tableTarget.gameObject.AddComponent<Image>();
-                }
-
+                var image = tableTarget.GetComponent<Image>() ?? tableTarget.gameObject.AddComponent<Image>();
                 image.color = new Color(1f, 1f, 1f, 0.01f);
             }
 
@@ -345,12 +223,7 @@ namespace KineTutor3D.UI
             if (cellTarget != null)
             {
                 UiRuntimeStyle.Anchor(cellTarget, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(82f, 32f), new Vector2(120f, -132f));
-                var image = cellTarget.GetComponent<Image>();
-                if (image == null)
-                {
-                    image = cellTarget.gameObject.AddComponent<Image>();
-                }
-
+                var image = cellTarget.GetComponent<Image>() ?? cellTarget.gameObject.AddComponent<Image>();
                 image.color = new Color(1f, 1f, 1f, 0.01f);
             }
         }
@@ -372,12 +245,7 @@ namespace KineTutor3D.UI
             rect.SetParent(panelRoot, false);
             UiRuntimeStyle.Anchor(rect, new Vector2(0f, 0f), new Vector2(0f, 0f), size, new Vector2(18f, 164f) + anchoredPosition);
 
-            var image = go.GetComponent<Image>();
-            if (image == null)
-            {
-                image = go.AddComponent<Image>();
-            }
-
+            var image = go.GetComponent<Image>() ?? go.AddComponent<Image>();
             image.color = new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, 0.65f);
 
             var text = UiRuntimeStyle.EnsureText(go.transform, "CardLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);

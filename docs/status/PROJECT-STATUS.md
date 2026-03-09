@@ -22,7 +22,29 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (씬 분리 + 전역 네비게이션)
+## 이번 턴 반영 내용 (안정성 우선 컴포넌트화 + AGENTS 계층)
+1. Visualization 리팩터링
+   - `RobotRenderer`를 facade로 축소
+   - `RobotRigBinder`, `ScaraDonorMapper`, `DonorMeshCopier`, `RobotVisibilityProbe` 추가
+   - donor path / canonical frame / visibility probe 계약 유지
+2. App 리팩터링
+   - `AppController`를 facade로 축소
+   - `StepFlowService`, `KinematicsRuntimeService`, `KinematicsRuntimeState`, `AppUiBinder` 추가
+   - step 흐름, FK 재계산, UI auto-wire 책임 분리
+3. UI 경량 분리
+   - `DHTableEditor`의 parse/build 책임을 helper로 분리
+   - `DHTableValueFormatter`, `DHTableViewBuilder`, `DHTableRowRefs` 추가
+4. 구조 문서화
+   - 루트 `AGENTS.md`
+   - `Assets/Scripts/App/AGENTS.md`
+   - `Assets/Scripts/UI/AGENTS.md`
+   - `Assets/Scripts/Visualization/AGENTS.md`
+   - `docs/ref/architecture-mermaid.md`
+5. 회귀 결과
+   - `KineTutor3D.Runtime.csproj` 빌드 성공
+   - EditMode 47/47, PlayMode 26/26 유지
+
+## 이전 턴 반영 내용 (씬 분리 + 전역 네비게이션)
 1. 씬 분리 완료
    - `Boot.unity`: 첫 방문 여부 판단 후 즉시 씬 전환
    - `Onboarding.unity`: 환영 패널과 시작/건너뛰기만 담당
@@ -113,5 +135,5 @@
 
 ## 다음 작업
 1. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
-2. editor polish: `Main` 중앙 회색 상태 박스와 focus/highlight overlay 잔여물을 제거하고 씬 저장 자산을 더 줄이기
+2. `Main.unity`를 prefab/HUD asset 기준으로 더 쪼갤지 검토해 씬 YAML 유지보수 비용을 낮추기
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

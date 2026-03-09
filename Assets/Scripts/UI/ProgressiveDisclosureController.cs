@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
+using System.Collections;
 using System.Collections.Generic;
 using KineTutor3D.App;
 using KineTutor3D.UI.Data;
@@ -134,3 +135,4 @@ namespace KineTutor3D.UI
         }
     }
 }
+

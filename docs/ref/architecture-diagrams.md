@@ -1,7 +1,13 @@
 ﻿# KineTutor3D Architecture Diagrams
 
-Version: 1.4.0
+Version: 1.5.0
 Last Updated: 2026-03-09 (KST)
+
+## Fast Context Entry
+
+1. `AGENTS.md`
+2. `docs/ref/architecture-mermaid.md`
+3. 이 문서
 
 ## Scene Flow Map
 
@@ -123,6 +129,24 @@ flowchart TB
 16. CoordConverter
 17. FrameGizmo
 18. RobotRenderer
+
+## Stability Refactor Map
+
+```mermaid
+flowchart LR
+  A["AppController"] --> B["StepFlowService"]
+  A --> C["KinematicsRuntimeService"]
+  A --> D["AppUiBinder"]
+  C --> E["ForwardKinematics"]
+
+  F["RobotRenderer"] --> G["RobotRigBinder"]
+  F --> H["ScaraDonorMapper"]
+  F --> I["DonorMeshCopier"]
+  F --> J["RobotVisibilityProbe"]
+
+  K["DHTableEditor"] --> L["DHTableValueFormatter"]
+  K --> M["DHTableViewBuilder"]
+```
 
 ## 설계 규칙
 1. 기구학 계산 로직은 UX 컴포넌트에 두지 않는다.
