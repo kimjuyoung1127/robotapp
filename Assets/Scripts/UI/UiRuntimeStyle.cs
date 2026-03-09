@@ -19,7 +19,18 @@ namespace KineTutor3D.UI
 
         public static Font ResolveFont(Font fallback)
         {
-            return fallback != null ? fallback : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (fallback != null)
+            {
+                return fallback;
+            }
+
+            var arial = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (arial != null)
+            {
+                return arial;
+            }
+
+            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
         public static RectTransform EnsureHostedRoot(Component host, string rootName)

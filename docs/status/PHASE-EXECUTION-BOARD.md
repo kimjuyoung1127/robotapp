@@ -29,3 +29,4 @@
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
 7. 시작 흐름은 `Boot -> Onboarding/Main` 분기와 `LoadSceneMode.Single`을 기준으로 유지한다.
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
+9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.

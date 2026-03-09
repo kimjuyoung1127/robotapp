@@ -29,6 +29,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용
 - Phase 4B HUD 디버그: `WelcomeModal` placeholder와 중앙 viewport 포커스 하이라이트를 기본 비활성화해 Play 중 중앙 흰 사각형이 더 이상 표시되지 않도록 수정
+- HUD 아티팩트 정리: `GlossaryPanel` 기본 활성 상태를 제거하고 inactive-safe 자동 배선을 적용해 중앙 파란 박스 원인 경로를 차단
+- HUD 아티팩트 정리: `SceneNavigationBar`/공통 UI 스타일 경로를 보강해 상단 네비 버튼의 red X/미표시 문제를 수정
 - Main 순수화: `Main.unity`는 로봇/HUD 전용 씬으로 유지하고 `OnboardingManager` 런타임 의존 제거
 - 온보딩 분리: `Onboarding.unity`는 `OnboardingManager` + 전역 네비게이션만 담당
 - 전역 씬 이동 추가: `SceneNavigator`, `SceneCatalog`, `SceneNavigationBar`, `BootSceneRouter` 도입
@@ -90,5 +92,5 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 
 ## 즉시 다음 작업
 1. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-2. editor polish: Scene 편집 상태 placeholder/루트 정리와 donor mesh 미세 보정
+2. editor polish: `Main`의 남은 focus/highlight overlay와 중앙 회색 상태 박스 정리, donor mesh 미세 보정
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인 문서화

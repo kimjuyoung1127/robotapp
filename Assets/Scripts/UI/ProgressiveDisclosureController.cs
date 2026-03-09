@@ -17,6 +17,7 @@ namespace KineTutor3D.UI
         [SerializeField] private GameObject rightPanel;
         [SerializeField] private GameObject bottomBar;
         [SerializeField] private GameObject frameInfoOverlay;
+        [SerializeField] private bool suppressFrameInfoOverlay = true;
 
         [Header("Animation")]
         [SerializeField] private float slideInDuration = 0.4f;
@@ -29,6 +30,10 @@ namespace KineTutor3D.UI
         {
             AutoWire();
             useReducedMotion = useReducedMotion || StepProgressSaver.GetReducedMotion();
+            if (suppressFrameInfoOverlay && frameInfoOverlay != null)
+            {
+                frameInfoOverlay.SetActive(false);
+            }
         }
 
         public void ApplyStep(TutorStepConfig config)
@@ -44,7 +49,7 @@ namespace KineTutor3D.UI
 
             if (frameInfoOverlay != null)
             {
-                frameInfoOverlay.SetActive(config.rightContent == RightPanelContent.FrameInfoOverlay);
+                frameInfoOverlay.SetActive(!suppressFrameInfoOverlay && config.rightContent == RightPanelContent.FrameInfoOverlay);
             }
         }
 

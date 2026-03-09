@@ -64,10 +64,9 @@ namespace KineTutor3D.UI
             if (buttonContainer == null)
             {
                 buttonContainer = UiRuntimeStyle.EnsureRectChild(topBarRoot, "SceneNavButtons");
-                UiRuntimeStyle.EnsureHorizontalLayout(buttonContainer.gameObject, 10f);
             }
 
-            UiRuntimeStyle.Anchor(buttonContainer, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(230f, 36f), new Vector2(-320f, 0f));
+            buttonContainer.gameObject.SetActive(false);
             RebuildButtons();
         }
 
@@ -84,8 +83,8 @@ namespace KineTutor3D.UI
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
-                var button = ResolveOrCreateButton(i, entry);
-                button.interactable = entry.Id != currentScene;
+                var button = ResolveOrCreateButton(i, entry, entry.Id == currentScene);
+                button.interactable = true;
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => SceneNavigator.Load(entry.Id));
             }
@@ -100,7 +99,7 @@ namespace KineTutor3D.UI
             }
         }
 
-        private Button ResolveOrCreateButton(int index, SceneEntry entry)
+        private Button ResolveOrCreateButton(int index, SceneEntry entry, bool isCurrentScene)
         {
             Button button = null;
             if (index < buttonContainer.childCount)
@@ -111,15 +110,24 @@ namespace KineTutor3D.UI
             if (button == null)
             {
                 var go = new GameObject($"Nav{entry.DisplayName}", typeof(RectTransform), typeof(Image), typeof(Button));
-                go.transform.SetParent(buttonContainer, false);
+                go.transform.SetParent(topBarRoot, false);
                 button = go.GetComponent<Button>();
+            }
+            else
+            {
+                button.transform.SetParent(topBarRoot, false);
             }
 
             button.gameObject.SetActive(true);
-            UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, entry.DisplayName, UiRuntimeStyle.CardBackground);
+            var background = isCurrentScene
+                ? new Color(0.23f, 0.27f, 0.40f, 0.95f)
+                : UiRuntimeStyle.AccentBlue;
+            UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, entry.DisplayName, background);
+            UiRuntimeStyle.Anchor(button.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(116f, 36f), new Vector2(380f + index * 126f, 0f));
+            button.transform.SetAsLastSibling();
             var layout = UiRuntimeStyle.EnsureLayoutElement(button);
-            layout.preferredWidth = 110f;
-            layout.minWidth = 96f;
+            layout.preferredWidth = 116f;
+            layout.minWidth = 104f;
             return button;
         }
     }

@@ -8,6 +8,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 용어 사전 패널 표시와 쉬운/수학 설명 모드 전환을 담당합니다.
     /// </summary>
+    [ExecuteAlways]
     public class GlossaryPanelController : MonoBehaviour
     {
         [SerializeField] private GameObject panelRoot;
@@ -32,6 +33,12 @@ namespace KineTutor3D.UI
             if (mathModeButton != null) mathModeButton.onClick.AddListener(() => SetMode(true));
             if (searchField != null) searchField.onValueChanged.AddListener(_ => Refresh());
 
+            Close();
+        }
+
+        private void OnEnable()
+        {
+            AutoWire();
             Close();
         }
 
@@ -89,43 +96,42 @@ namespace KineTutor3D.UI
         {
             if (panelRoot == null)
             {
-                var go = GameObject.Find("GlossaryPanel");
-                if (go != null) panelRoot = go;
+                panelRoot = FindByName("GlossaryPanel");
             }
 
             if (openButton == null)
             {
-                var go = GameObject.Find("BtnGlossaryOpen");
+                var go = FindByName("BtnGlossaryOpen");
                 if (go != null) openButton = go.GetComponent<Button>();
             }
 
             if (closeButton == null)
             {
-                var go = GameObject.Find("BtnGlossaryClose");
+                var go = FindByName("BtnGlossaryClose");
                 if (go != null) closeButton = go.GetComponent<Button>();
             }
 
             if (easyModeButton == null)
             {
-                var go = GameObject.Find("BtnGlossaryEasy");
+                var go = FindByName("BtnGlossaryEasy");
                 if (go != null) easyModeButton = go.GetComponent<Button>();
             }
 
             if (mathModeButton == null)
             {
-                var go = GameObject.Find("BtnGlossaryMath");
+                var go = FindByName("BtnGlossaryMath");
                 if (go != null) mathModeButton = go.GetComponent<Button>();
             }
 
             if (searchField == null)
             {
-                var go = GameObject.Find("GlossarySearchInput");
+                var go = FindByName("GlossarySearchInput");
                 if (go != null) searchField = go.GetComponent<InputField>();
             }
 
             if (contentText == null)
             {
-                var go = GameObject.Find("GlossaryContentText");
+                var go = FindByName("GlossaryContentText");
                 if (go != null) contentText = go.GetComponent<Text>();
             }
         }
@@ -146,6 +152,24 @@ namespace KineTutor3D.UI
             var fallback = ScriptableObject.CreateInstance<GlossaryDatabase>();
             fallback.entries = new GlossaryEntryConfig[0];
             glossaryDatabase = fallback;
+        }
+
+        private static GameObject FindByName(string objectName)
+        {
+            foreach (var candidate in Resources.FindObjectsOfTypeAll<Transform>())
+            {
+                if (candidate == null || candidate.gameObject.hideFlags != HideFlags.None)
+                {
+                    continue;
+                }
+
+                if (candidate.gameObject.scene.IsValid() && candidate.name == objectName)
+                {
+                    return candidate.gameObject;
+                }
+            }
+
+            return null;
         }
     }
 }

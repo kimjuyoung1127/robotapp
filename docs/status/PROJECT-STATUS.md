@@ -40,6 +40,10 @@
 4. 테스트 확장
    - `Assets/Tests/PlayMode/SceneFlowSmokeTests.cs` 추가
    - 결과: EditMode 47/47, PlayMode 26/26
+5. HUD 아티팩트 후속 정리
+   - `GlossaryPanel` 기본 활성 상태 제거 및 inactive-safe 검색으로 중앙 파란 박스 원인 경로 차단
+   - `SceneNavigationBar`/공통 UI 스타일 경로 보강으로 상단 네비 버튼 red X/미표시 문제 수정
+   - 현재 남은 정리 대상: `Main` 중앙 회색 상태 박스와 focus/highlight overlay 잔여물
 
 ## 이전 턴 반영 내용 (Phase 4 Visualization 마감 + URP 정상화)
 1. Visualization 코어 3개 유지
@@ -109,5 +113,5 @@
 
 ## 다음 작업
 1. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
-2. editor polish: `Main`에서 inactive 온보딩 잔여 오브젝트를 완전 제거하고 씬 저장 자산을 더 줄이기
+2. editor polish: `Main` 중앙 회색 상태 박스와 focus/highlight overlay 잔여물을 제거하고 씬 저장 자산을 더 줄이기
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

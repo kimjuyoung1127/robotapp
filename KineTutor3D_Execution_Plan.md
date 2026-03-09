@@ -24,6 +24,8 @@
 16. Phase 4B HUD 디버그: 잘못된 `WelcomeModal` placeholder와 중앙 viewport focus 박스를 기본 비활성화하여 Play 중 중앙 흰 사각형 제거.
 17. Scene flow 정리: `BootSceneRouter`가 첫 방문 시 `Onboarding`, 재방문 시 `Main`으로 `LoadSceneMode.Single` 전환.
 18. 전역 이동 바 추가: `SceneCatalog` 기반 `SceneNavigationBar`가 `Onboarding`과 `Main`을 상단 HUD에서 전환.
+19. HUD 아티팩트 추가 정리: `GlossaryPanel` 기본 활성 상태를 제거하고 inactive-safe 자동 배선을 적용해 중앙 파란 박스 원인 경로를 차단.
+20. HUD 가시성 보강: `SceneNavigationBar`/공통 UI 스타일 경로를 조정해 상단 네비 버튼 red X/미표시 문제를 수정.
 
 ## 2) Locked Decisions
 
@@ -78,6 +80,7 @@
 10. 중앙 viewport를 덮는 큰 focus rectangle은 제품 HUD에서 사용하지 않으며, viewport focus는 문서/게이트 기준으로만 유지하고 시각 박스는 비활성화한다.
 11. 온보딩은 `Onboarding.unity` 전용이며 `Main.unity`는 로봇 제어 HUD만 유지한다.
 12. 상단 `SceneNavigationBar`는 `Onboarding`, `Main` 두 항목을 공통 제공하고 현재 씬 버튼은 비활성화한다.
+13. `GlossaryPanel`과 focus/highlight overlay는 `Main`에서 기본 비활성 상태를 유지하고, 유효한 타깃 rect가 있을 때만 켠다.
 
 ## 6) Test Execution Standard
 
@@ -98,5 +101,5 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 ## 7) Next
 
 1. Phase 6 CI/CD 계속: GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
-2. editor polish: `Main.unity`의 inactive 온보딩 잔여 오브젝트를 완전히 제거하고 HUD 레이아웃을 고정 자산으로 정리.
+2. editor polish: `Main.unity`의 남은 focus/highlight overlay와 중앙 회색 상태 박스를 정리하고 HUD 레이아웃을 고정 자산으로 정리.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.
