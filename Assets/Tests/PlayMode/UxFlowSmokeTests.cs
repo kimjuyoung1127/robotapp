@@ -268,6 +268,24 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator UiMvpLayout_CreatesPanelSurfaces_AndSliderDecorators()
+        {
+            yield return ReloadWithProgress(1, 0);
+
+            Assert.That(Find("TopBarBackground"), Is.Not.Null, "TopBarBackground가 필요합니다.");
+            Assert.That(Find("LeftPanelBackground"), Is.Not.Null, "LeftPanelBackground가 필요합니다.");
+            Assert.That(Find("RightPanelBackground"), Is.Not.Null, "RightPanelBackground가 필요합니다.");
+            Assert.That(Find("BottomBarBackground"), Is.Not.Null, "BottomBarBackground가 필요합니다.");
+
+            var titleText = FindComponent<Text>("TitleText");
+            Assert.That(titleText, Is.Not.Null, "TitleText가 필요합니다.");
+            Assert.That(titleText.text, Is.EqualTo("KineTutor3D"));
+
+            Assert.That(Find("joint_slider_1/SliderLabel"), Is.Not.Null, "joint_slider_1에 SliderLabel이 필요합니다.");
+            Assert.That(Find("joint_slider_2/SliderLabel"), Is.Not.Null, "joint_slider_2에 SliderLabel이 필요합니다.");
+        }
+
+        [UnityTest]
         public IEnumerator DHTableEditor_EditA_UpdatesT02()
         {
             yield return ReloadWithProgress(1, 0);

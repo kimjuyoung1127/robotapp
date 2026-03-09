@@ -13,6 +13,7 @@ namespace KineTutor3D.UI
         [SerializeField] private RectTransform tooltipRoot;
         [SerializeField] private Text titleText;
         [SerializeField] private Text bodyText;
+        [SerializeField] private Font fallbackFont;
         [SerializeField] private Vector2 offset = new Vector2(16f, -16f);
 
         private void Awake()
@@ -75,6 +76,8 @@ namespace KineTutor3D.UI
 
         private void AutoWire()
         {
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+
             if (tooltipRoot == null)
             {
                 var go = GameObject.Find("TooltipRoot");
@@ -92,6 +95,33 @@ namespace KineTutor3D.UI
                 var go = GameObject.Find("TooltipBodyText");
                 if (go != null) bodyText = go.GetComponent<Text>();
             }
+
+            if (tooltipRoot == null)
+            {
+                tooltipRoot = UiRuntimeStyle.EnsureRectChild(transform, "TooltipRoot");
+            }
+
+            var image = tooltipRoot.GetComponent<UnityEngine.UI.Image>();
+            if (image == null)
+            {
+                image = tooltipRoot.gameObject.AddComponent<UnityEngine.UI.Image>();
+            }
+
+            image.color = new Color(0.12f, 0.14f, 0.26f, 0.96f);
+            UiRuntimeStyle.Anchor(tooltipRoot, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 120f), new Vector2(0f, 0f));
+
+            if (titleText == null)
+            {
+                titleText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipTitleText", fallbackFont, 15, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            }
+
+            if (bodyText == null)
+            {
+                bodyText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipBodyText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            }
+
+            UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(244f, 22f), new Vector2(12f, -10f));
+            UiRuntimeStyle.Anchor(bodyText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(244f, 82f), new Vector2(12f, -34f));
         }
     }
 }

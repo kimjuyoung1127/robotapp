@@ -13,6 +13,8 @@ namespace KineTutor3D.UI
         [SerializeField] private string titleKo = "용어";
         [TextArea(2, 6)] [SerializeField] private string bodyKo = "설명";
 
+        public string TargetId => targetId;
+
         private void OnMouseEnter()
         {
             TooltipSystem.Instance?.ShowWorld(transform.position, Camera.main, titleKo, bodyKo);

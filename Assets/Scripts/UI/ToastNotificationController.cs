@@ -12,6 +12,7 @@ namespace KineTutor3D.UI
         [SerializeField] private GameObject toastRoot;
         [SerializeField] private Text messageText;
         [SerializeField] private Image background;
+        [SerializeField] private Font fallbackFont;
         [SerializeField] private Color infoColor = new Color(0.16f, 0.16f, 0.31f, 0.95f);
         [SerializeField] private Color successColor = new Color(0.10f, 0.23f, 0.16f, 0.95f);
         [SerializeField] private Color warningColor = new Color(0.23f, 0.16f, 0.10f, 0.95f);
@@ -20,6 +21,8 @@ namespace KineTutor3D.UI
 
         private void Awake()
         {
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+
             if (toastRoot == null)
             {
                 var go = GameObject.Find("ToastRoot");
@@ -35,6 +38,30 @@ namespace KineTutor3D.UI
             if (background == null && toastRoot != null)
             {
                 background = toastRoot.GetComponent<Image>();
+            }
+
+            if (toastRoot != null)
+            {
+                var rect = toastRoot.transform as RectTransform;
+                if (rect != null)
+                {
+                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, 48f), new Vector2(0f, 88f));
+                }
+
+                if (background == null)
+                {
+                    background = toastRoot.GetComponent<Image>() ?? toastRoot.AddComponent<Image>();
+                }
+            }
+
+            if (messageText == null && toastRoot != null)
+            {
+                messageText = UiRuntimeStyle.EnsureText(toastRoot.transform, "ToastMessageText", fallbackFont, 14, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            }
+
+            if (messageText != null)
+            {
+                UiRuntimeStyle.Stretch(messageText.rectTransform, Vector2.zero, Vector2.one, new Vector2(16f, 6f), new Vector2(-16f, -6f));
             }
 
             if (toastRoot != null)

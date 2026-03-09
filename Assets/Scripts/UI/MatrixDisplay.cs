@@ -1,8 +1,7 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using KineTutor3D.App;
 using KineTutor3D.Math;
-using KineTutor3D.Types;
 using UnityEngine;
 using UnityEngine.UI;
 using TutorPose = KineTutor3D.Types.Pose;
@@ -73,10 +72,7 @@ namespace KineTutor3D.UI
 
         private void EnsureUi()
         {
-            if (fallbackFont == null)
-            {
-                fallbackFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            }
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
 
             if (matrixRoot == null)
             {
@@ -89,49 +85,86 @@ namespace KineTutor3D.UI
 
             if (matrixRoot == null)
             {
-                var root = new GameObject("MatrixDisplayRuntime", typeof(RectTransform), typeof(VerticalLayoutGroup));
-                root.transform.SetParent(transform, false);
-                matrixRoot = root.GetComponent<RectTransform>();
-                matrixRoot.anchorMin = new Vector2(0f, 0f);
-                matrixRoot.anchorMax = new Vector2(1f, 0.55f);
-                matrixRoot.offsetMin = new Vector2(8f, 8f);
-                matrixRoot.offsetMax = new Vector2(-8f, -8f);
-
-                var layout = root.GetComponent<VerticalLayoutGroup>();
-                layout.spacing = 6f;
-                layout.childControlWidth = true;
-                layout.childControlHeight = true;
-                layout.childForceExpandWidth = true;
-                layout.childForceExpandHeight = false;
+                matrixRoot = UiRuntimeStyle.EnsureRectChild(transform, "MatrixDisplayRuntime");
+                UiRuntimeStyle.EnsureVerticalLayout(matrixRoot.gameObject, 8f, false);
             }
 
-            a1Text ??= FindOrCreateText("MatrixA1Text");
-            a2Text ??= FindOrCreateText("MatrixA2Text");
-            t02Text ??= FindOrCreateText("MatrixT02Text");
+            UiRuntimeStyle.Stretch(matrixRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 20f), new Vector2(-16f, 304f));
+
+            a1Text = EnsureMatrixCard("MatrixA1Card", "MatrixA1Text", ref a1Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
+            a2Text = EnsureMatrixCard("MatrixA2Card", "MatrixA2Text", ref a2Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
+            t02Text = EnsureMatrixCard("MatrixT02Card", "MatrixT02Text", ref t02Text, new Color(0.24f, 0.18f, 0.10f, 0.96f));
+            StyleMatrixHotspots();
         }
 
-        private Text FindOrCreateText(string name)
+        private Text EnsureMatrixCard(string cardName, string textName, ref Text field, Color backgroundColor)
         {
-            var existing = matrixRoot.Find(name);
-            if (existing != null)
+            var card = matrixRoot.Find(cardName) as RectTransform;
+            if (card == null)
             {
-                var found = existing.GetComponent<Text>();
-                if (found != null)
-                {
-                    return found;
-                }
+                card = UiRuntimeStyle.EnsureRectChild(matrixRoot, cardName);
+                card.gameObject.AddComponent<Image>().color = backgroundColor;
+                UiRuntimeStyle.EnsureLayoutElement(card).preferredHeight = 98f;
+                UiRuntimeStyle.EnsureLayoutElement(card).minHeight = 98f;
             }
 
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-            go.transform.SetParent(matrixRoot, false);
+            var image = card.GetComponent<Image>();
+            if (image != null)
+            {
+                image.color = backgroundColor;
+            }
 
-            var text = go.GetComponent<Text>();
+            var text = card.Find(textName)?.GetComponent<Text>();
+            if (text == null)
+            {
+                text = UiRuntimeStyle.EnsureText(card, textName, fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            }
+
+            UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 8f), new Vector2(-10f, -8f));
             text.font = fallbackFont;
-            text.color = Color.white;
-            text.alignment = TextAnchor.UpperLeft;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.fontSize = 13;
+            text.color = UiRuntimeStyle.TextPrimary;
+
+            field = text;
             return text;
+        }
+
+        private void StyleMatrixHotspots()
+        {
+            StyleHotspot("matrix_r", "R block", new Vector2(0f, 0f));
+            StyleHotspot("matrix_p", "p column", new Vector2(150f, 0f));
+            StyleHotspot("pose_position_col", "position", new Vector2(0f, -50f));
+            StyleHotspot("pose_rotation_col", "rotation", new Vector2(150f, -50f));
+        }
+
+        private void StyleHotspot(string name, string label, Vector2 anchoredPosition)
+        {
+            var go = GameObject.Find(name);
+            if (go == null)
+            {
+                return;
+            }
+
+            var rect = go.transform as RectTransform;
+            if (rect == null)
+            {
+                return;
+            }
+
+            rect.SetParent(transform, false);
+            UiRuntimeStyle.Anchor(rect, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(132f, 40f), new Vector2(20f, 274f) + anchoredPosition);
+
+            var image = go.GetComponent<Image>();
+            if (image == null)
+            {
+                image = go.AddComponent<Image>();
+            }
+
+            image.color = new Color(0.23f, 0.27f, 0.40f, 0.80f);
+
+            var text = UiRuntimeStyle.EnsureText(go.transform, "HotspotLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
+            text.text = label;
         }
 
         private string FormatMatrix(Mat4D matrix)

@@ -1,7 +1,7 @@
 ﻿# KineTutor3D Architecture Diagrams
 
-Version: 1.1.0
-Last Updated: 2026-03-05 (KST)
+Version: 1.3.0
+Last Updated: 2026-03-09 (KST)
 
 ## UX Module Map (Phase 3 확장)
 
@@ -58,6 +58,38 @@ flowchart TD
   F --> H["DHTableEditor theta/read-only row refresh"]
 ```
 
+## Visualization Runtime Data Flow (Phase 4 Core)
+
+```mermaid
+flowchart TD
+  A["AppController.OnKinematicsUpdated"] --> B["RobotRenderer"]
+  B --> C["CoordConverter"]
+  B --> D["Canonical Frames: frame_0 / frame_1 / Frame_EE"]
+  B --> E["Hidden Donor Source: ScaraDonorProbe"]
+  C --> D
+  C --> F["Donor Mesh Anchors: BaseVisual / Link0Visual / Link1Visual / EndEffectorVisualMesh"]
+  D --> G["FrameGizmo"]
+  F --> H["RobotRoot Runtime Rig"]
+  E --> F
+```
+
+## Scene UI Layout (MVP)
+
+```mermaid
+flowchart TB
+  A["Canvas"] --> B["TopBar"]
+  A --> C["LeftPanel"]
+  A --> D["RightPanel"]
+  A --> E["BottomBar"]
+  A --> F["OverlayLayer"]
+
+  B --> B1["Title + Step Indicator + TemplateSelector"]
+  C --> C1["DHTableEditor + Step Hints"]
+  D --> D1["MatrixDisplay (A1 / A2 / T02)"]
+  E --> E1["Joint Sliders + Prev / Next / Skip"]
+  F --> F1["Tooltip / Toast / Spotlight / Glossary"]
+```
+
 ## 신규 런타임 컴포넌트
 1. ProgressiveDisclosureController
 2. OnboardingManager
@@ -74,9 +106,15 @@ flowchart TD
 13. DHTableEditor
 14. TemplateSelector
 15. MatrixDisplay
+16. CoordConverter
+17. FrameGizmo
+18. RobotRenderer
 
 ## 설계 규칙
 1. 기구학 계산 로직은 UX 컴포넌트에 두지 않는다.
 2. Step 상태 결정은 `TutorStepConfig` 기반으로만 수행한다.
 3. Gate 판정은 `InteractionGateController` 단일 책임으로 유지한다.
 4. 런타임 진행 상태 저장은 `StepProgressSaver`만 사용한다.
+5. Visualization의 frame ownership은 `frame_0`, `frame_1`, `Frame_EE`가 단일 source다.
+6. `realvirtual` 자산은 donor mesh source로만 사용하고 vendor runtime은 사용하지 않는다.
+7. UI는 `TopBar`, `LeftPanel`, `RightPanel`, `BottomBar` 4영역을 기준으로 정리하고 디버그성 임시 흰 패널을 제품 surface로 남기지 않는다.

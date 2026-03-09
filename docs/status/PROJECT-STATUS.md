@@ -1,13 +1,14 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-05 (KST)
+최종 업데이트: 2026-03-09 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
 - **Phase 0: Foundation** (완료)
 - **Phase 1: Types + Math (TDD)** (완료)
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
-- **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (QA)
+- **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
+- **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (진행 중)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 
@@ -21,23 +22,28 @@
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 3 확장 + CI 고정)
-1. App/Runtime 인터페이스 확장
-   - `Assets/Scripts/App/AppController.cs`
-   - `OnTemplateChanged`, `OnKinematicsUpdated` 이벤트 추가
-   - Slider 입력 + DHTable 입력을 단일 FK 파이프라인으로 통합
-2. UI 실기능 3개 구현
-   - `Assets/Scripts/UI/TemplateSelector.cs` (2DOF 단일 옵션)
-   - `Assets/Scripts/UI/DHTableEditor.cs` (`theta` read-only, `d/a/alpha` 편집)
-   - `Assets/Scripts/UI/MatrixDisplay.cs` (`A1/A2/T02` 실시간 표시)
-3. 테스트 확장
-   - EditMode: `DHTableEditorValidationTests`
-   - PlayMode: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 연동 3케이스 추가
-   - 결과: EditMode 42/42, PlayMode 10/10
-4. CI 자동 실행 워크플로우 추가
-   - `.github/workflows/unity-tests.yml`
-   - `push/pr/workflow_dispatch` 트리거
-   - self-hosted windows 러너에서 EditMode/PlayMode 분리 실행 + XML artifact 업로드
+## 이번 턴 반영 내용 (Phase 4 Visualization + UI MVP 정리)
+1. Visualization 코어 3개 유지
+   - `Assets/Scripts/Visualization/CoordConverter.cs`
+   - `Assets/Scripts/Visualization/FrameGizmo.cs`
+   - `Assets/Scripts/Visualization/RobotRenderer.cs`
+2. `Main.unity` canonical frame 통합
+   - 기존 `frame_0`, `frame_1`을 world/joint-1의 단일 source로 승격
+   - `Frame_EE`는 EE 전용 표준 frame으로 유지
+   - legacy duplicate frame(`WorldFrame`, `Frame_1`)은 비활성화
+3. donor mesh 교체
+   - `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 `ScaraDonorProbe` hidden donor source로 배치
+   - vendor runtime 없이 `BaseVisual`, `Link0Visual`, `Link1Visual`, `EndEffectorVisualMesh`에 mesh-only 복제
+   - 기존 primitive visual marker는 숨기고 FK 기반 anchor만 유지
+4. 학습 화면 MVP 정리
+   - `TopBar` / `LeftPanel` / `RightPanel` / `BottomBar` 4영역 surface를 런타임 공통 스타일로 정리
+   - `TemplateSelector`, `DHTableEditor`, `StepTutorPanel`, `MatrixDisplay`, `StepNavigator`가 씬 오브젝트 우선 배선 + 최소 fallback 생성 정책으로 동작
+   - `TooltipSystem`, `ToastNotificationController`의 기본 시각을 디버그 텍스트에서 실제 패널 스타일로 교체
+   - `Main Camera`를 2DOF 학습 구도로 조정
+5. 테스트 확장
+   - EditMode: `CoordConverterTests` 추가
+   - PlayMode: `VisualizationSmokeTests` + UI layout smoke 추가
+   - 결과: EditMode 45/45, PlayMode 15/15
 
 ## 이전 턴 반영 내용 (Phase 0+1)
 1. 공식문서 근거 문서 추가
@@ -54,26 +60,27 @@
    - `TestTolerances`, `MatrixAssert`
    - `Vec3DTests`, `Mat3DTests`, `Mat4DTests`, `DHLinkTests`
 5. 회귀 기준 유지
-   - PlayMode 스모크 5건 기준 유지 (`Assets/Tests/PlayMode/UxFlowSmokeTests.cs`)
+   - 초기 PlayMode 스모크 5건 기준을 구축했고, 현재는 `UxFlowSmokeTests` 11건 + `VisualizationSmokeTests` 4건으로 확장 완료
 
 ## Self-Review Gate (Cycle Result)
 1. 기능 리뷰
-   - `DHStandard`/`ForwardKinematics` 구현으로 표준 DH 및 누적 FK 경로가 동작함
-   - `Types/Math/Kinematics`에서 UnityEngine 참조를 사용하지 않음
+   - `Main.unity` 기준 QA 범위를 고정하고 Phase 3 UI 흐름을 재검증함
+   - `TemplateSelector` / `DHTableEditor` / `MatrixDisplay`가 현재 MVP 계약과 일치함
 2. 코드 리뷰
-   - NaN/Infinity 입력 가드가 DH/FK 입력 경계에 반영됨
-   - Revolute/Prismatic 분기 처리 및 길이 불일치 가드가 반영됨
+   - UI 편집 경로가 기존 App/FK 파이프라인을 우회하지 않음을 유지함
+   - `theta` 단일 소스 규칙(Slider only)과 입력 가드 정책이 유지됨
 3. 테스트 리뷰
-   - EditMode 테스트 확장 완료 (`DHStandardTests`, `FKTests`, `Template2DOF_RRTests`)
-   - Unity Test Runner: EditMode 38/38 통과, PlayMode 7/7 통과
-   - `dotnet build Assembly-CSharp.csproj` 오류 0 확인 (외부 패키지 경고만 존재)
+   - Unity Test Runner: EditMode 45/45 통과, PlayMode 15/15 통과
+   - 씬 저장 확인: `Main.unity` 활성, Build index 0, `RobotRoot` 저장 완료
    - Unity Console 에러는 MCP 시스템 로그 외 프로젝트 코드 에러 0
+   - `Assembly-CSharp.csproj`는 현재 QA 완료 기준이 아니며, 생성 csproj 불일치 이슈는 후속 추적으로 유지
 4. 문서 리뷰
-   - `PROJECT-STATUS` / `PHASE-EXECUTION-BOARD` / `SKILL-DOC-MATRIX` 동기화 반영
-   - 공식문서 근거 문서 경로를 상태 문서에 연결함
+   - `CLAUDE.md` / `KineTutor3D_Execution_Plan` / `PROJECT-STATUS` / `PHASE-EXECUTION-BOARD` / `SKILL-DOC-MATRIX` 정합성 동기화
+   - Phase 4 Visualization을 `InProgress`로 유지하되 canonical frame ownership과 donor mesh 정책을 문서에 고정함
 5. 운영 스킬화
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/UNITY_EXE/env 점검)
-2. `Assembly-CSharp.csproj` 로컬 빌드 실패 원인(생성 csproj 불일치) 문서화
+1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 마감, `Frame_EE` 포함 수동 QA 마감
+2. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
+3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using KineTutor3D.App;
 using KineTutor3D.Types;
@@ -14,6 +14,9 @@ namespace KineTutor3D.UI
     {
         [SerializeField] private Dropdown dropdown;
         [SerializeField] private Font fallbackFont;
+        [SerializeField] private Text titleText;
+        [SerializeField] private Button glossaryButton;
+        [SerializeField] private Graphic topBarBackground;
 
         private AppController appController;
         private readonly List<string> optionNames = new List<string>();
@@ -92,10 +95,8 @@ namespace KineTutor3D.UI
 
         private void EnsureDropdown()
         {
-            if (fallbackFont == null)
-            {
-                fallbackFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            }
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+            EnsureTopBarSurface();
 
             if (dropdown == null)
             {
@@ -106,43 +107,84 @@ namespace KineTutor3D.UI
                 }
             }
 
-            if (dropdown != null)
+            if (dropdown == null)
             {
-                return;
+                var root = new GameObject("TemplateSelectorDropdown", typeof(RectTransform), typeof(Image), typeof(Dropdown));
+                root.transform.SetParent(transform, false);
+                dropdown = root.GetComponent<Dropdown>();
+
+                var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
+                labelGo.transform.SetParent(root.transform, false);
+                dropdown.captionText = labelGo.GetComponent<Text>();
             }
 
-            var root = new GameObject("TemplateSelectorDropdown", typeof(RectTransform), typeof(Image), typeof(Dropdown));
-            root.transform.SetParent(transform, false);
+            var rect = dropdown.transform as RectTransform;
+            UiRuntimeStyle.Anchor(rect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(224f, 36f), new Vector2(-74f, 0f));
 
-            var rect = root.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 0.5f);
-            rect.anchorMax = new Vector2(1f, 0.5f);
-            rect.pivot = new Vector2(1f, 0.5f);
-            rect.sizeDelta = new Vector2(220f, 30f);
-            rect.anchoredPosition = new Vector2(-16f, 0f);
+            var image = dropdown.GetComponent<Image>();
+            if (image == null)
+            {
+                image = dropdown.gameObject.AddComponent<Image>();
+            }
 
-            var image = root.GetComponent<Image>();
-            image.color = new Color(0.20f, 0.20f, 0.30f, 0.95f);
-
-            dropdown = root.GetComponent<Dropdown>();
+            image.color = UiRuntimeStyle.CardBackground;
             dropdown.targetGraphic = image;
 
-            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            labelGo.transform.SetParent(root.transform, false);
-            var labelRect = labelGo.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(8f, 2f);
-            labelRect.offsetMax = new Vector2(-22f, -2f);
+            var label = dropdown.captionText;
+            if (label == null)
+            {
+                label = UiRuntimeStyle.EnsureText(dropdown.transform, "Label", fallbackFont, 14, FontStyle.Normal, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+                dropdown.captionText = label;
+            }
 
-            var label = labelGo.GetComponent<Text>();
             label.font = fallbackFont;
-            label.color = Color.white;
+            label.fontSize = 14;
+            label.color = UiRuntimeStyle.TextPrimary;
             label.alignment = TextAnchor.MiddleLeft;
-            label.horizontalOverflow = HorizontalWrapMode.Overflow;
-            label.verticalOverflow = VerticalWrapMode.Overflow;
+            UiRuntimeStyle.Stretch(label.rectTransform, Vector2.zero, Vector2.one, new Vector2(12f, 4f), new Vector2(-24f, -4f));
+        }
 
-            dropdown.captionText = label;
+        private void EnsureTopBarSurface()
+        {
+            var rect = transform as RectTransform;
+            if (rect != null)
+            {
+                UiRuntimeStyle.Stretch(rect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -76f), new Vector2(-16f, -16f));
+            }
+
+            if (topBarBackground == null)
+            {
+                topBarBackground = UiRuntimeStyle.EnsureImage(transform, "TopBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+            }
+
+            UiRuntimeStyle.Stretch((RectTransform)topBarBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            titleText ??= GameObject.Find("TitleText")?.GetComponent<Text>();
+            if (titleText == null)
+            {
+                titleText = UiRuntimeStyle.EnsureText(transform, "TitleText", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+            }
+
+            UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
+            titleText.text = "KineTutor3D";
+            UiRuntimeStyle.EnsureOutline(titleText, new Color(0f, 0f, 0f, 0.28f), new Vector2(1f, -1f));
+
+            var stepIndicator = GameObject.Find("StepIndicatorText")?.GetComponent<Text>();
+            if (stepIndicator != null)
+            {
+                stepIndicator.font = fallbackFont;
+                stepIndicator.fontSize = 16;
+                stepIndicator.color = UiRuntimeStyle.TextSecondary;
+                stepIndicator.alignment = TextAnchor.MiddleLeft;
+                UiRuntimeStyle.Anchor(stepIndicator.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(280f, 28f), new Vector2(250f, 0f));
+            }
+
+            glossaryButton ??= GameObject.Find("BtnGlossaryOpen")?.GetComponent<Button>();
+            if (glossaryButton != null)
+            {
+                UiRuntimeStyle.Anchor(glossaryButton.transform as RectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(40f, 36f), new Vector2(-24f, 0f));
+                UiRuntimeStyle.EnsureButtonLabel(glossaryButton, fallbackFont, "?", UiRuntimeStyle.AccentBlue);
+            }
         }
 
         private void RebuildOptions()
