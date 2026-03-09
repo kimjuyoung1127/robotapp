@@ -25,7 +25,6 @@ namespace KineTutor3D.App
         [SerializeField] private InteractionGateController gateController;
         [SerializeField] private StepTutorPanel stepTutorPanel;
         [SerializeField] private StepNavigator stepNavigator;
-        [SerializeField] private OnboardingManager onboardingManager;
         [SerializeField] private ToastNotificationController toastController;
         [SerializeField] private FocusZoneHighlighter focusHighlighter;
         [SerializeField] private Slider jointSlider1;
@@ -84,13 +83,6 @@ namespace KineTutor3D.App
             }
 
             stepNavigator?.Bind(this);
-
-            if (onboardingManager != null)
-            {
-                onboardingManager.Initialize(this);
-                return;
-            }
-
             SetCurrentStep(Mathf.Clamp(StepProgressSaver.GetResumeStep(1), 1, TotalSteps));
         }
 
@@ -314,7 +306,6 @@ namespace KineTutor3D.App
             gateController ??= FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
             stepTutorPanel ??= FindFirstObjectByType<StepTutorPanel>(FindObjectsInactive.Include);
             stepNavigator ??= FindFirstObjectByType<StepNavigator>(FindObjectsInactive.Include);
-            onboardingManager ??= FindFirstObjectByType<OnboardingManager>(FindObjectsInactive.Include);
             toastController ??= FindFirstObjectByType<ToastNotificationController>(FindObjectsInactive.Include);
             focusHighlighter ??= FindFirstObjectByType<FocusZoneHighlighter>(FindObjectsInactive.Include);
             dhTableEditor ??= FindFirstObjectByType<DHTableEditor>(FindObjectsInactive.Include);

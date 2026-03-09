@@ -3,6 +3,18 @@
 Version: 1.4.0
 Last Updated: 2026-03-09 (KST)
 
+## Scene Flow Map
+
+```mermaid
+flowchart LR
+  A["Boot.unity"] --> B{"HasVisited?"}
+  B -->|"false"| C["Onboarding.unity"]
+  B -->|"true"| D["Main.unity"]
+  C --> E["SceneNavigationBar"]
+  D --> E
+  C -->|"학습 시작 / 건너뛰기"| D
+```
+
 ## UX Module Map (Phase 3 확장)
 
 ```mermaid
@@ -17,8 +29,8 @@ flowchart LR
   A --> Q["DHTableEditor"]
   A --> R["MatrixDisplay"]
 
-  H["OnboardingManager"] --> I["SpotlightOverlay"]
-  H --> A
+  H["SceneNavigationBar"] --> S["SceneNavigator"]
+  T["OnboardingManager"] --> S
 
   J["TooltipTriggerUI/3D"] --> K["TooltipSystem"]
   J --> A
@@ -26,7 +38,6 @@ flowchart LR
   L["GlossaryPanelController"] --> M["GlossaryDatabase(SO)"]
 
   N["TutorStepConfig(SO)"] --> A
-  O["OnboardingSequenceConfig(SO)"] --> H
 ```
 
 ## Step Runtime Data Flow
@@ -124,3 +135,5 @@ flowchart TB
 8. Phase 4 렌더 기준은 URP + Solid Color camera이며 donor mesh는 에러 셰이더 상태를 허용하지 않는다.
 9. Play 중 중앙을 덮는 placeholder modal과 viewport fill box는 허용하지 않는다.
 10. 온보딩은 유효한 모달 구성이 있는 경우에만 표시하며, placeholder만 존재하면 즉시 스텝 흐름으로 진행한다.
+11. `Boot`는 로직 전용 씬이며 첫 방문 분기 외의 UI 책임을 갖지 않는다.
+12. `Onboarding`과 `Main`은 같은 `SceneNavigationBar`를 사용해 상호 이동한다.

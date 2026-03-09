@@ -1,304 +1,147 @@
-﻿using System.Collections;
 using KineTutor3D.App;
-using KineTutor3D.UI.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 첫 실행 온보딩 모달과 안내 시퀀스를 제어합니다.
+    /// 온보딩 전용 씬에서 환영 패널과 시작/건너뛰기 동작을 제어합니다.
     /// </summary>
+    [ExecuteAlways]
     public class OnboardingManager : MonoBehaviour
     {
-        [Header("UI")]
-        [SerializeField] private GameObject welcomeModal;
+        [SerializeField] private RectTransform canvasRoot;
+        [SerializeField] private RectTransform modalRoot;
+        [SerializeField] private Font fallbackFont;
         [SerializeField] private Button startLearningButton;
         [SerializeField] private Button skipButton;
-        [SerializeField] private Text guideText;
+        [SerializeField] private Text headlineText;
+        [SerializeField] private Text bodyText;
 
-        [Header("Spotlight")]
-        [SerializeField] private SpotlightOverlay spotlightOverlay;
-        [SerializeField] private RectTransform robotViewportTarget;
-        [SerializeField] private RectTransform dhTableTarget;
-        [SerializeField] private RectTransform dhCellTarget;
-
-        [Header("Data")]
-        [SerializeField] private OnboardingSequenceConfig sequenceConfig;
-
-        private AppController appController;
+        private bool buttonsBound;
 
         private void Awake()
         {
-            AutoWire();
-            HideInvalidWelcomeModal();
-            EnsureViewportTargetLayout();
-            LoadSequenceIfNeeded();
+            EnsurePresentation();
+            BindButtons();
         }
 
         private void OnEnable()
         {
-            AutoWire();
-            HideInvalidWelcomeModal();
+            EnsurePresentation();
+            BindButtons();
         }
 
-        public void Initialize(AppController owner)
+        private void OnDisable()
         {
-            appController = owner;
-            BindButtons();
+            UnbindButtons();
+        }
 
-            if (!StepProgressSaver.HasVisited() && CanPresentWelcomeModal())
+        /// <summary>
+        /// 학습 시작 후 메인 씬으로 이동합니다.
+        /// </summary>
+        public void BeginLearning()
+        {
+            StepProgressSaver.MarkVisited();
+            StepProgressSaver.SaveLastCompletedStep(0);
+            SceneNavigator.Load(SceneId.Main);
+        }
+
+        /// <summary>
+        /// 온보딩을 건너뛰고 메인 씬으로 이동합니다.
+        /// </summary>
+        public void SkipToMain()
+        {
+            StepProgressSaver.MarkVisited();
+            SceneNavigator.Load(SceneId.Main);
+        }
+
+        private void EnsurePresentation()
+        {
+            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
+            canvasRoot ??= transform as RectTransform;
+
+            if (canvasRoot == null)
             {
-                SetModalVisible(true);
                 return;
             }
 
-            SetModalVisible(false);
-            if (!StepProgressSaver.HasVisited())
-            {
-                StepProgressSaver.MarkVisited();
-            }
+            modalRoot ??= UiRuntimeStyle.EnsureRectChild(canvasRoot, "WelcomeModal");
+            UiRuntimeStyle.Anchor(modalRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(720f, 420f), Vector2.zero);
 
-            var resumeStep = Mathf.Clamp(StepProgressSaver.GetResumeStep(1), 1, appController.TotalSteps);
-            appController.SetCurrentStep(resumeStep);
+            var modalImage = UiRuntimeStyle.EnsureImage(modalRoot, "ModalSurface", UiRuntimeStyle.PanelBackground);
+            UiRuntimeStyle.Stretch((RectTransform)modalImage.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            var title = UiRuntimeStyle.EnsureText(modalRoot, "HeadlineText", fallbackFont, 30, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(620f, 56f), new Vector2(34f, -34f));
+            title.text = "KineTutor3D";
+            headlineText = title;
+
+            var body = UiRuntimeStyle.EnsureText(modalRoot, "BodyText", fallbackFont, 17, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            UiRuntimeStyle.Stretch(body.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 1f), new Vector2(34f, 34f), new Vector2(-34f, -108f));
+            body.text = "로봇 기구학을 눈으로 이해하세요.\n\n첫 방문에서는 온보딩을 보고 시작하고,\n이후에는 상단 네비게이션으로 언제든지 Onboarding과 Main을 오갈 수 있습니다.";
+            headlineText = title;
+            bodyText = body;
+
+            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "학습 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(200f, 44f), new Vector2(-246f, 30f), UiRuntimeStyle.AccentBlue);
+            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "건너뛰기", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(160f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
         }
 
         private void BindButtons()
         {
+            if (buttonsBound)
+            {
+                return;
+            }
+
             if (startLearningButton != null)
             {
-                startLearningButton.onClick.RemoveListener(OnStartLearningClicked);
-                startLearningButton.onClick.AddListener(OnStartLearningClicked);
+                startLearningButton.onClick.AddListener(BeginLearning);
             }
 
             if (skipButton != null)
             {
-                skipButton.onClick.RemoveListener(OnSkipClicked);
-                skipButton.onClick.AddListener(OnSkipClicked);
+                skipButton.onClick.AddListener(SkipToMain);
             }
+
+            buttonsBound = true;
         }
 
-        private void OnStartLearningClicked()
+        private void UnbindButtons()
         {
-            StepProgressSaver.MarkVisited();
-            SetModalVisible(false);
-            appController?.SetCurrentStep(1);
-            StartCoroutine(RunGuideSequence());
-        }
-
-        private void OnSkipClicked()
-        {
-            StepProgressSaver.MarkVisited();
-            SetModalVisible(false);
-            appController?.JumpToSandbox();
-        }
-
-        private void SetModalVisible(bool visible)
-        {
-            if (welcomeModal != null)
-            {
-                welcomeModal.SetActive(visible);
-            }
-
-            if (!visible && guideText != null)
-            {
-                guideText.text = string.Empty;
-            }
-        }
-
-        private bool CanPresentWelcomeModal()
-        {
-            return welcomeModal != null &&
-                   welcomeModal.transform is RectTransform &&
-                   startLearningButton != null &&
-                   skipButton != null &&
-                   guideText != null;
-        }
-
-        private IEnumerator RunGuideSequence()
-        {
-            if (sequenceConfig == null || sequenceConfig.events == null)
-            {
-                yield break;
-            }
-
-            spotlightOverlay?.Show(0.6f);
-
-            foreach (var evt in sequenceConfig.events)
-            {
-                if (evt == null)
-                {
-                    continue;
-                }
-
-                if (evt.delaySeconds > 0f)
-                {
-                    yield return new WaitForSecondsRealtime(evt.delaySeconds);
-                }
-
-                if (guideText != null)
-                {
-                    guideText.text = evt.messageKo;
-                }
-
-                var target = ResolveTarget(evt.target);
-                if (target != null)
-                {
-                    spotlightOverlay?.Focus(target);
-                }
-                else
-                {
-                    spotlightOverlay?.ClearFocus();
-                }
-            }
-
-            yield return new WaitForSecondsRealtime(0.3f);
-            spotlightOverlay?.Hide();
-        }
-
-        private RectTransform ResolveTarget(OnboardingTarget target)
-        {
-            switch (target)
-            {
-                case OnboardingTarget.RobotViewport:
-                    return robotViewportTarget;
-                case OnboardingTarget.DHTable:
-                    return dhTableTarget;
-                case OnboardingTarget.DHCell:
-                    return dhCellTarget;
-                default:
-                    return null;
-            }
-        }
-
-        private void AutoWire()
-        {
-            spotlightOverlay ??= FindFirstObjectByType<SpotlightOverlay>(FindObjectsInactive.Include);
-
-            if (welcomeModal == null)
-            {
-                var modal = GameObject.Find("WelcomeModal");
-                if (modal != null)
-                {
-                    welcomeModal = modal;
-                }
-            }
-
-            if (startLearningButton == null)
-            {
-                var go = GameObject.Find("BtnStartLearning");
-                if (go != null) startLearningButton = go.GetComponent<Button>();
-            }
-
-            if (skipButton == null)
-            {
-                var go = GameObject.Find("BtnOnboardingSkip");
-                if (go != null) skipButton = go.GetComponent<Button>();
-            }
-
-            if (guideText == null)
-            {
-                var go = GameObject.Find("OnboardingGuideText");
-                if (go != null) guideText = go.GetComponent<Text>();
-            }
-
-            if (robotViewportTarget == null)
-            {
-                var go = GameObject.Find("ViewportTarget");
-                if (go != null) robotViewportTarget = go.GetComponent<RectTransform>();
-            }
-
-            if (dhTableTarget == null)
-            {
-                var go = GameObject.Find("DHTableTarget");
-                if (go != null) dhTableTarget = go.GetComponent<RectTransform>();
-            }
-
-            if (dhCellTarget == null)
-            {
-                var go = GameObject.Find("DHCellTarget");
-                if (go != null) dhCellTarget = go.GetComponent<RectTransform>();
-            }
-        }
-
-        private void HideInvalidWelcomeModal()
-        {
-            if (welcomeModal == null)
+            if (!buttonsBound)
             {
                 return;
             }
-
-            if (welcomeModal.transform is RectTransform)
-            {
-                return;
-            }
-
-            welcomeModal.SetActive(false);
 
             if (startLearningButton != null)
             {
-                startLearningButton.gameObject.SetActive(false);
+                startLearningButton.onClick.RemoveListener(BeginLearning);
             }
 
             if (skipButton != null)
             {
-                skipButton.gameObject.SetActive(false);
+                skipButton.onClick.RemoveListener(SkipToMain);
             }
 
-            if (guideText != null)
-            {
-                guideText.gameObject.SetActive(false);
-                guideText.text = string.Empty;
-            }
+            buttonsBound = false;
         }
 
-        private void EnsureViewportTargetLayout()
+        private Button EnsureActionButton(Transform parent, string name, string label, Vector2 anchor, Vector2 pivot, Vector2 size, Vector2 position, Color background)
         {
-            if (robotViewportTarget == null)
+            var existing = parent.Find(name);
+            var button = existing != null ? existing.GetComponent<Button>() : null;
+            if (button == null)
             {
-                return;
+                var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+                go.transform.SetParent(parent, false);
+                button = go.GetComponent<Button>();
             }
 
-            var isDefaultPlaceholder =
-                robotViewportTarget.anchorMin == new Vector2(0.5f, 0.5f) &&
-                robotViewportTarget.anchorMax == new Vector2(0.5f, 0.5f) &&
-                robotViewportTarget.sizeDelta == new Vector2(100f, 100f);
-
-            if (!isDefaultPlaceholder)
-            {
-                return;
-            }
-
-            robotViewportTarget.anchorMin = new Vector2(0.22f, 0.18f);
-            robotViewportTarget.anchorMax = new Vector2(0.8f, 0.82f);
-            robotViewportTarget.offsetMin = new Vector2(12f, 12f);
-            robotViewportTarget.offsetMax = new Vector2(-12f, -12f);
-            robotViewportTarget.anchoredPosition = Vector2.zero;
-            robotViewportTarget.sizeDelta = Vector2.zero;
-            robotViewportTarget.pivot = new Vector2(0.5f, 0.5f);
-        }
-
-        private void LoadSequenceIfNeeded()
-        {
-            if (sequenceConfig != null)
-            {
-                return;
-            }
-
-            sequenceConfig = Resources.Load<OnboardingSequenceConfig>("Onboarding/OnboardingSequenceConfig");
-            if (sequenceConfig != null)
-            {
-                return;
-            }
-
-            sequenceConfig = ScriptableObject.CreateInstance<OnboardingSequenceConfig>();
-            sequenceConfig.events = new[]
-            {
-                new OnboardingStepEvent { delaySeconds = 0.5f, target = OnboardingTarget.RobotViewport, messageKo = "이것은 2자유도(2DOF) 로봇입니다." },
-                new OnboardingStepEvent { delaySeconds = 3.0f, target = OnboardingTarget.DHTable, messageKo = "DH 테이블에는 각 관절의 파라미터가 정리되어 있습니다." },
-                new OnboardingStepEvent { delaySeconds = 3.0f, target = OnboardingTarget.DHCell, messageKo = "셀 위에 마우스를 올려 해당 파라미터를 확인해보세요." },
-                new OnboardingStepEvent { delaySeconds = 3.0f, target = OnboardingTarget.None, messageKo = "이제 직접 조작을 시작해보세요." }
-            };
+            var rect = (RectTransform)button.transform;
+            UiRuntimeStyle.Anchor(rect, anchor, pivot, size, position);
+            UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, label, background);
+            return button;
         }
     }
 }

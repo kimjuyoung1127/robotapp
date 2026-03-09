@@ -13,6 +13,7 @@
 | Phase 3 | Student-Friendly UX | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-05 |
 | Phase 3 | Template 2DOF | P0 | Done | codex | robot-template-add, tutor-step-add | docs/ref/test-reference-values.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 4 | Visualization | P1 | Done | codex | scene-scaffold, editmode-test-add | docs/ref/coordinate-mapping.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
+| Phase 4 | Scene Flow | P1 | Done | codex | scene-scaffold, sprint-docs-sync | docs/ref/USER-FLOW.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 4 | Validator | P1 | Ready | - | editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | - | 2026-03-05 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | - | 2026-03-05 |
@@ -26,4 +27,5 @@
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
-7. Play 중 중앙 `WelcomeModal` placeholder와 viewport focus rectangle은 비활성 상태를 기준으로 유지한다.
+7. 시작 흐름은 `Boot -> Onboarding/Main` 분기와 `LoadSceneMode.Single`을 기준으로 유지한다.
+8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.

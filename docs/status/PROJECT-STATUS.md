@@ -16,13 +16,32 @@
 - [x] Unity 프로젝트 생성
 - [x] unity-mcp 패키지 설치
 - [x] Git 초기화 및 Unity `.gitignore` 적용
-- [x] `Main.unity` 기준점 확정 (`Assets/Scenes/Main.unity`)
-- [x] Build Settings index 0 설정 (`Main.unity` 단일)
+- [x] 씬 baseline 확정 (`Assets/Scenes/Boot.unity`, `Assets/Scenes/Onboarding.unity`, `Assets/Scenes/Main.unity`)
+- [x] Build Settings 순서 설정 (`Boot` 0, `Onboarding` 1, `Main` 2)
 - [x] MCP 연결 스모크 확인 (telemetry/scene/console 응답)
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
 
-## 이번 턴 반영 내용 (Phase 4 Visualization 마감 + URP 정상화)
+## 이번 턴 반영 내용 (씬 분리 + 전역 네비게이션)
+1. 씬 분리 완료
+   - `Boot.unity`: 첫 방문 여부 판단 후 즉시 씬 전환
+   - `Onboarding.unity`: 환영 패널과 시작/건너뛰기만 담당
+   - `Main.unity`: 로봇/HUD/Visualization 전용 씬
+2. 전역 씬 이동 추가
+   - `Assets/Scripts/App/SceneId.cs`
+   - `Assets/Scripts/App/SceneCatalog.cs`
+   - `Assets/Scripts/App/SceneNavigator.cs`
+   - `Assets/Scripts/App/BootSceneRouter.cs`
+   - `Assets/Scripts/UI/SceneNavigationBar.cs`
+3. `Main` 온보딩 의존 제거
+   - `AppController`에서 `OnboardingManager.Initialize()` 경로 제거
+   - `Canvas`의 `OnboardingManager`, `SpotlightOverlay` 제거
+   - `TopBar`에 `SceneNavigationBar` 추가
+4. 테스트 확장
+   - `Assets/Tests/PlayMode/SceneFlowSmokeTests.cs` 추가
+   - 결과: EditMode 47/47, PlayMode 26/26
+
+## 이전 턴 반영 내용 (Phase 4 Visualization 마감 + URP 정상화)
 1. Visualization 코어 3개 유지
    - `Assets/Scripts/Visualization/CoordConverter.cs`
    - `Assets/Scripts/Visualization/FrameGizmo.cs`
@@ -78,17 +97,17 @@
    - `theta` 단일 소스 규칙(Slider only)과 입력 가드 정책이 유지됨
 3. 테스트 리뷰
    - Unity Test Runner: EditMode 47/47 통과, PlayMode 20/20 통과
-   - 씬 저장 확인: `Main.unity` 활성, Build index 0, `RobotRoot` 저장 완료
+   - 씬 저장 확인: `Boot.unity`, `Onboarding.unity`, `Main.unity` 저장 완료
    - Unity Console 에러는 MCP 시스템 로그 외 프로젝트 코드 에러 0
    - `KineTutor3D.Runtime.csproj` 빌드는 경고만 있고 성공
    - `Assembly-CSharp.csproj`는 현재 QA 완료 기준이 아니며, 생성 csproj 불일치 이슈는 후속 추적으로 유지
 4. 문서 리뷰
    - `CLAUDE.md` / `KineTutor3D_Execution_Plan` / `PROJECT-STATUS` / `PHASE-EXECUTION-BOARD` / `SKILL-DOC-MATRIX` 정합성 동기화
-   - Phase 4 Visualization을 `Done`으로 승격하고 canonical frame ownership, donor mesh 정책, HUD overlay 정책을 문서에 고정함
+   - Phase 4 Visualization을 `Done`으로 유지하고 scene split/전역 네비게이션 정책을 문서에 고정함
 5. 운영 스킬화
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
 1. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
-2. editor polish: Scene 편집 상태 placeholder 흔적 정리와 donor mesh 미세 보정
+2. editor polish: `Main`에서 inactive 온보딩 잔여 오브젝트를 완전 제거하고 씬 저장 자산을 더 줄이기
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

@@ -6,7 +6,7 @@
 
 ## 1) Current State Snapshot
 
-1. `Assets/Scenes/Main.unity` 존재, Build index 0 고정 완료.
+1. 씬 분리 완료: `Assets/Scenes/Boot.unity`, `Assets/Scenes/Onboarding.unity`, `Assets/Scenes/Main.unity`.
 2. MCP 연결 정상(telemetry/scene/console 조회 가능).
 3. `Assets/realvirtual` 패키지 임포트 완료(소스 자산 보존 전략).
 4. Student-Friendly UX 런타임/씬 배선/SO 데이터 실체화 완료.
@@ -18,14 +18,16 @@
 10. CI 초안 추가: `.github/workflows/unity-tests.yml` (`self-hosted windows`, EditMode/PlayMode 자동 실행 + 결과 artifact 업로드).
 11. Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 승격하고 `Frame_EE`를 표준 EE frame으로 유지.
 12. Phase 4 확장: `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 hidden donor source로 배치하고, donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정한다. `Pick`은 helper point로만 유지한다.
-13. 검증 결과: Unity Test Runner EditMode 47/47, PlayMode 20/20 통과, `Main.unity` 활성/Build index 0/프로젝트 코드 에러 0 확인.
+13. 검증 결과: Unity Test Runner EditMode 47/47, PlayMode 26/26 통과, `Boot/Onboarding/Main` 씬 분기와 전역 네비게이션 포함 검증 완료.
 14. 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface 구성, donor mesh offset/scale 보정 경로 및 교육용 카메라 구도 반영.
 15. Phase 4 디버그: Built-in -> URP(`com.unity.render-pipelines.universal@17.0.4`) 전환, `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정, `Main Camera`를 Solid Color로 전환.
 16. Phase 4B HUD 디버그: 잘못된 `WelcomeModal` placeholder와 중앙 viewport focus 박스를 기본 비활성화하여 Play 중 중앙 흰 사각형 제거.
+17. Scene flow 정리: `BootSceneRouter`가 첫 방문 시 `Onboarding`, 재방문 시 `Main`으로 `LoadSceneMode.Single` 전환.
+18. 전역 이동 바 추가: `SceneCatalog` 기반 `SceneNavigationBar`가 `Onboarding`과 `Main`을 상단 HUD에서 전환.
 
 ## 2) Locked Decisions
 
-1. Scene baseline: `Main.unity` 단일 시작 씬.
+1. Scene baseline: `Boot.unity` 시작 씬, `Onboarding.unity`/`Main.unity` 분리.
 2. Asset strategy: 벤더 소스(`Assets/realvirtual`) 보존 + 프로젝트 표준 경로로 재배치.
 3. Test strategy: Unity Test Runner + CLI `-runTests` 병행.
 4. UX strategy: `Hard gate + Skip`, `Reduced Motion` 지원, 한국어 우선.
@@ -39,7 +41,7 @@
 
 ## 3.5) Phase 3 QA Closure (Done)
 
-1. QA 대상 씬은 `Assets/Scenes/Main.unity` 단일 기준으로 재확인 완료.
+1. QA 대상 씬은 `Assets/Scenes/Boot.unity`, `Assets/Scenes/Onboarding.unity`, `Assets/Scenes/Main.unity` 3개 기준으로 재확인 완료.
 2. `TemplateSelector`, `DHTableEditor`, `MatrixDisplay`의 현재 MVP 계약이 테스트/씬 상태와 일치함을 확인.
 3. 오래된 검증 수치(`38/38`, `7/7`, `7건`, `5건 유지`) 제거 후 운영 문서와 상태 보드를 동기화함.
 
@@ -74,14 +76,15 @@
 8. 렌더 파이프라인은 URP 기준으로 고정하고 donor mesh는 Built-in fallback이 아닌 URP material 경로를 사용한다.
 9. `Main Camera`는 `RobotRoot`, `frame_0`, `frame_1`, `Frame_EE`가 동시에 보이는 Solid Color 교육용 구도를 기본값으로 유지한다.
 10. 중앙 viewport를 덮는 큰 focus rectangle은 제품 HUD에서 사용하지 않으며, viewport focus는 문서/게이트 기준으로만 유지하고 시각 박스는 비활성화한다.
-11. 잘못된 `WelcomeModal` placeholder는 제품 온보딩 UI로 간주하지 않으며, 유효한 모달 구성이 없으면 즉시 스텝 흐름으로 진입한다.
+11. 온보딩은 `Onboarding.unity` 전용이며 `Main.unity`는 로봇 제어 HUD만 유지한다.
+12. 상단 `SceneNavigationBar`는 `Onboarding`, `Main` 두 항목을 공통 제공하고 현재 씬 버튼은 비활성화한다.
 
 ## 6) Test Execution Standard
 
 ### A) Local
 1. Test Runner에서 EditMode 우선 실행
 2. UI/UX는 PlayMode 스모크로 온보딩/게이트/툴팁 경로 확인
-3. PlayMode 스모크 기준: 온보딩/게이트/Skip/패널가시성/툴팁+용어사전 + `TemplateSelector`/`DHTableEditor`/`MatrixDisplay` + canonical frame/donor mesh + UI HUD layout + URP 활성/가시성 검증을 포함한 총 20건 유지
+3. PlayMode 스모크 기준: `Boot -> Onboarding/Main` 분기, 전역 씬 네비게이션, 온보딩 버튼 전환, Main HUD/게이트/툴팁/행렬/시각화 검증을 포함한 총 26건 유지
 
 ### B) CLI
 ```powershell
@@ -95,5 +98,5 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 ## 7) Next
 
 1. Phase 6 CI/CD 계속: GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
-2. editor polish: Scene 편집 상태 placeholder 정리, donor mesh offset/scale 미세 보정.
+2. editor polish: `Main.unity`의 inactive 온보딩 잔여 오브젝트를 완전히 제거하고 HUD 레이아웃을 고정 자산으로 정리.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.

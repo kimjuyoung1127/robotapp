@@ -25,7 +25,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_FirstRun_WithInvalidPlaceholder_SkipsModal_AndEntersStep1()
+        public IEnumerator MainScene_StartsAtStep1_WithoutOnboardingManager()
         {
             Component app = null;
             for (var i = 0; i < 60 && app == null; i++)
@@ -36,12 +36,12 @@ namespace KineTutor3D.Tests.PlayMode
             }
             Assert.That(app, Is.Not.Null, "AppController를 찾지 못했습니다.");
 
-            var modal = Find("WelcomeModal");
-            Assert.That(modal, Is.Not.Null, "WelcomeModal 오브젝트를 찾지 못했습니다.");
-            Assert.That(modal.activeSelf, Is.False, "잘못된 placeholder WelcomeModal은 기본 비활성 상태여야 합니다.");
+            var canvas = Find("Canvas");
+            Assert.That(canvas, Is.Not.Null, "Canvas 오브젝트를 찾지 못했습니다.");
+            Assert.That(canvas.GetComponent("OnboardingManager"), Is.Null, "Main 씬은 OnboardingManager를 가지면 안 됩니다.");
             yield return null;
 
-            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "유효한 모달이 없을 때는 즉시 Step 1로 진입해야 합니다.");
+            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "Main 씬은 즉시 Step 1로 진입해야 합니다.");
         }
 
         [UnityTest]

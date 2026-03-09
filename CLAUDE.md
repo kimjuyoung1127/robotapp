@@ -23,16 +23,19 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 
 최근 확정 사항:
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
-- Phase 3 QA 마감: `Main.unity` 활성, Build index `0`, 프로젝트 코드 에러 `0`(`MCP` 로그 제외)
+- Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
+- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2)
 - Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 통합, `Frame_EE` 유지
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용
 - Phase 4B HUD 디버그: `WelcomeModal` placeholder와 중앙 viewport 포커스 하이라이트를 기본 비활성화해 Play 중 중앙 흰 사각형이 더 이상 표시되지 않도록 수정
-- 온보딩 정책 보정: 유효한 `RectTransform` 기반 모달이 없으면 placeholder 모달을 건너뛰고 즉시 Step 흐름으로 진입
+- Main 순수화: `Main.unity`는 로봇/HUD 전용 씬으로 유지하고 `OnboardingManager` 런타임 의존 제거
+- 온보딩 분리: `Onboarding.unity`는 `OnboardingManager` + 전역 네비게이션만 담당
+- 전역 씬 이동 추가: `SceneNavigator`, `SceneCatalog`, `SceneNavigationBar`, `BootSceneRouter` 도입
 - 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역으로 정리하고 런타임 디버그성 흰 패널/텍스트를 공통 스타일 surface로 대체
 - Phase 4 디버그: Built-in에서 URP(`com.unity.render-pipelines.universal@17.0.4`)로 전환하고 `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정
 - Camera 정리: `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정하고 donor mesh local offset/scale 보정 경로를 `RobotRenderer`에 고정
-- Unity Test Runner 결과: EditMode `47/47`, PlayMode `20/20`
+- Unity Test Runner 결과: EditMode `47/47`, PlayMode `26/26`
 - CI 초안 추가: `.github/workflows/unity-tests.yml`
 
 ## 실행 규칙 (MUST)
