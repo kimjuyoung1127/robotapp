@@ -4521,17 +4521,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &864224807
 Canvas:
   m_ObjectHideFlags: 0
@@ -4541,7 +4541,7 @@ Canvas:
   m_GameObject: {fileID: 864224796}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 2
+  m_RenderMode: 0
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -4909,13 +4909,13 @@ MonoBehaviour:
   link0Visual: {fileID: 978172693}
   link1Visual: {fileID: 1925514663}
   endEffectorVisual: {fileID: 146313495}
-  frameAxisLength: 0.22
-  donorScale: 1
-  baseScale: 0.22
-  endEffectorScale: 0.22
-  segmentThicknessScale: 0.22
-  link0ThicknessScale: 0.22
-  link1ThicknessScale: 0.22
+  frameAxisLength: 0.16
+  donorScale: 2.85
+  baseScale: 1
+  endEffectorScale: 1
+  segmentThicknessScale: 1
+  link0ThicknessScale: 1
+  link1ThicknessScale: 1
   baseLocalOffset: {x: 0, y: -0.04, z: 0}
   baseLocalEuler: {x: 0, y: 0, z: 0}
   link0LocalOffset: {x: 0, y: 0, z: 0}
@@ -4924,6 +4924,10 @@ MonoBehaviour:
   link1LocalEuler: {x: 0, y: 0, z: 0}
   endEffectorLocalOffset: {x: 0, y: 0, z: 0}
   endEffectorLocalEuler: {x: 0, y: 0, z: 0}
+  baseLocalScale: {x: 1, y: 1, z: 1}
+  link0LocalScale: {x: 1, y: 1, z: 1}
+  link1LocalScale: {x: 1, y: 1, z: 1}
+  endEffectorLocalScale: {x: 1, y: 1, z: 1}
 --- !u!4 &942086923
 Transform:
   m_ObjectHideFlags: 0

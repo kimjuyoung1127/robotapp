@@ -1,3 +1,4 @@
+using System;
 using KineTutor3D.App;
 using KineTutor3D.Math;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace KineTutor3D.Visualization
     /// <summary>
     /// Applies FK results to canonical frame objects and mesh-only donor visuals.
     /// </summary>
+    [ExecuteAlways]
     [DisallowMultipleComponent]
     public class RobotRenderer : MonoBehaviour
     {
@@ -35,17 +37,20 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Transform donorBaseSource;
         [SerializeField] private Transform donorLink0Source;
         [SerializeField] private Transform donorLink1Source;
+        [SerializeField] private Transform donorAxis3Source;
         [SerializeField] private Transform donorEndEffectorSource;
+        [SerializeField] private Transform donorPickSource;
 
         [Header("Visual Anchors")]
         [SerializeField] private Transform baseVisual;
         [SerializeField] private Transform link0Visual;
         [SerializeField] private Transform link1Visual;
+        [SerializeField] private Transform axis3Pivot;
         [SerializeField] private Transform endEffectorVisual;
 
         [Header("Display")]
         [SerializeField] private float frameAxisLength = 0.22f;
-        [SerializeField] private float donorScale = 0.22f;
+        [SerializeField] private float donorScale = 2.85f;
         [SerializeField] private float baseScale = 0.22f;
         [SerializeField] private float endEffectorScale = 0.22f;
         [SerializeField] private float segmentThicknessScale = 0.22f;
@@ -59,12 +64,19 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Vector3 link1LocalEuler = Vector3.zero;
         [SerializeField] private Vector3 endEffectorLocalOffset = Vector3.zero;
         [SerializeField] private Vector3 endEffectorLocalEuler = Vector3.zero;
-
-        private float link0SourceLength = 1.0f;
-        private float link1SourceLength = 1.0f;
+        [SerializeField] private Vector3 baseLocalScale = Vector3.one;
+        [SerializeField] private Vector3 link0LocalScale = Vector3.one;
+        [SerializeField] private Vector3 link1LocalScale = Vector3.one;
+        [SerializeField] private Vector3 endEffectorLocalScale = Vector3.one;
 
         public bool HasAllVisualAnchors => baseVisual != null && link0Visual != null && link1Visual != null && endEffectorVisual != null;
         public bool HasAllDonorSources => donorBaseSource != null && donorLink0Source != null && donorLink1Source != null && donorEndEffectorSource != null;
+        public Transform DonorBaseSource => donorBaseSource;
+        public Transform DonorLink0Source => donorLink0Source;
+        public Transform DonorLink1Source => donorLink1Source;
+        public Transform DonorEndEffectorSource => donorEndEffectorSource;
+        public Transform DonorPickSource => donorPickSource;
+        public bool UsesPickAsEndEffectorSource => donorEndEffectorSource != null && string.Equals(donorEndEffectorSource.name, "Pick", StringComparison.Ordinal);
 
         private void Awake()
         {
@@ -73,7 +85,13 @@ namespace KineTutor3D.Visualization
 
         private void OnEnable()
         {
+            EnsureRig();
             BindController();
+
+            if (!Application.isPlaying)
+            {
+                ApplyCurrentState();
+            }
         }
 
         private void Start()
@@ -84,11 +102,6 @@ namespace KineTutor3D.Visualization
         private void OnDisable()
         {
             UnbindController();
-        }
-
-        private void OnValidate()
-        {
-            EnsureRig();
         }
 
         private void BindController()
@@ -139,6 +152,7 @@ namespace KineTutor3D.Visualization
         private void EnsureRig()
         {
             visualRoot ??= EnsureTransformChild("VisualRoot");
+            visualRoot.localScale = Vector3.one * donorScale;
 
             frame0Transform ??= FindSceneTransform(Frame0Name);
             frame1Transform ??= FindSceneTransform(Frame1Name);
@@ -165,11 +179,33 @@ namespace KineTutor3D.Visualization
             link0Visual = NormalizeVisualReference(link0Visual, "Link0Visual");
             link1Visual = NormalizeVisualReference(link1Visual, "Link1Visual");
             endEffectorVisual = NormalizeVisualReference(endEffectorVisual, "EndEffectorVisualMesh");
+            axis3Pivot = NormalizeVisualReference(axis3Pivot, "Axis3Pivot");
 
-            baseVisual ??= EnsureVisualAnchor("BaseVisual", donorBaseSource, false);
-            link0Visual ??= EnsureVisualAnchor("Link0Visual", donorLink0Source, true);
-            link1Visual ??= EnsureVisualAnchor("Link1Visual", donorLink1Source, true);
-            endEffectorVisual ??= EnsureVisualAnchor("EndEffectorVisualMesh", donorEndEffectorSource, false);
+            baseVisual ??= EnsureVisualAnchor("BaseVisual", visualRoot, donorBaseSource);
+            link0Visual ??= EnsureVisualAnchor("Link0Visual", baseVisual, donorLink0Source);
+            link1Visual ??= EnsureVisualAnchor("Link1Visual", link0Visual, donorLink1Source);
+            axis3Pivot ??= EnsurePivotChild(link1Visual, "Axis3Pivot");
+            endEffectorVisual ??= EnsureVisualAnchor("EndEffectorVisualMesh", axis3Pivot, donorEndEffectorSource);
+
+            if (link0Visual != null && link0Visual.parent != baseVisual)
+            {
+                link0Visual.SetParent(baseVisual, false);
+            }
+
+            if (link1Visual != null && link1Visual.parent != link0Visual)
+            {
+                link1Visual.SetParent(link0Visual, false);
+            }
+
+            if (axis3Pivot != null && axis3Pivot.parent != link1Visual)
+            {
+                axis3Pivot.SetParent(link1Visual, false);
+            }
+
+            if (endEffectorVisual != null && endEffectorVisual.parent != axis3Pivot)
+            {
+                endEffectorVisual.SetParent(axis3Pivot, false);
+            }
         }
 
         private void ApplyTransforms(Mat4D frame1TransformValue, Mat4D a2TransformValue, Mat4D endEffectorTransformValue)
@@ -182,25 +218,34 @@ namespace KineTutor3D.Visualization
             frame1Gizmo?.SetLength(frameAxisLength);
             frameEeGizmo?.SetPose(endEffectorTransformValue);
             frameEeGizmo?.SetLength(frameAxisLength * 1.15f);
+            visualRoot.localScale = Vector3.one * donorScale;
 
-            var frame1Unity = CoordConverter.ToUnityPosition(frame1TransformValue.ExtractPosition());
-            var eeUnity = CoordConverter.ToUnityPosition(endEffectorTransformValue.ExtractPosition());
+            var jointValues = appController != null ? appController.CurrentJointValuesRad : Array.Empty<double>();
+            var joint0Degrees = jointValues.Length > 0 ? (float)(jointValues[0] * Mathf.Rad2Deg) : 0f;
+            var joint1Degrees = jointValues.Length > 1 ? (float)(jointValues[1] * Mathf.Rad2Deg) : 0f;
 
             if (baseVisual != null)
             {
                 baseVisual.localPosition = baseLocalOffset;
                 baseVisual.localRotation = Quaternion.Euler(baseLocalEuler);
-                baseVisual.localScale = Vector3.one * ResolveBaseScale();
+                baseVisual.localScale = ResolveScale(baseLocalScale, ResolveBaseScale());
             }
 
-            UpdateSegmentVisual(link0Visual, Vector3.zero, frame1Unity, link0SourceLength, ResolveLink0Thickness(), link0LocalOffset, link0LocalEuler);
-            UpdateSegmentVisual(link1Visual, frame1Unity, eeUnity, link1SourceLength, ResolveLink1Thickness(), link1LocalOffset, link1LocalEuler);
+            ApplyJointVisual(link0Visual, donorLink0Source, joint0Degrees, link0LocalOffset, link0LocalEuler, ResolveScale(link0LocalScale, ResolveLink0Thickness()));
+            ApplyJointVisual(link1Visual, donorLink1Source, joint1Degrees, link1LocalOffset, link1LocalEuler, ResolveScale(link1LocalScale, ResolveLink1Thickness()));
+
+            if (axis3Pivot != null)
+            {
+                axis3Pivot.localPosition = donorAxis3Source != null ? donorAxis3Source.localPosition : Vector3.zero;
+                axis3Pivot.localRotation = donorAxis3Source != null ? donorAxis3Source.localRotation : Quaternion.identity;
+                axis3Pivot.localScale = donorAxis3Source != null ? donorAxis3Source.localScale : Vector3.one;
+            }
 
             if (endEffectorVisual != null)
             {
-                endEffectorVisual.localPosition = eeUnity + endEffectorLocalOffset;
-                endEffectorVisual.localRotation = CoordConverter.ToUnityRotation(endEffectorTransformValue.ExtractRotation()) * Quaternion.Euler(endEffectorLocalEuler);
-                endEffectorVisual.localScale = Vector3.one * ResolveEndEffectorScale();
+                endEffectorVisual.localPosition = (donorEndEffectorSource != null ? donorEndEffectorSource.localPosition : Vector3.zero) + endEffectorLocalOffset;
+                endEffectorVisual.localRotation = (donorEndEffectorSource != null ? donorEndEffectorSource.localRotation : Quaternion.identity) * Quaternion.Euler(endEffectorLocalEuler);
+                endEffectorVisual.localScale = ResolveScale(endEffectorLocalScale, ResolveEndEffectorScale());
             }
         }
 
@@ -317,31 +362,48 @@ namespace KineTutor3D.Visualization
             donorBaseSource ??= donorSourceRoot.Find("Base");
             donorLink0Source ??= donorSourceRoot.Find("Base/Axis1");
             donorLink1Source ??= donorSourceRoot.Find("Base/Axis1/Axis2");
-            donorEndEffectorSource ??= donorSourceRoot.Find("Base/Axis1/Axis2/Axis3/Gripper");
-
-            link0SourceLength = GetSourceLength(donorLink0Source);
-            link1SourceLength = GetSourceLength(donorLink1Source);
+            donorAxis3Source ??= donorSourceRoot.Find("Base/Axis1/Axis2/Axis3");
+            donorEndEffectorSource ??= donorAxis3Source != null
+                ? donorAxis3Source.Find("Gripper")
+                : donorSourceRoot.Find("Base/Axis1/Axis2/Axis3/Gripper");
+            donorPickSource ??= donorSourceRoot.Find("Pick");
         }
 
-        private Transform EnsureVisualAnchor(string childName, Transform source, bool alignToSegment)
+        private Transform EnsureVisualAnchor(string childName, Transform parent, Transform source)
         {
-            var anchor = visualRoot.Find(childName);
+            if (parent == null)
+            {
+                return null;
+            }
+
+            var anchor = parent.Find(childName);
             if (anchor == null)
             {
                 var go = new GameObject(childName);
-                go.transform.SetParent(visualRoot, false);
+                go.transform.SetParent(parent, false);
                 anchor = go.transform;
             }
 
             CopyMeshOnly(anchor.gameObject, source);
-            anchor.localScale = Vector3.one * donorScale;
+            return anchor;
+        }
 
-            if (!alignToSegment)
+        private static Transform EnsurePivotChild(Transform parent, string childName)
+        {
+            if (parent == null)
             {
-                anchor.localRotation = Quaternion.identity;
+                return null;
             }
 
-            return anchor;
+            var child = parent.Find(childName);
+            if (child == null)
+            {
+                var go = new GameObject(childName);
+                go.transform.SetParent(parent, false);
+                child = go.transform;
+            }
+
+            return child;
         }
 
         private Transform NormalizeVisualReference(Transform current, string expectedName)
@@ -407,24 +469,6 @@ namespace KineTutor3D.Visualization
             {
                 collider.enabled = false;
             }
-        }
-
-        private static float GetSourceLength(Transform source)
-        {
-            if (source == null)
-            {
-                return 1.0f;
-            }
-
-            var filter = source.GetComponent<MeshFilter>();
-            if (filter == null || filter.sharedMesh == null)
-            {
-                return 1.0f;
-            }
-
-            var size = filter.sharedMesh.bounds.size;
-            var candidate = Mathf.Max(size.x, size.y, size.z);
-            return Mathf.Max(0.01f, candidate);
         }
 
         public Bounds GetAggregateVisualBounds()
@@ -493,25 +537,29 @@ namespace KineTutor3D.Visualization
             return link1ThicknessScale > 0f ? link1ThicknessScale : segmentThicknessScale;
         }
 
-        private void UpdateSegmentVisual(Transform visual, Vector3 start, Vector3 end, float sourceLength, float thicknessScale, Vector3 localOffset, Vector3 localEuler)
+        private static Vector3 ResolveScale(Vector3 serializedScale, float fallbackScalar)
+        {
+            if (serializedScale.sqrMagnitude < 1e-6f)
+            {
+                return Vector3.one * fallbackScalar;
+            }
+
+            return serializedScale;
+        }
+
+        private static void ApplyJointVisual(Transform visual, Transform source, float jointAngleDegrees, Vector3 offset, Vector3 eulerOffset, Vector3 localScale)
         {
             if (visual == null)
             {
                 return;
             }
 
-            var direction = end - start;
-            var length = direction.magnitude;
-            if (length < 1e-5f)
-            {
-                visual.gameObject.SetActive(false);
-                return;
-            }
-
             visual.gameObject.SetActive(true);
-            visual.localPosition = (start + end) * 0.5f + localOffset;
-            visual.localRotation = Quaternion.FromToRotation(Vector3.right, direction.normalized) * Quaternion.Euler(localEuler);
-            visual.localScale = new Vector3(length / Mathf.Max(0.01f, sourceLength), thicknessScale, thicknessScale);
+            visual.localPosition = (source != null ? source.localPosition : Vector3.zero) + offset;
+            visual.localRotation = (source != null ? source.localRotation : Quaternion.identity)
+                * Quaternion.AngleAxis(jointAngleDegrees, Vector3.up)
+                * Quaternion.Euler(eulerOffset);
+            visual.localScale = localScale;
         }
     }
 }

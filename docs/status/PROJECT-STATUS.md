@@ -47,8 +47,8 @@
    - `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정
 6. 테스트 확장
    - EditMode: `CoordConverterTests` 추가
-   - PlayMode: `VisualizationSmokeTests`에 URP 활성/에러 셰이더 방지/카메라 frustum 검증 추가
-   - 결과: EditMode 45/45, PlayMode 17/17
+   - PlayMode: `VisualizationSmokeTests`에 Canvas HUD, explicit donor path, on-screen EE motion 검증 추가
+   - 결과: EditMode 47/47, PlayMode 20/20
 
 ## 이전 턴 반영 내용 (Phase 0+1)
 1. 공식문서 근거 문서 추가
@@ -75,7 +75,7 @@
    - UI 편집 경로가 기존 App/FK 파이프라인을 우회하지 않음을 유지함
    - `theta` 단일 소스 규칙(Slider only)과 입력 가드 정책이 유지됨
 3. 테스트 리뷰
-   - Unity Test Runner: EditMode 45/45 통과, PlayMode 17/17 통과
+   - Unity Test Runner: EditMode 47/47 통과, PlayMode 20/20 통과
    - 씬 저장 확인: `Main.unity` 활성, Build index 0, `RobotRoot` 저장 완료
    - Unity Console 에러는 MCP 시스템 로그 외 프로젝트 코드 에러 0
    - `KineTutor3D.Runtime.csproj` 빌드는 경고만 있고 성공
@@ -87,6 +87,6 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 마감, 실제 Game View 수동 QA 마감
+1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, 실제 Scene/Game 수동 QA 마감
 2. PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
 3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

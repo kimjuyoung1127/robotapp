@@ -136,6 +136,63 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Canvas_UsesOverlayHudMode()
+        {
+            var canvas = GameObject.Find("Canvas")?.GetComponent<Canvas>();
+
+            Assert.That(canvas, Is.Not.Null, "Canvas is required.");
+            Assert.That(canvas.renderMode, Is.EqualTo(RenderMode.ScreenSpaceOverlay), "Canvas should be fixed as HUD overlay.");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator RobotRenderer_UsesExplicitScaraDonorSources_AndNotPick()
+        {
+            var renderer = Object.FindFirstObjectByType<RobotRenderer>();
+
+            for (var i = 0; i < 60 && renderer == null; i++)
+            {
+                yield return null;
+                renderer = Object.FindFirstObjectByType<RobotRenderer>();
+            }
+
+            Assert.That(renderer, Is.Not.Null, "RobotRenderer瑜?李얠? 紐삵뻽?듬땲??");
+            Assert.That(renderer.DonorBaseSource, Is.Not.Null, "Base donor source is required.");
+            Assert.That(renderer.DonorLink0Source, Is.Not.Null, "Axis1 donor source is required.");
+            Assert.That(renderer.DonorLink1Source, Is.Not.Null, "Axis2 donor source is required.");
+            Assert.That(renderer.DonorEndEffectorSource, Is.Not.Null, "Gripper donor source is required.");
+            Assert.That(renderer.DonorPickSource, Is.Not.Null, "Pick helper should still exist.");
+            Assert.That(renderer.UsesPickAsEndEffectorSource, Is.False, "Pick must not be selected as the EE donor.");
+        }
+
+        [UnityTest]
+        public IEnumerator DonorVisuals_HaveNonZeroBounds_AndMoveOnScreen()
+        {
+            var camera = Camera.main;
+            var ee = GameObject.Find("EndEffectorVisualMesh");
+            var slider1 = FindSlider("joint_slider_1");
+
+            Assert.That(camera, Is.Not.Null, "Main Camera媛 ?꾩슂?⑸땲??");
+            Assert.That(ee, Is.Not.Null, "EndEffectorVisualMesh媛 ?꾩슂?⑸땲??");
+            Assert.That(slider1, Is.Not.Null, "joint_slider_1 Slider瑜?李얠? 紐삵뻽?듬땲??");
+
+            var eeRenderer = ee.GetComponent<MeshRenderer>();
+            Assert.That(eeRenderer, Is.Not.Null, "EndEffectorVisualMesh renderer is required.");
+            Assert.That(eeRenderer.bounds.size.sqrMagnitude, Is.GreaterThan(1e-6f), "EndEffectorVisualMesh bounds should not be zero.");
+
+            slider1.value = 0f;
+            yield return null;
+            var before = camera.WorldToScreenPoint(eeRenderer.bounds.center);
+
+            slider1.value = 90f;
+            yield return null;
+            var after = camera.WorldToScreenPoint(eeRenderer.bounds.center);
+
+            Assert.That(Vector2.Distance(new Vector2(before.x, before.y), new Vector2(after.x, after.y)), Is.GreaterThan(10f),
+                "EE donor visual should move on screen when the first joint rotates.");
+        }
+
+        [UnityTest]
         public IEnumerator RobotAggregateBounds_StayInsideMainCameraFrustum()
         {
             var renderer = Object.FindFirstObjectByType<RobotRenderer>();

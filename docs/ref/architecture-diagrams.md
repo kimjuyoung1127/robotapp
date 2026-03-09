@@ -65,7 +65,7 @@ flowchart TD
   A["AppController.OnKinematicsUpdated"] --> B["RobotRenderer"]
   B --> C["CoordConverter"]
   B --> D["Canonical Frames: frame_0 / frame_1 / Frame_EE"]
-  B --> E["Hidden Donor Source: ScaraDonorProbe"]
+  B --> E["Hidden Donor Source: ScaraDonorProbe (Base -> Axis1 -> Axis2 -> Axis3 -> Gripper)"]
   C --> I["URP Main Camera / Solid Color View"]
   C --> D
   C --> F["Donor Mesh Anchors: BaseVisual / Link0Visual / Link1Visual / EndEffectorVisualMesh"]
@@ -79,7 +79,7 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-  A["Canvas"] --> B["TopBar"]
+  A["Canvas (Screen Space Overlay)"] --> B["TopBar"]
   A --> C["LeftPanel"]
   A --> D["RightPanel"]
   A --> E["BottomBar"]

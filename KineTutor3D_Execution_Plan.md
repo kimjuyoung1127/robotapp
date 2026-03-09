@@ -17,8 +17,8 @@
 9. Phase 3 확장: `TemplateSelector(2DOF 단일)`, `DHTableEditor(theta read-only, d/a/alpha editable)`, `MatrixDisplay(A1/A2/T02)` 실동작 연결 완료.
 10. CI 초안 추가: `.github/workflows/unity-tests.yml` (`self-hosted windows`, EditMode/PlayMode 자동 실행 + 결과 artifact 업로드).
 11. Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 승격하고 `Frame_EE`를 표준 EE frame으로 유지.
-12. Phase 4 확장: `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 hidden donor source로 배치하고, vendor runtime 없이 mesh-only donor visual로 재사용.
-13. 검증 결과: Unity Test Runner EditMode 45/45, PlayMode 17/17 통과, `Main.unity` 활성/Build index 0/프로젝트 코드 에러 0 확인.
+12. Phase 4 확장: `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 hidden donor source로 배치하고, donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정한다. `Pick`은 helper point로만 유지한다.
+13. 검증 결과: Unity Test Runner EditMode 47/47, PlayMode 20/20 통과, `Main.unity` 활성/Build index 0/프로젝트 코드 에러 0 확인.
 14. 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface 구성, donor mesh offset/scale 보정 경로 및 교육용 카메라 구도 반영.
 15. Phase 4 디버그: Built-in -> URP(`com.unity.render-pipelines.universal@17.0.4`) 전환, `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정, `Main Camera`를 Solid Color로 전환.
 
@@ -78,7 +78,7 @@
 ### A) Local
 1. Test Runner에서 EditMode 우선 실행
 2. UI/UX는 PlayMode 스모크로 온보딩/게이트/툴팁 경로 확인
-3. PlayMode 스모크 기준: 온보딩/게이트/Skip/패널가시성/툴팁+용어사전 + `TemplateSelector`/`DHTableEditor`/`MatrixDisplay` + canonical frame/donor mesh + UI MVP layout + URP 활성/가시성 검증을 포함한 총 17건 유지
+3. PlayMode 스모크 기준: 온보딩/게이트/Skip/패널가시성/툴팁+용어사전 + `TemplateSelector`/`DHTableEditor`/`MatrixDisplay` + canonical frame/donor mesh + UI HUD layout + URP 활성/가시성 검증을 포함한 총 20건 유지
 
 ### B) CLI
 ```powershell
@@ -91,6 +91,6 @@ Unity.exe -batchmode -projectPath "C:\Users\ezen601\Desktop\Jason\robotapp2" -ru
 
 ## 7) Next
 
-1. Phase 4 Visualization 계속: donor mesh 정렬/스케일 세부값 보정, 실제 Game View 수동 QA 마감
+1. Phase 4 Visualization 계속: donor mesh offset/scale 미세 보정, 실제 Scene/Game 수동 QA 마감
 2. GitHub PR 1건 생성 후 `unity-tests` 워크플로우가 self-hosted 러너에서 실제 통과하는지 검증.
 3. `Assembly-CSharp.csproj` 로컬 빌드 실패(생성 csproj 동기화 이슈) 원인 정리 후 문서화.
