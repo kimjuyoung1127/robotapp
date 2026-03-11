@@ -22,10 +22,11 @@
 | Phase 5 | Why It Moved explanation layer | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/guided-lesson.md | 2026-03-12 |
 | Phase 5 | Beginner Lesson L0~L3 integration | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
 | Phase 5 | Robot Library MVP | P1 | Done | codex | robot-template-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/robot-library.md | 2026-03-12 |
-| Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
-| Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
+| Phase 5 | Tests + Docs (5G) | P0 | Done | codex | sprint-docs-sync, pre-commit-validate | docs/ref/phase5-implementation-plan.md, docs/status/PROJECT-STATUS.md | 2026-03-12 |
+| Phase 5+ | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-12 |
+| Phase 5+ | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-12 |
 | Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
-| Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-09 |
+| Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-12 |
 
 ## Zero-Drift 규칙
 1. `Assets/Scripts/` 구조를 코드 모듈 Source of Truth로 간주한다.

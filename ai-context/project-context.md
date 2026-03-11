@@ -84,7 +84,9 @@ KineTutor3D는 완전 초보자도 `Pre-Kinematics Lesson 0~3`로 진입할 수 
 - **미포함**: IK 유도식 구현, 경로 계획, 충돌 감지, 다중 로봇 완성형 런타임
 
 ## 현재 제품 운영 방향
-- 현재 런타임은 `Boot -> Onboarding -> Main` 학습 흐름 중심의 MVP이다.
+- 현재 런타임은 `Boot -> Onboarding -> Main + RobotLibrary` 학습 흐름의 Guided Lesson P0 완료 상태이다.
+- Phase 5 완료: runtime snapshot, track-aware step, joint input/highlight, Why It Moved, Beginner L0~L3, Robot Library MVP 셸
 - 제품화 방향은 `Home / Guided Lesson / Sandbox / Challenge / Progress / Settings` 구조로 확장한다.
 - 온보딩은 계속 유지하되, 제품의 메인 진입점은 향후 Home/Dashboard로 이동한다.
 - Guided Lesson 내부 기본 경로는 `완전 초보 -> Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8`로 본다.
+- 테스트 기준: EditMode 107/107, PlayMode 30/30

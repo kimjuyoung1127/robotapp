@@ -24,7 +24,7 @@
 - `ai-context/master-plan.md`
 
 ## Last Updated
-- 2026-03-11 (KST)
+- 2026-03-12 (KST)
 
 ## 현재 있는 기능
 - [x] Onboarding 시작/건너뛰기 흐름
@@ -40,38 +40,44 @@
 - [x] 방문 여부, 마지막 step, reduced motion 로컬 저장
 - [x] 전역 scene navigation
 - [x] EditMode / PlayMode 테스트 기반
+- [x] runtime snapshot + update cause foundation
+- [x] track-aware step 저장/복귀 (pre_kinematics / core_kinematics)
+- [x] joint 숫자 직접 입력 + slider/numeric 양방향 동기화
+- [x] joint highlight (ring + link emission)
+- [x] trail / target marker 공통 인프라
+- [x] `Why It Moved` 패널 (WhyItMovedState/Formatter/Panel)
+- [x] Beginner Lesson 0~3 초보자 진입 트랙 (BeginnerLessonFactory, BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel)
+- [x] Robot Library MVP 셸 (RobotCatalog 5개 로봇, RobotLibrary.unity, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer)
 
 ## 지금 없는 기능
-- [ ] Beginner Lesson 0~3 초보자 진입 트랙
-- [ ] Robot Library 실제 화면 구현
 - [ ] Sandbox 실제 화면 구현
 - [ ] Instructor Mode 실제 화면 구현
-- [ ] joint 숫자 직접 입력
-- [ ] `Why It Moved` 실제 패널/설명 기능
 - [ ] pose snapshot 저장
 - [ ] replay / compare / motion history
 - [ ] constraint / workspace / singularity 시각화
 - [ ] pick foundation 실제 흐름
-- [ ] 다중 로봇 로딩 구조의 런타임 구현
-- [ ] SCARA / 3DOF / 6DOF 실제 전환
+- [ ] Robot Library 데모퍼스트 로봇 → 실제 기구학 연결
+- [ ] SCARA / 3DOF / 6DOF 실제 기구학 전환
 - [ ] Progress 화면
 - [ ] Challenge / Assessment
 - [ ] LLM 설명층 연결
 - [ ] Android/iPad 배포 준비 완료 상태
 
 ## 우선 추가할 기능
-### P0
+### P0 (Phase 5 — Complete)
 - [x] runtime snapshot + update cause foundation
 - [x] track-aware step 저장/복귀
 - [x] joint 숫자 직접 입력
 - [x] slider + numeric input 동기화
 - [x] joint highlight
 - [x] trail / target marker 공통 인프라
-- [ ] `Why It Moved`
-- [ ] Beginner Lesson 0~3
+- [x] `Why It Moved`
+- [x] Beginner Lesson 0~3
+- [x] Robot Library MVP
 
 ### P1
-- [ ] robot metadata 기반 Robot Library
+- [ ] SCARA template 추가 (데모퍼스트 → 실제 DH/FK 연결)
+- [ ] 6DOF template 추가 (Fanuc CRX 등)
 - [ ] URDF Import 기반 로봇 확장 (UR5, Puma560, Franka 사전 조사 완료)
 - [ ] workspace envelope 시각화 (2DOF 해석적 → N-DOF Monte Carlo)
 - [ ] interactive matrix viz 확장 (ncase.me/matrix 패턴 디자인 레퍼런스 완료)
@@ -79,7 +85,6 @@
 - [ ] snapshot 저장
 - [ ] replay / compare
 - [ ] constraint preview
-- [ ] SCARA 추가
 - [ ] Instructor demo mode
 
 ### P2
@@ -89,5 +94,5 @@
 - [ ] LLM teaching layer
 
 ## Quick Read
-- 지금 제품은 `2DOF 로봇의 DH/FK를 step-by-step으로 배우는 Guided Lesson MVP`다.
-- 다음 구현 순서는 `기반 상태 계약 -> track-aware step -> joint input/highlight/trail/target -> why-it-moved -> Beginner Lesson 0~3`이고, 그 다음 순서는 `Robot Library + Sandbox + SCARA`다.
+- 지금 제품은 `2DOF Guided Lesson + 초보자 Lesson 0~3 + Robot Library MVP`다.
+- Phase 5 P0 완료. 다음은 `SCARA/6DOF template 실제 연결 → Sandbox MVP → Workspace Envelope → Instructor Mode`다.

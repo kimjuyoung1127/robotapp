@@ -9,8 +9,8 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
-- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5F Complete, 5G remaining)
-- **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
+- **Phase 5: Guided Lesson P0 구현** (Done: 5A~5G Complete)
+- **Phase 6: CI/CD (Unity tests workflow)** (Hold — runner 미등록)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
 
@@ -279,7 +279,23 @@
    - `RobotCatalogTests` (8건), `RobotMetadataInfoTests` (4건), `RobotSelectionBridgeTests` (4건)
    - EditMode 107/107, PlayMode 30/30
 
+## 이번 턴 반영 내용 (Phase 5G Tests + Docs 최종 정리)
+1. Phase 5 전체 완료 (5A~5G Done)
+   - 5A: Runtime foundation (snapshot/update cause)
+   - 5B: Track-aware step foundation
+   - 5C: Joint Numeric Input + Highlight
+   - 5D: Why It Moved explanation layer
+   - 5E: Beginner Lesson L0~L3 integration
+   - 5F: Robot Library MVP
+   - 5G: Tests + Docs sync
+2. `current-feature-checklist.md` 갱신: 완료된 기능 8개를 "현재 있는 기능"으로 이동
+3. 전체 문서 동기화: PROJECT-STATUS, PHASE-EXECUTION-BOARD, PRODUCT-DOC-BOARD, SKILL-DOC-MATRIX, INTEGRITY-REPORT, master-plan, project-context, CLAUDE.md, architecture-mermaid
+4. 스킬 라우팅 검증 리포트 추가: 13/13 스킬, 112/114 문서 도달 가능 (98.2%)
+5. 테스트 현황: EditMode 107/107, PlayMode 30/30
+
 ## 다음 작업
-1. Phase 6 CI/CD 실주행 확인
-2. SceneSelectables.prefab NullRef 후속 처리 판단
-3. Phase 5G Tests + Docs 최종 정리
+1. Phase 6 CI/CD: self-hosted runner 등록 후 PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+2. SCARA/3DOF/6DOF template 실제 기구학 연결 (Robot Library 데모퍼스트 → 실동작)
+3. Sandbox MVP 화면 구현
+4. SceneSelectables.prefab NullRef 후속 처리 판단
+5. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토

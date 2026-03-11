@@ -3,8 +3,8 @@
 `code-doc-align` 자동화가 생성하는 코드-문서 정합성 감사 결과.
 
 ## 최종 실행
-- 일시: 2026-03-11 13:08 KST
-- 상태: completed (DRY_RUN=true — report only)
+- 일시: 2026-03-12 KST
+- 상태: completed (sprint-docs-sync Phase 5G)
 
 ## 결과
 | 항목 | 값 |
@@ -17,24 +17,28 @@
 | manual_required | 0 |
 
 ## Validation
-- module board sync: yes (board uses descriptive phase labels; 7 code modules represented across 15 board rows — accepted design convention)
+- module board sync: yes (board uses descriptive phase labels; 7 code modules represented across 17 board rows — accepted design convention)
 - skill-doc matrix sync: yes (matrix uses canonical folder-based module names; all code modules covered)
 - product doc board sync (`PRD`/`WIREFRAME`/`PRODUCT-ROADMAP`): yes
-- canonical product docs last_updated (2026-03-11) == PRODUCT-DOC-BOARD last_updated (2026-03-11): yes
+- canonical product docs last_updated (2026-03-12) == PRODUCT-DOC-BOARD last_updated (2026-03-12): yes
 - canonical product docs downstream sync (`PROJECT-STATUS`/`ai-context`/`ref`): yes
-- daily log created for product-doc change (03-11): yes (module-product-doc-branching.md, module-product-doc-process.md)
+- daily log created for product-doc change (03-12): pending (sprint-docs-sync turn)
 - weekly rollup updated for milestone-level doc change (2026-W11): yes
+- skill routing verification: 13/13 skills, 112/114 documents reachable (98.2%)
 
 ## 상세 이슈
-- none
+- 누락 문서 2개 (에셋 전용, 기능 개발에 영향 없음):
+  - `docs/ref/product/roadmap/asset-sourcing-checklist.md`
+  - `docs/ref/asset-curation-map.md`
 
 ## 스캔 상세
 | 항목 | 값 |
 |------|-----|
 | managed_modules | App, Kinematics, Math, Templates, Types, UI, Visualization |
-| board rows | 15 (Done: 11, InProgress: 1, Ready: 3) |
-| matrix rows | 10 skills mapped |
+| board rows | 17 (Done: 13, Hold: 1, Ready: 3) |
+| matrix rows | 13 skills mapped |
 | product doc last_updated match | PRD: ✓  WIREFRAME: ✓  PRODUCT-ROADMAP: ✓ |
+| test results | EditMode 107/107, PlayMode 30/30 |
 
 ## 규칙
 - 이 파일은 `code-doc-align` 자동화가 덮어씁니다.

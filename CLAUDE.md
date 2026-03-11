@@ -21,12 +21,13 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 2: Done
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
-- Phase 5: InProgress (5A~5F Done, 5G remaining)
+- Phase 5: Done (5A~5G Complete)
 - Phase 6 (CI/CD): Hold (로컬 테스트 전용, runner 미등록)
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
+- Phase 5G 완료: Tests + Docs 최종 정리 — 전체 문서 동기화 (PROJECT-STATUS, PHASE-EXECUTION-BOARD, PRODUCT-DOC-BOARD, INTEGRITY-REPORT, master-plan, project-context, current-feature-checklist, architecture-mermaid), 스킬 라우팅 검증 (13/13 스킬, 112/114 문서 도달), EditMode 107/107 PlayMode 30/30
 - Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화, EditMode 107/107 PlayMode 30/30
 - Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가, EditMode 87/87 PlayMode 30/30
 - Phase 5D 완료: WhyItMovedState/Formatter/Panel 추가, AppController+AppUiBinder 연동
@@ -134,11 +135,11 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 3. `UNITY_EXE` 환경변수 필요
 
 ## 즉시 다음 작업
-1. Phase 5G Tests + Docs 최종 정리
-2. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-3. Robot Library에서 데모퍼스트 로봇 → 실제 기구학 조작 연결 (SCARA/3DOF/6DOF 템플릿 추가 시)
-4. `asset-validation-report` 기준으로 `SceneSelectables.prefab` 후속 수정 여부 판단
-5. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
+1. Phase 6 CI/CD: self-hosted runner 등록 후 PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+2. SCARA/3DOF template 추가: Robot Library 데모퍼스트 로봇 → 실제 DH/FK 기구학 연결
+3. 6DOF template 추가: Fanuc CRX 등 실제 DH 파라미터 연결
+4. Sandbox MVP 화면 구현
+5. `SceneSelectables.prefab` NullRef 후속 처리 판단
 
 ## Task Routing
 1. 제품 방향 변경: `docs/ref/PRD.md` + `docs/ref/product/foundation/*`
