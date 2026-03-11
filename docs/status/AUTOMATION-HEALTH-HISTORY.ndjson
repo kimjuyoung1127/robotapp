@@ -1,1 +1,2 @@
 {"date_kst":"2026-03-05","automation_summary":{"total":3,"healthy":0,"stale":0,"stuck":0,"ready":3},"skill_summary":{"total":7,"healthy":7,"file_missing":0},"integrity_summary":{"drift":0,"auto_fix":0,"manual_required":0},"note":"초기화"}
+{"date_kst":"2026-03-11","automation_summary":{"total":3,"healthy":0,"stale":0,"stuck":0,"ready":3},"skill_summary":{"total":10,"healthy":10,"file_missing":0,"stale":0},"integrity_summary":{"drift":0,"auto_fix":0,"manual_required":0},"board_summary":{"Ready":3,"InProgress":1,"QA":0,"Done":11,"Hold":0}}

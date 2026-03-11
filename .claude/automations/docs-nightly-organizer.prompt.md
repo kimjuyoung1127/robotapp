@@ -1,19 +1,22 @@
 # docs-nightly-organizer
 
 Task: KineTutor3D 문서 야간 정리
-Schedule: daily 22:00 (Asia/Seoul)
+Schedule: 평일 14:00 (Asia/Seoul)
 DRY_RUN: false (true 설정 시 변경 없이 리포트만)
 
 ## 목표
 - docs/daily/ 로그를 docs/weekly/ 롤업으로 집계
 - 깨진 링크 감지
 - 문서 구조 일관성 유지
+- product doc 변경 후 daily/weekly 누락 여부 감지
 
 ## 입력
 - `docs/ref/` — 참조 문서
 - `docs/status/` — 상태 문서
 - `docs/daily/` — 일일 로그
 - `docs/weekly/` — 주간 롤업
+- `docs/status/PRODUCT-DOC-BOARD.md` — canonical product docs 상태
+- `docs/ref/PRD.md`, `docs/ref/WIREFRAME.md`, `docs/ref/PRODUCT-ROADMAP.md` — product docs
 
 ## 프로세스
 
@@ -49,7 +52,12 @@ Lock 파일: docs/.docs-nightly.lock
 - 존재하지 않는 파일 참조 = 깨진 링크
 - 깨진 링크 수 기록
 
-### 4. 로그 기록
+### 4. Product Doc Sync 점검
+- canonical product docs의 `Last Updated`가 최근 변경되었는데 해당 날짜의 `docs/daily/MM-DD/` 로그가 없으면 `manual_required`로 기록
+- milestone 수준 변경인데 현재 주 `docs/weekly/YYYY-WNN.md`가 없으면 `manual_required`로 기록
+- 자동으로 product docs를 생성하거나 수정하지는 않음
+
+### 5. 로그 기록
 ```
 docs/status/NIGHTLY-RUN-LOG.md에 append:
 
@@ -57,9 +65,10 @@ docs/status/NIGHTLY-RUN-LOG.md에 append:
 - moved_daily_count: X
 - weekly_created_or_updated: <파일|none>
 - broken_links: X
+- manual_required: X
 ```
 
-### 5. Lock 해제
+### 6. Lock 해제
 ```
 Lock 상태를 COMPLETED로 변경
 ```

@@ -8,12 +8,12 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 
 ## 시작 순서 (필수)
 1. `AGENTS.md` (Codex) 또는 `CLAUDE.md` (Claude) - 동일 정책 진입 문서
-2. `KineTutor3D_Execution_Plan.md`
-3. `docs/status/PROJECT-STATUS.md`
-4. `docs/status/PHASE-EXECUTION-BOARD.md`
-5. `docs/status/SKILL-DOC-MATRIX.md`
+2. `docs/status/PRODUCT-DOC-BOARD.md`
+3. `docs/ref/PRD.md`
+4. `docs/ref/WIREFRAME.md`
+5. `docs/ref/PRODUCT-ROADMAP.md`
 
-## 현재 상태 (2026-03-09)
+## 현재 상태 (2026-03-11)
 - Phase 0: Done
 - Phase 1: Done
 - Phase 2: Done
@@ -21,8 +21,10 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 4 (Visualization core): Done
 - Phase 6 (CI/CD): InProgress
 - Stability Refactor (App/UI/Visualization componentization): Done
+- Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
+- GameLab-style 제품 문서 운영 이식 시작: canonical product docs 3종(`PRD`, `WIREFRAME`, `PRODUCT-ROADMAP`)과 `PRODUCT-DOC-BOARD`를 status/ref 계층에 추가
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
 - Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
 - Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2)
@@ -69,17 +71,28 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 10 | unity-official-docs | Unity 공식문서 근거 | `kinetutor-guide/ops/unity-official-docs/` |
 | 11 | student-friendly-ux | UX, onboarding, glossary, gate | `kinetutor-guide/ui/student-friendly-ux/` |
 | 12 | debug-success-capture | debug, regression, playmode verification | `kinetutor-guide/ops/debug-success-capture/` |
+| 13 | robotics-reference-to-lesson | 공개 robotics reference, concept map, lesson adaptation | `kinetutor-guide/content/robotics-reference-to-lesson/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
 - `tutor-step-add` -> `robot-template-add`
 - `student-friendly-ux` -> `tutor-step-add` + `scene-scaffold`
+- `robotics-reference-to-lesson` -> `student-friendly-ux` + `tutor-step-add`
 - `asmdef-setup` -> `unity-official-docs`
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
 - `debug-success-capture` -> `pre-commit-validate` + `student-friendly-ux`
 
 ## Source of Truth 문서
 - 탐색 인덱스: `AGENTS.md`
+- 제품 문서 보드: `docs/status/PRODUCT-DOC-BOARD.md`
+- 제품 요구사항: `docs/ref/PRD.md`
+- 제품 와이어프레임: `docs/ref/WIREFRAME.md`
+- 제품 로드맵: `docs/ref/PRODUCT-ROADMAP.md`
+- 제품 상세 문서 루트: `docs/ref/product/`
+- 공개 로보틱스 레퍼런스 팩: `docs/ref/product/content/open-robotics-reference-pack.md`
+- 경쟁제품 합성 문서: `docs/ref/product/foundation/competitive-synthesis.md`
+- LLM teaching strategy: `docs/ref/product/content/llm-teaching-strategy.md`
+- 모바일 릴리스 체크리스트: `docs/ref/product/roadmap/mobile-release-checklist.md`
 - 실행 계획: `KineTutor3D_Execution_Plan.md`
 - 운영 상태: `docs/status/PROJECT-STATUS.md`
 - 실행 보드: `docs/status/PHASE-EXECUTION-BOARD.md`
@@ -102,6 +115,20 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 3. `UNITY_EXE` 환경변수 필요
 
 ## 즉시 다음 작업
-1. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-2. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
-3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인 문서화
+1. 제품 문서 3종 기준으로 `USER-FLOW`/`tutor-step-plan`/`master-plan`을 계속 세분화
+2. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
+3. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
+
+## Task Routing
+1. 제품 방향 변경: `docs/ref/PRD.md` + `docs/ref/product/foundation/*`
+2. Guided Lesson 작업: `docs/ref/WIREFRAME.md` + `docs/ref/product/ux/guided-lesson.md`
+3. Robot model 작업: `docs/ref/product/robots/robot-model-library-spec.md`
+4. Sandbox 작업: `docs/ref/product/ux/sandbox.md`
+5. Instructor 기능: `docs/ref/product/ux/instructor-mode.md`
+6. Tablet/mobile 작업: `docs/ref/product/ux/tablet-first-policy.md`
+7. 강의자료 활용 작업: `docs/ref/product/content/derived-course-content-policy.md` + `docs/ref/product/content/concept-to-ui-map.md`
+8. 공개 robotics reference 반영: `docs/ref/product/content/open-robotics-reference-pack.md` + `.claude/skills/kinetutor-guide/content/robotics-reference-to-lesson/SKILL.md`
+9. 경쟁제품 분석 반영: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
+10. LLM teaching 작업: `docs/ref/product/content/llm-teaching-strategy.md`
+11. 모바일 배포 작업: `docs/ref/product/roadmap/mobile-release-checklist.md`
+12. 플랜 변경 처리: `docs/ref/PRODUCT-ROADMAP.md` + `docs/ref/product/roadmap/release-gates.md`

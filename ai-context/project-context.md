@@ -1,29 +1,36 @@
 # 프로젝트 컨텍스트
 
 ## 한 줄 정의
-KineTutor3D는 DH 파라미터 기반 로봇 기구학을 시각적으로 학습하는 Unity 3D 교육 도구이다.
+KineTutor3D는 완전 초보자도 `Pre-Kinematics Lesson 0~3`로 진입할 수 있는 guided-first 로보틱스 학습용 Unity 3D 교육 도구이다.
 
 ## 개발 동기
 - 로봇공학 교육에서 DH 파라미터 → 변환행렬 → 엔드이펙터 위치의 과정이 추상적
+- 많은 학습자가 sin/cos, 삼각형, IK 유도, 행렬/DH에서 바로 막히므로 수학 이전의 직관 단계가 필요함
 - 3D 시각화를 통해 학습자가 파라미터 변경의 즉각적 효과를 확인할 수 있음
 - 단계별 튜터 기능으로 수학 원리를 점진적으로 이해
 
 ## 대상 사용자
-- 로봇공학 전공 학부생/대학원생
-- 로봇공학 교육자
 - 산업용 로봇 프로그래밍 입문자
+- 로봇공학 교육자
+- 수학과 기구학 개념이 낯선 완전 초보 학습자
+
+## 제품 문서 Source of Truth
+- `docs/ref/PRD.md` — 타겟, 문제 정의, 가치, 기능 범위
+- `docs/ref/WIREFRAME.md` — 정보 구조, 핵심 화면, 사용자 흐름
+- `docs/ref/PRODUCT-ROADMAP.md` — 30/60/90일 제품 로드맵과 릴리스 게이트
+- `docs/status/PRODUCT-DOC-BOARD.md` — 제품 문서 3종의 상태 추적
 
 ## 핵심 UX 콘셉트
 ```
-DH 파라미터 입력 → FK 계산 → 3D 시각화 → 단계별 튜터
+움직임 직관(Lesson 0~3) -> DH/FK 연결(Core Track) -> 3D 시각화 -> 단계별 튜터
 ```
-1. DH 테이블에서 파라미터(θ, d, a, α) 편집
-2. Forward Kinematics 실시간 계산
+1. Lesson 0~3에서 trail, target marker, why-it-moved로 움직임 감각 형성
+2. Core Track에서 DH/FK와 행렬을 직관과 연결
 3. 로봇 관절/링크 3D 렌더링
-4. Step Tutor로 각 변환 단계를 하나씩 설명
+4. Guided Lesson으로 각 변환 단계를 하나씩 설명
 
 ## 시스템 개요
-- **엔진**: Unity 6 (6000.0.64f1), Built-in Render Pipeline
+- **엔진**: Unity 6 (6000.0.64f1), URP
 - **언어**: C# (Unity 2022 기준)
 - **수학 정밀도**: Double-precision (`Vec3D/Mat3D/Mat4D`)
 - **MCP**: CoplayDev `unity-mcp` 패키지 설치됨
@@ -73,5 +80,11 @@ DH 파라미터 입력 → FK 계산 → 3D 시각화 → 단계별 튜터
 3. **6DOF 복잡성**: 6자유도 로봇의 DH 파라미터 검증 난이도
 
 ## 범위 & 제외사항
-- **포함**: FK, Standard DH, 2/3/6 DOF 템플릿, Step Tutor, 3D 시각화
-- **미포함**: 역기구학(IK), 경로 계획, 충돌 감지, 다중 로봇
+- **포함**: Beginner Lesson 0~3, FK, Standard DH, 2/3/6 DOF 템플릿, Step Tutor, 3D 시각화
+- **미포함**: IK 유도식 구현, 경로 계획, 충돌 감지, 다중 로봇 완성형 런타임
+
+## 현재 제품 운영 방향
+- 현재 런타임은 `Boot -> Onboarding -> Main` 학습 흐름 중심의 MVP이다.
+- 제품화 방향은 `Home / Guided Lesson / Sandbox / Challenge / Progress / Settings` 구조로 확장한다.
+- 온보딩은 계속 유지하되, 제품의 메인 진입점은 향후 Home/Dashboard로 이동한다.
+- Guided Lesson 내부 기본 경로는 `완전 초보 -> Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8`로 본다.

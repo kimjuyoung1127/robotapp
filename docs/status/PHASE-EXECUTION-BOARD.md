@@ -31,3 +31,4 @@
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
 9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.
 10. 루트 `AGENTS.md`와 폴더 `AGENTS.md`를 파일 탐색의 1차 진입점으로 사용하고, 전체 맥락은 `docs/ref/architecture-mermaid.md`로 먼저 파악한다.
+11. `PRODUCT-ROADMAP.md`의 릴리스 게이트와 이 보드의 phase 상태는 충돌 없이 유지한다.

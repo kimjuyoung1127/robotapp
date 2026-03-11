@@ -1,0 +1,52 @@
+# KineTutor3D Product Roadmap
+
+Version: 1.1.0  
+Last Updated: 2026-03-11 (KST)
+
+## Purpose
+
+이 문서는 제품 우선순위와 릴리스 게이트를 잠그는 root canonical roadmap 문서다. 세부 백로그, 게이트, 플랜 변경 SOP는 하위 로드맵 문서에서 관리하고, 여기에는 현재 우선순위와 읽기 경로만 유지한다.
+
+## Locked Priorities
+
+1. P0는 `Beginner Lesson 0~3`, `Guided Lesson 중심 UX`, `Tablet first 정책`, `다중 로봇 확장 구조`, `비공개 자료의 UI 재구성 정책`이다.
+2. 기능 확장 순서는 `Robot Library -> Sandbox -> Instructor Mode`다.
+3. 로봇 확장 순서는 `2DOF -> SCARA -> 3DOF -> 6DOF`다.
+4. LLM은 deterministic runtime 위의 설명층으로만 추가한다.
+5. 최종 모바일 배포는 `Android Tablet -> iPad -> WebGL -> Phone 제한형` 우선순위를 따른다.
+6. 플랜 변경 처리는 `leaf -> root canonical -> downstream -> board -> logs` 순서를 따른다.
+
+## Timeline Summary
+
+- 30일: 제품 방향/IA/Beginner Lesson 0~3/로봇 확장 구조/비공개 자료 정책 고정
+- 60일: Home, Robot Library, Sandbox MVP 정리
+- 90일: Instructor Mode, 로봇 확장, 태블릿 최적화, 배포 준비
+
+## Change Summary
+
+1. 로드맵 문서를 root summary 문서로 축소했다.
+2. 세부 백로그와 릴리스 게이트를 `docs/ref/product/roadmap/` 아래로 분기했다.
+3. 모바일 릴리스 체크리스트를 roadmap leaf 문서로 추가했다.
+4. 현재 있는 기능 / 없는 기능 / 우선 추가 기능을 빠르게 보는 `current-feature-checklist.md`를 추가했다.
+5. `Beginner Lesson 0~3`를 roadmap P0 잠금 결정과 timeline에 반영했다.
+6. 플랜 변경 SOP를 roadmap leaf 문서 기준으로 정리했다.
+
+## Read Next
+
+- [milestone-backlog.md](./product/roadmap/milestone-backlog.md)
+- [current-feature-checklist.md](./product/roadmap/current-feature-checklist.md)
+- [release-gates.md](./product/roadmap/release-gates.md)
+- [mobile-release-checklist.md](./product/roadmap/mobile-release-checklist.md)
+- [robot-template-expansion.md](./product/robots/robot-template-expansion.md)
+
+## Downstream Sync
+
+- `docs/status/PROJECT-STATUS.md`
+- `docs/status/PHASE-EXECUTION-BOARD.md`
+- `ai-context/master-plan.md`
+
+## Branching Rule
+
+1. 이 문서에는 세부 태스크 목록과 예외 케이스를 길게 적지 않는다.
+2. milestone 세부는 `milestone-backlog.md`에서만 관리한다.
+3. 플랜 변경 SOP와 릴리스 기준은 `release-gates.md`에서만 관리한다.

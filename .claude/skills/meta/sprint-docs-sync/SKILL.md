@@ -12,23 +12,34 @@ Phase 완료, 주요 마일스톤, 또는 문서 동기화 요청 시.
 
 ## Read First
 1. `docs/status/PROJECT-STATUS.md`
-2. `docs/status/PHASE-EXECUTION-BOARD.md`
-3. `docs/status/SKILL-DOC-MATRIX.md`
-4. `docs/status/INTEGRITY-REPORT.md`
-5. `docs/status/INTEGRITY-HISTORY.ndjson`
-6. `ai-context/master-plan.md`
-7. `ai-context/project-context.md`
-8. `Assets/Scripts/` 디렉토리 목록 (Source of Truth)
+2. `docs/status/PRODUCT-DOC-BOARD.md`
+3. `docs/status/PHASE-EXECUTION-BOARD.md`
+4. `docs/status/SKILL-DOC-MATRIX.md`
+5. `docs/status/INTEGRITY-REPORT.md`
+6. `docs/status/INTEGRITY-HISTORY.ndjson`
+7. `docs/ref/PRD.md`
+8. `docs/ref/WIREFRAME.md`
+9. `docs/ref/PRODUCT-ROADMAP.md`
+10. `docs/ref/product/content/open-robotics-reference-pack.md`
+11. `docs/ref/product/content/llm-teaching-strategy.md`
+12. `docs/ref/product/roadmap/mobile-release-checklist.md`
+13. `ai-context/master-plan.md`
+14. `ai-context/project-context.md`
+15. `Assets/Scripts/` 디렉토리 목록 (Source of Truth)
 
 ## Do
 1. `PROJECT-STATUS.md` 업데이트: 현재 Phase, 완료 항목, 다음 작업
-2. `PHASE-EXECUTION-BOARD.md` 업데이트: 모듈 상태 (Ready/InProgress/QA/Done)
-3. `SKILL-DOC-MATRIX.md` 업데이트: 새로 추가된 코드 경로
-4. `INTEGRITY-REPORT.md` 업데이트: 새 검증 항목
-5. `INTEGRITY-HISTORY.ndjson`에 append
-6. `master-plan.md` 업데이트: 최근 완료 + 다음 우선순위
-7. `project-context.md` 업데이트: 현재 상태
-8. 제로 드리프트 확인: `managed_modules == board_modules == matrix_modules`
+2. `PRODUCT-DOC-BOARD.md` 업데이트: canonical product docs 상태와 downstream sync 최신화
+3. `PHASE-EXECUTION-BOARD.md` 업데이트: 모듈 상태 (Ready/InProgress/QA/Done)
+4. `SKILL-DOC-MATRIX.md` 업데이트: 새로 추가된 코드 경로와 canonical product docs required_docs 반영
+5. `INTEGRITY-REPORT.md` 업데이트: 새 검증 항목 + product doc drift 결과
+6. `INTEGRITY-HISTORY.ndjson`에 append
+7. `master-plan.md` 업데이트: 최근 완료 + 다음 우선순위
+8. `project-context.md` 업데이트: 현재 상태
+9. 제품 문서 변경 시 `docs/daily/MM-DD/` 로그 작성, 마일스톤 변경이면 `docs/weekly/` 롤업도 갱신
+10. 제로 드리프트 확인: `managed_modules == board_modules == matrix_modules`
+11. product doc 제로 드리프트 확인: `canonical_product_docs == board_product_docs`
+12. reference pack, llm strategy, mobile release checklist가 canonical leaf 문서 집합에 포함되는지 확인
 
 ## Do Not
 1. NDJSON 파일 덮어쓰기 금지 (append-only)
@@ -37,12 +48,16 @@ Phase 완료, 주요 마일스톤, 또는 문서 동기화 요청 시.
 
 ## Validation
 - [ ] PROJECT-STATUS.md 최신 상태
+- [ ] PRODUCT-DOC-BOARD.md canonical docs 상태 정확
 - [ ] PHASE-EXECUTION-BOARD.md 모든 모듈 상태 정확
 - [ ] SKILL-DOC-MATRIX.md 코드 경로 유효
 - [ ] INTEGRITY-HISTORY.ndjson 새 항목 append됨
 - [ ] master-plan.md 업데이트됨
 - [ ] project-context.md 업데이트됨
 - [ ] managed_modules == board_modules == matrix_modules (제로 드리프트)
+- [ ] canonical_product_docs == board_product_docs (제로 드리프트)
+- [ ] 제품 문서 변경에 대한 daily/weekly sync 확인
+- [ ] reference pack / llm strategy / mobile checklist sync 확인
 
 ## Output Template
 ```

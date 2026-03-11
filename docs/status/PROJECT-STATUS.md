@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-09 (KST)
+최종 업데이트: 2026-03-11 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -11,6 +11,77 @@
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
+- 병행 작업: **GameLab-style Product Docs Governance** 진행 중
+
+## Product Docs Governance
+1. Canonical product docs 3종을 `docs/ref/PRD.md`, `docs/ref/WIREFRAME.md`, `docs/ref/PRODUCT-ROADMAP.md`로 고정했다.
+2. 제품 상세 문서는 `docs/ref/product/` 아래로 가지치고, 루트 3문서는 요약/잠금 결정만 유지한다.
+3. 제품 문서 상태는 `docs/status/PRODUCT-DOC-BOARD.md`에서만 추적한다.
+4. 제품 문서 변경 시 downstream sync는 아래 규칙을 따른다.
+   - `PRD.md` -> `PROJECT-STATUS.md`, `ai-context/project-context.md`, `ai-context/master-plan.md`
+   - `WIREFRAME.md` -> `docs/ref/USER-FLOW.md`, `docs/ref/tutor-step-plan.md`, 필요 시 `docs/ref/architecture-diagrams.md`
+   - `PRODUCT-ROADMAP.md` -> `PROJECT-STATUS.md`, `docs/status/PHASE-EXECUTION-BOARD.md`, `ai-context/master-plan.md`
+5. 제품 문서 변경은 반드시 `docs/daily/MM-DD/` 로그를 남기고, 마일스톤 단위 변경이면 주간 롤업까지 반영한다.
+
+## 이번 턴 반영 내용 (LLM / Mobile / UX-Concept 확장)
+1. UX leaf 문서 확장
+   - `guided-lesson.md`를 화면 단위 계약(`GL-01`~`GL-06`)으로 확장
+   - `robot-library.md`를 grid/detail drawer/compare strip/mode routing 흐름으로 확장
+   - `sandbox.md`를 numeric input, why-it-moved, snapshot/sequence, constraint preview, pick foundation까지 확장
+2. concept 문서 확장
+   - `concept-to-ui-map.md`를 15개 이상 concept와 `reference_family`, `prerequisite_concepts`, `visualization_mode` 기준으로 확장
+   - 공개 자료 기준 문서 `open-robotics-reference-pack.md` 추가
+3. LLM 후속 도입 문서화
+   - `llm-teaching-strategy.md` 추가
+   - deterministic runtime / teaching context / LLM response layer 분리 원칙 고정
+4. 모바일 배포 문서화
+   - `mobile-release-checklist.md` 추가
+   - Android 태블릿 우선, iPad 후속, Play/App Store 준비 항목 고정
+5. skill 확장
+   - 기존 skill 6종에 `robot.md` 기반 규칙을 흡수
+   - 새 skill `robotics-reference-to-lesson` 추가
+   - `AGENTS.md`, `CLAUDE.md`, `SKILL-DOC-MATRIX.md`에 routing/매트릭스 반영
+6. 현재 제품 상태 요약 문서화
+   - `current-feature-checklist.md` 추가
+   - 현재 있는 기능 / 없는 기능 / 우선 추가할 기능을 roadmap leaf 문서로 고정
+
+## 이번 턴 반영 내용 (초보자 Lesson 0~3)
+1. 초보자 진입 계층 추가
+   - `lesson-framework.md`에 `Pre-Kinematics Lesson 0~3` / `Core Kinematics Step 1~8` 구조를 추가
+   - `guided-lesson.md`에 `Beginner Mode`와 공식/행렬 최소화 규칙을 반영
+2. 흐름 문서 동기화
+   - `tutor-step-plan.md`를 `L0~L3 -> S1~S8` 구조로 확장
+   - `USER-FLOW.md`에 `완전 초보` / `기본 개념 이해자` onboarding 분기를 추가
+3. 개념/백로그 반영
+   - `concept-to-ui-map.md`에 회전 원호, 끝점 경로, reach/not reach, inverse thinking 개념을 추가
+   - `current-feature-checklist.md`, `milestone-backlog.md`에 `Beginner Lesson 0~3`를 P0로 반영
+   - `competitive-synthesis.md`에 공식-first 진입 배제 원칙을 추가
+
+## 이번 턴 반영 내용 (공개 레퍼런스 확장)
+1. 공식 레퍼런스 적용 포인트 강화
+   - `open-robotics-reference-pack.md`에 Modern Robotics, MIT Manipulation, Robotics Toolbox for Python, MoveIt 2, Unity Robotics Hub의 적용 포인트를 구체화
+2. 새 content leaf 문서 추가
+   - `frame-pose-teaching-notes.md`
+   - `pick-foundation-state-machine.md`
+3. 모델/실습 문서 동기화
+   - `robot-model-library-spec.md`에 convention, joint limits, pose preset, import source 메타데이터를 추가
+   - `sandbox.md`에 pick foundation 상태를 `pre_pick -> pick -> post_pick -> pre_place -> place -> post_place`로 정리
+
+## 이번 턴 반영 내용 (Product Docs Governance 이식)
+1. `docs/status/PRODUCT-DOC-BOARD.md` 추가
+   - `prd`, `wireframe`, `product-roadmap` 3개 canonical 문서 상태를 전담 추적
+2. canonical 제품 문서 3종 추가
+   - `docs/ref/PRD.md`
+   - `docs/ref/WIREFRAME.md`
+   - `docs/ref/PRODUCT-ROADMAP.md`
+3. branching 전략 반영
+   - `docs/ref/product/` 아래에 foundation/ux/content/robots/roadmap leaf 문서를 추가
+   - root canonical 문서는 잠금 결정 + 링크 + downstream sync만 유지하는 summary 문서로 재정리
+4. 인덱스/컨텍스트 문서 동기화
+   - 루트 `AGENTS.md`, `CLAUDE.md`, `docs/CLAUDE.md`, `ai-context/START-HERE.md`
+   - `ai-context/master-plan.md`, `ai-context/project-context.md`
+5. 운영 문서/자동화 연계 강화
+   - `SKILL-DOC-MATRIX`, `INTEGRITY-REPORT`, `sprint-docs-sync`, `code-doc-align`, `docs-nightly-organizer`에 제품 문서 drift 규칙 연결
 
 ## Phase 0 체크리스트
 - [x] Unity 프로젝트 생성
@@ -134,6 +205,8 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
-2. `Main.unity`를 prefab/HUD asset 기준으로 더 쪼갤지 검토해 씬 YAML 유지보수 비용을 낮추기
-3. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화
+1. `WIREFRAME` 기준으로 `USER-FLOW`와 `tutor-step-plan`을 Home/Sandbox/Challenge 구조까지 확장
+2. `PRODUCT-ROADMAP` 기준으로 엔지니어링 보드와 제품 보드 간 릴리스 게이트 정합성 유지
+3. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
+4. `Main.unity`를 prefab/HUD asset 기준으로 더 쪼갤지 검토해 씬 YAML 유지보수 비용을 낮추기
+5. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

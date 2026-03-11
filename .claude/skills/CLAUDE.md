@@ -7,9 +7,9 @@ KineTutor3D Claude Code 대화형 개발 스킬 에셋.
   - `core/` — math-module-add
   - `kinematics/` — dh-algorithm-add
   - `templates/` — robot-template-add
-  - `ui/` — tutor-step-add, scene-scaffold
+  - `ui/` — tutor-step-add, scene-scaffold, student-friendly-ux
   - `test/` — editmode-test-add
-  - `ops/` — pre-commit-validate, asmdef-setup, unity-official-docs
+  - `ops/` — pre-commit-validate, asmdef-setup, unity-official-docs, debug-success-capture
 - `meta/` — 문서 오케스트레이션 스킬 (sprint-docs-sync)
 
 ## 스킬 포맷
@@ -21,11 +21,13 @@ KineTutor3D Claude Code 대화형 개발 스킬 에셋.
 ```
 robot-template-add → dh-algorithm-add + editmode-test-add
 tutor-step-add → robot-template-add
+student-friendly-ux → tutor-step-add + scene-scaffold
 pre-commit-validate → editmode-test-add (검증만)
 scene-scaffold → tutor-step-plan.md 참조
 asmdef-setup → architecture-diagrams.md 참조
 asmdef-setup → unity-official-docs 참조
 pre-commit-validate → unity-official-docs 참조
+debug-success-capture → pre-commit-validate + student-friendly-ux
 ```
 
 ## 자동화 관계

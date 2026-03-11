@@ -10,6 +10,7 @@ Main.unity 씬 생성, 카메라/조명/UI 초기 설정, 씬 계층 구조 설�
 - 씬 이름 (기본: Main)
 - 필요한 UI 패널 목록
 - 로봇 템플릿 (기본: 2DOF_RR)
+- 제품 화면 종류 (`Guided Lesson`, `Robot Library`, `Sandbox`, `Instructor Mode`)
 
 ## Read First
 1. `Assets/Scenes/CLAUDE.md` — 씬 명명 규칙
@@ -17,6 +18,10 @@ Main.unity 씬 생성, 카메라/조명/UI 초기 설정, 씬 계층 구조 설�
 3. `docs/ref/coordinate-mapping.md` — 로보틱스↔Unity 좌표 매핑
 4. `docs/ref/architecture-diagrams.md` — 데이터 흐름
 5. `docs/ref/tutor-step-plan.md` — Step Tutor UI 요구사항
+6. `docs/ref/product/ux/guided-lesson.md`
+7. `docs/ref/product/ux/robot-library.md`
+8. `docs/ref/product/ux/sandbox.md`
+9. `docs/ref/product/ux/instructor-mode.md`
 
 ## Do
 
@@ -102,6 +107,12 @@ Main.unity
 - Assets/Scenes/Main.unity로 저장
 - 씬을 Build Settings에 추가 (인덱스 0)
 
+### 7단계: 제품 화면 scaffold 체크
+- `Guided Lesson`: Top/Left/Center/Right/Bottom 5영역 계약 확인
+- `Robot Library`: grid + detail drawer + mode routing CTA 배치 확인
+- `Sandbox`: joint input rail + history + replay + constraint view 영역 확인
+- `Instructor Mode`: lesson jump + focus override + teaching note 영역 확인
+
 ## Do Not
 1. 비즈니스 로직을 씬 오브젝트에 직접 구현 금지 (스크립트 참조만)
 2. 좌표 변환을 Visualization/ 외부에서 수행 금지
@@ -118,6 +129,7 @@ Main.unity
 - [ ] GroundPlane 존재
 - [ ] EventSystem 존재
 - [ ] Build Settings에 씬 등록
+- [ ] 제품 화면 scaffold 체크리스트 반영
 - [ ] Unity 컴파일: 에러 0
 
 ## Output Template

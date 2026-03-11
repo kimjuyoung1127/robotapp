@@ -1,7 +1,7 @@
 # automation-health-monitor
 
 Task: KineTutor3D 자동화 건강 모니터
-Schedule: daily 09:30 (Asia/Seoul)
+Schedule: 평일 13:30 (Asia/Seoul)
 DRY_RUN: false (true 설정 시 파일 변경 없이 리포트만)
 
 ## 목표
