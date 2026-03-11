@@ -1,0 +1,43 @@
+// Folder: App - application orchestration and runtime state.
+using UnityEngine;
+
+namespace KineTutor3D.App
+{
+    /// <summary>
+    /// 씬 간 로봇 선택 상태를 전달합니다. PlayerPrefs 기반입니다.
+    /// </summary>
+    public static class RobotSelectionBridge
+    {
+        private const string RobotIdKey = "KineTutor3D.SelectedRobotId";
+        private const string ModeKey = "KineTutor3D.SelectedMode";
+
+        public static void SetSelectedRobot(string robotId)
+        {
+            PlayerPrefs.SetString(RobotIdKey, robotId ?? string.Empty);
+            PlayerPrefs.Save();
+        }
+
+        public static string GetSelectedRobotId()
+        {
+            return PlayerPrefs.GetString(RobotIdKey, string.Empty);
+        }
+
+        public static void SetSelectedMode(string mode)
+        {
+            PlayerPrefs.SetString(ModeKey, mode ?? string.Empty);
+            PlayerPrefs.Save();
+        }
+
+        public static string GetSelectedMode()
+        {
+            return PlayerPrefs.GetString(ModeKey, string.Empty);
+        }
+
+        public static void Clear()
+        {
+            PlayerPrefs.DeleteKey(RobotIdKey);
+            PlayerPrefs.DeleteKey(ModeKey);
+            PlayerPrefs.Save();
+        }
+    }
+}

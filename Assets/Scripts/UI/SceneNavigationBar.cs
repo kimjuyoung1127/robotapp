@@ -126,7 +126,6 @@ namespace KineTutor3D.UI
                 : UiRuntimeStyle.AccentBlue;
             UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, entry.DisplayName, background);
             UiRuntimeStyle.Anchor(button.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(116f, 36f), new Vector2(380f + index * 126f, 0f));
-            button.transform.SetAsLastSibling();
             var layout = UiRuntimeStyle.EnsureLayoutElement(button);
             layout.preferredWidth = 116f;
             layout.minWidth = 104f;

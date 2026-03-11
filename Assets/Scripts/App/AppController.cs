@@ -159,7 +159,7 @@ namespace KineTutor3D.App
 
         public string[] GetAvailableTemplateNames()
         {
-            return new[] { Template2DOF_RR.Name };
+            return RobotCatalog.GetAvailableRobotIds();
         }
 
         public void SelectTemplateByName(string templateName)
@@ -169,9 +169,10 @@ namespace KineTutor3D.App
                 return;
             }
 
-            if (string.Equals(templateName, Template2DOF_RR.Name, StringComparison.Ordinal))
+            var template = RobotCatalog.CreateTemplate(templateName);
+            if (template != null)
             {
-                ApplyTemplate(Template2DOF_RR.Create());
+                ApplyTemplate(template);
             }
         }
 
@@ -269,7 +270,13 @@ namespace KineTutor3D.App
         private void InitializeTemplateRuntime()
         {
             BindSliderEvents();
-            ApplyTemplate(Template2DOF_RR.Create());
+
+            var selectedId = RobotSelectionBridge.GetSelectedRobotId();
+            var template = !string.IsNullOrEmpty(selectedId)
+                ? RobotCatalog.CreateTemplate(selectedId)
+                : null;
+
+            ApplyTemplate(template ?? Template2DOF_RR.Create());
         }
 
         private void BindRuntimeUiControllers()

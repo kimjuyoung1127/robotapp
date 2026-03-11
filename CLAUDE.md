@@ -21,12 +21,13 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 2: Done
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
-- Phase 5: InProgress (5A~5E Done, 5F/5G remaining)
+- Phase 5: InProgress (5A~5F Done, 5G remaining)
 - Phase 6 (CI/CD): Hold (로컬 테스트 전용, runner 미등록)
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
+- Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화, EditMode 107/107 PlayMode 30/30
 - Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가, EditMode 87/87 PlayMode 30/30
 - Phase 5D 완료: WhyItMovedState/Formatter/Panel 추가, AppController+AppUiBinder 연동
 - GameLab-style 제품 문서 운영 이식 시작: canonical product docs 3종(`PRD`, `WIREFRAME`, `PRODUCT-ROADMAP`)과 `PRODUCT-DOC-BOARD`를 status/ref 계층에 추가
@@ -36,7 +37,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 내부 패키지 자산을 `Assets/KineTutor_AssetCuration_BACKUP/`로 큐레이션하고 hierarchy validation report를 추가
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
 - Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
-- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2)
+- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2), `RobotLibrary`(3)
 - Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 통합, `Frame_EE` 유지
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용
@@ -125,7 +126,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 1. EditMode 전체
 2. PlayMode 스모크
 - 현재 기준:
-1. EditMode: 87 passed
+1. EditMode: 107 passed
 2. PlayMode: 30 passed
 - CI 워크플로우:
 1. `.github/workflows/unity-tests.yml`
@@ -133,9 +134,9 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 3. `UNITY_EXE` 환경변수 필요
 
 ## 즉시 다음 작업
-1. 제품 문서 3종 기준으로 `USER-FLOW`/`tutor-step-plan`/`master-plan`을 계속 세분화
+1. Phase 5G Tests + Docs 최종 정리
 2. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-3. `Beginner Lesson 0~3`를 실제 Guided Lesson 구현 백로그와 연결
+3. Robot Library에서 데모퍼스트 로봇 → 실제 기구학 조작 연결 (SCARA/3DOF/6DOF 템플릿 추가 시)
 4. `asset-validation-report` 기준으로 `SceneSelectables.prefab` 후속 수정 여부 판단
 5. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
 

@@ -9,7 +9,7 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
-- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5E Complete, 5F/5G remaining)
+- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5F Complete, 5G remaining)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
@@ -254,8 +254,32 @@
    - EditMode 테스트 8건 추가 (BeginnerLessonFactoryTests)
 3. 테스트 현황: EditMode 87/87, PlayMode 30/30
 
+## 이번 턴 반영 내용 (Phase 5F Robot Library MVP)
+1. Data Layer
+   - `RobotMetadataInfo` (Types, readonly struct): 로봇 메타데이터 (id, name, dof, type, difficulty, convention, lesson/sandbox/instructor flags)
+   - `RobotCatalogEntry` (Types, sealed class): 메타데이터 + nullable TemplateFactory
+   - `RobotCatalog` (Templates, static class): 5개 로봇 등록 (2DOF_RR=template 있음, SCARA/6DOF/Fanuc/igus=데모퍼스트)
+   - `AppController.GetAvailableTemplateNames()` → `RobotCatalog.GetAvailableRobotIds()` (템플릿 있는 것만)
+   - `AppController.SelectTemplateByName()` → `RobotCatalog.CreateTemplate()` (하드코딩 제거)
+   - `AppController.InitializeTemplateRuntime()` → `RobotSelectionBridge` 확인 후 적용
+2. Scene Infrastructure
+   - `RobotSelectionBridge` (App, static class): PlayerPrefs 기반 씬 간 로봇 선택 전달
+   - `SceneId.RobotLibrary = 3` 추가, `SceneCatalog`에 등록
+   - `RobotLibrary.unity` 씬 생성 (Camera + Light + Canvas + EventSystem + RobotLibraryManager)
+   - `EditorBuildSettings`에 빌드 인덱스 3으로 등록
+3. UI Shell
+   - `RobotLibraryManager` (UI, [ExecuteAlways]): TopBar + ScrollRect 그리드 + 상세 패널 통합
+   - `RobotCardBuilder` (UI, static): 로봇 카드 UI (이름, DOF 배지, 난이도, 설명, CTA)
+   - `RobotDetailDrawer` (UI, [ExecuteAlways]): 오른쪽 상세 패널 (스펙, 모드, CTA)
+   - GuidedLessonSupported=true → CTA "학습 시작" → RobotSelectionBridge → Main
+   - GuidedLessonSupported=false → CTA "Coming Soon" (disabled)
+4. Bug Fix
+   - `SceneNavigationBar.ResolveOrCreateButton()`에서 `SetAsLastSibling()` 제거: 3개 이상 navigable entry에서 child index 셔플로 인한 onClick 미스매핑 수정
+5. Tests
+   - `RobotCatalogTests` (8건), `RobotMetadataInfoTests` (4건), `RobotSelectionBridgeTests` (4건)
+   - EditMode 107/107, PlayMode 30/30
+
 ## 다음 작업
 1. Phase 6 CI/CD 실주행 확인
 2. SceneSelectables.prefab NullRef 후속 처리 판단
-3. Phase 5F Robot Library MVP (optional, deferred)
-4. Phase 5G Tests + Docs 최종 정리
+3. Phase 5G Tests + Docs 최종 정리
