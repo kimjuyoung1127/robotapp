@@ -34,6 +34,7 @@ namespace KineTutor3D.App
         [SerializeField] private TemplateSelector templateSelector;
         [SerializeField] private MatrixDisplay matrixDisplay;
         [SerializeField] private JointInputRail jointInputRail;
+        [SerializeField] private WhyItMovedPanel whyItMovedPanel;
         [SerializeField] private RobotRenderer robotRenderer;
         [SerializeField] private EndEffectorTrail endEffectorTrail;
         [SerializeField] private TargetMarkerVisual targetMarkerVisual;
@@ -236,7 +237,7 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
         }
 
         private void LoadStepConfigsIfNeeded()
@@ -264,7 +265,7 @@ namespace KineTutor3D.App
 
         private void BindRuntimeUiControllers()
         {
-            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, endEffectorTrail, targetMarkerVisual);
+            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, whyItMovedPanel, endEffectorTrail, targetMarkerVisual);
         }
 
         private void BindSliderEvents()
@@ -308,6 +309,7 @@ namespace KineTutor3D.App
 
             jointHighlightEnabled = config.showJointHighlight;
             jointInputRail?.SetRailVisible(config.showJointInputRail);
+            whyItMovedPanel?.SetVisible(config.showWhyItMoved);
             endEffectorTrail?.SetTrailVisible(config.showEndEffectorTrail);
             targetMarkerVisual?.SetMarkersVisible(config.showTargetMarkers);
             targetMarkerVisual?.ClearFeedback();

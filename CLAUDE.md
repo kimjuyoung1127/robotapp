@@ -4,7 +4,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 이 문서만 읽어도 현재 단계, 규칙, 다음 행동을 빠르게 파악할 수 있게 유지합니다.
 
 ## 저장소 경계
-- Write Repo: `C:\Users\ezen601\Desktop\Jason\robotapp2`
+- Write Repo: `.` (저장소 루트 — clone 위치 무관)
 
 ## 시작 순서 (필수)
 1. `AGENTS.md` (Codex) 또는 `CLAUDE.md` (Claude) - 동일 정책 진입 문서
@@ -15,18 +15,19 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 6. `docs/ref/PRODUCT-ROADMAP.md`
 7. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시 필수)
 
-## 현재 상태 (2026-03-11)
+## 현재 상태 (2026-03-12)
 - Phase 0: Done
 - Phase 1: Done
 - Phase 2: Done
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
-- Phase 5: Planning Complete
+- Phase 5: InProgress (5A~5D Done, 5E next)
 - Phase 6 (CI/CD): InProgress
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
+- Phase 5D 완료: WhyItMovedState/Formatter/Panel 추가, AppController+AppUiBinder 연동, EditMode 79/79 PlayMode 30/30
 - GameLab-style 제품 문서 운영 이식 시작: canonical product docs 3종(`PRD`, `WIREFRAME`, `PRODUCT-ROADMAP`)과 `PRODUCT-DOC-BOARD`를 status/ref 계층에 추가
 - Beginner Lesson 0~3를 `Pre-Kinematics` 진입 트랙으로 추가하고 `Core Track Step 1~8`과 분리
 - `current-feature-checklist`를 기준으로 현재 구현 범위와 우선 추가 기능을 한 문서에서 추적
@@ -123,8 +124,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 1. EditMode 전체
 2. PlayMode 스모크
 - 현재 기준:
-1. EditMode: 47 passed
-2. PlayMode: 26 passed
+1. EditMode: 79 passed
+2. PlayMode: 30 passed
 - CI 워크플로우:
 1. `.github/workflows/unity-tests.yml`
 2. runner: `self-hosted`, `windows`
