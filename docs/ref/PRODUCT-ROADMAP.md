@@ -15,6 +15,7 @@ Last Updated: 2026-03-11 (KST)
 4. LLM은 deterministic runtime 위의 설명층으로만 추가한다.
 5. 최종 모바일 배포는 `Android Tablet -> iPad -> WebGL -> Phone 제한형` 우선순위를 따른다.
 6. 플랜 변경 처리는 `leaf -> root canonical -> downstream -> board -> logs` 순서를 따른다.
+7. Phase 5 P0 구현 순서는 `기반 상태 계약 -> track-aware step foundation -> 공통 input/visualization 인프라 -> explanation layer -> Beginner Lesson 0~3`를 따른다.
 
 ## Timeline Summary
 
@@ -35,6 +36,7 @@ Last Updated: 2026-03-11 (KST)
 
 - [milestone-backlog.md](./product/roadmap/milestone-backlog.md)
 - [current-feature-checklist.md](./product/roadmap/current-feature-checklist.md)
+- [asset-sourcing-checklist.md](./product/roadmap/asset-sourcing-checklist.md)
 - [release-gates.md](./product/roadmap/release-gates.md)
 - [mobile-release-checklist.md](./product/roadmap/mobile-release-checklist.md)
 - [robot-template-expansion.md](./product/robots/robot-template-expansion.md)

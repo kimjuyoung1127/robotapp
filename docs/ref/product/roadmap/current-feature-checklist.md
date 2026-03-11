@@ -13,6 +13,7 @@
 - 이 문서는 `현재 구현 상태 + 다음 우선순위`를 쉬운 체크리스트로 보여준다
 - 세부 스펙은 leaf UX/content/roadmap 문서가 source of truth이고, 이 문서는 빠른 운영 인덱스 역할을 한다
 - `우선 추가할 기능`은 현재 roadmap 우선순위와 동일한 방향을 유지한다
+- Phase 5 P0는 `기반층 -> 공통 컴포넌트 -> explanation layer -> Beginner Lesson 0~3` 순서로 구현한다
 
 ## Open Questions
 - Progress와 Challenge를 어느 시점에 현재 checklist의 우선 기능으로 올릴지
@@ -60,14 +61,17 @@
 
 ## 우선 추가할 기능
 ### P0
-- [ ] Beginner Lesson 0~3
+- [ ] runtime snapshot + update cause foundation
+- [ ] track-aware step 저장/복귀
 - [ ] joint 숫자 직접 입력
 - [ ] slider + numeric input 동기화
 - [ ] joint highlight
+- [ ] trail / target marker 공통 인프라
 - [ ] `Why It Moved`
-- [ ] robot metadata 기반 Robot Library
+- [ ] Beginner Lesson 0~3
 
 ### P1
+- [ ] robot metadata 기반 Robot Library
 - [ ] Sandbox MVP
 - [ ] snapshot 저장
 - [ ] replay / compare
@@ -83,4 +87,4 @@
 
 ## Quick Read
 - 지금 제품은 `2DOF 로봇의 DH/FK를 step-by-step으로 배우는 Guided Lesson MVP`다.
-- 다음 확장 중심은 `Beginner Lesson 0~3 + joint 직접 입력 + why-it-moved + Robot Library + Sandbox + SCARA`다.
+- 다음 구현 순서는 `기반 상태 계약 -> track-aware step -> joint input/highlight/trail/target -> why-it-moved -> Beginner Lesson 0~3`이고, 그 다음 순서는 `Robot Library + Sandbox + SCARA`다.

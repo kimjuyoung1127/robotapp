@@ -74,7 +74,7 @@ Last Updated: 2026-03-11 (KST)
 2. `완전 초보로 시작` 선택 시 `Lesson 0` 진입 + 스포트라이트 시퀀스
 3. `기본 개념은 알고 있음` 선택 시 `Core Track Step 1` 진입
 4. `건너뛰기(숙련자)` 선택 시 `Core Track Step 8` 진입
-5. 재방문은 모달 스킵 + `pre_kinematics_resume` 또는 `core_kinematics_resume` 기준으로 복귀
+5. 재방문은 모달 스킵 + track-aware last-completed-step key(`KineTutor3D.PreKinematics.LastCompletedStep` 또는 `KineTutor3D.CoreKinematics.LastCompletedStep`) 기준으로 복귀
 
 ## Product Target Alignment
 1. 현재 `Step 8`은 Guided Lesson 내부의 자유 실습 상태로 유지한다.
@@ -87,7 +87,8 @@ Last Updated: 2026-03-11 (KST)
 2. `InteractionGateController`가 Next 활성/비활성의 단일 결정권을 가진다.
 3. `TooltipSystem`은 UI/3D 트리거를 동일 인터페이스로 처리한다.
 4. `StepProgressSaver(PlayerPrefs)`로 방문/진행/Reduced Motion 상태를 저장한다.
-5. 저장 키는 `pre_kinematics_resume`, `core_kinematics_resume`처럼 트랙 단위 resume를 구분할 수 있어야 한다.
+5. 저장 키는 `KineTutor3D.PreKinematics.LastCompletedStep`, `KineTutor3D.CoreKinematics.LastCompletedStep`처럼 트랙 단위 resume를 구분할 수 있어야 한다.
+6. 구현 순서는 `runtime snapshot/update cause -> track-aware step foundation -> joint input/highlight/trail/target -> Why It Moved -> Lesson 0~3`를 따른다.
 
 ## 테스트 체크리스트
 1. 온보딩 분기(`완전 초보`, `기본 개념 이해자`, `건너뛰기`, 재방문) 확인

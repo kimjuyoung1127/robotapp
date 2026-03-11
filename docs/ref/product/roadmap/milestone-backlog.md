@@ -28,12 +28,15 @@
 ## Backlog
 | priority | item | competitive source | priority rationale |
 |---|---|---|---|
+| P0 | runtime snapshot + update cause foundation | 내부 runtime 안정화 요구 | Why It Moved, compare/history, beginner lesson이 중복 상태 로직 없이 같은 기반을 써야 한다 |
+| P0 | track-aware step foundation | scaffolded onboarding 요구 | `pre_kinematics`와 `core_kinematics`를 같은 step 시스템 위에서 안전하게 복귀시켜야 한다 |
 | P0 | Beginner Lesson 0~3 | `RoboX`, `UR Academy`의 scaffolded onboarding | sin/cos, 삼각형, IK 유도, 행렬/DH를 모르는 사용자도 진입할 수 있어야 한다 |
 | P0 | Guided Lesson scaffolded UX 강화 | `RoboX`, `UR Academy` | 제품의 중심 경험이고 교육 구조 품질을 좌우한다 |
 | P0 | Why It Moved | `RoboX`의 설명 구조를 넘는 차별점 | KineTutor3D만의 핵심 차별점 |
 | P0 | joint highlight + numeric input | `RoboDK`류 실습성 + 자체 UX 차별화 | 수학 입력과 3D 움직임 연결의 핵심 |
+| P0 | trail / target marker 공통 인프라 | `RoboDK`, `MIT Manipulation` | beginner lesson과 compare/target UX가 같은 시각화 기반을 공유해야 한다 |
 | P0 | frame / pose teaching bridge | `Modern Robotics` | Lesson 0~3에서 Core Track으로 넘어갈 때 frame/pose 개념을 쉽게 연결해야 한다 |
-| P0 | robot metadata 기반 Robot Library | `RoboDK`, `Visual Components` 참조 | 다중 로봇 확장과 입문자용 탐색 UX의 기반 |
+| P1 | robot metadata 기반 Robot Library | `RoboDK`, `Visual Components` 참조 | Phase 5 P0 안정화 이후 다중 로봇 확장과 입문자용 탐색 UX의 기반 |
 | P1 | Sandbox replay / repeatability / constraint preview | `RoboDK`, `CoppeliaSim` 참고 | 자유 실습을 학습 경험으로 전환 |
 | P1 | Instructor demo mode | `RoboX`, `ABB`, `Visual Components` | 강사용 가치 강화 |
 | P1 | pick foundation | `RoboDK`, `MIT Manipulation` | 실습성과 실제 과제 연결 시작점 |

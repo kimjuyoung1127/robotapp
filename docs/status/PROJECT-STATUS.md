@@ -9,9 +9,16 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
+- **Phase 5: Guided Lesson P0 구현 계획** (Planning Complete)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
+
+## Phase 5 실행 원칙
+1. Phase 5 P0는 기능 추가보다 `기반층 선행`이 우선이다.
+2. 구현 순서는 `Runtime foundation -> Track-aware step foundation -> 공통 input/visualization -> Why It Moved -> Beginner Lesson 0~3`로 고정한다.
+3. `Beginner Lesson 0~3`는 P0 범위지만 첫 구현 대상이 아니라 foundation 이후 consumer layer로 본다.
+4. 문서 선행 sync 1회 후, 각 phase는 `구현 -> 테스트 -> self-review -> 문서 반영 -> git commit` 단위로 종료한다.
 
 ## Product Docs Governance
 1. Canonical product docs 3종을 `docs/ref/PRD.md`, `docs/ref/WIREFRAME.md`, `docs/ref/PRODUCT-ROADMAP.md`로 고정했다.
@@ -66,6 +73,24 @@
 3. 모델/실습 문서 동기화
    - `robot-model-library-spec.md`에 convention, joint limits, pose preset, import source 메타데이터를 추가
    - `sandbox.md`에 pick foundation 상태를 `pre_pick -> pick -> post_pick -> pre_place -> place -> post_place`로 정리
+
+## 이번 턴 반영 내용 (에셋 수집 가이드)
+1. `asset-sourcing-checklist.md`를 roadmap leaf 문서로 추가
+2. 무료 소스 사이트, 검색어, intake checklist, folder placement 규칙을 고정
+3. `asset-registry.md`에서 에셋 수집 기준 문서를 참조하도록 연결
+
+## 이번 턴 반영 내용 (내부 에셋 큐레이션)
+1. `Assets/KineTutor_AssetCuration_BACKUP/` 아래에 패키지별 선별본 폴더를 생성
+2. `realvirtual`에서 로봇, props, UI 후보를 복사 정리
+3. `HQP Studios`, `_Heathen Engineering`, `Glowing Rifts`에서 교육용 아이콘/타겟 후보를 복사 정리
+4. `.meta` 파일은 의도적으로 복사하지 않고 `asset-curation-map.md`에 규칙과 분류 결과를 기록
+
+## 이번 턴 반영 내용 (에셋 hierarchy 검증)
+1. `Assets/KineTutor_AssetCuration_BACKUP/` 내 프리팹 `44`개를 `Main.unity` 임시 루트에 instantiate하는 스모크 테스트 수행
+2. `43`개는 clean instantiate 확인
+3. `SceneSelectables.prefab`은 instantiate 후 `NullReferenceException`이 발생해 `needs-fix`로 분류
+4. 검증용 임시 루트는 테스트 후 삭제해 씬 오염 없이 정리
+5. 상세 결과는 `docs/ref/asset-validation-report.md`에 기록
 
 ## 이번 턴 반영 내용 (Product Docs Governance 이식)
 1. `docs/status/PRODUCT-DOC-BOARD.md` 추가
@@ -205,8 +230,8 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. `WIREFRAME` 기준으로 `USER-FLOW`와 `tutor-step-plan`을 Home/Sandbox/Challenge 구조까지 확장
-2. `PRODUCT-ROADMAP` 기준으로 엔지니어링 보드와 제품 보드 간 릴리스 게이트 정합성 유지
-3. Phase 6 CI/CD 계속: PR 기준으로 `unity-tests` 워크플로우 1회 실주행 확인(러너 라벨/`UNITY_EXE`/env 점검)
-4. `Main.unity`를 prefab/HUD asset 기준으로 더 쪼갤지 검토해 씬 YAML 유지보수 비용을 낮추기
-5. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화
+1. Phase 5A Runtime foundation 구현: snapshot, update cause, previous/current state 기반 고정
+2. Phase 5B Track-aware step foundation 구현: `pre_kinematics/core_kinematics` resume와 step 모델 확장
+3. Phase 5C 공통 input/visualization 인프라 구현: numeric input, highlight, trail, target marker 기반 고정
+4. Phase 5D `Why It Moved` explanation layer 구현
+5. Phase 5E Beginner Lesson 0~3 연결 후 Phase 6 CI/CD 실주행 확인

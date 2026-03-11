@@ -32,7 +32,7 @@ Last Updated: 2026-03-11 (KST)
    - 미충족: Next 비활성, 힌트/토스트 안내
    - 충족: Next 활성, 완료 토스트 표시
 7. Step 전환 시 패널/포커스/툴팁 상태 동기화
-8. 재방문 시 `Boot -> Main`으로 바로 복귀하고 `pre_kinematics_resume` 또는 `core_kinematics_resume`에서 시작
+8. 재방문 시 `Boot -> Main`으로 바로 복귀하고 track-aware last-completed-step key(`KineTutor3D.PreKinematics.LastCompletedStep` 또는 `KineTutor3D.CoreKinematics.LastCompletedStep`) 기준으로 시작
 
 ## Flow Diagram
 ```mermaid
@@ -78,6 +78,7 @@ flowchart TD
 2. 예외 정책: `Skip` 버튼 허용 (현재 Step 강제 통과)
 3. 검증 실패 입력(예: NaN/Infinity)은 계산 파이프라인 진입 금지
 4. `Lesson 0~3`에서는 행렬/공식 대신 `trail`, `target marker`, `reach/not reach`, `Why It Moved`를 우선한다.
+5. 구현 순서는 `track-aware step foundation`과 `공통 input/visualization`을 먼저 고정한 뒤 `Lesson 0~3`를 연결한다.
 
 ## 수용 기준
 1. 첫 방문은 `Boot -> Onboarding`, 재방문은 `Boot -> Main`으로 분기된다.
