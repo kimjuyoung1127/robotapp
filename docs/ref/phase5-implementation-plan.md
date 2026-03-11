@@ -1,7 +1,7 @@
 # KineTutor3D Phase 5 Implementation Plan
 
 ## Status
-- Phase 5 status: `Planning Complete`
+- Phase 5 status: `5A~5C Complete`
 - Canonical path: `docs/ref/phase5-implementation-plan.md`
 - Entry docs that reference this plan: `AGENTS.md`, `CLAUDE.md`
 
@@ -158,6 +158,9 @@ public static int GetResumeStep(string track, int defaultStep)
 ---
 
 ## Phase 5C: Joint Numeric Input + Joint Highlight
+
+- 구현 상태: `Done (2026-03-11)`
+- 실제 완료 범위: `JointInputRail`, `JointInputValidator`, `JointHighlightRing`, `LinkHighlighter`, `EndEffectorTrail`, `TargetMarkerVisual`, `AppController/AppUiBinder/RobotRenderer` 연결, PlayMode smoke `4/4 passed`
 
 ### 신규 파일
 

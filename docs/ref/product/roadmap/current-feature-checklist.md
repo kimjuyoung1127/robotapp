@@ -61,12 +61,12 @@
 
 ## 우선 추가할 기능
 ### P0
-- [ ] runtime snapshot + update cause foundation
-- [ ] track-aware step 저장/복귀
-- [ ] joint 숫자 직접 입력
-- [ ] slider + numeric input 동기화
-- [ ] joint highlight
-- [ ] trail / target marker 공통 인프라
+- [x] runtime snapshot + update cause foundation
+- [x] track-aware step 저장/복귀
+- [x] joint 숫자 직접 입력
+- [x] slider + numeric input 동기화
+- [x] joint highlight
+- [x] trail / target marker 공통 인프라
 - [ ] `Why It Moved`
 - [ ] Beginner Lesson 0~3
 

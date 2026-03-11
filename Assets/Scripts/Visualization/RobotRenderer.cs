@@ -44,6 +44,7 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Transform link1Visual;
         [SerializeField] private Transform axis3Pivot;
         [SerializeField] private Transform endEffectorVisual;
+        [SerializeField] private LinkHighlighter linkHighlighter;
 
         [Header("Display")]
         [SerializeField] private float frameAxisLength = 0.22f;
@@ -112,6 +113,10 @@ namespace KineTutor3D.Visualization
             {
                 appController.OnKinematicsUpdated -= HandleKinematicsUpdated;
                 appController.OnKinematicsUpdated += HandleKinematicsUpdated;
+                appController.OnJointFocusRequested -= HandleJointFocusRequested;
+                appController.OnJointFocusRequested += HandleJointFocusRequested;
+                appController.OnJointFocusCleared -= HandleJointFocusCleared;
+                appController.OnJointFocusCleared += HandleJointFocusCleared;
             }
         }
 
@@ -120,6 +125,8 @@ namespace KineTutor3D.Visualization
             if (appController != null)
             {
                 appController.OnKinematicsUpdated -= HandleKinematicsUpdated;
+                appController.OnJointFocusRequested -= HandleJointFocusRequested;
+                appController.OnJointFocusCleared -= HandleJointFocusCleared;
             }
         }
 
@@ -203,6 +210,9 @@ namespace KineTutor3D.Visualization
             {
                 endEffectorVisual.SetParent(axis3Pivot, false);
             }
+
+            linkHighlighter ??= GetComponent<LinkHighlighter>() ?? gameObject.AddComponent<LinkHighlighter>();
+            linkHighlighter.Configure(baseVisual, link0Visual);
         }
 
         private void ApplyTransforms(Mat4D frame1TransformValue, Mat4D a2TransformValue, Mat4D endEffectorTransformValue)
@@ -257,6 +267,17 @@ namespace KineTutor3D.Visualization
             return RobotVisibilityProbe.IsVisibleFrom(this, camera);
         }
 
+        public void HighlightJoint(int jointIndex)
+        {
+            EnsureRig();
+            linkHighlighter?.HighlightJoint(jointIndex);
+        }
+
+        public void ClearJointHighlight()
+        {
+            linkHighlighter?.ClearHighlight();
+        }
+
         private float ResolveBaseScale()
         {
             return baseScale > 0f ? baseScale : donorScale;
@@ -298,6 +319,16 @@ namespace KineTutor3D.Visualization
             visual.localPosition = (source != null ? source.localPosition : Vector3.zero) + offset;
             visual.localRotation = (source != null ? source.localRotation : Quaternion.identity) * Quaternion.AngleAxis(jointAngleDegrees, Vector3.up) * Quaternion.Euler(eulerOffset);
             visual.localScale = localScale;
+        }
+
+        private void HandleJointFocusRequested(int jointIndex)
+        {
+            HighlightJoint(jointIndex);
+        }
+
+        private void HandleJointFocusCleared()
+        {
+            ClearJointHighlight();
         }
     }
 }

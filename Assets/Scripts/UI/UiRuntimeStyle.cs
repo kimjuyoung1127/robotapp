@@ -25,13 +25,20 @@ namespace KineTutor3D.UI
                 return fallback;
             }
 
-            var arial = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            if (arial != null)
+            var legacyRuntime = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (legacyRuntime != null)
             {
-                return arial;
+                return legacyRuntime;
             }
 
-            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            try
+            {
+                return Font.CreateDynamicFontFromOSFont("Arial", 14);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static RectTransform EnsureHostedRoot(Component host, string rootName)

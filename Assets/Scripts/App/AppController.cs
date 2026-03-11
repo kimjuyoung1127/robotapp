@@ -6,6 +6,7 @@ using KineTutor3D.Templates;
 using KineTutor3D.Types;
 using KineTutor3D.UI;
 using KineTutor3D.UI.Data;
+using KineTutor3D.Visualization;
 using UnityEngine;
 using UnityEngine.UI;
 using TutorPose = KineTutor3D.Types.Pose;
@@ -32,6 +33,10 @@ namespace KineTutor3D.App
         [SerializeField] private DHTableEditor dhTableEditor;
         [SerializeField] private TemplateSelector templateSelector;
         [SerializeField] private MatrixDisplay matrixDisplay;
+        [SerializeField] private JointInputRail jointInputRail;
+        [SerializeField] private RobotRenderer robotRenderer;
+        [SerializeField] private EndEffectorTrail endEffectorTrail;
+        [SerializeField] private TargetMarkerVisual targetMarkerVisual;
 
         private int currentStepIndex;
         private bool sliderListenersBound;
@@ -39,15 +44,21 @@ namespace KineTutor3D.App
         private readonly KinematicsRuntimeService kinematicsService = new KinematicsRuntimeService();
         private readonly AppUiBinder uiBinder = new AppUiBinder();
         private string currentTrack = StepProgressSaver.CoreKinematicsTrack;
+        private bool jointHighlightEnabled;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
         public event Action<RobotTemplate> OnTemplateChanged;
         public event Action<Mat4D, Mat4D, Mat4D, TutorPose> OnKinematicsUpdated;
+        public event Action<int> OnJointFocusRequested;
+        public event Action OnJointFocusCleared;
 
         public int CurrentStep => currentStepIndex + 1;
         public int TotalSteps => stepConfigs?.Length ?? 0;
         public string CurrentTrack => currentTrack;
+        public TutorStepConfig CurrentStepConfig => stepConfigs != null && currentStepIndex >= 0 && currentStepIndex < stepConfigs.Length
+            ? stepConfigs[currentStepIndex]
+            : null;
         public RobotTemplate CurrentTemplate => kinematicsService.State.CurrentTemplate;
         public DHLink[] CurrentLinks => (DHLink[])kinematicsService.State.CurrentLinks.Clone();
         public double[] CurrentJointValuesRad => (double[])kinematicsService.State.CurrentJointValuesRad.Clone();
@@ -107,6 +118,7 @@ namespace KineTutor3D.App
             }
 
             currentStepIndex = stepFlowService.ApplyStep(oneBasedStep, stepConfigs, disclosureController, gateController, stepTutorPanel, stepNavigator, focusHighlighter);
+            ApplyFeatureState(stepConfigs[currentStepIndex]);
             OnStepChanged?.Invoke(CurrentStep, stepConfigs[currentStepIndex]);
         }
 
@@ -170,6 +182,7 @@ namespace KineTutor3D.App
         public void SetJointAngleDegrees(int jointIndex, float degrees)
         {
             kinematicsService.SetJointAngleDegrees(jointIndex, degrees, jointSlider1, jointSlider2);
+            RequestJointFocus(jointIndex);
             PublishKinematicsUpdate();
         }
 
@@ -191,6 +204,21 @@ namespace KineTutor3D.App
             stepTutorPanel?.UpdateGateState(gateController == null || gateController.IsGateSatisfied, gateController?.GetProgressText() ?? string.Empty);
         }
 
+        public void RequestJointFocus(int jointIndex)
+        {
+            if (!jointHighlightEnabled)
+            {
+                return;
+            }
+
+            OnJointFocusRequested?.Invoke(jointIndex);
+        }
+
+        public void ClearJointFocus()
+        {
+            OnJointFocusCleared?.Invoke();
+        }
+
         private void HandleGateStateChanged(bool gateSatisfied, string completionMessage)
         {
             if (stepNavigator != null)
@@ -208,7 +236,7 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
         }
 
         private void LoadStepConfigsIfNeeded()
@@ -236,7 +264,7 @@ namespace KineTutor3D.App
 
         private void BindRuntimeUiControllers()
         {
-            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay);
+            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, endEffectorTrail, targetMarkerVisual);
         }
 
         private void BindSliderEvents()
@@ -262,12 +290,33 @@ namespace KineTutor3D.App
         private void HandleJointSliderChanged(int jointIndex, float valueDegrees)
         {
             kinematicsService.HandleJointSliderChanged(jointIndex, valueDegrees);
+            RequestJointFocus(jointIndex);
             PublishKinematicsUpdate();
         }
 
         private void PublishKinematicsUpdate()
         {
             OnKinematicsUpdated?.Invoke(CurrentA1, CurrentA2, CurrentT02, CurrentEndEffectorPose);
+        }
+
+        private void ApplyFeatureState(TutorStepConfig config)
+        {
+            if (config == null)
+            {
+                return;
+            }
+
+            jointHighlightEnabled = config.showJointHighlight;
+            jointInputRail?.SetRailVisible(config.showJointInputRail);
+            endEffectorTrail?.SetTrailVisible(config.showEndEffectorTrail);
+            targetMarkerVisual?.SetMarkersVisible(config.showTargetMarkers);
+            targetMarkerVisual?.ClearFeedback();
+
+            if (!jointHighlightEnabled)
+            {
+                ClearJointFocus();
+                robotRenderer?.ClearJointHighlight();
+            }
         }
     }
 }

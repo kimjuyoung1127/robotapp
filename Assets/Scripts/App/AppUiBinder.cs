@@ -1,5 +1,6 @@
 ﻿// Folder: App - application orchestration and runtime state.
 using KineTutor3D.UI;
+using KineTutor3D.Visualization;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ namespace KineTutor3D.App
 {
     internal sealed class AppUiBinder
     {
-        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay)
+        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual)
         {
             disclosureController ??= Object.FindFirstObjectByType<ProgressiveDisclosureController>(FindObjectsInactive.Include);
             gateController ??= Object.FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
@@ -19,6 +20,10 @@ namespace KineTutor3D.App
             dhTableEditor ??= Object.FindFirstObjectByType<DHTableEditor>(FindObjectsInactive.Include);
             templateSelector ??= Object.FindFirstObjectByType<TemplateSelector>(FindObjectsInactive.Include);
             matrixDisplay ??= Object.FindFirstObjectByType<MatrixDisplay>(FindObjectsInactive.Include);
+            jointInputRail ??= Object.FindFirstObjectByType<JointInputRail>(FindObjectsInactive.Include);
+            robotRenderer ??= Object.FindFirstObjectByType<RobotRenderer>(FindObjectsInactive.Include);
+            endEffectorTrail ??= Object.FindFirstObjectByType<EndEffectorTrail>(FindObjectsInactive.Include);
+            targetMarkerVisual ??= Object.FindFirstObjectByType<TargetMarkerVisual>(FindObjectsInactive.Include);
 
             if (jointSlider1 == null)
             {
@@ -64,13 +69,43 @@ namespace KineTutor3D.App
                     matrixDisplay = rightPanel.GetComponent<MatrixDisplay>() ?? rightPanel.AddComponent<MatrixDisplay>();
                 }
             }
+
+            if (jointInputRail == null)
+            {
+                var bottomBar = GameObject.Find("BottomBar");
+                if (bottomBar != null)
+                {
+                    jointInputRail = bottomBar.GetComponent<JointInputRail>() ?? bottomBar.AddComponent<JointInputRail>();
+                }
+            }
+
+            if (endEffectorTrail == null)
+            {
+                var ee = GameObject.Find("Frame_EE");
+                if (ee != null)
+                {
+                    endEffectorTrail = ee.GetComponent<EndEffectorTrail>() ?? ee.AddComponent<EndEffectorTrail>();
+                }
+            }
+
+            if (targetMarkerVisual == null)
+            {
+                var robotRoot = GameObject.Find("RobotRoot");
+                if (robotRoot != null)
+                {
+                    targetMarkerVisual = robotRoot.GetComponent<TargetMarkerVisual>() ?? robotRoot.AddComponent<TargetMarkerVisual>();
+                }
+            }
         }
 
-        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay)
+        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay, JointInputRail jointInputRail, EndEffectorTrail endEffectorTrail, TargetMarkerVisual targetMarkerVisual)
         {
             templateSelector?.Bind(owner);
             dhTableEditor?.Bind(owner);
             matrixDisplay?.Bind(owner);
+            jointInputRail?.Bind(owner);
+            endEffectorTrail?.Bind(owner);
+            targetMarkerVisual?.Bind(owner);
         }
 
         public void BindSliderEvents(Slider jointSlider1, Slider jointSlider2, UnityAction<float> onSlider1Changed, UnityAction<float> onSlider2Changed, ref bool sliderListenersBound)

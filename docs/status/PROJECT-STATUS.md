@@ -240,8 +240,7 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 5C 공통 input/visualization 인프라 구현: numeric input, highlight, trail, target marker 기반 고정
-2. Phase 5D `Why It Moved` explanation layer 구현
-3. Phase 5E Beginner Lesson 0~3 연결 후 onboarding 분기 UI와 step source를 실제 흐름에 연결
-4. Phase 6 CI/CD 실주행 확인
-5. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화
+1. Phase 5D `Why It Moved` explanation layer 구현
+2. Phase 5E Beginner Lesson 0~3 연결 후 onboarding 분기 UI와 step source를 실제 흐름에 연결
+3. Phase 6 CI/CD 실주행 확인
+4. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화
