@@ -72,6 +72,9 @@
 
 ### P1
 - [ ] robot metadata 기반 Robot Library
+- [ ] URDF Import 기반 로봇 확장 (UR5, Puma560, Franka 사전 조사 완료)
+- [ ] workspace envelope 시각화 (2DOF 해석적 → N-DOF Monte Carlo)
+- [ ] interactive matrix viz 확장 (ncase.me/matrix 패턴 디자인 레퍼런스 완료)
 - [ ] Sandbox MVP
 - [ ] snapshot 저장
 - [ ] replay / compare

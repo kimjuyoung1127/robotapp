@@ -8,10 +8,12 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 
 ## 시작 순서 (필수)
 1. `AGENTS.md` (Codex) 또는 `CLAUDE.md` (Claude) - 동일 정책 진입 문서
-2. `docs/status/PRODUCT-DOC-BOARD.md`
-3. `docs/ref/PRD.md`
-4. `docs/ref/WIREFRAME.md`
-5. `docs/ref/PRODUCT-ROADMAP.md`
+2. `docs/ref/architecture-mermaid.md`
+3. `docs/status/PRODUCT-DOC-BOARD.md`
+4. `docs/ref/PRD.md`
+5. `docs/ref/WIREFRAME.md`
+6. `docs/ref/PRODUCT-ROADMAP.md`
+7. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시 필수)
 
 ## 현재 상태 (2026-03-11)
 - Phase 0: Done
@@ -19,12 +21,17 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 2: Done
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
+- Phase 5: Planning Complete
 - Phase 6 (CI/CD): InProgress
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
 - GameLab-style 제품 문서 운영 이식 시작: canonical product docs 3종(`PRD`, `WIREFRAME`, `PRODUCT-ROADMAP`)과 `PRODUCT-DOC-BOARD`를 status/ref 계층에 추가
+- Beginner Lesson 0~3를 `Pre-Kinematics` 진입 트랙으로 추가하고 `Core Track Step 1~8`과 분리
+- `current-feature-checklist`를 기준으로 현재 구현 범위와 우선 추가 기능을 한 문서에서 추적
+- 경쟁제품 synthesis, LLM teaching strategy, mobile release checklist를 제품 문서 체계에 통합
+- 내부 패키지 자산을 `Assets/KineTutor_AssetCuration_BACKUP/`로 큐레이션하고 hierarchy validation report를 추가
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
 - Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
 - Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2)
@@ -89,10 +96,19 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 제품 와이어프레임: `docs/ref/WIREFRAME.md`
 - 제품 로드맵: `docs/ref/PRODUCT-ROADMAP.md`
 - 제품 상세 문서 루트: `docs/ref/product/`
+- 현재 기능 상태 체크리스트: `docs/ref/product/roadmap/current-feature-checklist.md`
+- 초보자 lesson framework: `docs/ref/product/content/lesson-framework.md`
 - 공개 로보틱스 레퍼런스 팩: `docs/ref/product/content/open-robotics-reference-pack.md`
 - 경쟁제품 합성 문서: `docs/ref/product/foundation/competitive-synthesis.md`
 - LLM teaching strategy: `docs/ref/product/content/llm-teaching-strategy.md`
 - 모바일 릴리스 체크리스트: `docs/ref/product/roadmap/mobile-release-checklist.md`
+- 에셋 수집 체크리스트: `docs/ref/product/roadmap/asset-sourcing-checklist.md`
+- 에셋 큐레이션 맵: `docs/ref/asset-curation-map.md`
+- 에셋 검증 리포트: `docs/ref/asset-validation-report.md`
+- URDF 레퍼런스 수집: `docs/ref/product/robots/urdf-reference-collection.md`
+- Workspace Envelope 알고리즘 메모: `docs/ref/product/roadmap/workspace-envelope-algorithm-memo.md`
+- Interactive Matrix Viz 디자인 레퍼런스: `docs/ref/product/ux/interactive-matrix-viz-design-reference.md`
+- Phase 5 구현 계획: `docs/ref/phase5-implementation-plan.md`
 - 실행 계획: `KineTutor3D_Execution_Plan.md`
 - 운영 상태: `docs/status/PROJECT-STATUS.md`
 - 실행 보드: `docs/status/PHASE-EXECUTION-BOARD.md`
@@ -117,18 +133,24 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 ## 즉시 다음 작업
 1. 제품 문서 3종 기준으로 `USER-FLOW`/`tutor-step-plan`/`master-plan`을 계속 세분화
 2. Phase 6 CI/CD 계속: PR에서 `unity-tests` 워크플로우 실주행 1회 확인
-3. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
+3. `Beginner Lesson 0~3`를 실제 Guided Lesson 구현 백로그와 연결
+4. `asset-validation-report` 기준으로 `SceneSelectables.prefab` 후속 수정 여부 판단
+5. `Main.unity`를 prefab 단위 HUD/Robot rig 자산으로 더 분리할지 검토
 
 ## Task Routing
 1. 제품 방향 변경: `docs/ref/PRD.md` + `docs/ref/product/foundation/*`
-2. Guided Lesson 작업: `docs/ref/WIREFRAME.md` + `docs/ref/product/ux/guided-lesson.md`
-3. Robot model 작업: `docs/ref/product/robots/robot-model-library-spec.md`
-4. Sandbox 작업: `docs/ref/product/ux/sandbox.md`
-5. Instructor 기능: `docs/ref/product/ux/instructor-mode.md`
-6. Tablet/mobile 작업: `docs/ref/product/ux/tablet-first-policy.md`
-7. 강의자료 활용 작업: `docs/ref/product/content/derived-course-content-policy.md` + `docs/ref/product/content/concept-to-ui-map.md`
-8. 공개 robotics reference 반영: `docs/ref/product/content/open-robotics-reference-pack.md` + `.claude/skills/kinetutor-guide/content/robotics-reference-to-lesson/SKILL.md`
-9. 경쟁제품 분석 반영: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
-10. LLM teaching 작업: `docs/ref/product/content/llm-teaching-strategy.md`
-11. 모바일 배포 작업: `docs/ref/product/roadmap/mobile-release-checklist.md`
-12. 플랜 변경 처리: `docs/ref/PRODUCT-ROADMAP.md` + `docs/ref/product/roadmap/release-gates.md`
+2. 현재 기능 상태/구현 범위 확인: `docs/ref/product/roadmap/current-feature-checklist.md`
+3. Phase 5 구현/검수: `docs/ref/phase5-implementation-plan.md` -> `Assets/Scripts/App/AGENTS.md` -> `Assets/Scripts/UI/AGENTS.md` -> `Assets/Scripts/Visualization/AGENTS.md`
+4. Beginner Lesson 0~3 / pre-kinematics 작업: `docs/ref/product/content/lesson-framework.md` -> `docs/ref/product/ux/guided-lesson.md` -> `docs/ref/tutor-step-plan.md` -> `docs/ref/USER-FLOW.md`
+5. Guided Lesson 작업: `docs/ref/WIREFRAME.md` + `docs/ref/product/ux/guided-lesson.md`
+6. Robot model 작업: `docs/ref/product/robots/robot-model-library-spec.md`
+7. Sandbox 작업: `docs/ref/product/ux/sandbox.md`
+8. Instructor 기능: `docs/ref/product/ux/instructor-mode.md`
+9. Tablet/mobile 작업: `docs/ref/product/ux/tablet-first-policy.md`
+10. 강의자료 활용 작업: `docs/ref/product/content/derived-course-content-policy.md` + `docs/ref/product/content/concept-to-ui-map.md`
+11. 공개 robotics reference 반영: `docs/ref/product/content/open-robotics-reference-pack.md` + `.claude/skills/kinetutor-guide/content/robotics-reference-to-lesson/SKILL.md`
+12. 경쟁제품 분석 반영: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
+13. LLM teaching 작업: `docs/ref/product/content/llm-teaching-strategy.md`
+14. 모바일 배포 작업: `docs/ref/product/roadmap/mobile-release-checklist.md`
+15. 에셋 작업: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
+16. 플랜 변경 처리: `docs/ref/PRODUCT-ROADMAP.md` + `docs/ref/product/roadmap/release-gates.md`

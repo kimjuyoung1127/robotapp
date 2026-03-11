@@ -28,3 +28,8 @@
 - SCARA: 산업 입문자 설명용 첫 확장
 - 3DOF: 구조 비교용 교육 모델
 - 6DOF: 산업용 대표 사례와 시연용
+
+## URDF 사전 수집
+- UR5, Puma560, Franka Emika Panda의 URDF 소스와 DH 파라미터를 사전 조사 완료
+- 상세: [urdf-reference-collection.md](./urdf-reference-collection.md)
+- URDF Import 전략 (Unity URDF Importer vs NASA JPL urdf-loaders) 비교 포함

@@ -5,11 +5,13 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 
 ## Start Here
 1. `AGENTS.md`
-2. `CLAUDE.md`
-3. `docs/status/PRODUCT-DOC-BOARD.md`
-4. `docs/ref/PRD.md`
-5. `docs/ref/WIREFRAME.md`
-6. `docs/ref/PRODUCT-ROADMAP.md`
+2. `docs/ref/architecture-mermaid.md`
+3. `CLAUDE.md`
+4. `docs/status/PRODUCT-DOC-BOARD.md`
+5. `docs/ref/PRD.md`
+6. `docs/ref/WIREFRAME.md`
+7. `docs/ref/PRODUCT-ROADMAP.md`
+8. `docs/ref/phase5-implementation-plan.md` (when implementing or reviewing Phase 5)
 
 ## Mandatory Navigation Rule
 - Always read the root `AGENTS.md` before exploring files.
@@ -42,8 +44,20 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Product doc status is tracked only in `docs/status/PRODUCT-DOC-BOARD.md`.
 - Product doc changes must sync downstream status/context docs and leave a `docs/daily/MM-DD/` log entry.
 
+## Fast Product Context
+- Current feature inventory and immediate build gaps: `docs/ref/product/roadmap/current-feature-checklist.md`
+- Beginner-first lesson track: `docs/ref/product/content/lesson-framework.md` + `docs/ref/tutor-step-plan.md` + `docs/ref/USER-FLOW.md`
+- Asset curation and validation: `docs/ref/asset-curation-map.md` + `docs/ref/asset-validation-report.md` + `docs/ref/asset-registry.md`
+- URDF reference robots (UR5, Puma560, Franka): `docs/ref/product/robots/urdf-reference-collection.md`
+- Workspace envelope algorithm research: `docs/ref/product/roadmap/workspace-envelope-algorithm-memo.md`
+- Interactive matrix visualization design: `docs/ref/product/ux/interactive-matrix-viz-design-reference.md`
+- Phase 5 execution plan: `docs/ref/phase5-implementation-plan.md`
+
 ## Task Routing
 - Product direction changes: `docs/ref/PRD.md` -> `docs/ref/product/foundation/*`
+- Current feature scope / what's implemented: `docs/ref/product/roadmap/current-feature-checklist.md`
+- Phase 5 runtime/UI implementation or review: `docs/ref/phase5-implementation-plan.md` -> `Assets/Scripts/App/AGENTS.md` -> `Assets/Scripts/UI/AGENTS.md` -> `Assets/Scripts/Visualization/AGENTS.md`
+- Beginner Lesson 0~3 / pre-kinematics flow: `docs/ref/product/content/lesson-framework.md` -> `docs/ref/product/ux/guided-lesson.md` -> `docs/ref/tutor-step-plan.md` -> `docs/ref/USER-FLOW.md`
 - Guided Lesson work: `docs/ref/WIREFRAME.md` -> `docs/ref/product/ux/guided-lesson.md`
 - Robot model work: `docs/ref/product/robots/robot-model-library-spec.md`
 - Sandbox work: `docs/ref/product/ux/sandbox.md`
@@ -54,4 +68,5 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Competitive product synthesis: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
 - LLM teaching strategy: `docs/ref/product/content/llm-teaching-strategy.md`
 - Mobile release planning: `docs/ref/product/roadmap/mobile-release-checklist.md`
+- Asset sourcing / curation / validation: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
 - Plan-change procedure: `docs/ref/PRODUCT-ROADMAP.md` -> `docs/ref/product/roadmap/release-gates.md`

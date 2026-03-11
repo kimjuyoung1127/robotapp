@@ -22,6 +22,7 @@
 ## Downstream Sync
 - `docs/ref/product/ux/robot-library.md`
 - `docs/ref/product/robots/robot-template-expansion.md`
+- `docs/ref/product/robots/urdf-reference-collection.md`
 
 ## Last Updated
 - 2026-03-11 (KST)

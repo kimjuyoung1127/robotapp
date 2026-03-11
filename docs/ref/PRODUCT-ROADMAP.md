@@ -39,7 +39,10 @@ Last Updated: 2026-03-11 (KST)
 - [asset-sourcing-checklist.md](./product/roadmap/asset-sourcing-checklist.md)
 - [release-gates.md](./product/roadmap/release-gates.md)
 - [mobile-release-checklist.md](./product/roadmap/mobile-release-checklist.md)
+- [workspace-envelope-algorithm-memo.md](./product/roadmap/workspace-envelope-algorithm-memo.md)
 - [robot-template-expansion.md](./product/robots/robot-template-expansion.md)
+- [urdf-reference-collection.md](./product/robots/urdf-reference-collection.md)
+- [interactive-matrix-viz-design-reference.md](./product/ux/interactive-matrix-viz-design-reference.md)
 
 ## Downstream Sync
 
