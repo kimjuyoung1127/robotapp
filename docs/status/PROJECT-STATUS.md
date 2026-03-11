@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-11 (KST)
+최종 업데이트: 2026-03-12 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -9,7 +9,7 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
-- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5B Complete)
+- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5E Complete, 5F/5G remaining)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
@@ -239,8 +239,23 @@
 5. 운영 스킬화
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
+## 이번 턴 반영 내용 (Phase 5D~5E 구현)
+1. Phase 5D: Why It Moved explanation layer 구현
+   - `WhyItMovedState`, `WhyItMovedFormatter`, `WhyItMovedPanel` 추가
+   - 관절 변화 시 한국어 평문 설명, 변위 표시, 영향 링크 표시
+   - EditMode 테스트 21건 추가 (WhyItMovedStateTests 8, WhyItMovedFormatterTests 13)
+2. Phase 5E: Beginner Lesson L0~L3 통합
+   - `BeginnerLessonFactory` (L0~L3 4개 레슨 config 팩토리)
+   - `BeginnerLeftPanel` (레슨별 안내 텍스트 + CompareMode 버튼 영역)
+   - `CompareModePanelHelper` (L2 J1만/J2만/둘다 비교 모드)
+   - `TargetFeedbackPanel` (L3 타깃 거리 측정 + 도달 gate 보고)
+   - `OnboardingManager`에 "초보자 시작" 버튼 추가
+   - `AppController` track-based config loading 추가
+   - EditMode 테스트 8건 추가 (BeginnerLessonFactoryTests)
+3. 테스트 현황: EditMode 87/87, PlayMode 30/30
+
 ## 다음 작업
-1. Phase 5D `Why It Moved` explanation layer 구현
-2. Phase 5E Beginner Lesson 0~3 연결 후 onboarding 분기 UI와 step source를 실제 흐름에 연결
-3. Phase 6 CI/CD 실주행 확인
-4. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화
+1. Phase 6 CI/CD 실주행 확인
+2. SceneSelectables.prefab NullRef 후속 처리 판단
+3. Phase 5F Robot Library MVP (optional, deferred)
+4. Phase 5G Tests + Docs 최종 정리
