@@ -44,7 +44,16 @@ namespace KineTutor3D.UI
         public void BeginLearning()
         {
             StepProgressSaver.MarkVisited();
-            StepProgressSaver.SaveLastCompletedStep(0);
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
+            SceneNavigator.Load(SceneId.Main);
+        }
+
+        public void BeginAsBeginner()
+        {
+            StepProgressSaver.MarkVisited();
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.PreKinematicsTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.PreKinematicsTrack, 0);
             SceneNavigator.Load(SceneId.Main);
         }
 
@@ -54,6 +63,8 @@ namespace KineTutor3D.UI
         public void SkipToMain()
         {
             StepProgressSaver.MarkVisited();
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 7);
             SceneNavigator.Load(SceneId.Main);
         }
 

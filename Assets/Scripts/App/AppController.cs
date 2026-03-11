@@ -38,6 +38,7 @@ namespace KineTutor3D.App
         private readonly StepFlowService stepFlowService = new StepFlowService();
         private readonly KinematicsRuntimeService kinematicsService = new KinematicsRuntimeService();
         private readonly AppUiBinder uiBinder = new AppUiBinder();
+        private string currentTrack = StepProgressSaver.CoreKinematicsTrack;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
@@ -46,6 +47,7 @@ namespace KineTutor3D.App
 
         public int CurrentStep => currentStepIndex + 1;
         public int TotalSteps => stepConfigs?.Length ?? 0;
+        public string CurrentTrack => currentTrack;
         public RobotTemplate CurrentTemplate => kinematicsService.State.CurrentTemplate;
         public DHLink[] CurrentLinks => (DHLink[])kinematicsService.State.CurrentLinks.Clone();
         public double[] CurrentJointValuesRad => (double[])kinematicsService.State.CurrentJointValuesRad.Clone();
@@ -75,6 +77,7 @@ namespace KineTutor3D.App
         {
             InitializeTemplateRuntime();
             BindRuntimeUiControllers();
+            currentTrack = StepProgressSaver.GetCurrentTrack();
 
             if (TotalSteps <= 0)
             {
@@ -83,7 +86,7 @@ namespace KineTutor3D.App
             }
 
             stepNavigator?.Bind(this);
-            SetCurrentStep(Mathf.Clamp(StepProgressSaver.GetResumeStep(1), 1, TotalSteps));
+            SetCurrentStep(Mathf.Clamp(StepProgressSaver.GetResumeStep(currentTrack, 1), 1, TotalSteps));
         }
 
         private void OnDestroy()
@@ -114,7 +117,7 @@ namespace KineTutor3D.App
                 return;
             }
 
-            StepProgressSaver.SaveLastCompletedStep(CurrentStep);
+            StepProgressSaver.SaveLastCompletedStep(currentTrack, CurrentStep);
             SetCurrentStep(CurrentStep + 1);
         }
 

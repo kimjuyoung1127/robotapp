@@ -30,6 +30,17 @@ namespace KineTutor3D.UI.Data
         public bool showAnimation = true;
         public bool showEEHighlight = false;
 
+        [Header("Beginner Mode")]
+        public bool beginnerMode;
+        public bool showFormula = true;
+        public bool showPlainLanguage;
+        public bool showEndEffectorTrail;
+        public bool showJointHighlight;
+        public bool showTargetMarkers;
+        public bool showWhyItMoved;
+        public bool showJointInputRail = true;
+        public BeginnerLeftContent beginnerLeftContent = BeginnerLeftContent.None;
+
         [Header("툴팁")]
         public TooltipEntry[] tooltips = Array.Empty<TooltipEntry>();
 

@@ -9,7 +9,7 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
-- **Phase 5: Guided Lesson P0 구현 계획** (Planning Complete)
+- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5B Complete)
 - **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
@@ -20,11 +20,15 @@
 3. `Beginner Lesson 0~3`는 P0 범위지만 첫 구현 대상이 아니라 foundation 이후 consumer layer로 본다.
 4. 문서 선행 sync 1회 후, 각 phase는 `구현 -> 테스트 -> self-review -> 문서 반영 -> git commit` 단위로 종료한다.
 
-## 이번 턴 반영 내용 (Phase 5A Runtime foundation)
+## 이번 턴 반영 내용 (Phase 5A~5B Foundation)
 1. runtime state에 previous joint values, previous EE pose/position/transform, changed joint index, update cause를 추가했다.
 2. `KinematicsRuntimeService`가 mutation 직전에 snapshot을 저장하고, `RecomputeForwardKinematics()`는 순수 재계산만 담당하게 유지했다.
 3. `AppController` public facade에 previous/current runtime foundation 접근자를 추가했다.
-4. EditMode 테스트를 `50/50` 통과해 기존 수학/FK 회귀와 새 foundation 계약이 함께 유지됨을 확인했다.
+4. `StepProgressSaver`를 track-aware 구조로 확장해 `KineTutor3D.CurrentTrack`, `KineTutor3D.PreKinematics.LastCompletedStep`, `KineTutor3D.CoreKinematics.LastCompletedStep`를 기준 키로 고정했다.
+5. 기존 parameterless progress API는 `core_kinematics` wrapper로 유지해 Core Track MVP 하위 호환을 보존했다.
+6. `TutorStepConfig`, `InteractionType`에 beginner track/consumer layer를 위한 schema 확장을 추가했다.
+7. `OnboardingManager`에 beginner/core track 저장 진입점을 추가했지만, 실제 분기 UI 노출은 Phase 5E에서 연결한다.
+8. EditMode 테스트를 `53/53` 통과해 기존 회귀와 track-aware foundation 계약이 함께 유지됨을 확인했다.
 
 ## Product Docs Governance
 1. Canonical product docs 3종을 `docs/ref/PRD.md`, `docs/ref/WIREFRAME.md`, `docs/ref/PRODUCT-ROADMAP.md`로 고정했다.
@@ -236,8 +240,8 @@
    - 기존 `debug-success-capture` 포맷으로 결과 기록 유지
 
 ## 다음 작업
-1. Phase 5B Track-aware step foundation 구현: `pre_kinematics/core_kinematics` resume와 step 모델 확장
-2. Phase 5C 공통 input/visualization 인프라 구현: numeric input, highlight, trail, target marker 기반 고정
-3. Phase 5D `Why It Moved` explanation layer 구현
-4. Phase 5E Beginner Lesson 0~3 연결 후 Phase 6 CI/CD 실주행 확인
+1. Phase 5C 공통 input/visualization 인프라 구현: numeric input, highlight, trail, target marker 기반 고정
+2. Phase 5D `Why It Moved` explanation layer 구현
+3. Phase 5E Beginner Lesson 0~3 연결 후 onboarding 분기 UI와 step source를 실제 흐름에 연결
+4. Phase 6 CI/CD 실주행 확인
 5. `Assembly-CSharp.csproj` 로컬 빌드 불일치 원인(생성 csproj 동기화 이슈) 문서화

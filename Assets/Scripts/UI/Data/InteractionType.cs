@@ -12,7 +12,11 @@ namespace KineTutor3D.UI.Data
         Click,
         SliderChange,
         MatrixAreaHover,
-        StepAction
+        StepAction,
+        ObserveMotion,
+        CompareArc,
+        CompareCombination,
+        TargetMatch
     }
 }
 
