@@ -135,14 +135,14 @@ namespace KineTutor3D.Visualization
                 var renderer = instance.GetComponent<Renderer>();
                 if (renderer != null)
                 {
-                    renderer.sharedMaterial = new Material(Shader.Find("Standard"));
+                    renderer.sharedMaterial = CreateFallbackMarkerMaterial(fallbackColor);
                     renderer.sharedMaterial.color = fallbackColor;
                 }
 
                 var collider = instance.GetComponent<Collider>();
                 if (collider != null)
                 {
-                    DestroyImmediate(collider);
+                    DestroyCollider(collider);
                 }
             }
 
@@ -184,6 +184,38 @@ namespace KineTutor3D.Visualization
             {
                 appController.OnStepChanged -= HandleStepChanged;
             }
+        }
+
+        private static void DestroyCollider(Collider collider)
+        {
+            if (collider == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(collider);
+                return;
+            }
+
+            DestroyImmediate(collider);
+        }
+
+        private static Material CreateFallbackMarkerMaterial(Color fallbackColor)
+        {
+            var shader = Shader.Find("Standard");
+            if (shader == null)
+            {
+                return null;
+            }
+
+            var material = new Material(shader)
+            {
+                name = "KineTutor3D_TargetMarkerFallback"
+            };
+            material.color = fallbackColor;
+            return material;
         }
     }
 }

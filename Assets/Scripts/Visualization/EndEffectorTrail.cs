@@ -15,6 +15,8 @@ namespace KineTutor3D.Visualization
     [RequireComponent(typeof(LineRenderer))]
     public class EndEffectorTrail : MonoBehaviour
     {
+        private static Material sharedTrailMaterial;
+
         [SerializeField] private AppController appController;
         [SerializeField] private Transform trackedTransform;
         [SerializeField] private LineRenderer lineRenderer;
@@ -99,11 +101,31 @@ namespace KineTutor3D.Visualization
             lineRenderer.useWorldSpace = true;
             lineRenderer.widthMultiplier = 0.025f;
             lineRenderer.alignment = LineAlignment.View;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.sharedMaterial = GetSharedTrailMaterial();
             lineRenderer.startColor = new Color(0.29f, 0.56f, 0.85f, 0.95f);
             lineRenderer.endColor = new Color(0.95f, 0.77f, 0.15f, 0.95f);
             lineRenderer.numCapVertices = 4;
             lineRenderer.numCornerVertices = 4;
+        }
+
+        private static Material GetSharedTrailMaterial()
+        {
+            if (sharedTrailMaterial != null)
+            {
+                return sharedTrailMaterial;
+            }
+
+            var shader = Shader.Find("Sprites/Default");
+            if (shader == null)
+            {
+                return null;
+            }
+
+            sharedTrailMaterial = new Material(shader)
+            {
+                name = "KineTutor3D_EndEffectorTrail"
+            };
+            return sharedTrailMaterial;
         }
 
         private void AppendCurrentPoint(bool force)

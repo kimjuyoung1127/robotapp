@@ -11,6 +11,8 @@ namespace KineTutor3D.Visualization
     [RequireComponent(typeof(LineRenderer))]
     public class JointHighlightRing : MonoBehaviour
     {
+        private static Material sharedRingMaterial;
+
         [SerializeField] private Transform target;
         [SerializeField] private float radius = 0.18f;
         [SerializeField] private int segments = 32;
@@ -59,11 +61,31 @@ namespace KineTutor3D.Visualization
             lineRenderer.alignment = LineAlignment.View;
             lineRenderer.widthMultiplier = 0.02f;
             lineRenderer.positionCount = Mathf.Max(segments, 8);
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.sharedMaterial = GetSharedRingMaterial();
             lineRenderer.startColor = ringColor;
             lineRenderer.endColor = ringColor;
             lineRenderer.numCornerVertices = 4;
             lineRenderer.numCapVertices = 4;
+        }
+
+        private static Material GetSharedRingMaterial()
+        {
+            if (sharedRingMaterial != null)
+            {
+                return sharedRingMaterial;
+            }
+
+            var shader = Shader.Find("Sprites/Default");
+            if (shader == null)
+            {
+                return null;
+            }
+
+            sharedRingMaterial = new Material(shader)
+            {
+                name = "KineTutor3D_JointHighlightRing"
+            };
+            return sharedRingMaterial;
         }
 
         private void RebuildRing()
