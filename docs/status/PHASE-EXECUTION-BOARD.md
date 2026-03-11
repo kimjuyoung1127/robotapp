@@ -24,7 +24,7 @@
 | Phase 5 | Robot Library MVP (deferred appendix) | P1 | Hold | - | robot-template-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/robot-library.md | 2026-03-11 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
-| Phase 6 | CI/CD | P1 | InProgress | codex | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-09 |
+| Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
 | Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-09 |
 
 ## Zero-Drift 규칙

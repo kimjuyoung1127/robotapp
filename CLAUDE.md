@@ -22,7 +22,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 3 (Template 2DOF + App/UI): Done
 - Phase 4 (Visualization core): Done
 - Phase 5: InProgress (5A~5E Done, 5F/5G remaining)
-- Phase 6 (CI/CD): InProgress
+- Phase 6 (CI/CD): Hold (로컬 테스트 전용, runner 미등록)
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 
