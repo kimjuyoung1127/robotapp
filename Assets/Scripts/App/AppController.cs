@@ -35,6 +35,8 @@ namespace KineTutor3D.App
         [SerializeField] private MatrixDisplay matrixDisplay;
         [SerializeField] private JointInputRail jointInputRail;
         [SerializeField] private WhyItMovedPanel whyItMovedPanel;
+        [SerializeField] private BeginnerLeftPanel beginnerLeftPanel;
+        [SerializeField] private TargetFeedbackPanel targetFeedbackPanel;
         [SerializeField] private RobotRenderer robotRenderer;
         [SerializeField] private EndEffectorTrail endEffectorTrail;
         [SerializeField] private TargetMarkerVisual targetMarkerVisual;
@@ -237,13 +239,20 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
         }
 
         private void LoadStepConfigsIfNeeded()
         {
             if (stepConfigs != null && stepConfigs.Length > 0)
             {
+                return;
+            }
+
+            var track = StepProgressSaver.GetCurrentTrack();
+            if (string.Equals(track, StepProgressSaver.PreKinematicsTrack, StringComparison.Ordinal))
+            {
+                stepConfigs = BeginnerLessonFactory.CreateLessons();
                 return;
             }
 
@@ -265,7 +274,7 @@ namespace KineTutor3D.App
 
         private void BindRuntimeUiControllers()
         {
-            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, whyItMovedPanel, endEffectorTrail, targetMarkerVisual);
+            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, whyItMovedPanel, beginnerLeftPanel, targetFeedbackPanel, endEffectorTrail, targetMarkerVisual);
         }
 
         private void BindSliderEvents()
@@ -313,6 +322,17 @@ namespace KineTutor3D.App
             endEffectorTrail?.SetTrailVisible(config.showEndEffectorTrail);
             targetMarkerVisual?.SetMarkersVisible(config.showTargetMarkers);
             targetMarkerVisual?.ClearFeedback();
+
+            if (config.beginnerMode)
+            {
+                beginnerLeftPanel?.ApplyContent(config.beginnerLeftContent);
+                targetFeedbackPanel?.SetVisible(config.showTargetMarkers);
+            }
+            else
+            {
+                beginnerLeftPanel?.SetVisible(false);
+                targetFeedbackPanel?.SetVisible(false);
+            }
 
             if (!jointHighlightEnabled)
             {

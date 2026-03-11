@@ -15,6 +15,7 @@ namespace KineTutor3D.UI
         [SerializeField] private RectTransform modalRoot;
         [SerializeField] private Font fallbackFont;
         [SerializeField] private Button startLearningButton;
+        [SerializeField] private Button beginnerButton;
         [SerializeField] private Button skipButton;
         [SerializeField] private Text headlineText;
         [SerializeField] private Text bodyText;
@@ -95,8 +96,9 @@ namespace KineTutor3D.UI
             headlineText = title;
             bodyText = body;
 
-            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "?숈뒿 ?쒖옉", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(200f, 44f), new Vector2(-246f, 30f), UiRuntimeStyle.AccentBlue);
-            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "嫄대꼫?곌린", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(160f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
+            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "학습 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(180f, 44f), new Vector2(-370f, 30f), UiRuntimeStyle.AccentBlue);
+            beginnerButton = EnsureActionButton(modalRoot, "BtnBeginner", "초보자 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(180f, 44f), new Vector2(-200f, 30f), UiRuntimeStyle.AccentYellow);
+            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "건너뛰기", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(140f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
         }
 
         private void BindButtons()
@@ -109,6 +111,11 @@ namespace KineTutor3D.UI
             if (startLearningButton != null)
             {
                 startLearningButton.onClick.AddListener(BeginLearning);
+            }
+
+            if (beginnerButton != null)
+            {
+                beginnerButton.onClick.AddListener(BeginAsBeginner);
             }
 
             if (skipButton != null)
@@ -129,6 +136,11 @@ namespace KineTutor3D.UI
             if (startLearningButton != null)
             {
                 startLearningButton.onClick.RemoveListener(BeginLearning);
+            }
+
+            if (beginnerButton != null)
+            {
+                beginnerButton.onClick.RemoveListener(BeginAsBeginner);
             }
 
             if (skipButton != null)

@@ -9,7 +9,7 @@ namespace KineTutor3D.App
 {
     internal sealed class AppUiBinder
     {
-        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual)
+        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual)
         {
             disclosureController ??= Object.FindFirstObjectByType<ProgressiveDisclosureController>(FindObjectsInactive.Include);
             gateController ??= Object.FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
@@ -22,6 +22,8 @@ namespace KineTutor3D.App
             matrixDisplay ??= Object.FindFirstObjectByType<MatrixDisplay>(FindObjectsInactive.Include);
             jointInputRail ??= Object.FindFirstObjectByType<JointInputRail>(FindObjectsInactive.Include);
             whyItMovedPanel ??= Object.FindFirstObjectByType<WhyItMovedPanel>(FindObjectsInactive.Include);
+            beginnerLeftPanel ??= Object.FindFirstObjectByType<BeginnerLeftPanel>(FindObjectsInactive.Include);
+            targetFeedbackPanel ??= Object.FindFirstObjectByType<TargetFeedbackPanel>(FindObjectsInactive.Include);
             robotRenderer ??= Object.FindFirstObjectByType<RobotRenderer>(FindObjectsInactive.Include);
             endEffectorTrail ??= Object.FindFirstObjectByType<EndEffectorTrail>(FindObjectsInactive.Include);
             targetMarkerVisual ??= Object.FindFirstObjectByType<TargetMarkerVisual>(FindObjectsInactive.Include);
@@ -89,6 +91,24 @@ namespace KineTutor3D.App
                 }
             }
 
+            if (beginnerLeftPanel == null)
+            {
+                var leftPanel = GameObject.Find("LeftPanel");
+                if (leftPanel != null)
+                {
+                    beginnerLeftPanel = leftPanel.GetComponent<BeginnerLeftPanel>() ?? leftPanel.AddComponent<BeginnerLeftPanel>();
+                }
+            }
+
+            if (targetFeedbackPanel == null)
+            {
+                var rightPanel = GameObject.Find("RightPanel");
+                if (rightPanel != null)
+                {
+                    targetFeedbackPanel = rightPanel.GetComponent<TargetFeedbackPanel>() ?? rightPanel.AddComponent<TargetFeedbackPanel>();
+                }
+            }
+
             if (endEffectorTrail == null)
             {
                 var ee = GameObject.Find("Frame_EE");
@@ -108,13 +128,15 @@ namespace KineTutor3D.App
             }
         }
 
-        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay, JointInputRail jointInputRail, WhyItMovedPanel whyItMovedPanel, EndEffectorTrail endEffectorTrail, TargetMarkerVisual targetMarkerVisual)
+        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay, JointInputRail jointInputRail, WhyItMovedPanel whyItMovedPanel, BeginnerLeftPanel beginnerLeftPanel, TargetFeedbackPanel targetFeedbackPanel, EndEffectorTrail endEffectorTrail, TargetMarkerVisual targetMarkerVisual)
         {
             templateSelector?.Bind(owner);
             dhTableEditor?.Bind(owner);
             matrixDisplay?.Bind(owner);
             jointInputRail?.Bind(owner);
             whyItMovedPanel?.Bind(owner);
+            beginnerLeftPanel?.Bind(owner);
+            targetFeedbackPanel?.Bind(owner);
             endEffectorTrail?.Bind(owner);
             targetMarkerVisual?.Bind(owner);
         }

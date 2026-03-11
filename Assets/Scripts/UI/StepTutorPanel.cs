@@ -40,7 +40,8 @@ namespace KineTutor3D.UI
 
             if (stepTitleText != null)
             {
-                stepTitleText.text = $"Step {currentStep}/{totalSteps}: {config.stepTitleKo}";
+                var prefix = config.beginnerMode ? "Lesson" : "Step";
+                stepTitleText.text = $"{prefix} {currentStep}/{totalSteps}: {config.stepTitleKo}";
             }
 
             if (objectiveText != null)
