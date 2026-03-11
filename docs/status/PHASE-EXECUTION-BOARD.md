@@ -15,7 +15,7 @@
 | Phase 4 | Visualization | P1 | Done | codex | scene-scaffold, editmode-test-add | docs/ref/coordinate-mapping.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 4 | Scene Flow | P1 | Done | codex | scene-scaffold, sprint-docs-sync | docs/ref/USER-FLOW.md, docs/ref/architecture-diagrams.md | 2026-03-09 |
 | Phase 4 | Validator | P1 | Ready | - | editmode-test-add | docs/ref/test-reference-values.md | 2026-03-05 |
-| Phase 5 | Runtime foundation (snapshot/update cause) | P0 | Ready | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-11 |
+| Phase 5 | Runtime foundation (snapshot/update cause) | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-11 |
 | Phase 5 | Track-aware step foundation | P0 | Ready | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-11 |
 | Phase 5 | Joint Numeric Input + Highlight | P0 | Ready | codex | student-friendly-ux, scene-scaffold | docs/ref/phase5-implementation-plan.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-11 |
 | Phase 5 | Visualization Helpers (trail/target) | P0 | Ready | codex | scene-scaffold, editmode-test-add | docs/ref/phase5-implementation-plan.md, docs/ref/asset-validation-report.md | 2026-03-11 |

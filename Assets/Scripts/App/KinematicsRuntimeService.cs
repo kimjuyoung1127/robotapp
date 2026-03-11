@@ -22,6 +22,7 @@ namespace KineTutor3D.App
                 throw new ArgumentNullException(nameof(template));
             }
 
+            CapturePreviousState(-1, RuntimeUpdateCause.TemplateApply);
             state.CurrentTemplate = template;
             state.CurrentLinks = template.GetLinks();
             state.CurrentJointValuesRad = new double[template.Dof];
@@ -47,6 +48,7 @@ namespace KineTutor3D.App
                 throw new ArgumentException($"유효하지 않은 관절 각도입니다: {degrees}", nameof(degrees));
             }
 
+            CapturePreviousState(jointIndex, RuntimeUpdateCause.JointAngleChange);
             state.CurrentJointValuesRad[jointIndex] = DegreesToRadians(degrees);
             SetSliderValueWithoutCallback(jointIndex, degrees, jointSlider1, jointSlider2);
             RecomputeForwardKinematics();
@@ -99,6 +101,7 @@ namespace KineTutor3D.App
                     return false;
             }
 
+            CapturePreviousState(linkIndex, RuntimeUpdateCause.DhParameterEdit);
             state.CurrentLinks[linkIndex] = updated;
             RecomputeForwardKinematics();
             return true;
@@ -111,8 +114,19 @@ namespace KineTutor3D.App
                 return;
             }
 
+            CapturePreviousState(jointIndex, RuntimeUpdateCause.JointAngleChange);
             state.CurrentJointValuesRad[jointIndex] = DegreesToRadians(valueDegrees);
             RecomputeForwardKinematics();
+        }
+
+        private void CapturePreviousState(int changedJointIndex, RuntimeUpdateCause cause)
+        {
+            state.PreviousJointValuesRad = (double[])state.CurrentJointValuesRad.Clone();
+            state.PreviousEndEffectorPose = state.CurrentEndEffectorPose;
+            state.PreviousEndEffectorPosition = state.CurrentEndEffectorTransform.ExtractPosition();
+            state.PreviousEndEffectorTransform = state.CurrentEndEffectorTransform;
+            state.ChangedJointIndex = changedJointIndex;
+            state.LastUpdateCause = cause;
         }
 
         private void ConfigureJointSlider(int jointIndex, Slider slider)

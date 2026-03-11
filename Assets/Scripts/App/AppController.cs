@@ -49,11 +49,16 @@ namespace KineTutor3D.App
         public RobotTemplate CurrentTemplate => kinematicsService.State.CurrentTemplate;
         public DHLink[] CurrentLinks => (DHLink[])kinematicsService.State.CurrentLinks.Clone();
         public double[] CurrentJointValuesRad => (double[])kinematicsService.State.CurrentJointValuesRad.Clone();
+        public double[] PreviousJointValuesRad => (double[])kinematicsService.State.PreviousJointValuesRad.Clone();
         public TutorPose CurrentEndEffectorPose => kinematicsService.State.CurrentEndEffectorPose;
+        public TutorPose PreviousEndEffectorPose => kinematicsService.State.PreviousEndEffectorPose;
         public Mat4D CurrentEndEffectorTransform => kinematicsService.State.CurrentEndEffectorTransform;
+        public Mat4D PreviousEndEffectorTransform => kinematicsService.State.PreviousEndEffectorTransform;
         public Mat4D CurrentA1 => kinematicsService.State.CurrentA1;
         public Mat4D CurrentA2 => kinematicsService.State.CurrentA2;
         public Mat4D CurrentT02 => kinematicsService.State.CurrentT02;
+        public int ChangedJointIndex => kinematicsService.State.ChangedJointIndex;
+        public RuntimeUpdateCause LastUpdateCause => kinematicsService.State.LastUpdateCause;
 
         private void Awake()
         {
