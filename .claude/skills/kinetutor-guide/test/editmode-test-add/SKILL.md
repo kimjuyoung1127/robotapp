@@ -12,7 +12,8 @@ description: "EditMode 테스트 추가 — 테스트, EditMode, 단위 테스�
 - 알려진 참조값
 
 ## Read First
-1. `Assets/Tests/EditMode/CLAUDE.md` — EditMode 테스트 컨벤션
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§4 테스트 보일러플레이트, §5 행렬 비교 헬퍼)
+2. `Assets/Tests/EditMode/CLAUDE.md` — EditMode 테스트 컨벤션
 2. `Assets/Tests/EditMode/` 기존 테스트 파일들 — 패턴 참조
 3. `docs/ref/test-reference-values.md` — 알려진 기준값
 4. 테스트 대상 소스 파일

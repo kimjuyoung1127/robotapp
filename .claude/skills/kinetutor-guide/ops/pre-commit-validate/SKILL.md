@@ -11,8 +11,9 @@ description: "커밋 전 검증 — 커밋, pre-commit, 검증, validate, 빌드
 - 변경 유형 (수학/기구학/UI/문서 등)
 
 ## Read First
-1. `CLAUDE.md` — 테스트 정책 및 규칙
-2. `docs/status/PHASE-EXECUTION-BOARD.md` — 현재 모듈 상태
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (검증 기준 §8-9)
+2. `CLAUDE.md` — 테스트 정책 및 규칙
+3. `docs/status/PHASE-EXECUTION-BOARD.md` — 현재 모듈 상태
 3. `../unity-official-docs/SKILL.md` — 공식 문서 기반 결정 형식
 4. `../unity-official-docs/references/phase01-core.md` — Phase 0+1 검증 기준
 

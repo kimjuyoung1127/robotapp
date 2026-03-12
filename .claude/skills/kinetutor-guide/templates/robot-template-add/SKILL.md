@@ -15,8 +15,9 @@ description: "로봇 설정 템플릿 추가 — 새 로봇, 4DOF, 5DOF, SCARA, 
 - 입력 모드 (`slider`, `numeric`, `history`, `pick-foundation`)
 
 ## Read First
-1. `Assets/Scripts/Templates/CLAUDE.md` — 템플릿 컨벤션
-2. `Assets/Scripts/Templates/Template2DOF_RR.cs` — 참조 템플릿 (존재 시)
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§8 Unity 측 규칙 포함)
+2. `Assets/Scripts/Templates/CLAUDE.md` — 템플릿 컨벤션
+3. `Assets/Scripts/Templates/Template2DOF_RR.cs` — 참조 템플릿 (존재 시)
 3. `Assets/Scripts/Types/RobotTemplate.cs` — 기본 템플릿 타입
 4. `Assets/Scripts/Types/JointType.cs` — 관절 타입 열거형
 5. `Assets/Scripts/Types/DHLink.cs` — DH 파라미터 구조체

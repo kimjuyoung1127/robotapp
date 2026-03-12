@@ -65,6 +65,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 5. `theta`는 Slider 단일 소스, DHTable에서는 read-only
 6. 문서와 코드 상태가 다르면 코드/테스트 실제 상태를 우선
 7. 명시 요청 없이는 임의 Git 파괴 명령 금지
+8. **C# 파일 생성/수정 전에 `docs/ref/code-patterns.md`를 반드시 읽고 §8-9 패턴을 준수** (인코딩, 헤더, 네이밍, 수명주기)
 
 ## Skill 인덱스 (.claude/skills)
 | # | Skill | Trigger 키워드 | 경로 |
