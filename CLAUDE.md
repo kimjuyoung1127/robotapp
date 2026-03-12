@@ -27,8 +27,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Product Docs Governance (GameLab-style): InProgress
 
 최근 확정 사항:
-- Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화, EditMode 107/107 PlayMode 30/30
-- Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가, EditMode 87/87 PlayMode 30/30
+- Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화
+- Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가
 - Phase 5D 완료: WhyItMovedState/Formatter/Panel 추가, AppController+AppUiBinder 연동
 - GameLab-style 제품 문서 운영 이식 시작: canonical product docs 3종(`PRD`, `WIREFRAME`, `PRODUCT-ROADMAP`)과 `PRODUCT-DOC-BOARD`를 status/ref 계층에 추가
 - Beginner Lesson 0~3를 `Pre-Kinematics` 진입 트랙으로 추가하고 `Core Track Step 1~8`과 분리
@@ -54,7 +54,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역으로 정리하고 런타임 디버그성 흰 패널/텍스트를 공통 스타일 surface로 대체
 - Phase 4 디버그: Built-in에서 URP(`com.unity.render-pipelines.universal@17.0.4`)로 전환하고 `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정
 - Camera 정리: `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정하고 donor mesh local offset/scale 보정 경로를 `RobotRenderer`에 고정
-- Unity Test Runner 결과: EditMode `47/47`, PlayMode `26/26`
+- Unity Test Runner 결과: EditMode `142`, PlayMode `44` (코드 어트리뷰트 기준, Runner 재확인 필요)
 - CI 초안 추가: `.github/workflows/unity-tests.yml`
 
 ## 실행 규칙 (MUST)
@@ -126,8 +126,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 1. EditMode 전체
 2. PlayMode 스모크
 - 현재 기준:
-1. EditMode: 107 passed
-2. PlayMode: 30 passed
+1. EditMode: 142 passed (코드 어트리뷰트 기준)
+2. PlayMode: 44 passed (코드 어트리뷰트 기준)
 - CI 워크플로우:
 1. `.github/workflows/unity-tests.yml`
 2. runner: `self-hosted`, `windows`

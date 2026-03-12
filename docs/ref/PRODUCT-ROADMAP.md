@@ -1,7 +1,7 @@
 # KineTutor3D Product Roadmap
 
 Version: 1.1.0  
-Last Updated: 2026-03-11 (KST)
+Last Updated: 2026-03-12 (KST)
 
 ## Purpose
 
