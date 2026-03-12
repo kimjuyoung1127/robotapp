@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.UI;
 using KineTutor3D.Visualization;
 using UnityEngine;

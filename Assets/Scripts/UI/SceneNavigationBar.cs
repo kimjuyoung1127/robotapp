@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 紐⑤뱺 ?ъ뿉??怨듯넻?쇰줈 ?ъ슜?섎뒗 ?곷떒 ???꾪솚 諛붿엯?덈떎.
+    /// 모든 씬에서 공통으로 사용하는 상단 씬 전환 바입니다.
     /// </summary>
     [ExecuteAlways]
     public class SceneNavigationBar : MonoBehaviour

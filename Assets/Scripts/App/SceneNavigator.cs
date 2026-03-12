@@ -1,11 +1,11 @@
-﻿// Folder: App - application orchestration and runtime state.
+// Folder: App - Application controllers and services; single UnityEngine entry point.
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// ?꾩뿭 ???꾪솚 吏꾩엯?먯쓣 ?쒓났?⑸땲??
+    /// 씬 전환 진입점을 제공합니다.
     /// </summary>
     public static class SceneNavigator
     {
@@ -14,7 +14,7 @@ namespace KineTutor3D.App
             var sceneName = SceneCatalog.GetSceneName(target);
             if (string.IsNullOrWhiteSpace(sceneName))
             {
-                Debug.LogError($"[SceneNavigator] 誘몃벑濡??ъ엯?덈떎: {target}");
+                Debug.LogError($"[SceneNavigator] 미등록 씬입니다: {target}");
                 return;
             }
 
@@ -25,7 +25,7 @@ namespace KineTutor3D.App
         {
             if (string.IsNullOrWhiteSpace(sceneName))
             {
-                Debug.LogError("[SceneNavigator] sceneName??鍮꾩뼱 ?덉뒿?덈떎.");
+                Debug.LogError("[SceneNavigator] sceneName이 비어 있습니다.");
                 return;
             }
 
@@ -33,4 +33,3 @@ namespace KineTutor3D.App
         }
     }
 }
-

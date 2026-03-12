@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using KineTutor3D.Kinematics;
 using KineTutor3D.Math;

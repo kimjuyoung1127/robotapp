@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// ?꾩옱 ?숈뒿 ?ъ빱???곸뿭???꾩뒪 ?섏씠?쇱씠?몃? ?쒖떆?⑸땲??
+    /// 현재 학습 단계의 영역별 포커스 하이라이트를 표시합니다.
     /// </summary>
     [ExecuteAlways]
     public class FocusZoneHighlighter : MonoBehaviour

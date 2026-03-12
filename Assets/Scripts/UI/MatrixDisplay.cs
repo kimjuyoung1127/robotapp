@@ -10,7 +10,7 @@ using TutorPose = KineTutor3D.Types.Pose;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// A1/A2/T02 ?됰젹???ㅼ떆媛꾩쑝濡??쒖떆?⑸땲??
+    /// A1/A2/T02 행렬을 실시간으로 표시합니다.
     /// </summary>
     [ExecuteAlways]
     public class MatrixDisplay : MonoBehaviour

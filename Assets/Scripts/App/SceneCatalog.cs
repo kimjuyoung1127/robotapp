@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+// Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// ???대쫫怨??대퉬寃뚯씠??硫뷀??곗씠?곕? ?쒓났?⑸땲??
+    /// 씬 이름과 내비게이션 메타데이터를 제공합니다.
     /// </summary>
     public static class SceneCatalog
     {
@@ -77,7 +77,7 @@ namespace KineTutor3D.App
     }
 
     /// <summary>
-    /// ???ㅻ퉬寃뚯씠????ぉ?낅땲??
+    /// 씬 내비게이션 항목입니다.
     /// </summary>
     public readonly struct SceneEntry
     {
@@ -95,4 +95,3 @@ namespace KineTutor3D.App
         public bool ShowInNavigation { get; }
     }
 }
-

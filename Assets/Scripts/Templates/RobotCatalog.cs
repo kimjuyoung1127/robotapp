@@ -1,3 +1,4 @@
+﻿// Folder: Templates - Robot configuration templates; no UnityEngine references.
 using System;
 using System.Collections.Generic;
 using KineTutor3D.Types;

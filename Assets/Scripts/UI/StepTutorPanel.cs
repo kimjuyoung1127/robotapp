@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// ?ㅽ뀦 紐⑺몴/?뚰듃/寃뚯씠??吏꾪뻾 ?띿뒪?몃? ?쒖떆?⑸땲??
+    /// 스텝 제목/힌트/게이트 진행 텍스트를 표시합니다.
     /// </summary>
     [ExecuteAlways]
     public class StepTutorPanel : MonoBehaviour

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 濡쒕큸 ?쒗뵆由??쒕∼?ㅼ슫???뚮뜑?섍퀬 ?좏깮??AppController???꾨떖?⑸땲??
+    /// 로봇 템플릿 드롭다운을 렌더링하고 선택을 AppController에 전달합니다.
     /// </summary>
     [ExecuteAlways]
     public class TemplateSelector : MonoBehaviour

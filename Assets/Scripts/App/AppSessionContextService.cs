@@ -2,13 +2,9 @@
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// DH 테이블에서 편집 가능한 필드 열거형입니다.
+    /// 세션 컨텍스트를 관리합니다. Phase 5G에서 구현 예정.
     /// </summary>
-    public enum DhEditableField
+    internal sealed class AppSessionContextService
     {
-        Theta,
-        D,
-        A,
-        Alpha
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// Prev/Next/Skip 踰꾪듉怨??ㅽ뀦 ?몃뵒耳?댄꽣瑜??쒖뼱?⑸땲??
+    /// Prev/Next/Skip 버튼과 스텝 인디케이터를 제어합니다.
     /// </summary>
     [ExecuteAlways]
     public class StepNavigator : MonoBehaviour
@@ -39,8 +39,8 @@ namespace KineTutor3D.UI
 
         private void Update()
         {
-            UpdateSliderValueText(jointSlider1, slider1ValueText, "罐1");
-            UpdateSliderValueText(jointSlider2, slider2ValueText, "罐2");
+            UpdateSliderValueText(jointSlider1, slider1ValueText, "관절1");
+            UpdateSliderValueText(jointSlider2, slider2ValueText, "관절2");
         }
 
         public void Bind(AppController owner)

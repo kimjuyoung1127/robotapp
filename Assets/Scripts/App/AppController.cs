@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using System.Linq;
 using KineTutor3D.Math;
@@ -187,8 +187,9 @@ namespace KineTutor3D.App
                 return;
             }
 
-            RobotSelectionBridge.SetSelection(CurrentTemplate.Name, RobotSelectionBridge.SandboxMode);
-            SceneNavigator.Load(SceneId.Sandbox);
+            RobotSelectionBridge.SetSelectedRobot(CurrentTemplate.Name);
+            RobotSelectionBridge.SetSelectedMode("sandbox");
+            SceneNavigator.Load(SceneId.Main);
         }
 
         public string[] GetAvailableTemplateNames()

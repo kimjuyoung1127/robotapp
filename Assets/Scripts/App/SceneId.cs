@@ -1,8 +1,8 @@
-﻿// Folder: App - application orchestration and runtime state.
+// Folder: App - Application controllers and services; single UnityEngine entry point.
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// ?꾨줈?앺듃?먯꽌 ?ъ슜?섎뒗 ???앸퀎?먯엯?덈떎.
+    /// 프로젝트에서 사용하는 씬 식별자입니다.
     /// </summary>
     public enum SceneId
     {
@@ -12,4 +12,3 @@ namespace KineTutor3D.App
         RobotLibrary = 3,
     }
 }
-
