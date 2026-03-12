@@ -1117,19 +1117,254 @@ public bool Equals(Mat4D other, double tolerance)
 
 ---
 
+## 8. Unity 측 코딩 패턴 (App / UI / Visualization)
+
+> 섹션 1-7은 순수 C# 모듈(Math, Types, Kinematics)을 다룹니다.
+> 섹션 8은 Unity API를 사용하는 모듈(App, UI, Visualization)의 공통 규칙입니다.
+
+---
+
+### 8.1 파일 인코딩
+
+| 항목 | 규칙 |
+|------|------|
+| 인코딩 | UTF-8 **with BOM** (`EF BB BF`) |
+| 줄바꿈 | LF (`\n`) |
+| 후행 공백 | 제거 |
+| 파일 끝 | 빈 줄 1개 |
+
+> **배경**: 현재 11개 파일에 EUC-KR/UTF-8 mojibake가 존재합니다.
+> 새 파일은 반드시 UTF-8 BOM으로 생성하고, 기존 파일은 수정 시 인코딩을 교정합니다.
+
+---
+
+### 8.2 네이밍 규칙
+
+```
+namespace   KineTutor3D.{Module}          // PascalCase, 모듈명과 일치
+class       PascalCase                     // 파일명 == 클래스명
+method      PascalCase()                   // public/internal 메서드
+field       camelCase                      // private 필드 (접두사 없음)
+SerializeField  camelCase                  // [SerializeField] private — 접두사 없음
+const       PascalCase                     // 또는 UPPER_SNAKE (기존 관례 유지)
+event       On{Action}                     // 예: OnStepChanged, OnJointUpdated
+```
+
+**금지**: `_` 접두사, `m_` 헝가리안, `s_` 정적 접두사.
+
+---
+
+### 8.3 접근 제어자
+
+| 패턴 | 용도 | 예시 |
+|------|------|------|
+| `public class` | 모듈 외부 공개 API | `SceneNavigator`, `StepProgressSaver` |
+| `internal sealed class` | 모듈 내부 서비스 | `StepFlowService`, `KinematicsRuntimeService` |
+| `public static class` | 순수 유틸리티 | `WhyItMovedFormatter`, `UiRuntimeStyle` |
+| `internal class` (비봉인) | **금지** — `sealed` 필수 | — |
+
+> 기본 원칙: **공개하지 않으면 `internal sealed`**.
+
+---
+
+### 8.4 MonoBehaviour 수명주기 패턴
+
+```csharp
+public class ExamplePanel : MonoBehaviour
+{
+    [SerializeField] private Button actionButton;
+    private bool listenersBound;
+
+    private void Awake()
+    {
+        EnsurePresentation();
+        BindListeners();
+    }
+
+    private void OnEnable()
+    {
+        EnsurePresentation();
+        BindListeners();
+    }
+
+    private void OnDisable()
+    {
+        UnbindListeners();
+    }
+}
+```
+
+**핵심 규칙**:
+- `Awake` + `OnEnable`에서 초기화, `OnDisable`에서 정리
+- `OnDestroy`는 `OnDisable`에서 처리하지 못하는 자원(네이티브 핸들 등)만
+- `[ExecuteAlways]`를 사용하는 경우에도 동일 패턴 유지
+
+---
+
+### 8.5 초기화 메서드명
+
+| 메서드 | 역할 |
+|--------|------|
+| `EnsurePresentation()` | UI 요소 생성/복원 (멱등성 보장) |
+| `BindListeners()` | 이벤트/버튼 리스너 등록 |
+| `UnbindListeners()` | 이벤트/버튼 리스너 해제 |
+
+> `Init()`, `Setup()`, `Configure()` 등 대체 이름은 사용하지 않습니다.
+> 기존 코드의 `BindButtons()`/`UnbindButtons()`는 `BindListeners()`/`UnbindListeners()`로 점진적 통일.
+
+---
+
+### 8.6 버튼/이벤트 바인딩 패턴
+
+```csharp
+private bool listenersBound;
+
+private void BindListeners()
+{
+    if (listenersBound) return;
+
+    if (actionButton != null)
+        actionButton.onClick.AddListener(OnActionClicked);
+
+    listenersBound = true;
+}
+
+private void UnbindListeners()
+{
+    if (!listenersBound) return;
+
+    if (actionButton != null)
+        actionButton.onClick.RemoveListener(OnActionClicked);
+
+    listenersBound = false;
+}
+```
+
+**핵심**: `listenersBound` 플래그로 중복 등록 방지. null 체크 후 Add/Remove.
+
+---
+
+### 8.7 SetVisible 패턴
+
+```csharp
+// 기본: gameObject.SetActive
+public void SetVisible(bool visible)
+{
+    gameObject.SetActive(visible);
+}
+
+// 페이드가 필요한 경우: CanvasGroup
+public void SetVisible(bool visible)
+{
+    canvasGroup.alpha = visible ? 1f : 0f;
+    canvasGroup.blocksRaycasts = visible;
+    canvasGroup.interactable = visible;
+}
+```
+
+> 두 방식을 혼용하지 않습니다. 한 컴포넌트에서 하나만 선택합니다.
+
+---
+
+### 8.8 Material 캐싱 패턴
+
+```csharp
+private static Material sharedMaterial;
+
+private static Material GetShared()
+{
+    if (sharedMaterial == null)
+    {
+        sharedMaterial = new Material(Shader.Find("..."));
+        sharedMaterial.hideFlags = HideFlags.HideAndDontSave;
+    }
+    return sharedMaterial;
+}
+```
+
+> `Shader.Find`는 비용이 높으므로 정적 캐시 필수.
+
+---
+
+### 8.9 GameObject 탐색 우선순위
+
+1. **`[SerializeField]`** — 인스펙터 바인딩 (최우선)
+2. **`transform.Find("ChildName")`** — 런타임 동적 생성 시
+3. **`FindFirstObjectByType<T>()`** — 최후 수단 (성능 비용 높음)
+
+> `GameObject.Find(string)`는 전역 검색이므로 **금지**.
+
+---
+
+### 8.10 XML 문서 언어 규칙
+
+```csharp
+/// <summary>
+/// 관절 슬라이더 값 변경 시 호출됩니다.
+/// </summary>
+/// <param name="jointIndex">변경된 관절 인덱스.</param>
+/// <exception cref="ArgumentOutOfRangeException">
+/// jointIndex가 유효 범위를 벗어날 때.
+/// </exception>
+```
+
+| 항목 | 언어 |
+|------|------|
+| `<summary>` | 한국어 |
+| `<param>` | 한국어 |
+| `<exception>` | 한국어 |
+| 인라인 코드 주석 | 한국어 (필요 시만) |
+| 테스트 `[Test]` 메서드명 | 영어 PascalCase |
+| Assert 메시지 | 영어 (NUnit 호환) |
+
+---
+
+### 8.11 테스트 어설션 스타일
+
+```csharp
+// 수치 비교: Assert.AreEqual + delta
+Assert.AreEqual(expected, actual, TestTolerances.Position, "message");
+
+// 논리 비교: Assert.That + Is 제약조건
+Assert.That(result.IsValid, Is.True, "message");
+
+// 예외: Assert.Throws
+Assert.Throws<ArgumentException>(() => BadCall());
+```
+
+> `Assert.IsTrue(a == b)` 대신 반드시 `Assert.AreEqual(a, b, delta)` 사용.
+
+---
+
+## 9. 파일 헤더 패턴
+
+모든 C# 파일의 **1행**에 폴더 역할 주석을 작성합니다.
+
+```csharp
+// Folder: Math - Pure C# double-precision math; no UnityEngine references.
+```
+
+| 모듈 | 헤더 |
+|------|------|
+| Math | `// Folder: Math - Pure C# double-precision math; no UnityEngine references.` |
+| Types | `// Folder: Types - Domain value types; no UnityEngine references.` |
+| Kinematics | `// Folder: Kinematics - DH parameter and FK algorithms; no UnityEngine references.` |
+| Templates | `// Folder: Templates - Robot configuration templates; no UnityEngine references.` |
+| App | `// Folder: App - Application controllers and services; single UnityEngine entry point.` |
+| UI | `// Folder: UI - HUD/view components only; no kinematics logic.` |
+| Visualization | `// Folder: Visualization - 3D rendering helpers for robot joint/link display.` |
+
+---
+
 ## 부록: 패턴 간 관계도
 
 ```
-Vec3D (readonly struct)
+순수 C# 계층 (섹션 1-7)
+═══════════════════════
+Vec3D / Mat3D / Mat4D (readonly struct)
  ├── NaN/Infinity 가드 (생성자)
  ├── 연산자 오버로딩 (+, -, *, ==)
  └── IEquatable<T> (허용 오차 기반)
-
-Mat3D / Mat4D (readonly struct)
- ├── NaN/Infinity 가드 (생성자)
- ├── flat 배열 저장 + 인덱서
- ├── 행렬 곱셈 연산자
- └── InverseHomogeneous (R^T 패턴)
 
 DHStandard (static class)
  ├── ComputeA → Mat4D 반환
@@ -1140,4 +1375,17 @@ DHStandard (static class)
  ├── NUnit EditMode 보일러플레이트
  ├── MatrixAssert 헬퍼
  └── TestTolerances 상수
+
+Unity 계층 (섹션 8-9)
+═══════════════════════
+MonoBehaviour (App/UI/Visualization)
+ ├── 수명주기: Awake → OnEnable → OnDisable
+ ├── EnsurePresentation() — 멱등 UI 초기화
+ ├── BindListeners() / UnbindListeners() — 이벤트 바인딩
+ └── SetVisible() — 가시성 제어
+
+파일 인프라
+ ├── UTF-8 BOM 인코딩
+ ├── 1행 Folder 헤더
+ └── 한국어 XML doc
 ```
