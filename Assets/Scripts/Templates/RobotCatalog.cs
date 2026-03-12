@@ -24,8 +24,11 @@ namespace KineTutor3D.Templates
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
-                    "SCARA_RV", "SCARA Robot", 4, "SCARA", "Medium",
-                    description: "4자유도 SCARA 로봇. 수평 다관절 구조입니다.")));
+                    "SCARA_RV", "SCARA Robot", 3, "SCARA", "Medium",
+                    guidedLessonSupported: true,
+                    sandboxSupported: true,
+                    description: "3자유도 SCARA 로봇. 수평 다관절 구조입니다."),
+                TemplateSCARA_RV.Create));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(

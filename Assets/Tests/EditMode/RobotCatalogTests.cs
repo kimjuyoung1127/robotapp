@@ -61,10 +61,12 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void CreateTemplate_SCARA_ReturnsNull()
+        public void CreateTemplate_SCARA_Valid()
         {
             var template = RobotCatalog.CreateTemplate("SCARA_RV");
-            Assert.IsNull(template);
+            Assert.IsNotNull(template, "SCARA template should not be null after factory registration.");
+            Assert.AreEqual("SCARA_RV", template.Name);
+            Assert.AreEqual(3, template.Dof);
         }
 
         [Test]
@@ -74,15 +76,35 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void HasTemplate_SCARA_False()
+        public void HasTemplate_SCARA_True()
         {
-            Assert.IsFalse(RobotCatalog.HasTemplate("SCARA_RV"));
+            Assert.IsTrue(RobotCatalog.HasTemplate("SCARA_RV"));
         }
 
         [Test]
         public void HasTemplate_Unknown_False()
         {
             Assert.IsFalse(RobotCatalog.HasTemplate("NONEXISTENT"));
+        }
+
+        [Test]
+        public void TryGet_SCARA_Valid()
+        {
+            var found = RobotCatalog.TryGet("SCARA_RV", out var entry);
+            Assert.IsTrue(found);
+            Assert.IsNotNull(entry);
+            Assert.AreEqual("SCARA_RV", entry.Metadata.RobotId);
+            Assert.AreEqual("SCARA Robot", entry.Metadata.DisplayName);
+            Assert.AreEqual(3, entry.Metadata.Dof);
+            Assert.AreEqual("SCARA", entry.Metadata.RobotType);
+        }
+
+        [Test]
+        public void GetAvailableRobotIds_IncludesSCARA()
+        {
+            var ids = RobotCatalog.GetAvailableRobotIds();
+            Assert.GreaterOrEqual(ids.Length, 2, "At least 2DOF_RR and SCARA_RV should have factories.");
+            Assert.Contains("SCARA_RV", ids);
         }
 
         [Test]

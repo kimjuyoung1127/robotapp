@@ -22,14 +22,12 @@
 - product doc board sync (`PRD`/`WIREFRAME`/`PRODUCT-ROADMAP`): yes
 - canonical product docs last_updated (2026-03-12) == PRODUCT-DOC-BOARD last_updated (2026-03-12): yes
 - canonical product docs downstream sync (`PROJECT-STATUS`/`ai-context`/`ref`): yes
-- daily log created for product-doc change (03-12): pending (sprint-docs-sync turn)
+- daily log created for product-doc change (03-12): yes (scara-template-and-docs-completion.md)
 - weekly rollup updated for milestone-level doc change (2026-W11): yes
-- skill routing verification: 13/13 skills, 112/114 documents reachable (98.2%)
+- skill routing verification: 13/13 skills, 114/114 documents reachable (100%)
 
 ## 상세 이슈
-- 누락 문서 2개 (에셋 전용, 기능 개발에 영향 없음):
-  - `docs/ref/product/roadmap/asset-sourcing-checklist.md`
-  - `docs/ref/asset-curation-map.md`
+- none (이전 누락 문서 2개 생성 완료: asset-sourcing-checklist.md, asset-curation-map.md)
 
 ## 스캔 상세
 | 항목 | 값 |
