@@ -14,6 +14,30 @@
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
 
+## 현재 사이클 반영 내용 (SCARA + Sandbox baseline + asset subset)
+1. 복구된 vendor source(`HQP Studios`, `_Heathen Engineering`, `Glowing Rifts`)를 확인하고 curated runtime subset 경로를 추가했다.
+2. `Assets/Prefabs/Teaching/Markers/`, `Assets/Prefabs/Teaching/RobotLibrary/`, `Assets/Art/UI/Icons/`를 기준 자산 경로로 도입했다.
+3. `TargetMarkerVisual`은 curated subset 우선, vendor source 차선, primitive fallback 최후 순서로 prefab을 해석하도록 변경했다.
+4. `SCARA_RV`를 실제 template 지원 항목으로 승격하고 `RobotCatalog`/`RobotMetadataInfo`를 확장했다.
+5. `JointInputRail`은 2DOF 기본 레일을 유지하면서 4DOF 추가 row를 동적으로 생성하도록 확장했다.
+6. `Robot Library`에서 `Guided Lesson`과 `Sandbox` 진입을 모두 지원하도록 CTA와 selection bridge를 확장했다.
+7. `Sandbox.unity` 씬과 build settings entry를 추가해 sandbox 라우팅 기반을 만들었다.
+8. 검증 결과: EditMode `107/107`, PlayMode `31/31`.
+
+## 현재 사이클 반영 내용 (Home/Math Readiness + UI DS 2차 적용)
+1. `Home.unity`를 재진입 허브로 실제 연결하고 `HomeContinueHubController`/`HomeContinueHubFlowService`를 기준으로 이어하기/새로 시작/수학 기초 워밍업/로봇 선택/샌드박스 흐름을 고정했다.
+2. `StepProgressSaver`에 `math_readiness` track을 추가하고 `MathReadinessLessonFactory` + `MathReadinessPanel`로 완전 초보 수학 학습자용 보강 레이어를 구현했다.
+3. `resume / session context`, `snapshot lite`, `Sandbox actions`를 실제 runtime baseline으로 연결했다.
+4. `HomeContinueHubViewBuilder`, `MathReadinessPanel`, `SnapshotLitePanelViewBuilder`, `SandboxActionPanelViewBuilder`를 UI Design System 2차 적용 대상으로 리팩터링했다.
+5. `UIComponentFactory`에 leading icon / button row helper를 추가하고, 4개 핵심 패널이 `UIDesignTokens`, `UITypography`, `UILayoutProfile`, `UIIconResolver`를 직접 소비하도록 정리했다.
+6. Home 화면은 실제 렌더 확인을 마쳤고, Sandbox는 새 패널 노출까지 확인했지만 버튼/아이콘 가독성과 일부 panel overlap 정리는 아직 진행 중이다.
+
+## 문서 우선순위 재정렬 (2026-03-12)
+1. 실제 파일 기준으로 `Robot Library MVP`, `SCARA`, `Sandbox baseline`은 완료된 기반으로 재분류했다.
+2. 차기 P0를 `Home / Continue Hub -> Sandbox polish -> resume / session context -> tablet 4DOF input usability -> snapshot lite` 순서로 재정렬했다.
+3. 온보딩 `건너뛰기`는 target 기준 `Core Step 8` 직접 점프가 아니라 `Home / Continue Hub`로 연결하는 정책으로 수정했다.
+4. `replay / compare`, `constraint preview`, `Instructor demo mode`, `3DOF / 6DOF`, `URDF Import`는 P1 후속 확장으로 유지했다.
+
 ## Phase 5 실행 원칙
 1. Phase 5 P0는 기능 추가보다 `기반층 선행`이 우선이다.
 2. 구현 순서는 `Runtime foundation -> Track-aware step foundation -> 공통 input/visualization -> Why It Moved -> Beginner Lesson 0~3`로 고정한다.
@@ -89,18 +113,15 @@
 2. 무료 소스 사이트, 검색어, intake checklist, folder placement 규칙을 고정
 3. `asset-registry.md`에서 에셋 수집 기준 문서를 참조하도록 연결
 
-## 이번 턴 반영 내용 (내부 에셋 큐레이션)
-1. `Assets/KineTutor_AssetCuration_BACKUP/` 아래에 패키지별 선별본 폴더를 생성
-2. `realvirtual`에서 로봇, props, UI 후보를 복사 정리
-3. `HQP Studios`, `_Heathen Engineering`, `Glowing Rifts`에서 교육용 아이콘/타겟 후보를 복사 정리
-4. `.meta` 파일은 의도적으로 복사하지 않고 `asset-curation-map.md`에 규칙과 분류 결과를 기록
+## 이번 턴 반영 내용 (내부 에셋 기준선 정정)
+1. 현재 Git baseline에는 `Assets/KineTutor_AssetCuration_BACKUP/`가 없고, 복구된 vendor source는 로컬 상태로 존재한다.
+2. 전체 vendor 폴더를 Git에 올리는 대신, 실제 런타임에 필요한 subset만 `Assets/Art` / `Assets/Prefabs/Teaching` 아래로 추적한다.
+3. `realvirtual`은 vendor source이면서 동시에 현재 제품에서 가장 안정적으로 재사용 가능한 기본 자산 세트로 유지한다.
+4. 문서와 코드가 충돌할 때는 현재 repo 실파일 상태를 우선한다.
 
-## 이번 턴 반영 내용 (에셋 hierarchy 검증)
-1. `Assets/KineTutor_AssetCuration_BACKUP/` 내 프리팹 `44`개를 `Main.unity` 임시 루트에 instantiate하는 스모크 테스트 수행
-2. `43`개는 clean instantiate 확인
-3. `SceneSelectables.prefab`은 instantiate 후 `NullReferenceException`이 발생해 `needs-fix`로 분류
-4. 검증용 임시 루트는 테스트 후 삭제해 씬 오염 없이 정리
-5. 상세 결과는 `docs/ref/asset-validation-report.md`에 기록
+## 이번 턴 반영 내용 (에셋 hierarchy 검증 메모)
+1. 기존 `KineTutor_AssetCuration_BACKUP` 기준 검증 문서는 참고 자료로만 유지한다.
+2. 현재 구현 우선순위는 curated subset + vendor fallback이 실제 런타임에서 resolve되는지 확인하는 쪽으로 이동했다.
 
 ## 이번 턴 반영 내용 (Product Docs Governance 이식)
 1. `docs/status/PRODUCT-DOC-BOARD.md` 추가
@@ -252,7 +273,7 @@
    - `OnboardingManager`에 "초보자 시작" 버튼 추가
    - `AppController` track-based config loading 추가
    - EditMode 테스트 8건 추가 (BeginnerLessonFactoryTests)
-3. 테스트 현황: EditMode 87/87, PlayMode 30/30
+3. 테스트 현황: EditMode 87/87, PlayMode 31/31
 
 ## 이번 턴 반영 내용 (Phase 5F Robot Library MVP)
 1. Data Layer
@@ -277,9 +298,124 @@
    - `SceneNavigationBar.ResolveOrCreateButton()`에서 `SetAsLastSibling()` 제거: 3개 이상 navigable entry에서 child index 셔플로 인한 onClick 미스매핑 수정
 5. Tests
    - `RobotCatalogTests` (8건), `RobotMetadataInfoTests` (4건), `RobotSelectionBridgeTests` (4건)
-   - EditMode 107/107, PlayMode 30/30
+   - EditMode 107/107, PlayMode 31/31
+
+## 이번 턴 반영 내용 (씬 UI 가시성 관리 정비)
+1. 배타 그룹 패널 초기 깜빡임 수정
+   - `BeginnerLeftPanel`, `MathReadinessPanel`, `TargetFeedbackPanel`, `WhyItMovedPanel`의 `Awake()`에서 `EnsureLayout()` 제거
+   - `OnEnable()`에서 `EnsureLayout()` 후 `SetVisible(false)` 호출로 기본 숨김 상태 보장
+   - `AppController.Start()` → `ApplyFeatureState()`가 최종 가시성을 1프레임 내에 결정
+2. 불필요한 `[ExecuteAlways]` 제거 (5건)
+   - `ToastNotificationController`, `SpotlightOverlay`, `HomeContinueHubController`, `SandboxActionPanel`, `SnapshotLitePanel`
+   - 에디터 프리뷰가 불필요한 런타임 전용 컴포넌트에서 제거
+3. Awake/OnEnable 중복 호출 정리 (9건)
+   - `StepTutorPanel`, `CompareModePanelHelper`, `SceneNavigationBar`, `FocusZoneHighlighter`, `JointInputRail`, `HomeContinueHubController`, `SandboxActionPanel`, `SnapshotLitePanel`
+   - `Awake()`는 cheap init(`ResolveFont()` 등)만, `OnEnable()`이 레이아웃 보장 담당
+4. `SetVisible(bool)` API 표준화 (2건)
+   - `StepTutorPanel`, `DHTableEditor`에 신규 추가
+5. `scene-ui-visibility` 스킬 문서 현재 적용 상태 반영
+
+## 이번 턴 반영 내용 (QA 흐름 + Sandbox 패널 겹침 수정)
+1. Editor QA 인프라 추가
+   - `BootScenePlayModeSetup`: `EditorSceneManager.playModeStartScene`을 Boot.unity로 고정하는 Editor 스크립트 (`KineTutor3D > Always Start From Boot` 메뉴 토글)
+   - `QaToolsMenu`: PlayerPrefs 리셋 메뉴 2종 (`QA: Reset to First-Time User`, `QA: Reset to Returning User`)
+   - 어떤 씬이 열려있든 Boot → Onboarding → Home → Main/Sandbox 전체 흐름 QA 가능
+2. Sandbox 패널 겹침 해결
+   - `SandboxActionPanel`, `SnapshotLitePanel`에 `SetVisible(bool)` API 추가
+   - `SandboxSceneCoordinator.ApplySandboxPresentation()`이 학습 패널 GameObject를 `SetActive(false)`로 완전히 숨기도록 변경
+   - `AppController.ApplyFeatureState()`에서 학습 모드 시 Sandbox 전용 패널을 숨기는 배타 제어 추가
+   - `AppUiBinder.AutoWire()`에 `SandboxActionPanel`/`SnapshotLitePanel` 탐색 추가
+3. 빌드 검증: 전체 솔루션 오류 0개
+
+## 이번 턴 반영 내용 (MathReadiness UX 고도화 A+B+C + 모드 기반 패널 격리)
+1. Phase A: 시각 피드백 강화
+   - 정답/오답 버튼에 `AccentSuccess`/`AccentDanger` 색상 + `icon-check`/`icon-x-circle` 아이콘 피드백 추가
+   - "Q1/2" 형식 진행 뱃지(`UIComponentFactory.CreateBadge`) 추가
+   - 워밍업/본문제 시각 분리: 섹션 라벨 + 디바이더 + 배경색 차이
+   - 코치 힌트 버튼에 `icon-help` leading icon 추가
+2. Phase B: 마이크로 애니메이션 + 적응형 피드백
+   - 피드백 텍스트 fade-in (CanvasGroup + 코루틴, 0.25s)
+   - 워밍업→본문제 카드 전환 slide 애니메이션 (0.3s)
+   - 적응형 힌트: `MathReadinessQuestion.attemptCount` 추적, 2회 오답 시 코치 힌트 자동 노출, 3회 오답 시 정답 선택지 하이라이트
+   - `MathReadinessFormatter`에 `FormatProgressMessage`, `FormatAdaptiveHint`, `GetDirectionIconName` 추가
+3. Phase C: 컨셉 시각화 + 학습 경로
+   - `MathReadinessContentTheme`: 컨셉별 테마 색상 매핑 (AngleDirection=Orange, LengthAngleToPoint=Blue, DiagonalIntuition=Purple, TwoLinkComposition=Green)
+   - 패널 상단 accent stripe로 현재 컨셉 시각 표시
+   - `WhyItMovedPanel`에 방향 화살표 아이콘 추가 (EE 변위 기반)
+   - `allCorrectFirstTry` 마스터리 추적 플래그 추가
+4. 모드 기반 패널 격리 (scene-ui-visibility 스킬 적용)
+   - `MatrixDisplay`, `TemplateSelector`에 `SetVisible(bool)` API 추가
+   - `AppController.ApplyFeatureState()`를 `HideAllContentPanels() → Apply{Mode}Visibility()` 패턴으로 리팩터링
+   - `ApplyMathReadinessVisibility()`, `ApplyBeginnerVisibility()`, `ApplyCoreVisibility()` 분리
+   - MathReadiness 모드에서 StepTutorPanel/DHTableEditor/MatrixDisplay/TemplateSelector 완전 숨김
+   - `scene-ui-visibility` 스킬 문서에 모드별 패널 가시성 매트릭스 추가
+5. 검증: EditMode 테스트 green, PlayMode smoke 통과 (적응형 힌트 + 진행 뱃지 시나리오 추가)
+
+## 이번 턴 반영 내용 (MathReadiness lesson shell 정리)
+1. `MathReadinessPanel`을 `현재 학습 / 현재 행동 / 도움말` 3블록 구조로 다시 정리했다.
+2. 첫 화면에서는 `현재 학습 + 워밍업`만 보이고, 워밍업 선택 후에만 `현재 문제`가 나타나도록 순서를 고정했다.
+3. `현재 학습` 카드에서 장문 rationale은 기본 노출에서 빼고 `큰 제목 + 목표 + 짧은 설명` 중심으로 밀도를 낮췄다.
+4. MathReadiness에서는 우측 패널을 숨기고, 상단 바는 `KineTutor3D + 수학 기초 워밍업 · 단계` 중심의 조용한 구조로 정리했다.
+5. 하단은 조인트 조작과 `Prev / Next / Skip`을 하나의 컨트롤 바로 재정렬했고, `Next`를 메인 액션으로, `Skip`을 약한 보조 액션으로 낮췄다.
+6. 검증: `dotnet build robotapp2.sln` 성공, EditMode `201/201`, PlayMode `45/45` 통과.
+
+## 이번 턴 반영 내용 (MathReadiness 기준선 + 조작 먼저 흐름)
+1. `AngleReferenceMarker`를 추가해 MathReadiness 3D 뷰포트에서 0°/90°/180° 기준선과 라벨을 표시하도록 했다.
+2. `MathVisualOrchestrator`가 M0~M3 프리셋에서 기준선 마커를 관리하도록 확장했다.
+3. `MathReadinessQuestion`에 목표 각도/조인트/지시문 필드를 추가하고, `InteractionType.SliderReachTarget`로 목표 도달 게이트를 분리했다.
+4. `MathReadinessPanel`은 `조작 지시 -> 목표 도달 -> 확인 질문` 상태머신으로 전환했고, `targetBadge`와 `manipulationInstruction`을 추가했다.
+5. `MathReadinessLessonFactory`는 M0~M3를 실모델 기준 좌표와 조작 우선 시나리오로 다시 작성했다.
+6. 검증: `dotnet build robotapp2.sln` 성공, EditMode `210/210` 통과, MathReadiness PlayMode 핵심 시나리오(`M0 조작 시작`, `기준선 노출`, `목표 도달 후 질문`, `정답 후 Next`, `M3 두 관절 순서 무관`) 개별 통과. 전체 PlayMode assembly는 기존 Visualization smoke 실패로 별도 후속 정리가 필요하다.
 
 ## 다음 작업
-1. Phase 6 CI/CD 실주행 확인
-2. SceneSelectables.prefab NullRef 후속 처리 판단
-3. Phase 5G Tests + Docs 최종 정리
+1. Phase 5G Tests + Docs 최종 정리
+2. Sandbox polish 마감: 버튼/아이콘 가독성 정리
+3. tablet 4DOF rail 사용성 보정
+4. `asset subset Git tracking` 마무리
+5. replay / constraint preview 설계 진입
+6. Phase 6 CI/CD 실주행 확인
+
+## 이번 턴 반영 내용 (Page QA Matrix baseline)
+1. `docs/status/PAGE-QA-MATRIX.md`를 추가해 실제 진입 가능한 페이지 기준 QA baseline을 잠갔다.
+2. 감사 범위를 `Onboarding`, `Home / Continue Hub`, `Guided Lesson`, `Math Readiness`, `Robot Library`, `Sandbox`로 고정하고, `Boot`는 route-only로 분리했다.
+3. `Instructor Mode`, `Progress`, `Settings`는 이번 패스에서 점수 제외 IA gap으로만 기록했다.
+4. 페이지별 공통 판정 축을 `기능 충족도 / 진입 가능성 / 레이아웃 무결성 / UI 일관성 / UX 흐름 품질`로 고정했다.
+5. 우선순위 결과는 `Sandbox -> Guided Lesson -> Robot Library -> Math Readiness -> Home -> Onboarding` 순으로 정리했다.
+6. Unity Console 기준 `Assets/Scripts/App/AppController.cs(358,37)` compile error를 `Guided Lesson`과 `Sandbox` 공통 blocker로 기록했다.
+
+## 이번 턴 반영 내용 (Sandbox layout hardening)
+1. `SandboxActionPanelViewBuilder`를 수정해 Sandbox 액션 패널이 독립 overlay처럼 뜨지 않고 `LeftPanel` 내부를 채우도록 정리했다.
+2. `SnapshotLitePanelViewBuilder`를 수정해 Snapshot 패널이 독립 overlay 대신 `RightPanel` 내부를 채우도록 정리했다.
+3. 고정 좌표 기반 배치를 줄이고 side-panel 귀속 구조로 바꿔 세로 비율/태블릿에서의 패널 겹침 위험을 낮췄다.
+4. `dotnet build KineTutor3D.Runtime.csproj`는 계속 성공했고, Unity refresh 후 콘솔 재확인에서는 앞서 보이던 compile error가 재발하지 않았다.
+
+## 이번 턴 반영 내용 (Guided Lesson sandbox entry + Robot Library modal)
+1. `AppController.OpenCurrentRobotSandbox()`를 추가해 현재 학습 중인 로봇 상태로 Sandbox 씬으로 바로 이동할 수 있게 했다.
+2. `TemplateSelector` 상단 바에 `BtnLessonOpenSandbox`를 추가해 `Main` 씬에서 lesson shell 안쪽의 Sandbox 진입 CTA를 명시적으로 제공하도록 정리했다.
+3. `RobotDetailDrawer`는 우측 drawer overlay 대신 dimmed modal overlay 구조로 바꿔 grid를 가리는 충돌을 줄였다.
+4. `dotnet build KineTutor3D.Runtime.csproj`는 계속 green이며, Unity Console 재확인에서도 새 compile error는 보이지 않았다.
+
+## 이번 턴 반영 내용 (Page-by-page QA packets)
+1. `docs/status/page-qa/README.md`를 추가해 공통 QA 준비 절차와 페이지별 runbook 진입점을 정리했다.
+2. `Onboarding`, `Home / Continue Hub`, `Guided Lesson`, `Math Readiness`, `Robot Library`, `Sandbox` 각각에 대해 개별 QA 체크시트를 만들었다.
+3. `QaToolsMenu`에 페이지별 준비 메뉴(`Prep Home`, `Prep Guided Lesson`, `Prep Math Readiness`, `Prep Robot Library`, `Prep Sandbox`)를 추가해 수동 QA 진입 비용을 줄였다.
+4. 각 runbook에는 진입 경로, 핵심 CTA, 겹침 체크, UI 일관성 체크, UX 체크, 오브젝트 이름까지 포함해 바로 검수 가능한 형태로 준비했다.
+
+## 이번 턴 반영 내용 (Scene hierarchy normalization)
+1. `Boot.unity`에 실제 `Main Camera` 루트를 추가해 라우터-only 씬에서도 최소 시각 기준을 갖추도록 정리했다.
+2. `Home.unity`에 실제 `Main Camera` 루트를 추가해 fallback runtime camera 대신 씬 구조 자체를 정상화했다.
+3. `Onboarding.unity`에서는 `Canvas`의 `SceneNavigationBar` 컴포넌트를 제거해 온보딩 모달과 전역 네비가 구조적으로 섞이지 않도록 정리했다.
+4. `RobotLibrary.unity`의 `EventSystem`은 `StandaloneInputModule`에서 `InputSystemUIInputModule`로 통일했고, `Main Camera`에 `AudioListener`를 추가했다.
+5. 결과적으로 `Boot / Home / Onboarding / RobotLibrary`가 `카메라 + EventSystem + Canvas + 페이지 전용 루트` 기준에 더 가깝게 정렬되었다.
+
+## 이번 턴 반영 내용 (Static-scene-first UI: Onboarding / Home / RobotLibrary)
+1. `Onboarding`은 카드형 모달 구조를 유지하되, 편집 가능한 `SerializeField` 레이아웃 값을 기준으로 Scene 저장 상태를 우선 사용하는 방향으로 정리했다.
+2. `HomeContinueHubController`는 저장된 `HomeContinueHubRoot`와 버튼/텍스트를 먼저 바인딩하고, 없을 때만 runtime build를 수행하도록 바꿨다.
+3. `RobotLibraryManager`는 저장된 `TopBar`, `ScrollArea`, `GridContent`, `RobotDetailDrawer`를 먼저 바인딩하고, 누락 시에만 fallback 생성하도록 바꿨다.
+4. 결과적으로 `Onboarding`, `Home`, `RobotLibrary`는 사람이 씬에서 직접 다듬은 UI 구조를 우선 유지하는 정적 씬 UI 우선 구조로 이동했다.
+
+## 이번 턴 반영 내용 (Onboarding beginner direct-to-math-readiness)
+1. `OnboardingManager.BeginAsBeginner()`를 수정해 `초보자 시작` 클릭 시 `Home`을 거치지 않고 `Main`의 `Math Readiness`로 직접 진입하도록 바꿨다.
+2. 진입 시 `MathReadinessTrack`과 `2DOF_RR` 선택을 함께 저장해 첫 화면부터 보강 학습 패널이 열리도록 정리했다.
+3. `MathReadinessFlowSmokeTests`를 `Onboarding -> Main` 직행 기준으로 갱신했다.
+4. `USER-FLOW`, `tutor-step-plan`, `page-qa/onboarding` 문서를 현재 runtime에 맞춰 동기화했다.

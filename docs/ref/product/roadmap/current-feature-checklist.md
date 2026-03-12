@@ -24,11 +24,12 @@
 - `ai-context/master-plan.md`
 
 ## Last Updated
-- 2026-03-11 (KST)
+- 2026-03-12 (KST)
 
 ## 현재 있는 기능
 - [x] Onboarding 시작/건너뛰기 흐름
 - [x] `Boot -> Onboarding -> Main` 씬 분리
+- [x] `Boot -> Home` 재진입 흐름 + `Home / Continue Hub`
 - [x] Guided Lesson 기본 step 진행 구조
 - [x] gate 기반 Next/Skip 흐름
 - [x] 2DOF 로봇 학습 템플릿
@@ -40,20 +41,36 @@
 - [x] 방문 여부, 마지막 step, reduced motion 로컬 저장
 - [x] 전역 scene navigation
 - [x] EditMode / PlayMode 테스트 기반
+- [x] `Why It Moved` 패널/설명 기능
+- [x] Beginner Lesson 0~3 초보자 진입 트랙
+- [x] Robot Library MVP 화면 구현
+- [x] SCARA template/metadata 기반 첫 다중 로봇 활성화
+- [x] Sandbox 씬 baseline + Robot Library sandbox 라우팅
+- [x] resume / session context 저장/복귀
+- [x] snapshot lite 저장/불러오기/빠른 비교
+- [x] `math_readiness` 트랙 + `MathReadinessPanel`
+- [x] UI Design System foundation + 4개 핵심 패널 2차 리팩터링
+- [x] marker/icon curated subset 경로 + vendor fallback 해석
+- [x] MathReadiness 정답/오답 색상 + 아이콘 시각 피드백
+- [x] MathReadiness 질문 진행 뱃지 ("Q1/2")
+- [x] MathReadiness 워밍업/본문제 시각 분리 (섹션 라벨 + 디바이더)
+- [x] MathReadiness 피드백 fade-in 애니메이션
+- [x] MathReadiness 적응형 힌트 (2회 오답 코치 힌트, 3회 오답 정답 하이라이트)
+- [x] MathReadiness 컨셉별 테마 색상 (accent stripe)
+- [x] WhyItMovedPanel 방향 화살표 아이콘 (수학모드)
+- [x] 모드 기반 패널 격리 (HideAllContentPanels → Apply{Mode}Visibility 패턴)
+- [x] MathReadiness 학습 셸 정리 (좌측 3블록, 워밍업 선행 노출, 우측 패널 숨김, 하단 컨트롤 바 재정렬)
+- [x] MathReadiness 조작 우선 흐름 (목표 각도 도달 후 확인 질문 노출)
+- [x] MathReadiness 3D 각도 기준선 (0°/90°/180° reference marker)
 
 ## 지금 없는 기능
-- [ ] Beginner Lesson 0~3 초보자 진입 트랙
-- [ ] Robot Library 실제 화면 구현
-- [ ] Sandbox 실제 화면 구현
+- [ ] Sandbox MVP polish 마감 (panel overlap 제거 + 버튼/아이콘 가독성 + exit clarity)
+- [ ] tablet 기준 4DOF joint rail 최적화
 - [ ] Instructor Mode 실제 화면 구현
-- [ ] joint 숫자 직접 입력
-- [ ] `Why It Moved` 실제 패널/설명 기능
-- [ ] pose snapshot 저장
 - [ ] replay / compare / motion history
 - [ ] constraint / workspace / singularity 시각화
 - [ ] pick foundation 실제 흐름
-- [ ] 다중 로봇 로딩 구조의 런타임 구현
-- [ ] SCARA / 3DOF / 6DOF 실제 전환
+- [ ] 3DOF / 6DOF 실제 전환
 - [ ] Progress 화면
 - [ ] Challenge / Assessment
 - [ ] LLM 설명층 연결
@@ -61,26 +78,19 @@
 
 ## 우선 추가할 기능
 ### P0
-- [x] runtime snapshot + update cause foundation
-- [x] track-aware step 저장/복귀
-- [x] joint 숫자 직접 입력
-- [x] slider + numeric input 동기화
-- [x] joint highlight
-- [x] trail / target marker 공통 인프라
-- [ ] `Why It Moved`
-- [ ] Beginner Lesson 0~3
+- [ ] Sandbox MVP polish 마감
+- [ ] tablet 기준 4DOF joint rail 최적화
+- [ ] asset subset Git tracking 마무리
 
 ### P1
-- [ ] robot metadata 기반 Robot Library
-- [ ] URDF Import 기반 로봇 확장 (UR5, Puma560, Franka 사전 조사 완료)
-- [ ] workspace envelope 시각화 (2DOF 해석적 → N-DOF Monte Carlo)
-- [ ] interactive matrix viz 확장 (ncase.me/matrix 패턴 디자인 레퍼런스 완료)
-- [ ] Sandbox MVP
-- [ ] snapshot 저장
-- [ ] replay / compare
-- [ ] constraint preview
-- [ ] SCARA 추가
+- [ ] replay / compare / motion history
+- [ ] constraint / workspace / singularity 시각화
 - [ ] Instructor demo mode
+- [ ] Asset subset Git tracking 완료
+- [ ] 3DOF / 6DOF 실제 전환
+- [ ] URDF Import 기반 로봇 확장 (UR5, Puma560, Franka 사전 조사 완료)
+- [ ] interactive matrix viz 확장 (ncase.me/matrix 패턴 디자인 레퍼런스 완료)
+- [ ] workspace envelope 시각화 (2DOF 해석적 → N-DOF Monte Carlo)
 
 ### P2
 - [ ] pick foundation
@@ -89,5 +99,5 @@
 - [ ] LLM teaching layer
 
 ## Quick Read
-- 지금 제품은 `2DOF 로봇의 DH/FK를 step-by-step으로 배우는 Guided Lesson MVP`다.
-- 다음 구현 순서는 `기반 상태 계약 -> track-aware step -> joint input/highlight/trail/target -> why-it-moved -> Beginner Lesson 0~3`이고, 그 다음 순서는 `Robot Library + Sandbox + SCARA`다.
+- 지금 제품은 `2DOF + SCARA` 기준으로 `Home / Continue Hub`, `math_readiness`(조작 우선 + 3D 각도 기준선 + 좌측 3블록), Guided Lesson, Robot Library, Sandbox, snapshot lite를 연결한 학습 MVP이며, 모드별 패널 격리로 각 페이지가 자기 콘텐츠만 표시한다.
+- 다음 구현 순서는 `Sandbox polish 마감 -> tablet 4DOF rail -> asset subset tracking -> replay / constraint preview -> Instructor demo`다.

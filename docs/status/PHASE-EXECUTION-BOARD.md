@@ -21,7 +21,22 @@
 | Phase 5 | Visualization Helpers (trail/target) | P0 | Done | codex | scene-scaffold, editmode-test-add | docs/ref/phase5-implementation-plan.md, docs/ref/asset-validation-report.md | 2026-03-11 |
 | Phase 5 | Why It Moved explanation layer | P0 | Done | codex | student-friendly-ux, tutor-step-add | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/guided-lesson.md | 2026-03-12 |
 | Phase 5 | Beginner Lesson L0~L3 integration | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
+| Phase 5 | Math Readiness Track | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
 | Phase 5 | Robot Library MVP | P1 | Done | codex | robot-template-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/robot-library.md | 2026-03-12 |
+| Phase 5 | Home / Continue Hub | P0 | Done | codex | student-friendly-ux, scene-scaffold | docs/ref/WIREFRAME.md, docs/ref/USER-FLOW.md | 2026-03-12 |
+| Phase 5 | Scene UI Visibility Cleanup | P0 | Done | codex | scene-ui-visibility, ui-design-system | Assets/Scripts/UI/CLAUDE.md, .claude/skills/kinetutor-guide/ui/scene-ui-visibility/SKILL.md | 2026-03-12 |
+| Phase 5 | Page QA Hardening | P0 | InProgress | codex | student-friendly-ux, scene-ui-visibility, ui-design-system | docs/status/PAGE-QA-MATRIX.md, docs/ref/product/ux/guided-lesson.md, docs/ref/product/ux/sandbox.md | 2026-03-12 |
+| Phase 5 | Sandbox Polish | P0 | InProgress | codex | student-friendly-ux, scene-scaffold | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | Resume / Session Context | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/USER-FLOW.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | Tablet 4DOF Input Usability | P0 | Ready | - | student-friendly-ux | docs/ref/product/ux/tablet-first-policy.md, docs/ref/product/ux/guided-lesson.md | 2026-03-12 |
+| Phase 5 | Snapshot Lite | P0 | Done | codex | student-friendly-ux, editmode-test-add | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | UI Design System 2nd Pass (4 Panels) | P1 | Done | codex | ui-design-system, student-friendly-ux | Assets/Scripts/UI/CLAUDE.md, docs/status/PROJECT-STATUS.md | 2026-03-12 |
+| Phase 5 | MathReadiness UX Enhancement (A+B+C) | P0 | Done | codex | student-friendly-ux, ui-design-system, scene-ui-visibility | docs/ref/tutor-step-plan.md, docs/ref/product/ux/guided-lesson.md | 2026-03-12 |
+| Phase 5 | MathReadiness Manipulation-First + Angle Reference | P0 | Done | codex | student-friendly-ux, scene-scaffold, ui-design-system | docs/ref/product/ux/guided-lesson.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
+| Phase 5 | Mode-Based Panel Isolation | P0 | Done | codex | scene-ui-visibility, ui-design-system | .claude/skills/kinetutor-guide/ui/scene-ui-visibility/SKILL.md | 2026-03-12 |
+| Phase 5 | Replay / Compare / Motion History | P1 | Ready | - | student-friendly-ux, editmode-test-add | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | Constraint Preview | P1 | Ready | - | student-friendly-ux, scene-scaffold | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | Instructor Demo Mode | P1 | Ready | - | student-friendly-ux | docs/ref/product/ux/instructor-mode.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
@@ -34,8 +49,11 @@
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
-7. 시작 흐름은 `Boot -> Onboarding/Main` 분기와 `LoadSceneMode.Single`을 기준으로 유지한다.
+7. 시작 흐름은 `Boot -> Onboarding -> Home` (첫 방문) / `Boot -> Home` (재방문) 분기와 `LoadSceneMode.Single`을 기준으로 유지한다. Editor Play Mode는 `BootScenePlayModeSetup`으로 Boot.unity 시작을 보장한다.
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
 9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.
 10. 루트 `AGENTS.md`와 폴더 `AGENTS.md`를 파일 탐색의 1차 진입점으로 사용하고, 전체 맥락은 `docs/ref/architecture-mermaid.md`로 먼저 파악한다.
 11. `PRODUCT-ROADMAP.md`의 릴리스 게이트와 이 보드의 phase 상태는 충돌 없이 유지한다.
+12. 재진입 surface는 `Home / Continue Hub`로 구현 완료. 온보딩 3개 버튼 모두 Home으로 연결.
+13. Sandbox/학습 모드 패널 배타 제어: `SandboxSceneCoordinator`가 학습 패널 GameObject를 숨기고 Sandbox 패널을 명시 활성화. `AppController.ApplyFeatureState()`가 학습 모드에서 Sandbox 패널을 숨김.
+14. 페이지 품질 잠금은 `docs/status/PAGE-QA-MATRIX.md`를 기준으로 관리한다. 현재 감사 범위는 실제 진입 가능한 페이지(`Onboarding`, `Home`, `Main`, `RobotLibrary`, `Sandbox`)만 포함한다.
