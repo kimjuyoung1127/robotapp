@@ -57,7 +57,7 @@ namespace KineTutor3D.UI
             text.fontStyle = GetTmpStyle(preset);
             text.color = color;
             text.raycastTarget = false;
-            text.enableWordWrapping = true;
+            text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Overflow;
             text.richText = true;
         }
