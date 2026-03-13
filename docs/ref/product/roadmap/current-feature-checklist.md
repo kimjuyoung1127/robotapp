@@ -103,6 +103,12 @@
 - [ ] Android tablet internal build
 - [ ] LLM teaching layer
 
+## UI 품질 기준 연동
+- 기능 존재 여부는 이 문서, **UI 완성도 등급(L1~L5)** 은 `docs/ref/product/ux/page-quality-baseline.md`에서 관리한다.
+- 현재 전 페이지 평균 L2~L3 수준 (체감 20~45%). L3 이상이 "UI 완성", L4 이상이 "배포 후보" 기준이다.
+- 공유 컴포넌트 갭(SharedPageShell, 상태 UI 3종, IVisibilityControllable, ViewBuilder 확산)은 page-quality-baseline.md §3~§4에서 추적한다.
+
 ## Quick Read
 - 지금 제품은 `2DOF + SCARA` 기준으로 `Home / Continue Hub`, `math_readiness`(조작 우선 + 3D 각도 기준선 + 좌측 3블록), Guided Lesson, Robot Library, Sandbox, snapshot lite를 연결한 학습 MVP이며, 모드별 패널 격리로 각 페이지가 자기 콘텐츠만 표시한다.
 - 다음 구현 순서는 `Sandbox polish 마감 -> tablet 4DOF rail -> asset subset tracking -> replay / constraint preview -> Instructor demo`다.
+- UI 품질 기준은 `page-quality-baseline.md`를 참조한다.
