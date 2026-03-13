@@ -25,7 +25,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 6 (CI/CD): Hold (로컬 테스트 전용, runner 미등록)
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
-- Current Cycle: InProgress (MathReadiness UX 고도화 + 모드별 패널 격리 + Sandbox polish)
+- Current Cycle: InProgress (FR5 RobotControl Console + Page QA Hardening + Sandbox polish)
 
 최근 확정 사항:
 - FR5 RobotControl baseline 추가: `RobotControl.unity` 생성, `SceneId.RobotControl=6`, Build Settings index 6 등록, `RobotControlSceneCoordinator` + `FairinoConnectionPanel` + `FairinoJointControlPanel` + `FairinoStatePanel` + `FairinoConnectionService` 기반 제어 콘솔 경로 정리
@@ -55,7 +55,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 내부 패키지 자산을 `Assets/KineTutor_AssetCuration_BACKUP/`로 큐레이션하고 hierarchy validation report를 추가
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
 - Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
-- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Main`(2), `RobotLibrary`(3)
+- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Home`(2), `Main`(3), `RobotLibrary`(4), `Sandbox`(5), `RobotControl`(6), `MathReadiness`(7)
 - Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 통합, `Frame_EE` 유지
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용
@@ -72,7 +72,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역으로 정리하고 런타임 디버그성 흰 패널/텍스트를 공통 스타일 surface로 대체
 - Phase 4 디버그: Built-in에서 URP(`com.unity.render-pipelines.universal@17.0.4`)로 전환하고 `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정
 - Camera 정리: `Main Camera`를 Solid Color + 2DOF 학습 구도로 조정하고 donor mesh local offset/scale 보정 경로를 `RobotRenderer`에 고정
-- Unity Test Runner 결과: EditMode `142`, PlayMode `44` (코드 어트리뷰트 기준, Runner 재확인 필요)
+- Unity Test Runner 결과: EditMode `282`, PlayMode `50` (코드 어트리뷰트 기준, 2026-03-13 grep 재집계)
 - CI 초안 추가: `.github/workflows/unity-tests.yml`
 
 ## 실행 규칙 (MUST)

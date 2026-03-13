@@ -1,5 +1,7 @@
 ﻿# KineTutor3D Execution Plan (Current + UX Integration)
 
+> **⚠ Historical Document (2026-03-09)**: 이 문서는 Phase 4 완료 시점 기준입니다. 최신 상태는 `docs/status/PROJECT-STATUS.md`와 `CLAUDE.md`를 참조하세요. 주요 변경: 씬 8개 체계(`Home`/`Sandbox`/`RobotControl`/`MathReadiness` 추가), SceneId 재번호, 테스트 282/50으로 확장.
+
 - Project: KineTutor3D
 - Updated: 2026-03-09 (KST)
 - Unity Target: 6000.0.64f1 (Unity 6)
@@ -18,11 +20,11 @@
 10. CI 초안 추가: `.github/workflows/unity-tests.yml` (`self-hosted windows`, EditMode/PlayMode 자동 실행 + 결과 artifact 업로드).
 11. Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 승격하고 `Frame_EE`를 표준 EE frame으로 유지.
 12. Phase 4 확장: `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 hidden donor source로 배치하고, donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정한다. `Pick`은 helper point로만 유지한다.
-13. 검증 결과: Unity Test Runner EditMode 47/47, PlayMode 26/26 통과, `Boot/Onboarding/Main` 씬 분기와 전역 네비게이션 포함 검증 완료.
+13. 검증 결과: Unity Test Runner EditMode 47/47, PlayMode 26/26 통과 (2026-03-09 기준; 최신: EditMode 282, PlayMode 50), `Boot/Onboarding/Main` 씬 분기와 전역 네비게이션 포함 검증 완료.
 14. 학습 화면 MVP 정리: `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface 구성, donor mesh offset/scale 보정 경로 및 교육용 카메라 구도 반영.
 15. Phase 4 디버그: Built-in -> URP(`com.unity.render-pipelines.universal@17.0.4`) 전환, `GraphicsSettings`/`QualitySettings`를 `URP-Default.asset`에 고정, `Main Camera`를 Solid Color로 전환.
 16. Phase 4B HUD 디버그: 잘못된 `WelcomeModal` placeholder와 중앙 viewport focus 박스를 기본 비활성화하여 Play 중 중앙 흰 사각형 제거.
-17. Scene flow 정리: `BootSceneRouter`가 첫 방문 시 `Onboarding`, 재방문 시 `Main`으로 `LoadSceneMode.Single` 전환.
+17. Scene flow 정리: `BootSceneRouter`가 첫 방문 시 `Onboarding`, 재방문 시 `Home`으로 `LoadSceneMode.Single` 전환. (※ `aaf1435` 이후 `Main` → `Home`으로 변경됨)
 18. 전역 이동 바 추가: `SceneCatalog` 기반 `SceneNavigationBar`가 `Onboarding`과 `Main`을 상단 HUD에서 전환.
 19. HUD 아티팩트 추가 정리: `GlossaryPanel` 기본 활성 상태를 제거하고 inactive-safe 자동 배선을 적용해 중앙 파란 박스 원인 경로를 차단.
 20. HUD 가시성 보강: `SceneNavigationBar`/공통 UI 스타일 경로를 조정해 상단 네비 버튼 red X/미표시 문제를 수정.

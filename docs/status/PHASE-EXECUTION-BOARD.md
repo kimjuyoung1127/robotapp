@@ -51,11 +51,11 @@
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
-7. 시작 흐름은 `Boot -> Onboarding -> Home` (첫 방문) / `Boot -> Home` (재방문) 분기와 `LoadSceneMode.Single`을 기준으로 유지한다. Editor Play Mode는 `BootScenePlayModeSetup`으로 Onboarding.unity 시작을 보장한다.
+7. 시작 흐름은 `Boot -> Onboarding -> Home` (첫 방문) / `Boot -> Home` (재방문) 분기와 `LoadSceneMode.Single`을 기준으로 유지한다. Editor Play Mode는 `BootScenePlayModeSetup`으로 Boot.unity 시작을 보장한다.
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
 9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.
 10. 루트 `AGENTS.md`와 폴더 `AGENTS.md`를 파일 탐색의 1차 진입점으로 사용하고, 전체 맥락은 `docs/ref/architecture-mermaid.md`로 먼저 파악한다.
 11. `PRODUCT-ROADMAP.md`의 릴리스 게이트와 이 보드의 phase 상태는 충돌 없이 유지한다.
-12. 재진입 surface는 `Home / Continue Hub`로 구현 완료. 온보딩 3개 버튼 모두 Home으로 연결.
+12. 재진입 surface는 `Home / Continue Hub`로 구현 완료. 온보딩 `초보자 시작`은 `Main`(MathReadiness)으로 직행, 나머지는 Home으로 연결.
 13. Sandbox/학습 모드 패널 배타 제어: `SandboxSceneCoordinator`가 학습 패널 GameObject를 숨기고 Sandbox 패널을 명시 활성화. `AppController.ApplyFeatureState()`가 학습 모드에서 Sandbox 패널을 숨김.
 14. 페이지 품질 잠금은 `docs/status/PAGE-QA-MATRIX.md`를 기준으로 관리한다. 현재 감사 범위는 실제 진입 가능한 페이지(`Onboarding`, `Home`, `Main`, `RobotLibrary`, `Sandbox`)만 포함한다.
