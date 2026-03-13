@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23b30bef4366f5a40a18a5ac32d9d922, type: 3}
+  m_Name: R
+  m_EditorClassIdentifier: 
+  symbol: R
+  koreanName: "\uD68C\uC804 \uD589\uB82C"
+  easyDescription: "\uBC29\uD5A5\uC744 \uB098\uD0C0\uB0B4\uB294 3x3 \uBE14\uB85D\uC785\uB2C8\uB2E4."
+  mathDescription: "T\uC758 \uC88C\uC0C1\uB2E8 3x3 \uBE14\uB85D\uC73C\uB85C \uC88C\uD45C\uCD95
+    \uBC29\uD5A5\uC744 \uC815\uC758\uD569\uB2C8\uB2E4."
+  relatedSteps: 0500000007000000

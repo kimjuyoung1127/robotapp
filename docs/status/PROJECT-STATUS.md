@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-12 (KST)
+최종 업데이트: 2026-03-13 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -16,13 +16,32 @@
 
 ## 현재 사이클 반영 내용 (SCARA + Sandbox baseline + asset subset)
 1. 복구된 vendor source(`HQP Studios`, `_Heathen Engineering`, `Glowing Rifts`)를 확인하고 curated runtime subset 경로를 추가했다.
-2. `Assets/Prefabs/Teaching/Markers/`, `Assets/Prefabs/Teaching/RobotLibrary/`, `Assets/Art/UI/Icons/`를 기준 자산 경로로 도입했다.
+2. `Assets/Runtime/Prefabs/Teaching/Markers/`, `Assets/Runtime/Prefabs/Teaching/RobotLibrary/`, `Assets/Runtime/Art/UI/Icons/`를 기준 자산 경로로 도입했다.
 3. `TargetMarkerVisual`은 curated subset 우선, vendor source 차선, primitive fallback 최후 순서로 prefab을 해석하도록 변경했다.
 4. `SCARA_RV`를 실제 template 지원 항목으로 승격하고 `RobotCatalog`/`RobotMetadataInfo`를 확장했다.
 5. `JointInputRail`은 2DOF 기본 레일을 유지하면서 4DOF 추가 row를 동적으로 생성하도록 확장했다.
 6. `Robot Library`에서 `Guided Lesson`과 `Sandbox` 진입을 모두 지원하도록 CTA와 selection bridge를 확장했다.
 7. `Sandbox.unity` 씬과 build settings entry를 추가해 sandbox 라우팅 기반을 만들었다.
 8. 검증 결과: EditMode `107/107`, PlayMode `31/31`.
+
+## 이번 턴 반영 내용 (FR5 RobotControl + Camera Director)
+1. `RobotControl.unity`를 추가하고 Build Settings index `6`에 등록해 FR5 전용 제어 콘솔 진입점을 만들었다.
+2. `RobotControlSceneCoordinator`는 `Mock ON` 기본 시작, FR5 강제 selection, panel auto-wire, control prefab 복원을 담당하도록 보강했다.
+3. FR5 사용 경로를 분리했다.
+   - showroom preview: `Assets/Runtime/Resources/Robots/FAIRINO_FR5.prefab`
+   - robot control: `Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab`
+4. `QaToolsMenu`의 FR5 import 흐름은 preview prefab과 control prefab을 각각 저장하도록 확장했다.
+5. `RobotLibrary`/detail drawer에서 FR5에 한해 `Robot Control` CTA가 `SceneId.RobotControl`로 이동하도록 연결했다.
+6. 게임 씬 메인 카메라는 `SceneCameraDirector`로 중앙 관리하도록 바꿨다.
+   - `Main`, `Sandbox`, `RobotControl`, `Onboarding`, `Home`의 메인 카메라 profile을 한 파일에서 관리
+   - `RobotLibrary` showroom 카메라는 기존 `RobotLibraryManager`가 별도 관리
+7. 카메라 줌아웃을 위해 gameplay profile과 showroom camera framing을 한 단계 더 완화했다.
+8. 검증:
+   - `RobotControl.unity` 씬 자산 생성 확인
+   - Build Settings에서 `RobotControl` buildIndex `6` 확인
+   - `SceneCameraDirectorTests` 통과
+   - FAIRINO 관련 EditMode 테스트 묶음 통과
+9. 남은 확인 항목은 PlayMode에서 `Robot Library -> FR5 -> Robot Control` 진입 후 실제 3D control prefab 시각 확인이다.
 
 ## 현재 사이클 반영 내용 (Home/Math Readiness + UI DS 2차 적용)
 1. `Home.unity`를 재진입 허브로 실제 연결하고 `HomeContinueHubController`/`HomeContinueHubFlowService`를 기준으로 이어하기/새로 시작/수학 기초 워밍업/로봇 선택/샌드박스 흐름을 고정했다.
@@ -31,6 +50,21 @@
 4. `HomeContinueHubViewBuilder`, `MathReadinessPanel`, `SnapshotLitePanelViewBuilder`, `SandboxActionPanelViewBuilder`를 UI Design System 2차 적용 대상으로 리팩터링했다.
 5. `UIComponentFactory`에 leading icon / button row helper를 추가하고, 4개 핵심 패널이 `UIDesignTokens`, `UITypography`, `UILayoutProfile`, `UIIconResolver`를 직접 소비하도록 정리했다.
 6. Home 화면은 실제 렌더 확인을 마쳤고, Sandbox는 새 패널 노출까지 확인했지만 버튼/아이콘 가독성과 일부 panel overlap 정리는 아직 진행 중이다.
+
+## 이번 턴 반영 내용 (Asset vendor/runtime hierarchy normalization)
+1. `Assets/realvirtual`은 그대로 유지하고, 나머지 외부 소스 폴더를 `Assets/Vendors/Archive/` 아래로 재배치했다.
+2. curated runtime 자산은 `Assets/Runtime/Art`, `Assets/Runtime/Prefabs`, `Assets/Runtime/Resources` 아래로 통합했다.
+3. `UxDataSeeder`, `TargetMarkerVisual`, `TargetMarkerAssetResolutionTests`, 관련 문서들이 새 경로를 사용하도록 동기화했다.
+4. 확인 결과 새 경로(`Assets/Vendors/Archive/*`, `Assets/Runtime/*`)는 존재하고, 기존 루트 경로(`Assets/Art`, `Assets/Prefabs`, `Assets/Resources`, `_Heathen Engineering`, `Glowing Rifts`, `HQP Studios`, `DemoRealvirtual`)는 제거되었다.
+5. 검증: `dotnet build KineTutor3D.Runtime.csproj` 성공. Unity refresh/compile 성공. `pre-commit-check.sh --all`은 저장소 전반의 기존 BOM/헤더/인코딩 규칙 위반으로 `BLOCKED: 303 에러` 상태였고, 이번 폴더 이동 자체와는 별개의 기존 품질 이슈로 분류했다.
+
+## 이번 턴 반영 내용 (Robot Library showroom direct practice flow)
+1. `RobotLibrary` showroom은 첫 페이지 가운데 hero를 기준으로 좌우 3 pod가 안정적으로 보이도록 page hero 규칙과 camera framing을 정리했다.
+2. `showroomOutput` RenderTexture와 camera framing은 실제 viewport rect 기준으로 계산하도록 바꿔 Game view에서 과도하게 작아 보이는 문제를 줄였다.
+3. `CompareStrip`은 제거하고, 카드 클릭과 3D showroom 로봇 클릭 모두 해당 로봇의 기본 실습 경로(Guided Lesson 우선, Sandbox 차선)로 즉시 이동하도록 단순화했다.
+4. `RobotPreviewPod`에 클릭용 collider를 추가해 showroom의 로봇 자체를 직접 클릭할 수 있게 했다.
+5. `robot-showroom-debug` 스킬을 추가해 showroomoutput, page hero, runtime root 중복, Game/Scene fit 문제를 재사용 가능한 디버그 패턴으로 정리했다.
+6. 검증: `dotnet build KineTutor3D.Runtime.csproj` 성공.
 
 ## 문서 우선순위 재정렬 (2026-03-12)
 1. 실제 파일 기준으로 `Robot Library MVP`, `SCARA`, `Sandbox baseline`은 완료된 기반으로 재분류했다.
@@ -115,7 +149,7 @@
 
 ## 이번 턴 반영 내용 (내부 에셋 기준선 정정)
 1. 현재 Git baseline에는 `Assets/KineTutor_AssetCuration_BACKUP/`가 없고, 복구된 vendor source는 로컬 상태로 존재한다.
-2. 전체 vendor 폴더를 Git에 올리는 대신, 실제 런타임에 필요한 subset만 `Assets/Art` / `Assets/Prefabs/Teaching` 아래로 추적한다.
+2. 전체 vendor 폴더를 Git에 올리는 대신, 실제 런타임에 필요한 subset만 `Assets/Runtime/Art` / `Assets/Runtime/Prefabs/Teaching` 아래로 추적한다.
 3. `realvirtual`은 vendor source이면서 동시에 현재 제품에서 가장 안정적으로 재사용 가능한 기본 자산 세트로 유지한다.
 4. 문서와 코드가 충돌할 때는 현재 repo 실파일 상태를 우선한다.
 
@@ -317,7 +351,7 @@
 
 ## 이번 턴 반영 내용 (QA 흐름 + Sandbox 패널 겹침 수정)
 1. Editor QA 인프라 추가
-   - `BootScenePlayModeSetup`: `EditorSceneManager.playModeStartScene`을 Boot.unity로 고정하는 Editor 스크립트 (`KineTutor3D > Always Start From Boot` 메뉴 토글)
+   - `BootScenePlayModeSetup`: `EditorSceneManager.playModeStartScene`을 Onboarding.unity로 고정하는 Editor 스크립트 (`KineTutor3D > Always Start From Onboarding` 메뉴 토글)
    - `QaToolsMenu`: PlayerPrefs 리셋 메뉴 2종 (`QA: Reset to First-Time User`, `QA: Reset to Returning User`)
    - 어떤 씬이 열려있든 Boot → Onboarding → Home → Main/Sandbox 전체 흐름 QA 가능
 2. Sandbox 패널 겹침 해결
@@ -400,6 +434,13 @@
 2. `Onboarding`, `Home / Continue Hub`, `Guided Lesson`, `Math Readiness`, `Robot Library`, `Sandbox` 각각에 대해 개별 QA 체크시트를 만들었다.
 3. `QaToolsMenu`에 페이지별 준비 메뉴(`Prep Home`, `Prep Guided Lesson`, `Prep Math Readiness`, `Prep Robot Library`, `Prep Sandbox`)를 추가해 수동 QA 진입 비용을 줄였다.
 4. 각 runbook에는 진입 경로, 핵심 CTA, 겹침 체크, UI 일관성 체크, UX 체크, 오브젝트 이름까지 포함해 바로 검수 가능한 형태로 준비했다.
+
+## 이번 턴 반영 내용 (FAIRINO FR5 reference + skill)
+1. `docs/ref/product/robots/fairino-fr5-integration-reference.md`를 추가해 FAIRINO FR5 6축 실기 로봇 연동용 공식 source map을 정리했다.
+2. 문서에는 FR5 하드웨어 baseline, 설치 조건, load curve, DH 다운로드, FR5 drawings, C# SDK, status feedback protocol, command protocol 링크를 묶었다.
+3. `FR5 연결 패널`, `IFairinoRobotClient adapter`, `errcode UI 번역`이 무엇인지 plain-language 설명을 추가해 문서만 읽어도 역할을 이해할 수 있게 했다.
+4. `.claude/skills/kinetutor-guide/content/fairino-fr5-integration/SKILL.md`를 추가해 이후 FR5 Unity 제어/SDK 연결/상태 피드백 작업에 재사용할 수 있게 했다.
+5. `open-robotics-reference-pack`, `CLAUDE.md`, `SKILL-DOC-MATRIX`, `docs/daily/03-13/fairino-fr5-reference-and-skill.md`와 함께 동기화했다.
 
 ## 이번 턴 반영 내용 (Scene hierarchy normalization)
 1. `Boot.unity`에 실제 `Main Camera` 루트를 추가해 라우터-only 씬에서도 최소 시각 기준을 갖추도록 정리했다.

@@ -30,6 +30,8 @@ namespace KineTutor3D.App
             var camera = cameraGo.GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = Color.black;
+            camera.tag = "MainCamera";
+            SceneCameraDirector.ConfigureForCurrentScene(camera);
         }
     }
 }

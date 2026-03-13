@@ -16,8 +16,10 @@ namespace KineTutor3D.App
             new(SceneId.Onboarding, "Onboarding", "Onboarding", true),
             new(SceneId.Home, "Home", "Home", true),
             new(SceneId.Main, "Main", "Main", true),
+            new(SceneId.MathReadiness, "MathReadiness", "Math Readiness", true),
             new(SceneId.RobotLibrary, "RobotLibrary", "Robot Library", true),
             new(SceneId.Sandbox, "Sandbox", "Sandbox", true),
+            new(SceneId.RobotControl, "RobotControl", "Robot Control", true),
         };
 
         public static IReadOnlyList<SceneEntry> GetNavigableEntries()

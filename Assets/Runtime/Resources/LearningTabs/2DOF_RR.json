@@ -1,0 +1,81 @@
+{
+  "robotId": "2DOF_RR",
+  "displayTitle": "2DOF RR Learning Stage",
+  "heroSummary": "가장 단순한 2관절 로봇으로 조인트 변화, 끝점 이동, FK 결과를 한 화면에서 빠르게 익힙니다.",
+  "legend": [
+    { "accentKey": "joint1", "labelKo": "Joint 1" },
+    { "accentKey": "joint2", "labelKo": "Joint 2" },
+    { "accentKey": "ee", "labelKo": "End Effector" }
+  ],
+  "tabs": [
+    {
+      "id": "overview",
+      "labelKo": "개요",
+      "headlineKo": "2DOF RR을 3초 안에 이해하기",
+      "bodyKo": "왼쪽 3D 로봇과 오른쪽 2D FK 다이어그램을 함께 보며 관절이 끝점에 어떤 영향을 주는지 먼저 익힙니다.",
+      "cards": [
+        {
+          "tagKo": "START",
+          "titleKo": "먼저 볼 것",
+          "bodyKo": "조인트 1은 베이스 방향을, 조인트 2는 끝점의 최종 위치를 크게 바꿉니다."
+        },
+        {
+          "tagKo": "FLOW",
+          "titleKo": "학습 흐름",
+          "bodyKo": "개요에서 구조를 보고, 움직임 탭에서 조작하고, FK 탭에서 행렬과 위치를 읽습니다."
+        }
+      ],
+      "callouts": [
+        {
+          "tone": "accent",
+          "titleKo": "우리의 차별점",
+          "bodyKo": "설명만 읽는 대신 3D 로봇, 2D 다이어그램, 결과 카드가 동시에 반응합니다."
+        }
+      ]
+    },
+    {
+      "id": "motion",
+      "labelKo": "움직임",
+      "headlineKo": "조인트를 움직이며 감각 만들기",
+      "bodyKo": "슬라이더를 움직이면 3D 로봇, 각도 아크, 링크 길이, 2D FK 다이어그램이 함께 갱신됩니다."
+    },
+    {
+      "id": "fk",
+      "labelKo": "FK",
+      "headlineKo": "결과를 행렬과 위치로 읽기",
+      "bodyKo": "현재 포즈의 누적 변환, 끝점 위치, 링크 길이를 compact 카드로 읽습니다."
+    }
+  ],
+  "motion": {
+    "primaryCtaLabelKo": "움직여보기",
+    "resultTitleKo": "실시간 결과",
+    "metrics": [
+      { "id": "ee_x", "labelKo": "EE X", "unitKo": "m" },
+      { "id": "ee_y", "labelKo": "EE Y", "unitKo": "m" },
+      { "id": "ee_theta", "labelKo": "EE 각도", "unitKo": "deg" },
+      { "id": "link_lengths", "labelKo": "링크 길이", "unitKo": "" }
+    ],
+    "overlaySummaryKo": "2DOF RR에서는 각도 아크, 링크 길이, 좌표 그리드 오버레이가 함께 켜집니다."
+  },
+  "forwardKinematics": {
+    "compactTitleKo": "현재 누적 변환",
+    "formulaLinesKo": [
+      "0T2 = A1 × A2",
+      "마지막 열은 현재 끝점 위치를 나타냅니다.",
+      "각 링크는 이전 관절까지의 누적 각도를 따라 이어집니다."
+    ],
+    "advancedDrawerLabelKo": "자세히 보기",
+    "advancedCards": [
+      {
+        "tagKo": "READ",
+        "titleKo": "먼저 읽는 순서",
+        "bodyKo": "행렬 전체보다 끝점 위치와 누적 각도를 먼저 읽고, 그다음 DH 파라미터를 확인합니다."
+      },
+      {
+        "tagKo": "POSE",
+        "titleKo": "끝점 해석",
+        "bodyKo": "현재 끝점은 두 관절의 누적 방향 위에 링크 길이가 합성된 결과입니다."
+      }
+    ]
+  }
+}

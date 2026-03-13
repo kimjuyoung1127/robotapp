@@ -37,6 +37,8 @@
 | Phase 5 | Replay / Compare / Motion History | P1 | Ready | - | student-friendly-ux, editmode-test-add | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | Constraint Preview | P1 | Ready | - | student-friendly-ux, scene-scaffold | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | Instructor Demo Mode | P1 | Ready | - | student-friendly-ux | docs/ref/product/ux/instructor-mode.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
+| Phase 5 | FAIRINO FR5 Robot Control Console | P1 | InProgress | codex | fairino-fr5-integration, scene-scaffold, ui-design-system | docs/ref/product/robots/fairino-fr5-integration-reference.md, docs/status/page-qa/robot-control.md | 2026-03-13 |
+| Phase 5 | Gameplay Camera Centralization | P1 | Done | codex | scene-scaffold | docs/status/PROJECT-STATUS.md, Assets/Scenes/CLAUDE.md | 2026-03-13 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
@@ -49,7 +51,7 @@
 4. Phase 4 Visualization은 `frame_0`/`frame_1`/`Frame_EE` ownership과 donor mesh source 정책을 유지한다.
 5. 학습 화면 MVP는 `TopBar`/`LeftPanel`/`RightPanel`/`BottomBar` 4영역 surface를 기준으로 유지한다.
 6. Phase 4 렌더 기준은 URP와 Solid Color camera를 사용한다.
-7. 시작 흐름은 `Boot -> Onboarding -> Home` (첫 방문) / `Boot -> Home` (재방문) 분기와 `LoadSceneMode.Single`을 기준으로 유지한다. Editor Play Mode는 `BootScenePlayModeSetup`으로 Boot.unity 시작을 보장한다.
+7. 시작 흐름은 `Boot -> Onboarding -> Home` (첫 방문) / `Boot -> Home` (재방문) 분기와 `LoadSceneMode.Single`을 기준으로 유지한다. Editor Play Mode는 `BootScenePlayModeSetup`으로 Onboarding.unity 시작을 보장한다.
 8. `Main`은 로봇/HUD 전용 씬이고, 온보딩은 `Onboarding` 씬 전용 책임으로 분리한다.
 9. `Main`의 overlay root(`GlossaryPanel`, focus/highlight 계열)는 기본 inactive 상태를 유지하고, 유효한 HUD target이 있을 때만 활성화한다.
 10. 루트 `AGENTS.md`와 폴더 `AGENTS.md`를 파일 탐색의 1차 진입점으로 사용하고, 전체 맥락은 `docs/ref/architecture-mermaid.md`로 먼저 파악한다.

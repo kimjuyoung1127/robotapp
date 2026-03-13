@@ -1,0 +1,75 @@
+{
+  "robotId": "IGUS_REBEL",
+  "displayTitle": "igus REBEL Learning Stage",
+  "heroSummary": "교육용 6축 로봇을 3D donor preview와 2D FK 다이어그램으로 함께 탐색하는 학습 화면입니다.",
+  "legend": [
+    { "accentKey": "joint1", "labelKo": "Joint 1" },
+    { "accentKey": "joint2", "labelKo": "Joint 2" },
+    { "accentKey": "joint3", "labelKo": "Joint 3" },
+    { "accentKey": "joint4", "labelKo": "Joint 4" },
+    { "accentKey": "joint5", "labelKo": "Joint 5" },
+    { "accentKey": "joint6", "labelKo": "Joint 6" },
+    { "accentKey": "ee", "labelKo": "End Effector" }
+  ],
+  "tabs": [
+    {
+      "id": "overview",
+      "labelKo": "개요",
+      "headlineKo": "교육용 6축 구조를 빠르게 보기",
+      "bodyKo": "교육용 donor 3D와 2D FK를 함께 보며 관절 조합과 끝점 결과를 직관적으로 연결합니다.",
+      "cards": [
+        {
+          "tagKo": "LEARN",
+          "titleKo": "왜 이 화면이 좋은가",
+          "bodyKo": "실제형 구조를 보면서도 FK 결과를 2D로 단순화해 읽을 수 있어 학습 피로가 적습니다."
+        }
+      ],
+      "callouts": [
+        {
+          "tone": "accent",
+          "titleKo": "차별점",
+          "bodyKo": "실제형 3D donor와 FK 결과를 같은 리듬으로 보여줘 구조와 수식 사이의 간격을 줄입니다."
+        }
+      ]
+    },
+    {
+      "id": "motion",
+      "labelKo": "움직임",
+      "headlineKo": "조인트를 움직이며 끝점 결과 보기",
+      "bodyKo": "조작과 동시에 3D donor 로봇, 2D FK 다이어그램, 결과 카드가 함께 갱신됩니다."
+    },
+    {
+      "id": "fk",
+      "labelKo": "FK",
+      "headlineKo": "누적 변환을 compact하게 읽기",
+      "bodyKo": "현재 자세의 누적 변환과 끝점 위치를 compact 카드로 보고 필요할 때만 상세를 펼칩니다."
+    }
+  ],
+  "motion": {
+    "primaryCtaLabelKo": "조작 시작",
+    "resultTitleKo": "실시간 결과",
+    "metrics": [
+      { "id": "ee_x", "labelKo": "EE X", "unitKo": "m" },
+      { "id": "ee_y", "labelKo": "EE Y", "unitKo": "m" },
+      { "id": "ee_theta", "labelKo": "누적 각도", "unitKo": "deg" },
+      { "id": "link_lengths", "labelKo": "링크 길이", "unitKo": "" }
+    ],
+    "overlaySummaryKo": "igus REBEL은 기본 결과 모드로 3D donor 로봇과 2D FK 다이어그램을 함께 보여줍니다."
+  },
+  "forwardKinematics": {
+    "compactTitleKo": "현재 누적 변환",
+    "formulaLinesKo": [
+      "0Tn = A1 × A2 × ... × A6",
+      "마지막 열은 끝점 위치를 나타냅니다.",
+      "실제형 교육 로봇도 결과를 compact하게 읽는 것이 첫 단계입니다."
+    ],
+    "advancedDrawerLabelKo": "자세히 보기",
+    "advancedCards": [
+      {
+        "tagKo": "READ",
+        "titleKo": "먼저 읽는 순서",
+        "bodyKo": "끝점 위치와 누적 방향을 먼저 읽고, 세부 행렬은 필요할 때만 확인합니다."
+      }
+    ]
+  }
+}

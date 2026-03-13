@@ -46,22 +46,28 @@ namespace KineTutor3D.UI
             var m = entry.Metadata;
             titleText.text = m.DisplayName;
             descriptionText.text = m.Description;
-            specsText.text = $"DOF: {m.Dof}\nType: {m.RobotType}\nDifficulty: {m.Difficulty}\nConvention: {m.Convention}";
+            specsText.text = $"DOF: {m.Dof}\nType: {m.RobotType}\nDifficulty: {m.Difficulty}\nConvention: {m.Convention}\nPreview: {ResolvePreviewLabel(m.VisualizationLevel)}";
 
             var modes = "";
             modes += m.GuidedLessonSupported ? "Guided Lesson: O\n" : "Guided Lesson: X\n";
+            modes += SupportsRobotControl(m) ? "Robot Control: O\n" : "Robot Control: X\n";
             modes += m.SandboxSupported ? "Sandbox: O\n" : "Sandbox: X\n";
             modes += m.InstructorRecommended ? "Instructor: O" : "Instructor: X";
             modesText.text = modes;
 
             bool hasTemplate = RobotCatalog.HasTemplate(m.RobotId);
-            lessonButton.interactable = hasTemplate && m.GuidedLessonSupported;
+            var robotControlSupported = SupportsRobotControl(m);
+            lessonButton.interactable = hasTemplate && (m.GuidedLessonSupported || robotControlSupported);
             sandboxButton.interactable = hasTemplate && m.SandboxSupported;
 
             var lessonLabel = lessonButton.GetComponentInChildren<Text>();
             if (lessonLabel != null)
             {
-                lessonLabel.text = lessonButton.interactable ? "학습 시작" : "Coming Soon";
+                lessonLabel.text = m.GuidedLessonSupported
+                    ? "학습 시작"
+                    : robotControlSupported
+                        ? "Robot Control"
+                        : "Coming Soon";
             }
 
             var sandboxLabel = sandboxButton.GetComponentInChildren<Text>();
@@ -207,6 +213,13 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            if (SupportsRobotControl(currentEntry.Metadata) && !currentEntry.Metadata.GuidedLessonSupported)
+            {
+                RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.RobotControlMode);
+                SceneNavigator.Load(SceneId.RobotControl);
+                return;
+            }
+
             RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.GuidedLessonMode);
             SceneNavigator.Load(SceneId.Main);
         }
@@ -220,6 +233,37 @@ namespace KineTutor3D.UI
 
             RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.SandboxMode);
             SceneNavigator.Load(SceneId.Sandbox);
+        }
+
+        private static string ResolvePreviewLabel(string visualizationLevel)
+        {
+            switch (visualizationLevel)
+            {
+                case "DonorMesh":
+                    return "Real 3D donor";
+                case "Lesson":
+                    return "Teaching model";
+                default:
+                    return "Concept preview";
+            }
+        }
+
+        private static bool SupportsRobotControl(RobotMetadataInfo metadata)
+        {
+            if (metadata.SupportedLessons == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < metadata.SupportedLessons.Length; i++)
+            {
+                if (string.Equals(metadata.SupportedLessons[i], "RobotControl", System.StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

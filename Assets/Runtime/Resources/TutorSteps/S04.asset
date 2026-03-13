@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8fef2150551f8f40bef017e2cd2cb3b, type: 3}
+  m_Name: S04
+  m_EditorClassIdentifier: 
+  showLeftPanel: 1
+  showRightPanel: 0
+  showBottomBar: 0
+  leftContent: 3
+  rightContent: 0
+  focusTarget: 6
+  focusHighlightColor: {r: 0.29, g: 0.62, b: 1, a: 1}
+  showFrameGizmos: 1
+  showMatrices: 0
+  showDHTable: 1
+  showSliders: 0
+  showAnimation: 1
+  showEEHighlight: 0
+  tooltips: []
+  conditions:
+  - interactionType: 4
+    targetId: mul_progress
+    requiredCount: 4
+  gateMeetToastKo: "A\u1D62 = Rz\xB7Tz\xB7Tx\xB7Rx \uC644\uC131!"
+  stepTitleKo: "A\u1D62 \uD589\uB82C \uAD6C\uC131"
+  objectiveKo: "Rz\xB7Tz\xB7Tx\xB7Rx \uC21C\uC11C\uB85C \uACF1\uC148\uC744 \uC9C4\uD589\uD569\uB2C8\uB2E4."
+  hintKo: "\uACF1\uC148 \uC9C4\uD589 \uBC84\uD2BC\uC744 4\uBC88 \uD074\uB9AD\uD558\uC138\uC694."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Main Learning Tabs JSON"
+  short_description: "Update robot-specific Main tab JSON content"
+  default_prompt: "Update or add Main learning tab JSON content for a robot and validate Unity MCP loading and fallback behavior."

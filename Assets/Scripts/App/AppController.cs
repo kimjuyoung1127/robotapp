@@ -44,6 +44,7 @@ namespace KineTutor3D.App
         [SerializeField] private SandboxActionPanel sandboxActionPanel;
         [SerializeField] private SnapshotLitePanel snapshotLitePanel;
         [SerializeField] private MathVisualOrchestrator mathVisualOrchestrator;
+        [SerializeField] private FKDiagramPanel fkDiagramPanel;
 
         private int currentStepIndex;
         private bool sliderListenersBound;
@@ -55,6 +56,7 @@ namespace KineTutor3D.App
         private string currentTrack = StepProgressSaver.CoreKinematicsTrack;
         private bool jointHighlightEnabled;
         private bool sandboxMode;
+        private MainLearningShellController mainLearningShellController;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
@@ -106,6 +108,11 @@ namespace KineTutor3D.App
             if (sandboxMode)
             {
                 EnterSandboxMode();
+                return;
+            }
+
+            if (TryActivateMainLearningShell())
+            {
                 return;
             }
 
@@ -188,8 +195,8 @@ namespace KineTutor3D.App
             }
 
             RobotSelectionBridge.SetSelectedRobot(CurrentTemplate.Name);
-            RobotSelectionBridge.SetSelectedMode("sandbox");
-            SceneNavigator.Load(SceneId.Main);
+            RobotSelectionBridge.SetSelectedMode(RobotSelectionBridge.SandboxMode);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         public string[] GetAvailableTemplateNames()
@@ -219,6 +226,15 @@ namespace KineTutor3D.App
             {
                 ApplyTemplate(template);
             }
+        }
+
+        /// <summary>
+        /// 지정된 DOF로 커스텀 템플릿을 생성하여 적용합니다.
+        /// </summary>
+        public void ApplyCustomTemplate(int dof)
+        {
+            var template = CustomTemplateBuilder.Create(dof);
+            ApplyTemplate(template);
         }
 
         public void ApplyTemplate(RobotTemplate template)
@@ -287,7 +303,7 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref sandboxActionPanel, ref snapshotLitePanel, ref mathVisualOrchestrator);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref sandboxActionPanel, ref snapshotLitePanel, ref mathVisualOrchestrator, ref fkDiagramPanel);
         }
 
         private void LoadStepConfigsIfNeeded()
@@ -369,6 +385,7 @@ namespace KineTutor3D.App
         {
             OnKinematicsUpdated?.Invoke(CurrentA1, CurrentA2, CurrentT02, CurrentEndEffectorPose);
             mathVisualOrchestrator?.UpdateFromJointAngles(CurrentJointValuesRad);
+            fkDiagramPanel?.Refresh(CurrentLinks, CurrentJointValuesRad);
         }
 
         private void EnterSandboxMode()
@@ -587,12 +604,61 @@ namespace KineTutor3D.App
             currentTrack = StepProgressSaver.PreKinematicsTrack;
             StepProgressSaver.SetCurrentTrack(currentTrack);
             StepProgressSaver.SaveLastCompletedStep(currentTrack, 0);
+
+            if (SceneCatalog.GetCurrentSceneId() == SceneId.MathReadiness)
+            {
+                RobotSelectionBridge.SetSelection(Template2DOF_RR.Name, RobotSelectionBridge.GuidedLessonMode);
+                SceneNavigator.Load(SceneId.Main);
+                return true;
+            }
+
             stepConfigs = BeginnerLessonFactory.CreateLessons();
             ApplyTemplate(Template2DOF_RR.Create());
             stepNavigator?.Bind(this);
             SetCurrentStep(1);
             toastController?.ShowSuccess("좋아요! 이제 로봇 직관 lesson으로 넘어갈게요.", 4f);
             return true;
+        }
+
+        private bool TryActivateMainLearningShell()
+        {
+            if (!ShouldActivateMainLearningShell(SceneCatalog.GetCurrentSceneId(), StepProgressSaver.GetCurrentTrack()))
+            {
+                return false;
+            }
+
+            mainLearningShellController ??= FindFirstObjectByType<MainLearningShellController>(FindObjectsInactive.Include);
+            if (mainLearningShellController == null)
+            {
+                var canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+                if (canvas == null)
+                {
+                    return false;
+                }
+
+                mainLearningShellController = canvas.GetComponent<MainLearningShellController>();
+                if (mainLearningShellController == null)
+                {
+                    mainLearningShellController = canvas.gameObject.AddComponent<MainLearningShellController>();
+                }
+            }
+
+            mainLearningShellController.Bind(this);
+            mainLearningShellController.ShowShell();
+            currentTrack = StepProgressSaver.CoreKinematicsTrack;
+            StepProgressSaver.SetCurrentTrack(currentTrack);
+            PersistSessionContext();
+            return true;
+        }
+
+        private static bool ShouldActivateMainLearningShell(SceneId currentSceneId, string track)
+        {
+            if (currentSceneId != SceneId.Main)
+            {
+                return false;
+            }
+
+            return string.Equals(track, StepProgressSaver.CoreKinematicsTrack, StringComparison.Ordinal);
         }
     }
 }

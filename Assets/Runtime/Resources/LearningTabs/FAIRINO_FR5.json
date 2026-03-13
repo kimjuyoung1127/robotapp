@@ -1,0 +1,42 @@
+{
+  "robotId": "FAIRINO_FR5",
+  "displayName": "FAIRINO FR5",
+  "defaultIp": "192.168.58.2",
+  "defaultPort": 8080,
+  "dof": 6,
+  "dhParameters": [
+    { "theta": 0.0, "d": 0.4045, "a": 0.0,    "alpha": -1.5707963 },
+    { "theta": 0.0, "d": 0.0,    "a": 0.3225,  "alpha": 0.0 },
+    { "theta": 0.0, "d": 0.0,    "a": 0.0,     "alpha": -1.5707963 },
+    { "theta": 0.0, "d": 0.3685, "a": 0.0,     "alpha": 1.5707963 },
+    { "theta": 0.0, "d": 0.0,    "a": 0.0,     "alpha": -1.5707963 },
+    { "theta": 0.0, "d": 0.1578, "a": 0.0,     "alpha": 0.0 }
+  ],
+  "jointLimits": [
+    { "minDeg": -175.0, "maxDeg": 175.0 },
+    { "minDeg": -265.0, "maxDeg": 85.0 },
+    { "minDeg": -162.0, "maxDeg": 162.0 },
+    { "minDeg": -265.0, "maxDeg": 85.0 },
+    { "minDeg": -175.0, "maxDeg": 175.0 },
+    { "minDeg": -360.0, "maxDeg": 360.0 }
+  ],
+  "speedPresets": {
+    "slow":   { "jointSpeedPercent": 10, "accPercent": 20 },
+    "medium": { "jointSpeedPercent": 30, "accPercent": 50 },
+    "fast":   { "jointSpeedPercent": 60, "accPercent": 80 }
+  },
+  "errorMessages": {
+    "0": "OK",
+    "-1": "연결 실패: IP 주소 또는 네트워크 상태를 확인하세요.",
+    "-2": "로봇 비활성 상태입니다. Enable 버튼을 눌러주세요.",
+    "-3": "관절 제한 초과: 목표 각도가 허용 범위를 벗어났습니다.",
+    "-4": "비상 정지 활성 상태입니다. 해제 후 재시도하세요.",
+    "-5": "모션 충돌 감지: 이전 동작이 완료되지 않았습니다.",
+    "-6": "통신 타임아웃: 네트워크 연결을 확인하세요."
+  },
+  "uiTabs": [
+    { "id": "connection", "label": "연결", "icon": "icon-settings" },
+    { "id": "joint_control", "label": "관절 제어", "icon": "icon-edit" },
+    { "id": "state_monitor", "label": "상태 모니터", "icon": "icon-info" }
+  ]
+}

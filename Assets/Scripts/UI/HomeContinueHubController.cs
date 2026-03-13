@@ -68,6 +68,8 @@ namespace KineTutor3D.UI
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = UIDesignTokens.Colors.SurfaceBase;
             camera.orthographic = false;
+            camera.tag = "MainCamera";
+            SceneCameraDirector.ConfigureForCurrentScene(camera);
         }
 
         private void RefreshContext()

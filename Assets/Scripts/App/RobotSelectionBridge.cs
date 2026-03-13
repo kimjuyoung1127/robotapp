@@ -12,6 +12,7 @@ namespace KineTutor3D.App
         private const string ModeKey = "KineTutor3D.SelectedMode";
         public const string GuidedLessonMode = "guided_lesson";
         public const string SandboxMode = "sandbox";
+        public const string RobotControlMode = "robot_control";
 
         public static void SetSelectedRobot(string robotId)
         {

@@ -15,7 +15,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 6. `docs/ref/PRODUCT-ROADMAP.md`
 7. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시 필수)
 
-## 현재 상태 (2026-03-12)
+## 현재 상태 (2026-03-13)
 - Phase 0: Done
 - Phase 1: Done
 - Phase 2: Done
@@ -28,6 +28,11 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Current Cycle: InProgress (MathReadiness UX 고도화 + 모드별 패널 격리 + Sandbox polish)
 
 최근 확정 사항:
+- FR5 RobotControl baseline 추가: `RobotControl.unity` 생성, `SceneId.RobotControl=6`, Build Settings index 6 등록, `RobotControlSceneCoordinator` + `FairinoConnectionPanel` + `FairinoJointControlPanel` + `FairinoStatePanel` + `FairinoConnectionService` 기반 제어 콘솔 경로 정리
+- FR5 로봇 사용 기준 분리: showroom은 `Assets/Runtime/Resources/Robots/FAIRINO_FR5.prefab` donor preview 사용, RobotControl은 `Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab` control prefab 사용. `QaToolsMenu`의 FR5 import는 preview/control prefab을 각각 저장
+- FR5 donor preview 튜닝 반영: `RobotPreviewFactory`의 FR5 전용 donor preview pose 보정으로 showroom에서 자연스럽게 서도록 정리, 기준 스크린샷 `robotlibrary-playmode-fr5-standing-tuned.png`
+- 카메라 중앙 관리 도입: `SceneCameraDirector` 추가로 `Main / Sandbox / RobotControl / Onboarding / Home` 메인 카메라 구도를 한 파일에서 관리. `RobotLibrary` showroom 카메라는 `RobotLibraryManager`가 별도 관리
+- RobotLibrary FR5 CTA 확장: FR5 카드/detail drawer에서 `Robot Control` CTA를 제공하도록 연결
 - MathReadiness UX 고도화 완료 (Phase A+B+C): 정답/오답 색상+아이콘(AccentSuccess/AccentDanger), 진행 뱃지("Q1/2"), 워밍업/본문제 시각 분리(섹션 라벨+디바이더), 코치 힌트 leading icon, 피드백 fade-in(0.25s), 카드 전환 slide(0.3s), 적응형 힌트(2회 오답→코치힌트, 3회→정답 하이라이트), 컨셉별 테마 색상(Orange/Blue/Purple/Green accent stripe), WhyItMoved 방향 화살표 아이콘, 마스터리 분기 플래그
 - 모드별 패널 격리 리팩터링 완료: `AppController.ApplyFeatureState()`를 `HideAllContentPanels()` → `Apply{Mode}Visibility()` 패턴으로 리팩터링. MathReadiness 모드에서 StepTutorPanel/DHTableEditor/MatrixDisplay/TemplateSelector 완전 숨김. `MatrixDisplay.SetVisible(bool)`, `TemplateSelector.SetVisible(bool)` 신규 추가. `scene-ui-visibility` 스킬에 모드별 가시성 매트릭스 추가
 - QA 흐름 정비 완료: Editor Play Mode 시작 씬을 `Boot.unity`로 고정하는 `BootScenePlayModeSetup` 추가 (`KineTutor3D > Always Start From Boot` 토글). `QaToolsMenu`로 First-Time/Returning User PlayerPrefs 리셋 메뉴 추가. 어떤 씬이 열려있든 `Boot → Onboarding → Home → Main/Sandbox` 전체 흐름 QA 가능
@@ -38,7 +43,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - UI Design System 2차 적용: `HomeContinueHubViewBuilder`, `MathReadinessPanel`, `SnapshotLitePanelViewBuilder`, `SandboxActionPanelViewBuilder`를 `UIComponentFactory`/`UILayoutProfile`/`UIIconResolver` 기반으로 리팩터링
 - Sandbox 상태: 패널 겹침 해결 완료. 버튼/아이콘 가독성 후속 정리 중
 - UI Design System 도입: `UIDesignTokens`(색상 25+, 타이포 7단계, 간격 7단계, 컴포넌트 치수), `UITypography`(TMP 프리셋), `UIIconResolver`, `UIComponentFactory`, `UILayoutProfile` 추가. `UiRuntimeStyle`을 Obsolete bridge로 전환. Heathen 아이콘 25개 `Resources/UI/Icons/`로 큐레이션. `GameObject.Find` 10개 → `Transform.Find`/`FindFirstObjectByType`로 교체. 하드코딩 색상 8+ → 토큰 참조로 교체. `Unity.TextMeshPro` asmdef 참조 추가
-- 실제 에셋 기준선 정리: `HQP Studios`, `_Heathen Engineering`, `Glowing Rifts` 복구 후 curated runtime subset(`Assets/Art/UI/Icons`, `Assets/Prefabs/Teaching/Markers`, `Assets/Prefabs/Teaching/RobotLibrary`) 도입
+- 실제 에셋 기준선 정리: `HQP Studios`, `_Heathen Engineering`, `Glowing Rifts` 복구 후 curated runtime subset(`Assets/Runtime/Art/UI/Icons`, `Assets/Runtime/Prefabs/Teaching/Markers`, `Assets/Runtime/Prefabs/Teaching/RobotLibrary`) 도입
 - SCARA 활성화: `TemplateSCARA_RV`, expanded `RobotMetadataInfo`, 4DOF-aware `JointInputRail`, `Sandbox.unity`, Robot Library lesson/sandbox routing 추가
 - Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화, EditMode 107/107 PlayMode 31/31
 - Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가, EditMode 87/87 PlayMode 31/31
@@ -98,6 +103,9 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 13 | robotics-reference-to-lesson | 공개 robotics reference, concept map, lesson adaptation | `kinetutor-guide/content/robotics-reference-to-lesson/` |
 | 14 | ui-design-system | color, token, typography, spacing, component | `kinetutor-guide/ui/ui-design-system/` |
 | 15 | scene-ui-visibility | panel visibility, UI 겹침, 씬 UI, 초기 상태, ExecuteAlways | `kinetutor-guide/ui/scene-ui-visibility/` |
+| 16 | fairino-fr5-integration | Fairino, FR5, 실제 로봇, C# SDK, Unity 제어, 상태 피드백 | `kinetutor-guide/content/fairino-fr5-integration/` |
+| 17 | robot-showroom-debug | robot showroom, showroomoutput, comparestrip, preview pod, Game/Scene size mismatch | `kinetutor-guide/ui/robot-showroom-debug/` |
+| 18 | main-learning-tabs-json | Main 탭 JSON, LearningTabs, robot-specific tab content, JsonUtility fallback, MainLearningTabsLoader | `kinetutor-guide/ui/main-learning-tabs-json/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
@@ -105,6 +113,9 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - `student-friendly-ux` -> `tutor-step-add` + `scene-scaffold` + `ui-design-system`
 - `scene-scaffold` -> `ui-design-system` + `scene-ui-visibility`
 - `scene-ui-visibility` -> `ui-design-system`
+- `robot-showroom-debug` -> `scene-scaffold` + `scene-ui-visibility` + `ui-design-system`
+- `main-learning-tabs-json` -> `ui-design-system` + `scene-ui-visibility`
+- `fairino-fr5-integration` -> `robotics-reference-to-lesson` + `robot-template-add`
 - `robotics-reference-to-lesson` -> `student-friendly-ux` + `tutor-step-add`
 - `asmdef-setup` -> `unity-official-docs`
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
@@ -127,6 +138,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 에셋 큐레이션 맵: `docs/ref/asset-curation-map.md`
 - 에셋 검증 리포트: `docs/ref/asset-validation-report.md`
 - URDF 레퍼런스 수집: `docs/ref/product/robots/urdf-reference-collection.md`
+- FAIRINO FR5 실기 연동 레퍼런스: `docs/ref/product/robots/fairino-fr5-integration-reference.md`
 - Workspace Envelope 알고리즘 메모: `docs/ref/product/roadmap/workspace-envelope-algorithm-memo.md`
 - Interactive Matrix Viz 디자인 레퍼런스: `docs/ref/product/ux/interactive-matrix-viz-design-reference.md`
 - Phase 5 구현 계획: `docs/ref/phase5-implementation-plan.md`
@@ -170,8 +182,9 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 9. Tablet/mobile 작업: `docs/ref/product/ux/tablet-first-policy.md`
 10. 강의자료 활용 작업: `docs/ref/product/content/derived-course-content-policy.md` + `docs/ref/product/content/concept-to-ui-map.md`
 11. 공개 robotics reference 반영: `docs/ref/product/content/open-robotics-reference-pack.md` + `.claude/skills/kinetutor-guide/content/robotics-reference-to-lesson/SKILL.md`
-12. 경쟁제품 분석 반영: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
-13. LLM teaching 작업: `docs/ref/product/content/llm-teaching-strategy.md`
-14. 모바일 배포 작업: `docs/ref/product/roadmap/mobile-release-checklist.md`
-15. 에셋 작업: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
-16. 플랜 변경 처리: `docs/ref/PRODUCT-ROADMAP.md` + `docs/ref/product/roadmap/release-gates.md`
+12. FAIRINO FR5 실기 연동 작업: `docs/ref/product/robots/fairino-fr5-integration-reference.md` + `.claude/skills/kinetutor-guide/content/fairino-fr5-integration/SKILL.md`
+13. 경쟁제품 분석 반영: `docs/ref/product/foundation/competitive-synthesis.md` -> `docs/ref/product/foundation/product-positioning.md` / `docs/ref/product/roadmap/milestone-backlog.md`
+14. LLM teaching 작업: `docs/ref/product/content/llm-teaching-strategy.md`
+15. 모바일 배포 작업: `docs/ref/product/roadmap/mobile-release-checklist.md`
+16. 에셋 작업: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
+17. 플랜 변경 처리: `docs/ref/PRODUCT-ROADMAP.md` + `docs/ref/product/roadmap/release-gates.md`

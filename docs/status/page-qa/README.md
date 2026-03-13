@@ -6,7 +6,7 @@ Last Updated: 2026-03-12 (KST)
 - 실제 진입 가능한 페이지를 한 페이지씩 수동 QA할 수 있도록 준비 상태, 진입 경로, 체크 항목, 실패 시 확인 포인트를 고정한다.
 
 ## Common Setup
-1. Unity 메뉴에서 `KineTutor3D > Always Start From Boot`가 켜져 있는지 확인한다.
+1. Unity 메뉴에서 `KineTutor3D > Always Start From Onboarding`가 켜져 있는지 확인한다.
 2. 검사할 페이지에 맞는 QA 준비 메뉴를 먼저 실행한다.
 3. `Play`를 누른 뒤 아래 runbook의 `Entry Route`를 그대로 따라간다.
 4. 각 페이지는 최소 `진입`, `핵심 행동 1회`, `복귀/다음 이동`, `겹침`, `UI 일관성`까지 본다.
@@ -26,6 +26,7 @@ Last Updated: 2026-03-12 (KST)
 - [Guided Lesson](./guided-lesson.md)
 - [Math Readiness](./math-readiness.md)
 - [Robot Library](./robot-library.md)
+- [Robot Control](./robot-control.md)
 - [Sandbox](./sandbox.md)
 
 ## Capture Rule

@@ -1,0 +1,75 @@
+{
+  "robotId": "FANUC_CRX10",
+  "displayTitle": "Fanuc CRX Learning Stage",
+  "heroSummary": "실제 donor preview 기반 협동로봇을 3D와 2D FK 다이어그램으로 함께 탐색하는 학습 화면입니다.",
+  "legend": [
+    { "accentKey": "joint1", "labelKo": "Joint 1" },
+    { "accentKey": "joint2", "labelKo": "Joint 2" },
+    { "accentKey": "joint3", "labelKo": "Joint 3" },
+    { "accentKey": "joint4", "labelKo": "Joint 4" },
+    { "accentKey": "joint5", "labelKo": "Joint 5" },
+    { "accentKey": "joint6", "labelKo": "Joint 6" },
+    { "accentKey": "ee", "labelKo": "End Effector" }
+  ],
+  "tabs": [
+    {
+      "id": "overview",
+      "labelKo": "개요",
+      "headlineKo": "Fanuc CRX를 직관적으로 보기",
+      "bodyKo": "실제 donor 기반 3D 로봇과 2D FK를 함께 보며 산업용 협동로봇의 구조와 끝점 반응을 빠르게 이해합니다.",
+      "cards": [
+        {
+          "tagKo": "PREVIEW",
+          "titleKo": "실제형 시각화",
+          "bodyKo": "단순 teaching arm이 아니라 실제 donor 기반 형태를 보며 학습할 수 있습니다."
+        }
+      ],
+      "callouts": [
+        {
+          "tone": "accent",
+          "titleKo": "차별점",
+          "bodyKo": "실제형 3D 로봇과 FK 결과를 동시에 보며 추상 수식을 현실 구조와 연결합니다."
+        }
+      ]
+    },
+    {
+      "id": "motion",
+      "labelKo": "움직임",
+      "headlineKo": "관절 조합과 끝점 반응 보기",
+      "bodyKo": "각 축을 조작하면 donor 3D와 2D FK 다이어그램, 끝점 결과 카드가 함께 갱신됩니다."
+    },
+    {
+      "id": "fk",
+      "labelKo": "FK",
+      "headlineKo": "누적 변환 읽기",
+      "bodyKo": "현재 포즈의 누적 변환과 끝점 위치를 compact 카드로 확인하고 상세 내용을 펼칠 수 있습니다."
+    }
+  ],
+  "motion": {
+    "primaryCtaLabelKo": "조작 시작",
+    "resultTitleKo": "실시간 결과",
+    "metrics": [
+      { "id": "ee_x", "labelKo": "EE X", "unitKo": "m" },
+      { "id": "ee_y", "labelKo": "EE Y", "unitKo": "m" },
+      { "id": "ee_theta", "labelKo": "누적 각도", "unitKo": "deg" },
+      { "id": "link_lengths", "labelKo": "링크 길이", "unitKo": "" }
+    ],
+    "overlaySummaryKo": "Fanuc CRX는 기본 결과 모드로 3D donor 로봇과 2D FK 다이어그램을 함께 보여줍니다."
+  },
+  "forwardKinematics": {
+    "compactTitleKo": "현재 누적 변환",
+    "formulaLinesKo": [
+      "0Tn = A1 × A2 × ... × A6",
+      "마지막 열은 끝점 위치를 나타냅니다.",
+      "실제형 로봇일수록 수식보다 누적 결과를 읽는 감각이 중요합니다."
+    ],
+    "advancedDrawerLabelKo": "자세히 보기",
+    "advancedCards": [
+      {
+        "tagKo": "READ",
+        "titleKo": "먼저 볼 것",
+        "bodyKo": "현재 포즈의 끝점 위치와 누적 방향을 먼저 보고, 그다음 상세 행렬을 확인합니다."
+      }
+    ]
+  }
+}

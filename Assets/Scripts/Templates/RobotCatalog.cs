@@ -47,6 +47,22 @@ namespace KineTutor3D.Templates
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
+                    "FAIRINO_FR5", "FAIRINO FR5", 6, "Articulated", "Medium",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: true,
+                    description: "6자유도 FAIRINO FR5 산업로봇. 실기 연동을 지원합니다.",
+                    supportedLessons: new[] { "Sandbox", "RobotControl" },
+                    inputModes: new[] { "slider", "numeric", "live" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, -90d, 0d, -90d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -45d, 60d, -30d, 45d, 0d },
+                    importSource: "Assets/Runtime/Robots/FAIRINO_FR5/fairino5_v6.urdf"),
+                TemplateFAIRINO_FR5.Create));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
                     "GENERIC_6DOF", "6축 산업로봇", 6, "Articulated", "Medium",
                     convention: "URDF-ready",
                     description: "6자유도 범용 산업로봇. 다양한 작업에 활용됩니다.",
@@ -59,20 +75,20 @@ namespace KineTutor3D.Templates
                 new RobotMetadataInfo(
                     "FANUC_CRX10", "Fanuc CRX-10iA/L", 6, "Collaborative", "Hard",
                     convention: "URDF-ready",
-                    description: "6자유도 협동로봇. Fanuc CRX 시리즈입니다.",
+                    description: "6자유도 협동로봇. 실제 donor preview를 사용하는 Fanuc CRX 시리즈입니다.",
                     supportedLessons: new[] { "Demo" },
                     inputModes: new[] { "demo" },
-                    visualizationLevel: "DemoOnly",
+                    visualizationLevel: "DonorMesh",
                     importSource: "Assets/realvirtual/3DPrefabs/FanucCRX-10iA_L.prefab")));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
                     "IGUS_REBEL", "igus REBEL", 6, "Educational", "Medium",
                     convention: "URDF-ready",
-                    description: "6자유도 교육용 로봇. igus REBEL 시리즈입니다.",
+                    description: "6자유도 교육용 로봇. 실제 donor preview를 사용하는 igus REBEL 시리즈입니다.",
                     supportedLessons: new[] { "Demo" },
                     inputModes: new[] { "demo" },
-                    visualizationLevel: "DemoOnly",
+                    visualizationLevel: "DonorMesh",
                     importSource: "Assets/realvirtual/Interfaces/igusREBEL/igusRebel.prefab")));
         }
 

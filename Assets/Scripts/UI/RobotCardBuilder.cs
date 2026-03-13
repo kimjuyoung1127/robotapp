@@ -24,6 +24,7 @@ namespace KineTutor3D.UI
             Font font,
             Action onStartLesson,
             Action onOpenSandbox,
+            Action onOpenRobotControl,
             Action onViewDetails)
         {
             var metadata = entry.Metadata;
@@ -38,6 +39,20 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             bg.raycastTarget = true;
 
+            var cardButton = cardRoot.GetComponent<Button>();
+            if (cardButton == null)
+            {
+                cardButton = cardRoot.gameObject.AddComponent<Button>();
+            }
+
+            cardButton.transition = Selectable.Transition.ColorTint;
+            cardButton.colors = UIDesignTokens.ButtonColors(UIDesignTokens.Colors.SurfaceCard);
+            cardButton.onClick.RemoveAllListeners();
+            if (onViewDetails != null)
+            {
+                cardButton.onClick.AddListener(() => onViewDetails());
+            }
+
             var nameText = UiRuntimeStyle.EnsureText(cardRoot, "RobotName", font, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(nameText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(CardWidth - Padding * 2, 28f), new Vector2(Padding, -Padding));
             nameText.text = metadata.DisplayName;
@@ -48,7 +63,7 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(descText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(CardWidth - Padding * 2, 44f), new Vector2(Padding, -80f));
             descText.text = TruncateDescription(metadata.Description, 60);
 
-            BuildCtaButton(cardRoot, entry, font, onStartLesson, onOpenSandbox);
+            BuildCtaButton(cardRoot, entry, font, onStartLesson, onOpenSandbox, onOpenRobotControl);
             BuildDetailButton(cardRoot, font, onViewDetails);
 
             return cardRoot;
@@ -62,6 +77,7 @@ namespace KineTutor3D.UI
 
             BuildBadge(badgeRow, "DofBadge", $"{metadata.Dof}DOF", UIDesignTokens.Colors.AccentPrimary, font);
             BuildBadge(badgeRow, "DiffBadge", metadata.Difficulty, DifficultyColor(metadata.Difficulty), font);
+            BuildBadge(badgeRow, "PreviewBadge", GetPreviewLabel(metadata.VisualizationLevel), PreviewColor(metadata.VisualizationLevel), font);
         }
 
         private static void BuildBadge(Transform parent, string name, string label, Color color, Font font)
@@ -79,7 +95,7 @@ namespace KineTutor3D.UI
             badgeText.text = label;
         }
 
-        private static void BuildCtaButton(RectTransform parent, RobotCatalogEntry entry, Font font, Action onStartLesson, Action onOpenSandbox)
+        private static void BuildCtaButton(RectTransform parent, RobotCatalogEntry entry, Font font, Action onStartLesson, Action onOpenSandbox, Action onOpenRobotControl)
         {
             var btnRect = UiRuntimeStyle.EnsureRectChild(parent, "BtnCta");
             UiRuntimeStyle.Anchor(btnRect, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(140f, 36f), new Vector2(Padding, Padding));
@@ -98,12 +114,15 @@ namespace KineTutor3D.UI
 
             bool lessonSupported = entry.Metadata.GuidedLessonSupported;
             bool sandboxSupported = entry.Metadata.SandboxSupported;
-            bool interactable = lessonSupported || sandboxSupported;
+            bool robotControlSupported = SupportsRobotControl(entry);
+            bool interactable = lessonSupported || robotControlSupported || sandboxSupported;
             string label = lessonSupported
                 ? "학습 시작"
-                : sandboxSupported
-                    ? "샌드박스"
-                    : "Coming Soon";
+                : robotControlSupported
+                    ? "Robot Control"
+                    : sandboxSupported
+                        ? "샌드박스"
+                        : "Coming Soon";
             var bgColor = interactable ? UIDesignTokens.Colors.AccentPrimary : UIDesignTokens.Colors.SurfaceCard;
 
             UiRuntimeStyle.EnsureButtonLabel(button, font, label, bgColor);
@@ -113,6 +132,10 @@ namespace KineTutor3D.UI
             if (lessonSupported && onStartLesson != null)
             {
                 button.onClick.AddListener(() => onStartLesson());
+            }
+            else if (robotControlSupported && onOpenRobotControl != null)
+            {
+                button.onClick.AddListener(() => onOpenRobotControl());
             }
             else if (sandboxSupported && onOpenSandbox != null)
             {
@@ -151,6 +174,32 @@ namespace KineTutor3D.UI
             return UIDesignTokens.GetDifficultyColor(difficulty);
         }
 
+        private static string GetPreviewLabel(string visualizationLevel)
+        {
+            switch (visualizationLevel)
+            {
+                case "DonorMesh":
+                    return "REAL 3D";
+                case "Lesson":
+                    return "TEACH";
+                default:
+                    return "CONCEPT";
+            }
+        }
+
+        private static Color PreviewColor(string visualizationLevel)
+        {
+            switch (visualizationLevel)
+            {
+                case "DonorMesh":
+                    return UIDesignTokens.Colors.AccentSuccess;
+                case "Lesson":
+                    return UIDesignTokens.Colors.AccentSecondary;
+                default:
+                    return UIDesignTokens.Colors.TextMuted;
+            }
+        }
+
         private static string TruncateDescription(string text, int maxLength)
         {
             if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
@@ -159,6 +208,30 @@ namespace KineTutor3D.UI
             }
 
             return text.Substring(0, maxLength - 3) + "...";
+        }
+
+        private static bool SupportsRobotControl(RobotCatalogEntry entry)
+        {
+            if (entry == null)
+            {
+                return false;
+            }
+
+            var lessons = entry.Metadata.SupportedLessons;
+            if (lessons == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < lessons.Length; i++)
+            {
+                if (string.Equals(lessons[i], "RobotControl", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

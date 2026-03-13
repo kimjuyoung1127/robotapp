@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8fef2150551f8f40bef017e2cd2cb3b, type: 3}
+  m_Name: S05
+  m_EditorClassIdentifier: 
+  showLeftPanel: 1
+  showRightPanel: 1
+  showBottomBar: 1
+  leftContent: 4
+  rightContent: 2
+  focusTarget: 2
+  focusHighlightColor: {r: 0.29, g: 0.62, b: 1, a: 1}
+  showFrameGizmos: 1
+  showMatrices: 1
+  showDHTable: 1
+  showSliders: 1
+  showAnimation: 1
+  showEEHighlight: 0
+  tooltips: []
+  conditions:
+  - interactionType: 2
+    targetId: joint_slider_1
+    requiredCount: 1
+  - interactionType: 0
+    targetId: matrix_r
+    requiredCount: 1
+  - interactionType: 0
+    targetId: matrix_p
+    requiredCount: 1
+  gateMeetToastKo: "\uD68C\uC804(R)\uACFC \uC704\uCE58(p)\uB97C \uAD6C\uBD84\uD560
+    \uC218 \uC788\uAC8C \uB418\uC5C8\uC2B5\uB2C8\uB2E4!"
+  stepTitleKo: "\uD68C\uC804/\uC704\uCE58 \uBD84\uB9AC"
+  objectiveKo: "\uD589\uB82C\uC758 R(\uD68C\uC804), p(\uC704\uCE58) \uC601\uC5ED\uC744
+    \uAD6C\uBD84\uD569\uB2C8\uB2E4."
+  hintKo: "\uC2AC\uB77C\uC774\uB354\uC640 R/p \uC601\uC5ED\uC744 \uD655\uC778\uD558\uC138\uC694."

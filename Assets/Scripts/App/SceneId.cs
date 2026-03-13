@@ -12,5 +12,7 @@ namespace KineTutor3D.App
         Main = 3,
         RobotLibrary = 4,
         Sandbox = 5,
+        RobotControl = 6,
+        MathReadiness = 7,
     }
 }

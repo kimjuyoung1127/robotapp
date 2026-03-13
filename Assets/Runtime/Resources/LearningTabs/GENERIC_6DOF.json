@@ -1,0 +1,75 @@
+{
+  "robotId": "GENERIC_6DOF",
+  "displayTitle": "6축 산업로봇 Learning Stage",
+  "heroSummary": "6축 로봇의 기본 구조와 끝점 배치를 3D와 2D FK 다이어그램으로 함께 읽는 탐색형 학습 화면입니다.",
+  "legend": [
+    { "accentKey": "joint1", "labelKo": "Joint 1" },
+    { "accentKey": "joint2", "labelKo": "Joint 2" },
+    { "accentKey": "joint3", "labelKo": "Joint 3" },
+    { "accentKey": "joint4", "labelKo": "Joint 4" },
+    { "accentKey": "joint5", "labelKo": "Joint 5" },
+    { "accentKey": "joint6", "labelKo": "Joint 6" },
+    { "accentKey": "ee", "labelKo": "End Effector" }
+  ],
+  "tabs": [
+    {
+      "id": "overview",
+      "labelKo": "개요",
+      "headlineKo": "6축 구조를 큰 그림으로 보기",
+      "bodyKo": "각 관절이 자세와 위치를 나눠 맡는 방식, 그리고 누적 변환이 끝점에 어떻게 반영되는지 먼저 관찰합니다.",
+      "cards": [
+        {
+          "tagKo": "STRUCTURE",
+          "titleKo": "기본 관찰 포인트",
+          "bodyKo": "초반 관절은 큰 방향과 범위를 만들고, 후반 관절은 끝점 자세를 정교하게 다듬습니다."
+        }
+      ],
+      "callouts": [
+        {
+          "tone": "accent",
+          "titleKo": "차별점",
+          "bodyKo": "복잡한 6축 구조도 3D와 2D FK를 같이 보며 누적 변환의 결과를 바로 확인할 수 있습니다."
+        }
+      ]
+    },
+    {
+      "id": "motion",
+      "labelKo": "움직임",
+      "headlineKo": "관절 조합을 직접 바꿔 보기",
+      "bodyKo": "조인트를 조작하면 3D 로봇, 2D FK 다이어그램, 끝점 결과 카드가 함께 갱신됩니다."
+    },
+    {
+      "id": "fk",
+      "labelKo": "FK",
+      "headlineKo": "누적 변환과 끝점 결과 읽기",
+      "bodyKo": "현재 6축 자세의 누적 변환을 compact 카드로 읽고 필요할 때만 상세 내용을 펼칩니다."
+    }
+  ],
+  "motion": {
+    "primaryCtaLabelKo": "조작 시작",
+    "resultTitleKo": "실시간 결과",
+    "metrics": [
+      { "id": "ee_x", "labelKo": "EE X", "unitKo": "m" },
+      { "id": "ee_y", "labelKo": "EE Y", "unitKo": "m" },
+      { "id": "ee_theta", "labelKo": "누적 각도", "unitKo": "deg" },
+      { "id": "link_lengths", "labelKo": "링크 길이", "unitKo": "" }
+    ],
+    "overlaySummaryKo": "6축 로봇은 기본 결과 모드로 3D와 2D FK 다이어그램을 함께 보여줍니다."
+  },
+  "forwardKinematics": {
+    "compactTitleKo": "현재 누적 변환",
+    "formulaLinesKo": [
+      "0Tn = A1 × A2 × ... × A6",
+      "마지막 열은 끝점 위치를 나타냅니다.",
+      "현재 화면은 큰 흐름 이해를 우선하고 상세 행렬은 펼침으로 제공합니다."
+    ],
+    "advancedDrawerLabelKo": "자세히 보기",
+    "advancedCards": [
+      {
+        "tagKo": "READ",
+        "titleKo": "먼저 읽는 순서",
+        "bodyKo": "끝점 위치, 누적 각도, 각 축의 역할 분담을 먼저 읽고 세부 행렬은 나중에 확인합니다."
+      }
+    ]
+  }
+}
