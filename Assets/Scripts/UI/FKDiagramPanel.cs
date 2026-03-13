@@ -11,7 +11,7 @@ namespace KineTutor3D.UI
     /// 2D FK 다이어그램을 RawImage + Texture2D에 렌더링합니다.
     /// 그리드/좌표축, 관절별 색상 링크, 각도 arc, EE 좌표를 실시간 표시합니다.
     /// </summary>
-    public class FKDiagramPanel : MonoBehaviour
+    public class FKDiagramPanel : MonoBehaviour, IVisibilityControllable
     {
         private RawImage rawImage;
         private Texture2D texture;

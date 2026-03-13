@@ -7,7 +7,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 샌드박스 모드 액션 버튼 패널입니다.
     /// </summary>
-    public class SandboxActionPanel : MonoBehaviour
+    public class SandboxActionPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;

@@ -17,10 +17,10 @@ namespace KineTutor3D.UI.Data
     /// </summary>
     public static class MathReadinessContentTheme
     {
-        private static readonly Color OrangeAccent = new Color(0.95f, 0.60f, 0.20f, 1f);
-        private static readonly Color BlueAccent   = new Color(0.29f, 0.56f, 0.85f, 1f);
-        private static readonly Color PurpleAccent = new Color(0.62f, 0.38f, 0.85f, 1f);
-        private static readonly Color GreenAccent  = new Color(0.30f, 0.75f, 0.45f, 1f);
+        private static Color OrangeAccent => UIDesignTokens.Colors.ConceptOrange;
+        private static Color BlueAccent   => UIDesignTokens.Colors.ConceptBlue;
+        private static Color PurpleAccent => UIDesignTokens.Colors.ConceptPurple;
+        private static Color GreenAccent  => UIDesignTokens.Colors.ConceptGreen;
 
         /// <summary>컨셉에 해당하는 테마 accent 색상을 반환합니다.</summary>
         public static Color GetAccentColor(MathReadinessContent content)

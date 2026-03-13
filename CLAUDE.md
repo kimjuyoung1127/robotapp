@@ -106,6 +106,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 16 | fairino-fr5-integration | Fairino, FR5, 실제 로봇, C# SDK, Unity 제어, 상태 피드백 | `kinetutor-guide/content/fairino-fr5-integration/` |
 | 17 | robot-showroom-debug | robot showroom, showroomoutput, comparestrip, preview pod, Game/Scene size mismatch | `kinetutor-guide/ui/robot-showroom-debug/` |
 | 18 | main-learning-tabs-json | Main 탭 JSON, LearningTabs, robot-specific tab content, JsonUtility fallback, MainLearningTabsLoader | `kinetutor-guide/ui/main-learning-tabs-json/` |
+| 19 | viewbuilder-extract | ViewBuilder, UI 분리, Refs struct, 패널 추출 | `kinetutor-guide/ui/viewbuilder-extract/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
@@ -120,6 +121,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - `asmdef-setup` -> `unity-official-docs`
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
 - `debug-success-capture` -> `pre-commit-validate` + `student-friendly-ux`
+- `viewbuilder-extract` -> `ui-design-system` + `scene-ui-visibility`
 
 ## Source of Truth 문서
 - 탐색 인덱스: `AGENTS.md`

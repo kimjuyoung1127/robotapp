@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
     /// 스텝 제목/힌트/게이트 진행 텍스트를 표시합니다.
     /// </summary>
     [ExecuteAlways]
-    public class StepTutorPanel : MonoBehaviour
+    public class StepTutorPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform panelRoot;
         [SerializeField] private Text stepTitleText;

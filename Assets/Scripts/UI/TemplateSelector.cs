@@ -12,7 +12,7 @@ namespace KineTutor3D.UI
     /// 로봇 템플릿 드롭다운을 렌더링하고 선택을 AppController에 전달합니다.
     /// </summary>
     [ExecuteAlways]
-    public class TemplateSelector : MonoBehaviour
+    public class TemplateSelector : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform topBarRoot;
         [SerializeField] private Dropdown dropdown;
@@ -205,7 +205,7 @@ namespace KineTutor3D.UI
 
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
             titleText.text = "KineTutor3D";
-            UiRuntimeStyle.EnsureOutline(titleText, new Color(0f, 0f, 0f, 0.28f), new Vector2(1f, -1f));
+            UiRuntimeStyle.EnsureOutline(titleText, UIDesignTokens.Colors.TextShadow, new Vector2(1f, -1f));
 
             var stepIndicatorTransform = topBarRoot.Find("StepIndicatorText");
             var stepIndicator = stepIndicatorTransform != null ? stepIndicatorTransform.GetComponent<Text>() : null;

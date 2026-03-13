@@ -8,7 +8,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 하단 토스트 메시지 표시를 담당합니다.
     /// </summary>
-    public class ToastNotificationController : MonoBehaviour
+    public class ToastNotificationController : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private GameObject toastRoot;
         [SerializeField] private Text messageText;
@@ -140,6 +140,14 @@ namespace KineTutor3D.UI
             }
 
             hideRoutine = null;
+        }
+
+        /// <summary>
+        /// 패널 가시성을 설정합니다.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (toastRoot != null) toastRoot.SetActive(visible);
         }
     }
 }

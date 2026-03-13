@@ -14,7 +14,7 @@ namespace KineTutor3D.UI
     /// </summary>
     [ExecuteAlways]
     [DisallowMultipleComponent]
-    public class TargetFeedbackPanel : MonoBehaviour
+    public class TargetFeedbackPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private TargetMarkerVisual targetMarkerVisual;

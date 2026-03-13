@@ -19,7 +19,8 @@ namespace KineTutor3D.App
             var config = stepConfigs[currentIndex];
 
             disclosureController?.ApplyStep(config);
-            focusHighlighter?.ApplyFocus(config.focusTarget, config.focusHighlightColor);
+            var highlightColor = config.focusHighlightColor == default ? UI.UIDesignTokens.Colors.AccentPrimary : config.focusHighlightColor;
+            focusHighlighter?.ApplyFocus(config.focusTarget, highlightColor);
             gateController?.LoadStep(config, currentStep);
             stepTutorPanel?.ApplyStep(config, currentStep, stepConfigs.Length, gateController == null || gateController.IsGateSatisfied, gateController?.GetProgressText() ?? string.Empty);
 

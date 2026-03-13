@@ -213,7 +213,7 @@ namespace KineTutor3D.UI
 
         private void BuildHeader()
         {
-            headerRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellHeader", new Color(0.05f, 0.06f, 0.10f, 0.88f));
+            headerRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellHeader", UIDesignTokens.Colors.TopBarBackground);
             UiRuntimeStyle.Stretch(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -76f), new Vector2(-16f, -16f));
 
             productTitleText = UIComponentFactory.CreateText(headerRoot, "ShellProductTitle", TypographyPreset.DisplaySm, UIDesignTokens.Colors.TextPrimary, "KineTutor3D", fallbackFont);
@@ -248,7 +248,7 @@ namespace KineTutor3D.UI
         private void BuildRightDock()
         {
             var dockWidth = UILayoutProfile.RightPanelWidth + UIDesignTokens.Space.Xs;
-            rightDockRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellRightDock", new Color(0.08f, 0.09f, 0.14f, 0.82f));
+            rightDockRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellRightDock", UIDesignTokens.Colors.SurfaceOverlay);
             UiRuntimeStyle.Stretch(
                 rightDockRoot,
                 new Vector2(1f, 0f),
@@ -354,7 +354,7 @@ namespace KineTutor3D.UI
 
         private void BuildMotionBar()
         {
-            motionBarRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellMotionBar", new Color(0.07f, 0.08f, 0.12f, 0.90f));
+            motionBarRoot = UIComponentFactory.CreatePanel(shellRoot, "MainShellMotionBar", UIDesignTokens.Colors.SurfaceRaised);
             UiRuntimeStyle.Stretch(
                 motionBarRoot,
                 new Vector2(0f, 0f),
