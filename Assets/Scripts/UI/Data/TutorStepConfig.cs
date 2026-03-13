@@ -20,7 +20,7 @@ namespace KineTutor3D.UI.Data
 
         [Header("포커스")]
         public FocusTarget focusTarget = FocusTarget.None;
-        public Color focusHighlightColor = new Color(0.29f, 0.62f, 1f, 1f);
+        public Color focusHighlightColor = default;
 
         [Header("시각화 토글")]
         public bool showFrameGizmos = true;
