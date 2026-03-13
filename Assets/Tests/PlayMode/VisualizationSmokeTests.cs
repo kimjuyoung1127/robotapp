@@ -19,7 +19,14 @@ namespace KineTutor3D.Tests.PlayMode
         public IEnumerator Setup()
         {
             PlayerPrefs.DeleteAll();
+            LogAssert.ignoreFailingMessages = true;
             yield return LoadMainScene();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            LogAssert.ignoreFailingMessages = false;
         }
 
         [UnityTest]

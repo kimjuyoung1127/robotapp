@@ -212,7 +212,7 @@ namespace KineTutor3D.Visualization
             }
 
             linkHighlighter ??= GetComponent<LinkHighlighter>() ?? gameObject.AddComponent<LinkHighlighter>();
-            linkHighlighter.Configure(baseVisual, link0Visual);
+            linkHighlighter.Configure(baseVisual, link0Visual, axis3Pivot, endEffectorVisual);
         }
 
         private void ApplyTransforms(Mat4D frame1TransformValue, Mat4D a2TransformValue, Mat4D endEffectorTransformValue)
@@ -230,6 +230,8 @@ namespace KineTutor3D.Visualization
             var jointValues = appController != null ? appController.CurrentJointValuesRad : Array.Empty<double>();
             var joint0Degrees = jointValues.Length > 0 ? (float)(jointValues[0] * Mathf.Rad2Deg) : 0f;
             var joint1Degrees = jointValues.Length > 1 ? (float)(jointValues[1] * Mathf.Rad2Deg) : 0f;
+            var joint2Degrees = jointValues.Length > 2 ? (float)(jointValues[2] * Mathf.Rad2Deg) : 0f;
+            var joint3Degrees = jointValues.Length > 3 ? (float)(jointValues[3] * Mathf.Rad2Deg) : 0f;
 
             if (baseVisual != null)
             {
@@ -244,14 +246,17 @@ namespace KineTutor3D.Visualization
             if (axis3Pivot != null)
             {
                 axis3Pivot.localPosition = donorAxis3Source != null ? donorAxis3Source.localPosition : Vector3.zero;
-                axis3Pivot.localRotation = donorAxis3Source != null ? donorAxis3Source.localRotation : Quaternion.identity;
+                axis3Pivot.localRotation = (donorAxis3Source != null ? donorAxis3Source.localRotation : Quaternion.identity) *
+                    Quaternion.AngleAxis(-joint2Degrees, Vector3.up);
                 axis3Pivot.localScale = donorAxis3Source != null ? donorAxis3Source.localScale : Vector3.one;
             }
 
             if (endEffectorVisual != null)
             {
                 endEffectorVisual.localPosition = (donorEndEffectorSource != null ? donorEndEffectorSource.localPosition : Vector3.zero) + endEffectorLocalOffset;
-                endEffectorVisual.localRotation = (donorEndEffectorSource != null ? donorEndEffectorSource.localRotation : Quaternion.identity) * Quaternion.Euler(endEffectorLocalEuler);
+                endEffectorVisual.localRotation = (donorEndEffectorSource != null ? donorEndEffectorSource.localRotation : Quaternion.identity) *
+                    Quaternion.AngleAxis(-joint3Degrees, Vector3.up) *
+                    Quaternion.Euler(endEffectorLocalEuler);
                 endEffectorVisual.localScale = ResolveScale(endEffectorLocalScale, ResolveEndEffectorScale());
             }
         }
@@ -317,7 +322,7 @@ namespace KineTutor3D.Visualization
 
             visual.gameObject.SetActive(true);
             visual.localPosition = (source != null ? source.localPosition : Vector3.zero) + offset;
-            visual.localRotation = (source != null ? source.localRotation : Quaternion.identity) * Quaternion.AngleAxis(jointAngleDegrees, Vector3.up) * Quaternion.Euler(eulerOffset);
+            visual.localRotation = (source != null ? source.localRotation : Quaternion.identity) * Quaternion.AngleAxis(-jointAngleDegrees, Vector3.up) * Quaternion.Euler(eulerOffset);
             visual.localScale = localScale;
         }
 

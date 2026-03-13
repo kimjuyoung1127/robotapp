@@ -19,6 +19,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Font fallbackFont;
         [SerializeField] private Text titleText;
         [SerializeField] private Button glossaryButton;
+        [SerializeField] private Button openSandboxButton;
         [SerializeField] private Graphic topBarBackground;
 
         private AppController appController;
@@ -32,12 +33,30 @@ namespace KineTutor3D.UI
 
         public int OptionCount => dropdown != null ? dropdown.options.Count : 0;
 
+        /// <summary>드롭다운과 Sandbox 버튼의 가시성을 설정합니다.</summary>
+        public void SetVisible(bool visible)
+        {
+            if (dropdown != null)
+            {
+                dropdown.gameObject.SetActive(visible);
+            }
+            if (openSandboxButton != null)
+            {
+                openSandboxButton.gameObject.SetActive(visible);
+            }
+            if (glossaryButton != null)
+            {
+                glossaryButton.gameObject.SetActive(visible);
+            }
+        }
+
         public void Bind(AppController owner)
         {
             UnbindCurrent();
             appController = owner;
 
             EnsureDropdown();
+            RefreshTopBarButtons();
             RebuildOptions();
 
             if (dropdown != null)
@@ -105,10 +124,11 @@ namespace KineTutor3D.UI
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             EnsureTopBarSurface();
+            RefreshTopBarButtons();
 
             if (dropdown == null)
             {
-                var existing = GameObject.Find("TemplateSelectorDropdown");
+                var existing = topBarRoot.Find("TemplateSelectorDropdown");
                 if (existing != null)
                 {
                     dropdown = existing.GetComponent<Dropdown>();
@@ -131,7 +151,7 @@ namespace KineTutor3D.UI
             }
 
             var rect = dropdown.transform as RectTransform;
-            UiRuntimeStyle.Anchor(rect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(224f, 36f), new Vector2(-74f, 0f));
+            UiRuntimeStyle.Anchor(rect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(200f, 36f), new Vector2(-74f, 0f));
 
             var image = dropdown.GetComponent<Image>();
             if (image == null)
@@ -139,19 +159,19 @@ namespace KineTutor3D.UI
                 image = dropdown.gameObject.AddComponent<Image>();
             }
 
-            image.color = UiRuntimeStyle.CardBackground;
+            image.color = UIDesignTokens.Colors.SurfaceCard;
             dropdown.targetGraphic = image;
 
             var label = dropdown.captionText;
             if (label == null)
             {
-                label = UiRuntimeStyle.EnsureText(dropdown.transform, "Label", fallbackFont, 14, FontStyle.Normal, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+                label = UiRuntimeStyle.EnsureText(dropdown.transform, "Label", fallbackFont, 14, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
                 dropdown.captionText = label;
             }
 
             label.font = fallbackFont;
             label.fontSize = 14;
-            label.color = UiRuntimeStyle.TextPrimary;
+            label.color = UIDesignTokens.Colors.TextPrimary;
             label.alignment = TextAnchor.MiddleLeft;
             UiRuntimeStyle.Stretch(label.rectTransform, Vector2.zero, Vector2.one, new Vector2(12f, 4f), new Vector2(-24f, -4f));
         }
@@ -163,7 +183,7 @@ namespace KineTutor3D.UI
 
             if (topBarBackground == null)
             {
-                topBarBackground = UiRuntimeStyle.EnsureImage(topBarRoot, "TopBarBackground", UiRuntimeStyle.PanelBackgroundAlt);
+                topBarBackground = UiRuntimeStyle.EnsureImage(topBarRoot, "TopBarBackground", UIDesignTokens.Colors.SurfaceRaisedAlt);
             }
             else
             {
@@ -172,10 +192,11 @@ namespace KineTutor3D.UI
 
             UiRuntimeStyle.Stretch((RectTransform)topBarBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            titleText ??= GameObject.Find("TitleText")?.GetComponent<Text>();
+            var existingTitle = topBarRoot.Find("TitleText");
+            titleText ??= existingTitle != null ? existingTitle.GetComponent<Text>() : null;
             if (titleText == null)
             {
-                titleText = UiRuntimeStyle.EnsureText(topBarRoot, "TitleText", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+                titleText = UiRuntimeStyle.EnsureText(topBarRoot, "TitleText", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
             }
             else
             {
@@ -186,24 +207,73 @@ namespace KineTutor3D.UI
             titleText.text = "KineTutor3D";
             UiRuntimeStyle.EnsureOutline(titleText, new Color(0f, 0f, 0f, 0.28f), new Vector2(1f, -1f));
 
-            var stepIndicator = GameObject.Find("StepIndicatorText")?.GetComponent<Text>();
+            var stepIndicatorTransform = topBarRoot.Find("StepIndicatorText");
+            var stepIndicator = stepIndicatorTransform != null ? stepIndicatorTransform.GetComponent<Text>() : null;
             if (stepIndicator != null)
             {
                 UiRuntimeStyle.ReparentTo(stepIndicator, topBarRoot);
                 stepIndicator.font = fallbackFont;
                 stepIndicator.fontSize = 16;
-                stepIndicator.color = UiRuntimeStyle.TextSecondary;
+                stepIndicator.color = UIDesignTokens.Colors.TextSecondary;
                 stepIndicator.alignment = TextAnchor.MiddleLeft;
                 UiRuntimeStyle.Anchor(stepIndicator.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(280f, 28f), new Vector2(250f, 0f));
             }
 
-            glossaryButton ??= GameObject.Find("BtnGlossaryOpen")?.GetComponent<Button>();
+            var glossaryTransform = topBarRoot.Find("BtnGlossaryOpen");
+            glossaryButton ??= glossaryTransform != null ? glossaryTransform.GetComponent<Button>() : null;
             if (glossaryButton != null)
             {
                 UiRuntimeStyle.ReparentTo(glossaryButton, topBarRoot);
                 UiRuntimeStyle.Anchor(glossaryButton.transform as RectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(40f, 36f), new Vector2(-24f, 0f));
-                UiRuntimeStyle.EnsureButtonLabel(glossaryButton, fallbackFont, "?", UiRuntimeStyle.AccentBlue);
+                UiRuntimeStyle.EnsureButtonLabel(glossaryButton, fallbackFont, "?", UIDesignTokens.Colors.AccentPrimary);
             }
+        }
+
+        private void RefreshTopBarButtons()
+        {
+            if (topBarRoot == null)
+            {
+                return;
+            }
+
+            var shouldShowSandboxShortcut = SceneCatalog.GetCurrentSceneId() == SceneId.Main;
+
+            if (shouldShowSandboxShortcut)
+            {
+                openSandboxButton ??= ResolveOrCreateTopBarButton("BtnLessonOpenSandbox");
+                if (openSandboxButton != null)
+                {
+                    UiRuntimeStyle.Anchor(openSandboxButton.transform as RectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(112f, 36f), new Vector2(-290f, 0f));
+                    UiRuntimeStyle.EnsureButtonLabel(openSandboxButton, fallbackFont, "Sandbox", UIDesignTokens.Colors.SurfaceCard);
+                    openSandboxButton.onClick.RemoveAllListeners();
+                    openSandboxButton.onClick.AddListener(OpenSandbox);
+                    openSandboxButton.gameObject.SetActive(true);
+                }
+            }
+            else if (openSandboxButton != null)
+            {
+                openSandboxButton.gameObject.SetActive(false);
+            }
+        }
+
+        private Button ResolveOrCreateTopBarButton(string objectName)
+        {
+            var existing = topBarRoot.Find(objectName);
+            var button = existing != null ? existing.GetComponent<Button>() : null;
+            if (button != null)
+            {
+                UiRuntimeStyle.ReparentTo(button, topBarRoot);
+                return button;
+            }
+
+            var go = new GameObject(objectName, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(topBarRoot, false);
+            return go.GetComponent<Button>();
+        }
+
+        private void OpenSandbox()
+        {
+            appController?.OpenCurrentRobotSandbox();
         }
 
         private void RebuildOptions()

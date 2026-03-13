@@ -11,7 +11,7 @@
 
 ## Locked Decisions
 - 제품 구조는 `Onboarding / Home / Guided Lesson / Robot Library / Sandbox / Instructor Mode / Progress / Settings`
-- `Home`이 future default hub
+- `Home / Continue Hub`가 차기 기본 허브이자 재진입 surface다
 - `Guided Lesson`이 main learning surface
 
 ## Open Questions
@@ -23,14 +23,16 @@
 - 필요 시 `docs/ref/architecture-diagrams.md`
 
 ## Last Updated
-- 2026-03-11 (KST)
+- 2026-03-12 (KST)
 
 ## Screen Graph
-- `Onboarding -> Home`
-- `Home -> Guided Lesson`
-- `Home -> Robot Library`
+- `Onboarding -> Home / Continue Hub`
+- `Home / Continue Hub -> Guided Lesson`
+- `Home / Continue Hub -> Continue Latest Context`
+- `Home / Continue Hub -> Robot Library`
+- `Home / Continue Hub -> Sandbox`
 - `Robot Library -> Guided Lesson`
 - `Robot Library -> Sandbox`
-- `Home -> Instructor Mode`
-- `Home -> Progress`
-- `Home -> Settings`
+- `Home / Continue Hub -> Instructor Mode`
+- `Home / Continue Hub -> Progress`
+- `Home / Continue Hub -> Settings`

@@ -8,7 +8,9 @@ namespace KineTutor3D.App
     {
         Boot = 0,
         Onboarding = 1,
-        Main = 2,
-        RobotLibrary = 3,
+        Home = 2,
+        Main = 3,
+        RobotLibrary = 4,
+        Sandbox = 5,
     }
 }

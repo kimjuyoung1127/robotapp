@@ -11,9 +11,9 @@ namespace KineTutor3D.UI
     /// </summary>
     internal static class RobotCardBuilder
     {
-        private const float CardWidth = 280f;
-        private const float CardHeight = 220f;
-        private const float Padding = 16f;
+        private static readonly float CardWidth = UIDesignTokens.Size.CardWidth;
+        private static readonly float CardHeight = UIDesignTokens.Size.CardHeight;
+        private static readonly float Padding = UIDesignTokens.Space.Md;
 
         /// <summary>
         /// 카탈로그 항목으로 카드 UI를 생성합니다.
@@ -23,6 +23,7 @@ namespace KineTutor3D.UI
             RobotCatalogEntry entry,
             Font font,
             Action onStartLesson,
+            Action onOpenSandbox,
             Action onViewDetails)
         {
             var metadata = entry.Metadata;
@@ -33,21 +34,21 @@ namespace KineTutor3D.UI
             le.preferredWidth = CardWidth;
             le.preferredHeight = CardHeight;
 
-            var bg = UiRuntimeStyle.EnsureImage(cardRoot, "CardBg", UiRuntimeStyle.CardBackground);
+            var bg = UiRuntimeStyle.EnsureImage(cardRoot, "CardBg", UIDesignTokens.Colors.SurfaceCard);
             UiRuntimeStyle.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             bg.raycastTarget = true;
 
-            var nameText = UiRuntimeStyle.EnsureText(cardRoot, "RobotName", font, 18, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            var nameText = UiRuntimeStyle.EnsureText(cardRoot, "RobotName", font, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(nameText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(CardWidth - Padding * 2, 28f), new Vector2(Padding, -Padding));
             nameText.text = metadata.DisplayName;
 
             BuildBadgeRow(cardRoot, metadata, font);
 
-            var descText = UiRuntimeStyle.EnsureText(cardRoot, "Description", font, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            var descText = UiRuntimeStyle.EnsureText(cardRoot, "Description", font, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(descText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(CardWidth - Padding * 2, 44f), new Vector2(Padding, -80f));
             descText.text = TruncateDescription(metadata.Description, 60);
 
-            BuildCtaButton(cardRoot, entry, font, onStartLesson);
+            BuildCtaButton(cardRoot, entry, font, onStartLesson, onOpenSandbox);
             BuildDetailButton(cardRoot, font, onViewDetails);
 
             return cardRoot;
@@ -59,7 +60,7 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(badgeRow, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(CardWidth - Padding * 2, 24f), new Vector2(Padding, -48f));
             UiRuntimeStyle.EnsureHorizontalLayout(badgeRow.gameObject, 8f);
 
-            BuildBadge(badgeRow, "DofBadge", $"{metadata.Dof}DOF", UiRuntimeStyle.AccentBlue, font);
+            BuildBadge(badgeRow, "DofBadge", $"{metadata.Dof}DOF", UIDesignTokens.Colors.AccentPrimary, font);
             BuildBadge(badgeRow, "DiffBadge", metadata.Difficulty, DifficultyColor(metadata.Difficulty), font);
         }
 
@@ -78,7 +79,7 @@ namespace KineTutor3D.UI
             badgeText.text = label;
         }
 
-        private static void BuildCtaButton(RectTransform parent, RobotCatalogEntry entry, Font font, Action onStartLesson)
+        private static void BuildCtaButton(RectTransform parent, RobotCatalogEntry entry, Font font, Action onStartLesson, Action onOpenSandbox)
         {
             var btnRect = UiRuntimeStyle.EnsureRectChild(parent, "BtnCta");
             UiRuntimeStyle.Anchor(btnRect, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(140f, 36f), new Vector2(Padding, Padding));
@@ -96,16 +97,26 @@ namespace KineTutor3D.UI
             }
 
             bool lessonSupported = entry.Metadata.GuidedLessonSupported;
-            string label = lessonSupported ? "학습 시작" : "Coming Soon";
-            var bgColor = lessonSupported ? UiRuntimeStyle.AccentBlue : UiRuntimeStyle.CardBackground;
+            bool sandboxSupported = entry.Metadata.SandboxSupported;
+            bool interactable = lessonSupported || sandboxSupported;
+            string label = lessonSupported
+                ? "학습 시작"
+                : sandboxSupported
+                    ? "샌드박스"
+                    : "Coming Soon";
+            var bgColor = interactable ? UIDesignTokens.Colors.AccentPrimary : UIDesignTokens.Colors.SurfaceCard;
 
             UiRuntimeStyle.EnsureButtonLabel(button, font, label, bgColor);
-            button.interactable = lessonSupported;
+            button.interactable = interactable;
 
+            button.onClick.RemoveAllListeners();
             if (lessonSupported && onStartLesson != null)
             {
-                button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => onStartLesson());
+            }
+            else if (sandboxSupported && onOpenSandbox != null)
+            {
+                button.onClick.AddListener(() => onOpenSandbox());
             }
         }
 
@@ -126,7 +137,7 @@ namespace KineTutor3D.UI
                 button = btnRect.gameObject.AddComponent<Button>();
             }
 
-            UiRuntimeStyle.EnsureButtonLabel(button, font, "상세", UiRuntimeStyle.PanelBackgroundAlt);
+            UiRuntimeStyle.EnsureButtonLabel(button, font, "상세", UIDesignTokens.Colors.SurfaceRaisedAlt);
 
             if (onViewDetails != null)
             {
@@ -137,12 +148,7 @@ namespace KineTutor3D.UI
 
         private static Color DifficultyColor(string difficulty)
         {
-            switch (difficulty)
-            {
-                case "Easy": return new Color(0.3f, 0.85f, 0.45f, 1f);
-                case "Hard": return new Color(0.9f, 0.35f, 0.3f, 1f);
-                default: return UiRuntimeStyle.AccentYellow;
-            }
+            return UIDesignTokens.GetDifficultyColor(difficulty);
         }
 
         private static string TruncateDescription(string text, int maxLength)

@@ -5,8 +5,8 @@ Source of truth for canonical product-document status.
 | doc_id | label | category | priority | status | owner | source_docs | downstream_sync | last_updated |
 |---|---|---|---|---|---|---|---|---|
 | `prd` | PRD | Product Strategy | P0 | QA | codex | `docs/ref/architecture-mermaid.md`, `docs/status/PROJECT-STATUS.md`, `docs/ref/asset-registry.md` | `docs/status/PROJECT-STATUS.md`, `ai-context/project-context.md`, `ai-context/master-plan.md` | 2026-03-11 |
-| `wireframe` | Wireframe | Product UX | P0 | QA | codex | `docs/ref/USER-FLOW.md`, `docs/ref/tutor-step-plan.md`, `docs/ref/architecture-diagrams.md` | `docs/ref/USER-FLOW.md`, `docs/ref/tutor-step-plan.md`, `docs/ref/architecture-diagrams.md` | 2026-03-11 |
-| `product-roadmap` | Product Roadmap | Planning | P0 | QA | codex | `docs/status/PROJECT-STATUS.md`, `docs/status/PHASE-EXECUTION-BOARD.md`, `ai-context/master-plan.md` | `docs/status/PROJECT-STATUS.md`, `docs/status/PHASE-EXECUTION-BOARD.md`, `ai-context/master-plan.md` | 2026-03-11 |
+| `wireframe` | Wireframe | Product UX | P0 | QA | codex | `docs/ref/USER-FLOW.md`, `docs/ref/tutor-step-plan.md`, `docs/ref/architecture-diagrams.md` | `docs/ref/USER-FLOW.md`, `docs/ref/tutor-step-plan.md`, `docs/ref/architecture-diagrams.md` | 2026-03-12 |
+| `product-roadmap` | Product Roadmap | Planning | P0 | QA | codex | `docs/status/PROJECT-STATUS.md`, `docs/status/PHASE-EXECUTION-BOARD.md`, `ai-context/master-plan.md` | `docs/status/PROJECT-STATUS.md`, `docs/status/PHASE-EXECUTION-BOARD.md`, `ai-context/master-plan.md` | 2026-03-12 |
 
 ## Status Flow
 

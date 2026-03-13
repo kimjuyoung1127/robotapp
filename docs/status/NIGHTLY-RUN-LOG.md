@@ -20,3 +20,9 @@
 - broken_links: 0
 - manual_required: 0
 - note: DRY_RUN=true (lock 미생성)
+
+[docs nightly organizer 완료] 2026-03-12 13:09
+- moved_daily_count: 2
+- weekly_created_or_updated: 2026-W11.md (03-12 entries added: Home/Sandbox sync, P0/P1 reprioritization)
+- broken_links: 1 (docs/ref/PRODUCT-ROADMAP.md → ./product/roadmap/asset-sourcing-checklist.md — 파일 없음)
+- manual_required: 0

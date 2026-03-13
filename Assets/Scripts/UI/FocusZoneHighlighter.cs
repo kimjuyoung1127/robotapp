@@ -28,9 +28,7 @@ namespace KineTutor3D.UI
 
         private void Awake()
         {
-            AutoWire();
             reducedMotion = StepProgressSaver.GetReducedMotion();
-            DisableAll();
         }
 
         private void OnEnable()

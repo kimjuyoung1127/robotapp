@@ -61,10 +61,11 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void CreateTemplate_SCARA_ReturnsNull()
+        public void CreateTemplate_SCARA_ReturnsTemplate()
         {
             var template = RobotCatalog.CreateTemplate("SCARA_RV");
-            Assert.IsNull(template);
+            Assert.IsNotNull(template);
+            Assert.AreEqual(4, template.Dof);
         }
 
         [Test]
@@ -74,9 +75,9 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void HasTemplate_SCARA_False()
+        public void HasTemplate_SCARA_True()
         {
-            Assert.IsFalse(RobotCatalog.HasTemplate("SCARA_RV"));
+            Assert.IsTrue(RobotCatalog.HasTemplate("SCARA_RV"));
         }
 
         [Test]
@@ -96,6 +97,7 @@ namespace KineTutor3D.Tests.EditMode
                 Assert.Greater(entry.Metadata.Dof, 0, $"DOF for {entry.Metadata.RobotId} should be positive.");
                 Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.RobotType), $"RobotType for {entry.Metadata.RobotId} should not be empty.");
                 Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.Difficulty), $"Difficulty for {entry.Metadata.RobotId} should not be empty.");
+                Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.VisualizationLevel), $"VisualizationLevel for {entry.Metadata.RobotId} should not be empty.");
             }
         }
     }

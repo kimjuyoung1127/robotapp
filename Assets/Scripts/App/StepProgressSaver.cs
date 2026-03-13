@@ -11,9 +11,11 @@ namespace KineTutor3D.App
         private const string HasVisitedKey = "KineTutor3D.HasVisited";
         private const string ReducedMotionKey = "KineTutor3D.ReducedMotion";
         private const string TrackKey = "KineTutor3D.CurrentTrack";
+        private const string MathReadinessLastCompletedStepKey = "KineTutor3D.MathReadiness.LastCompletedStep";
         private const string PreKinematicsLastCompletedStepKey = "KineTutor3D.PreKinematics.LastCompletedStep";
         private const string CoreKinematicsLastCompletedStepKey = "KineTutor3D.CoreKinematics.LastCompletedStep";
 
+        public const string MathReadinessTrack = "math_readiness";
         public const string PreKinematicsTrack = "pre_kinematics";
         public const string CoreKinematicsTrack = "core_kinematics";
 
@@ -84,13 +86,24 @@ namespace KineTutor3D.App
 
         private static string ResolveLastCompletedStepKey(string track)
         {
-            return NormalizeTrack(track) == PreKinematicsTrack
-                ? PreKinematicsLastCompletedStepKey
-                : CoreKinematicsLastCompletedStepKey;
+            switch (NormalizeTrack(track))
+            {
+                case MathReadinessTrack:
+                    return MathReadinessLastCompletedStepKey;
+                case PreKinematicsTrack:
+                    return PreKinematicsLastCompletedStepKey;
+                default:
+                    return CoreKinematicsLastCompletedStepKey;
+            }
         }
 
         private static string NormalizeTrack(string track)
         {
+            if (string.Equals(track, MathReadinessTrack, System.StringComparison.Ordinal))
+            {
+                return MathReadinessTrack;
+            }
+
             return string.Equals(track, PreKinematicsTrack, System.StringComparison.Ordinal)
                 ? PreKinematicsTrack
                 : CoreKinematicsTrack;

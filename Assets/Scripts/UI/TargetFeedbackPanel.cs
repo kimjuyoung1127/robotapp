@@ -31,13 +31,13 @@ namespace KineTutor3D.UI
         private void Awake()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
-            EnsureLayout();
         }
 
         private void OnEnable()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             EnsureLayout();
+            SetVisible(false);
         }
 
         private void OnDisable()
@@ -121,7 +121,7 @@ namespace KineTutor3D.UI
             if (feedbackText != null)
             {
                 feedbackText.text = $"타깃 도달! ({targetsReached}회)";
-                feedbackText.color = new Color(0.28f, 0.84f, 0.46f, 1f);
+                feedbackText.color = UIDesignTokens.Colors.AccentSuccess;
             }
         }
 
@@ -138,13 +138,13 @@ namespace KineTutor3D.UI
                 if (feedbackText != null)
                 {
                     feedbackText.text = "관절을 조정해 타깃에 끝점을 맞추세요.";
-                    feedbackText.color = UiRuntimeStyle.TextSecondary;
+                    feedbackText.color = UIDesignTokens.Colors.TextSecondary;
                 }
                 return;
             }
 
             distanceText.text = $"타깃까지 거리: {distance:F3} m";
-            distanceText.color = distance <= reachThreshold ? new Color(0.28f, 0.84f, 0.46f, 1f) : UiRuntimeStyle.TextPrimary;
+            distanceText.color = distance <= reachThreshold ? UIDesignTokens.Colors.AccentSuccess : UIDesignTokens.Colors.TextPrimary;
         }
 
         private void EnsureLayout()
@@ -157,14 +157,14 @@ namespace KineTutor3D.UI
 
             if (panelBackground == null)
             {
-                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "TargetFeedbackBackground", UiRuntimeStyle.CardBackground);
+                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "TargetFeedbackBackground", UIDesignTokens.Colors.SurfaceCard);
             }
             UiRuntimeStyle.Stretch((RectTransform)panelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            distanceText = UiRuntimeStyle.EnsureText(panelRoot, "TFP_Distance", fallbackFont, 14, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            distanceText = UiRuntimeStyle.EnsureText(panelRoot, "TFP_Distance", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(distanceText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(352f, 22f), new Vector2(16f, -12f));
 
-            feedbackText = UiRuntimeStyle.EnsureText(panelRoot, "TFP_Feedback", fallbackFont, 13, FontStyle.Italic, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            feedbackText = UiRuntimeStyle.EnsureText(panelRoot, "TFP_Feedback", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Italic, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(feedbackText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(352f, 28f), new Vector2(16f, -38f));
         }
 

@@ -14,7 +14,14 @@ namespace KineTutor3D.Tests.EditMode
         {
             var info = new RobotMetadataInfo("TEST_01", "Test Robot", 3, "RR", "Easy",
                 guidedLessonSupported: true, sandboxSupported: true, instructorRecommended: true,
-                description: "A test robot.");
+                description: "A test robot.",
+                supportedLessons: new[] { "L0", "Sandbox" },
+                inputModes: new[] { "slider", "numeric" },
+                visualizationLevel: "DonorMesh",
+                zeroPoseDeg: new[] { 0d, 0d, 0d },
+                homePoseDeg: new[] { 5d, 10d, 15d },
+                demoPoseDeg: new[] { 15d, 10d, 5d },
+                importSource: "Assets/Test.prefab");
 
             Assert.AreEqual("TEST_01", info.RobotId);
             Assert.AreEqual("Test Robot", info.DisplayName);
@@ -26,6 +33,13 @@ namespace KineTutor3D.Tests.EditMode
             Assert.IsTrue(info.SandboxSupported);
             Assert.IsTrue(info.InstructorRecommended);
             Assert.AreEqual("A test robot.", info.Description);
+            CollectionAssert.AreEqual(new[] { "L0", "Sandbox" }, info.SupportedLessons);
+            CollectionAssert.AreEqual(new[] { "slider", "numeric" }, info.InputModes);
+            Assert.AreEqual("DonorMesh", info.VisualizationLevel);
+            CollectionAssert.AreEqual(new[] { 0d, 0d, 0d }, info.ZeroPoseDeg);
+            CollectionAssert.AreEqual(new[] { 5d, 10d, 15d }, info.HomePoseDeg);
+            CollectionAssert.AreEqual(new[] { 15d, 10d, 5d }, info.DemoPoseDeg);
+            Assert.AreEqual("Assets/Test.prefab", info.ImportSource);
         }
 
         [Test]
@@ -59,6 +73,13 @@ namespace KineTutor3D.Tests.EditMode
             Assert.IsFalse(info.SandboxSupported);
             Assert.IsFalse(info.InstructorRecommended);
             Assert.AreEqual(string.Empty, info.Description);
+            Assert.That(info.SupportedLessons, Is.Empty);
+            Assert.That(info.InputModes, Is.Empty);
+            Assert.AreEqual("Lesson", info.VisualizationLevel);
+            Assert.AreEqual(2, info.ZeroPoseDeg.Length);
+            Assert.AreEqual(2, info.HomePoseDeg.Length);
+            Assert.AreEqual(2, info.DemoPoseDeg.Length);
+            Assert.AreEqual(string.Empty, info.ImportSource);
         }
     }
 }

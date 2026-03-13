@@ -1,7 +1,7 @@
 # KineTutor3D Wireframe
 
-Version: 1.1.0  
-Last Updated: 2026-03-11 (KST)
+Version: 1.2.0  
+Last Updated: 2026-03-12 (KST)
 
 ## Purpose
 
@@ -11,25 +11,28 @@ Last Updated: 2026-03-11 (KST)
 
 1. 제품 정보 구조는 `Onboarding / Home / Guided Lesson / Robot Library / Sandbox / Instructor Mode / Progress / Settings`로 간다.
 2. `Guided Lesson`이 메인 경험이고, 나머지 화면은 준비/실습/운영을 보조한다.
-3. `Guided Lesson` 안에서는 `완전 초보 -> Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8` 흐름을 기본 학습 경로로 본다.
-4. `Robot Library -> Guided Lesson/Sandbox`, `Instructor Mode -> Guided Lesson` 흐름을 기본으로 본다.
-5. Desktop과 Tablet이 정식 UX 기준이며, Phone은 제한형 정책으로 다룬다.
+3. `Home / Continue Hub`를 차기 기본 재진입 허브로 두고, 사용자가 `이어하기 / 새로 시작 / 로봇 선택 / 샌드박스`를 선택할 수 있게 한다.
+4. `Guided Lesson` 안에서는 `완전 초보 -> Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8` 흐름을 기본 학습 경로로 본다.
+5. `Robot Library -> Guided Lesson/Sandbox`, `Instructor Mode -> Guided Lesson` 흐름을 기본으로 본다.
+6. Desktop과 Tablet이 정식 UX 기준이며, Phone은 제한형 정책으로 다룬다.
 
 ## Master Flow
 
 ```text
-Boot -> Onboarding -> Home
-Home -> Guided Lesson
+Boot -> Onboarding -> Home / Continue Hub
+Home / Continue Hub -> Guided Lesson
+Home / Continue Hub -> Math Readiness (M0~M3)
+Math Readiness (M0~M3) -> Pre-Kinematics Lesson 0~3
 Guided Lesson -> Pre-Kinematics Lesson 0~3
 Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8
-Home -> Robot Library
+Home / Continue Hub -> Robot Library
 Robot Library -> Guided Lesson
 Robot Library -> Sandbox
+Home / Continue Hub -> Sandbox
 Guided Lesson -> Sandbox
-Guided Lesson -> Challenge
-Home -> Instructor Mode
-Home -> Progress
-Home -> Settings
+Home / Continue Hub -> Instructor Mode
+Home / Continue Hub -> Progress
+Home / Continue Hub -> Settings
 ```
 
 ## Change Summary
@@ -37,7 +40,8 @@ Home -> Settings
 1. Wireframe을 root summary 문서로 축소했다.
 2. IA, Guided Lesson, Robot Library, Sandbox, Instructor Mode, Tablet 정책을 `docs/ref/product/ux/` 아래로 분기했다.
 3. 완전 초보자를 위한 `Pre-Kinematics Lesson 0~3`를 Guided Lesson 기본 경로에 추가했다.
-4. 이후 구조 변경은 leaf 문서에서 먼저 정의하고, 이 문서에 잠금 구조만 반영한다.
+4. `Home / Continue Hub`를 차기 P0 허브로 승격했다.
+5. 이후 구조 변경은 leaf 문서에서 먼저 정의하고, 이 문서에 잠금 구조만 반영한다.
 
 ## Read Next
 

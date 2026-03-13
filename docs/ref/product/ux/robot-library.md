@@ -24,7 +24,7 @@
 - `docs/ref/product/robots/robot-model-library-spec.md`
 
 ## Last Updated
-- 2026-03-11 (KST)
+- 2026-03-12 (KST)
 
 ## Screen Contract
 ### `RL-01 Grid`
@@ -75,8 +75,9 @@
 
 ## Decision Rules
 - `2DOF`는 baseline lesson의 기본 진입점이다.
-- `SCARA`는 산업 입문자 설명용 첫 확장이다.
+- `SCARA`는 산업 입문자 설명용 첫 확장이며, 현재 runtime baseline에서 실제 lesson/sandbox 진입을 지원한다.
 - `3DOF`는 구조 비교용 교육 모델이다.
 - `6DOF`는 초기에 시연/비교 중심이며 full interaction은 후속 단계다.
 - Robot Library는 robot metadata를 추정하지 않고 문서화된 값만 사용한다.
 - `RoboDK`/산업툴식 복잡한 파라미터 중심 브라우저는 배제하고, 입문자용 `difficulty`, `supported_lessons`, `recommended_for`를 전면에 둔다.
+- `Home / Continue Hub` 구현 이후에도 Robot Library는 `새 로봇/새 모드 탐색` 허브 역할을 유지한다.

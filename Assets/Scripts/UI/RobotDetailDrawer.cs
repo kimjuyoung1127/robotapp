@@ -13,12 +13,14 @@ namespace KineTutor3D.UI
     [ExecuteAlways]
     public class RobotDetailDrawer : MonoBehaviour
     {
+        private RectTransform overlayRoot;
         private RectTransform panelRoot;
         private Text titleText;
         private Text descriptionText;
         private Text specsText;
         private Text modesText;
-        private Button ctaButton;
+        private Button lessonButton;
+        private Button sandboxButton;
         private Button closeButton;
         private Font font;
         private RobotCatalogEntry currentEntry;
@@ -36,7 +38,7 @@ namespace KineTutor3D.UI
         public void Show(RobotCatalogEntry entry)
         {
             currentEntry = entry;
-            if (panelRoot == null)
+            if (panelRoot == null || overlayRoot == null)
             {
                 return;
             }
@@ -53,22 +55,31 @@ namespace KineTutor3D.UI
             modesText.text = modes;
 
             bool hasTemplate = RobotCatalog.HasTemplate(m.RobotId);
-            ctaButton.interactable = hasTemplate;
-            var ctaLabel = ctaButton.GetComponentInChildren<Text>();
-            if (ctaLabel != null)
+            lessonButton.interactable = hasTemplate && m.GuidedLessonSupported;
+            sandboxButton.interactable = hasTemplate && m.SandboxSupported;
+
+            var lessonLabel = lessonButton.GetComponentInChildren<Text>();
+            if (lessonLabel != null)
             {
-                ctaLabel.text = hasTemplate ? "학습 시작" : "Coming Soon";
+                lessonLabel.text = lessonButton.interactable ? "학습 시작" : "Coming Soon";
             }
 
-            panelRoot.gameObject.SetActive(true);
+            var sandboxLabel = sandboxButton.GetComponentInChildren<Text>();
+            if (sandboxLabel != null)
+            {
+                sandboxLabel.text = sandboxButton.interactable ? "샌드박스 열기" : "Sandbox N/A";
+            }
+
+            overlayRoot.gameObject.SetActive(true);
+            overlayRoot.SetAsLastSibling();
             isVisible = true;
         }
 
         public void Hide()
         {
-            if (panelRoot != null)
+            if (overlayRoot != null)
             {
-                panelRoot.gameObject.SetActive(false);
+                overlayRoot.gameObject.SetActive(false);
             }
 
             isVisible = false;
@@ -77,46 +88,77 @@ namespace KineTutor3D.UI
 
         private void EnsurePanel(RectTransform parent)
         {
-            panelRoot = UiRuntimeStyle.EnsureRectChild(parent, "DetailPanel");
-            UiRuntimeStyle.Anchor(panelRoot, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(340f, 500f), new Vector2(-10f, 0f));
+            overlayRoot = UiRuntimeStyle.EnsureRectChild(parent, "DetailOverlay");
+            UiRuntimeStyle.Stretch(overlayRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            var bg = UiRuntimeStyle.EnsureImage(panelRoot, "DetailBg", UiRuntimeStyle.PanelBackground);
+            var overlayBg = UiRuntimeStyle.EnsureImage(overlayRoot, "DetailOverlayBg", UIDesignTokens.Colors.SurfaceOverlay);
+            UiRuntimeStyle.Stretch((RectTransform)overlayBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            overlayBg.raycastTarget = true;
+
+            panelRoot = UiRuntimeStyle.EnsureRectChild(overlayRoot, "DetailPanel");
+            var panelWidth = UILayoutProfile.IsTablet ? 360f : 420f;
+            UiRuntimeStyle.Anchor(panelRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(panelWidth, 500f), Vector2.zero);
+
+            var bg = UiRuntimeStyle.EnsureImage(panelRoot, "DetailBg", UIDesignTokens.Colors.SurfaceRaised);
             UiRuntimeStyle.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             float y = -20f;
 
-            titleText = UiRuntimeStyle.EnsureText(panelRoot, "DetailTitle", font, 22, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            titleText = UiRuntimeStyle.EnsureText(panelRoot, "DetailTitle", font, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 32f), new Vector2(20f, y));
             y -= 44f;
 
-            descriptionText = UiRuntimeStyle.EnsureText(panelRoot, "DetailDesc", font, 14, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            descriptionText = UiRuntimeStyle.EnsureText(panelRoot, "DetailDesc", font, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(descriptionText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 60f), new Vector2(20f, y));
             y -= 72f;
 
-            var specLabel = UiRuntimeStyle.EnsureText(panelRoot, "SpecLabel", font, 14, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.AccentBlue);
+            var specLabel = UiRuntimeStyle.EnsureText(panelRoot, "SpecLabel", font, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentPrimary);
             UiRuntimeStyle.Anchor(specLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 20f), new Vector2(20f, y));
             specLabel.text = "Specifications";
             y -= 24f;
 
-            specsText = UiRuntimeStyle.EnsureText(panelRoot, "DetailSpecs", font, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            specsText = UiRuntimeStyle.EnsureText(panelRoot, "DetailSpecs", font, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(specsText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 80f), new Vector2(20f, y));
             y -= 92f;
 
-            var modeLabel = UiRuntimeStyle.EnsureText(panelRoot, "ModeLabel", font, 14, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.AccentBlue);
+            var modeLabel = UiRuntimeStyle.EnsureText(panelRoot, "ModeLabel", font, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentPrimary);
             UiRuntimeStyle.Anchor(modeLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 20f), new Vector2(20f, y));
             modeLabel.text = "Supported Modes";
             y -= 24f;
 
-            modesText = UiRuntimeStyle.EnsureText(panelRoot, "DetailModes", font, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            modesText = UiRuntimeStyle.EnsureText(panelRoot, "DetailModes", font, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(modesText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 60f), new Vector2(20f, y));
 
-            EnsureCtaButton();
+            EnsureLessonButton();
+            EnsureSandboxButton();
             EnsureCloseButton();
         }
 
-        private void EnsureCtaButton()
+        private void EnsureLessonButton()
         {
-            var btnRect = UiRuntimeStyle.EnsureRectChild(panelRoot, "BtnDetailCta");
+            var btnRect = UiRuntimeStyle.EnsureRectChild(panelRoot, "BtnDetailLesson");
+            UiRuntimeStyle.Anchor(btnRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(200f, 40f), new Vector2(0f, 106f));
+
+            var image = btnRect.GetComponent<Image>();
+            if (image == null)
+            {
+                image = btnRect.gameObject.AddComponent<Image>();
+            }
+
+            lessonButton = btnRect.GetComponent<Button>();
+            if (lessonButton == null)
+            {
+                lessonButton = btnRect.gameObject.AddComponent<Button>();
+            }
+
+            UiRuntimeStyle.EnsureButtonLabel(lessonButton, font, "학습 시작", UIDesignTokens.Colors.AccentPrimary);
+            lessonButton.onClick.RemoveAllListeners();
+            lessonButton.onClick.AddListener(OnLessonClicked);
+        }
+
+        private void EnsureSandboxButton()
+        {
+            var btnRect = UiRuntimeStyle.EnsureRectChild(panelRoot, "BtnDetailSandbox");
             UiRuntimeStyle.Anchor(btnRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(200f, 40f), new Vector2(0f, 60f));
 
             var image = btnRect.GetComponent<Image>();
@@ -125,21 +167,21 @@ namespace KineTutor3D.UI
                 image = btnRect.gameObject.AddComponent<Image>();
             }
 
-            ctaButton = btnRect.GetComponent<Button>();
-            if (ctaButton == null)
+            sandboxButton = btnRect.GetComponent<Button>();
+            if (sandboxButton == null)
             {
-                ctaButton = btnRect.gameObject.AddComponent<Button>();
+                sandboxButton = btnRect.gameObject.AddComponent<Button>();
             }
 
-            UiRuntimeStyle.EnsureButtonLabel(ctaButton, font, "학습 시작", UiRuntimeStyle.AccentBlue);
-            ctaButton.onClick.RemoveAllListeners();
-            ctaButton.onClick.AddListener(OnCtaClicked);
+            UiRuntimeStyle.EnsureButtonLabel(sandboxButton, font, "샌드박스 열기", UIDesignTokens.Colors.SurfaceRaisedAlt);
+            sandboxButton.onClick.RemoveAllListeners();
+            sandboxButton.onClick.AddListener(OnSandboxClicked);
         }
 
         private void EnsureCloseButton()
         {
             var btnRect = UiRuntimeStyle.EnsureRectChild(panelRoot, "BtnDetailClose");
-            UiRuntimeStyle.Anchor(btnRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(120f, 36f), new Vector2(0f, 16f));
+            UiRuntimeStyle.Anchor(btnRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(120f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(0f, 16f));
 
             var image = btnRect.GetComponent<Image>();
             if (image == null)
@@ -153,20 +195,31 @@ namespace KineTutor3D.UI
                 closeButton = btnRect.gameObject.AddComponent<Button>();
             }
 
-            UiRuntimeStyle.EnsureButtonLabel(closeButton, font, "닫기", UiRuntimeStyle.CardBackground);
+            UiRuntimeStyle.EnsureButtonLabel(closeButton, font, "닫기", UIDesignTokens.Colors.SurfaceCard);
             closeButton.onClick.RemoveAllListeners();
             closeButton.onClick.AddListener(Hide);
         }
 
-        private void OnCtaClicked()
+        private void OnLessonClicked()
         {
             if (currentEntry == null || !RobotCatalog.HasTemplate(currentEntry.Metadata.RobotId))
             {
                 return;
             }
 
-            RobotSelectionBridge.SetSelectedRobot(currentEntry.Metadata.RobotId);
+            RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.GuidedLessonMode);
             SceneNavigator.Load(SceneId.Main);
+        }
+
+        private void OnSandboxClicked()
+        {
+            if (currentEntry == null || !RobotCatalog.HasTemplate(currentEntry.Metadata.RobotId) || !currentEntry.Metadata.SandboxSupported)
+            {
+                return;
+            }
+
+            RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.SandboxMode);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
     }
 }

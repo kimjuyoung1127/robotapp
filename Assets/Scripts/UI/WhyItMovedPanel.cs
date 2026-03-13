@@ -28,6 +28,7 @@ namespace KineTutor3D.UI
         private Text plainLanguageText;
         private Image panelBackground;
         private Image dividerImage;
+        private Image directionArrowIcon;
         private bool panelVisible;
 
         private readonly WhyItMovedState state = new WhyItMovedState();
@@ -35,13 +36,13 @@ namespace KineTutor3D.UI
         private void Awake()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
-            EnsureLayout();
         }
 
         private void OnEnable()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             EnsureLayout();
+            SetVisible(false);
         }
 
         private void OnDisable()
@@ -110,6 +111,12 @@ namespace KineTutor3D.UI
 
         private void Refresh()
         {
+            if (appController != null && appController.CurrentStepConfig != null && appController.CurrentStepConfig.mathReadinessMode)
+            {
+                RefreshMathReadiness();
+                return;
+            }
+
             if (state.UpdateCause != RuntimeUpdateCause.JointAngleChange || !state.IsMeaningfulChange)
             {
                 SetNeutralState();
@@ -130,8 +137,8 @@ namespace KineTutor3D.UI
             {
                 deltaText.text = $"변화량: {WhyItMovedFormatter.FormatDeltaText(state.DeltaDeg)}";
                 deltaText.color = WhyItMovedFormatter.IsDeltaPositive(state.DeltaDeg)
-                    ? UiRuntimeStyle.AccentYellow
-                    : UiRuntimeStyle.AccentBlue;
+                    ? UIDesignTokens.Colors.AccentSecondary
+                    : UIDesignTokens.Colors.AccentPrimary;
             }
 
             if (affectedLinksText != null)
@@ -150,6 +157,56 @@ namespace KineTutor3D.UI
             }
         }
 
+        private void RefreshMathReadiness()
+        {
+            if (state.UpdateCause != RuntimeUpdateCause.JointAngleChange || !state.IsMeaningfulChange)
+            {
+                SetNeutralState();
+                return;
+            }
+
+            if (changedJointText != null)
+            {
+                changedJointText.text = $"움직인 관절: J{state.ChangedJointIndex + 1}";
+            }
+
+            if (angleTransitionText != null)
+            {
+                angleTransitionText.text = WhyItMovedFormatter.FormatAngleTransition(state.PreviousValueRad, state.CurrentValueRad);
+            }
+
+            if (deltaText != null)
+            {
+                deltaText.text = $"각도 변화: {WhyItMovedFormatter.FormatDeltaText(state.DeltaDeg)}";
+                deltaText.color = WhyItMovedFormatter.IsDeltaPositive(state.DeltaDeg)
+                    ? UIDesignTokens.Colors.AccentSecondary
+                    : UIDesignTokens.Colors.AccentPrimary;
+            }
+
+            if (affectedLinksText != null)
+            {
+                affectedLinksText.text = string.Empty;
+            }
+
+            if (eeChangeText != null)
+            {
+                eeChangeText.text = $"끝점 이동: {MathReadinessFormatter.FormatDirection(state.EEDisplacement)}";
+            }
+
+            // C2: Direction arrow icon for math readiness mode
+            if (directionArrowIcon != null)
+            {
+                var iconName = MathReadinessFormatter.GetDirectionIconName(state.EEDisplacement);
+                UIIconResolver.SetIcon(directionArrowIcon, iconName, UIDesignTokens.Colors.AccentSecondary);
+                directionArrowIcon.gameObject.SetActive(true);
+            }
+
+            if (plainLanguageText != null)
+            {
+                plainLanguageText.text = MathReadinessFormatter.FormatWhyItMoved(state);
+            }
+        }
+
         private void SetNeutralState()
         {
             if (changedJointText != null) changedJointText.text = "관절을 움직여 보세요.";
@@ -157,10 +214,11 @@ namespace KineTutor3D.UI
             if (deltaText != null)
             {
                 deltaText.text = string.Empty;
-                deltaText.color = UiRuntimeStyle.TextMuted;
+                deltaText.color = UIDesignTokens.Colors.TextMuted;
             }
             if (affectedLinksText != null) affectedLinksText.text = string.Empty;
             if (eeChangeText != null) eeChangeText.text = string.Empty;
+            if (directionArrowIcon != null) directionArrowIcon.gameObject.SetActive(false);
             if (plainLanguageText != null) plainLanguageText.text = string.Empty;
         }
 
@@ -179,7 +237,7 @@ namespace KineTutor3D.UI
 
             if (panelBackground == null)
             {
-                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "WhyItMovedBackground", UiRuntimeStyle.CardBackground);
+                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "WhyItMovedBackground", UIDesignTokens.Colors.SurfaceCard);
             }
             else
             {
@@ -190,7 +248,7 @@ namespace KineTutor3D.UI
             // Divider line at top
             if (dividerImage == null)
             {
-                dividerImage = UiRuntimeStyle.EnsureImage(panelRoot, "WhyItMovedDivider", UiRuntimeStyle.BorderSoft);
+                dividerImage = UiRuntimeStyle.EnsureImage(panelRoot, "WhyItMovedDivider", UIDesignTokens.Colors.BorderSoft);
             }
             UiRuntimeStyle.Stretch((RectTransform)dividerImage.transform,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
@@ -198,22 +256,28 @@ namespace KineTutor3D.UI
 
             float yOffset = -10f;
 
-            changedJointText = EnsureField("WIM_JointLabel", 12, FontStyle.Bold, UiRuntimeStyle.TextSecondary, yOffset, 20f);
+            changedJointText = EnsureField("WIM_JointLabel", 12, FontStyle.Bold, UIDesignTokens.Colors.TextSecondary, yOffset, 20f);
             yOffset -= 20f;
 
-            angleTransitionText = EnsureField("WIM_AngleTransition", 14, FontStyle.Normal, UiRuntimeStyle.TextPrimary, yOffset, 20f);
+            angleTransitionText = EnsureField("WIM_AngleTransition", 14, FontStyle.Normal, UIDesignTokens.Colors.TextPrimary, yOffset, 20f);
             yOffset -= 22f;
 
-            deltaText = EnsureField("WIM_Delta", 13, FontStyle.Normal, UiRuntimeStyle.AccentYellow, yOffset, 20f);
+            deltaText = EnsureField("WIM_Delta", 13, FontStyle.Normal, UIDesignTokens.Colors.AccentSecondary, yOffset, 20f);
             yOffset -= 20f;
 
-            affectedLinksText = EnsureField("WIM_AffectedLinks", 13, FontStyle.Normal, UiRuntimeStyle.TextPrimary, yOffset, 18f);
+            affectedLinksText = EnsureField("WIM_AffectedLinks", 13, FontStyle.Normal, UIDesignTokens.Colors.TextPrimary, yOffset, 18f);
             yOffset -= 20f;
 
-            eeChangeText = EnsureField("WIM_EEChange", 13, FontStyle.Normal, UiRuntimeStyle.TextPrimary, yOffset, 18f);
+            eeChangeText = EnsureField("WIM_EEChange", 13, FontStyle.Normal, UIDesignTokens.Colors.TextPrimary, yOffset, 18f);
+
+            // C2: Direction arrow icon next to EE change
+            directionArrowIcon = UIIconResolver.CreateIcon(panelRoot, "WIM_DirectionArrow", "icon-arrow-right", UIDesignTokens.Size.IconMd, UIDesignTokens.Colors.AccentSecondary);
+            UiRuntimeStyle.Anchor(directionArrowIcon.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(UIDesignTokens.Size.IconMd, UIDesignTokens.Size.IconMd), new Vector2(340f, yOffset));
+            directionArrowIcon.gameObject.SetActive(false);
+
             yOffset -= 24f;
 
-            plainLanguageText = EnsureField("WIM_PlainLanguage", 14, FontStyle.Italic, UiRuntimeStyle.TextPrimary, yOffset, 28f);
+            plainLanguageText = EnsureField("WIM_PlainLanguage", 14, FontStyle.Italic, UIDesignTokens.Colors.TextPrimary, yOffset, 28f);
 
             SetNeutralState();
         }

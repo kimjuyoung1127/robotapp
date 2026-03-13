@@ -97,20 +97,20 @@ namespace KineTutor3D.UI
 
             if (tooltipRoot == null)
             {
-                var go = GameObject.Find("TooltipRoot");
-                if (go != null) tooltipRoot = go.GetComponent<RectTransform>();
+                var found = transform.Find("TooltipRoot");
+                if (found != null) tooltipRoot = found as RectTransform;
             }
 
-            if (titleText == null)
+            if (titleText == null && tooltipRoot != null)
             {
-                var go = GameObject.Find("TooltipTitleText");
-                if (go != null) titleText = go.GetComponent<Text>();
+                var found = tooltipRoot.Find("TooltipTitleText");
+                if (found != null) titleText = found.GetComponent<Text>();
             }
 
-            if (bodyText == null)
+            if (bodyText == null && tooltipRoot != null)
             {
-                var go = GameObject.Find("TooltipBodyText");
-                if (go != null) bodyText = go.GetComponent<Text>();
+                var found = tooltipRoot.Find("TooltipBodyText");
+                if (found != null) bodyText = found.GetComponent<Text>();
             }
 
             if (tooltipRoot == null)
@@ -124,17 +124,17 @@ namespace KineTutor3D.UI
                 image = tooltipRoot.gameObject.AddComponent<UnityEngine.UI.Image>();
             }
 
-            image.color = new Color(0.12f, 0.14f, 0.26f, 0.96f);
+            image.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
             UiRuntimeStyle.Anchor(tooltipRoot, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 120f), new Vector2(0f, 0f));
 
             if (titleText == null)
             {
-                titleText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipTitleText", fallbackFont, 15, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+                titleText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipTitleText", fallbackFont, UIDesignTokens.Type.HeadingSm, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             }
 
             if (bodyText == null)
             {
-                bodyText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipBodyText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+                bodyText = UiRuntimeStyle.EnsureText(tooltipRoot, "TooltipBodyText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             }
 
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(244f, 22f), new Vector2(12f, -10f));

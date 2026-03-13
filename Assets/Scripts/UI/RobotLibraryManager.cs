@@ -46,27 +46,54 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            BuildTopBar();
-            BuildScrollGrid();
-            EnsureDetailDrawer();
+            if (!TryBindStaticLayout())
+            {
+                BuildTopBar();
+                BuildScrollGrid();
+                EnsureDetailDrawer();
+            }
             RebuildGrid();
             uiBuilt = true;
+        }
+
+        private bool TryBindStaticLayout()
+        {
+            topBar = canvasRoot.Find("TopBar") as RectTransform;
+            var scrollArea = canvasRoot.Find("ScrollArea") as RectTransform;
+            var viewport = scrollArea != null ? scrollArea.Find("Viewport") as RectTransform : null;
+            gridContainer = viewport != null ? viewport.Find("GridContent") as RectTransform : null;
+            detailDrawer = GetComponentInChildren<RobotDetailDrawer>(true);
+
+            if (topBar == null || scrollArea == null || viewport == null || gridContainer == null || detailDrawer == null)
+            {
+                return false;
+            }
+
+            var backBtn = topBar.Find("BtnBack")?.GetComponent<Button>();
+            if (backBtn != null)
+            {
+                backBtn.onClick.RemoveAllListeners();
+                backBtn.onClick.AddListener(OnBackClicked);
+            }
+
+            detailDrawer.Initialize(canvasRoot, fallbackFont);
+            return true;
         }
 
         private void BuildTopBar()
         {
             topBar = UiRuntimeStyle.EnsureRectChild(canvasRoot, "TopBar");
-            UiRuntimeStyle.Anchor(topBar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 60f), Vector2.zero);
-            UiRuntimeStyle.Stretch(topBar, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, -60f), Vector2.zero);
+            UiRuntimeStyle.Anchor(topBar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, UIDesignTokens.Size.TopBarHeight), Vector2.zero);
+            UiRuntimeStyle.Stretch(topBar, new Vector2(0f, 1f), Vector2.one, new Vector2(0f, -UIDesignTokens.Size.TopBarHeight), Vector2.zero);
 
-            var bg = UiRuntimeStyle.EnsureImage(topBar, "TopBarBg", UiRuntimeStyle.PanelBackground);
+            var bg = UiRuntimeStyle.EnsureImage(topBar, "TopBarBg", UIDesignTokens.Colors.SurfaceRaised);
             UiRuntimeStyle.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            var title = UiRuntimeStyle.EnsureText(topBar, "Title", fallbackFont, 24, FontStyle.Bold, TextAnchor.MiddleLeft, UiRuntimeStyle.TextPrimary);
+            var title = UiRuntimeStyle.EnsureText(topBar, "Title", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(300f, 40f), new Vector2(80f, 0f));
             title.text = "Robot Library";
 
-            var backBtn = EnsureButton(topBar, "BtnBack", "< Back", new Vector2(0f, 0.5f), new Vector2(100f, 36f), new Vector2(16f, 0f), UiRuntimeStyle.CardBackground);
+            var backBtn = EnsureButton(topBar, "BtnBack", "< Back", new Vector2(0f, 0.5f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(16f, 0f), UIDesignTokens.Colors.SurfaceCard);
             backBtn.onClick.RemoveAllListeners();
             backBtn.onClick.AddListener(OnBackClicked);
         }
@@ -111,8 +138,8 @@ namespace KineTutor3D.UI
                 gridLayout = gridContainer.gameObject.AddComponent<GridLayoutGroup>();
             }
 
-            gridLayout.cellSize = new Vector2(280f, 220f);
-            gridLayout.spacing = new Vector2(20f, 20f);
+            gridLayout.cellSize = new Vector2(UIDesignTokens.Size.CardWidth, UIDesignTokens.Size.CardHeight);
+            gridLayout.spacing = new Vector2(UIDesignTokens.Size.GridSpacing, UIDesignTokens.Size.GridSpacing);
             gridLayout.padding = new RectOffset(10, 10, 10, 10);
             gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
             gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
@@ -176,6 +203,7 @@ namespace KineTutor3D.UI
                     captured,
                     fallbackFont,
                     () => OnStartLesson(captured),
+                    () => OnOpenSandbox(captured),
                     () => OnViewDetails(captured));
             }
         }
@@ -187,8 +215,19 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            RobotSelectionBridge.SetSelectedRobot(entry.Metadata.RobotId);
+            RobotSelectionBridge.SetSelection(entry.Metadata.RobotId, RobotSelectionBridge.GuidedLessonMode);
             SceneNavigator.Load(SceneId.Main);
+        }
+
+        private void OnOpenSandbox(RobotCatalogEntry entry)
+        {
+            if (!RobotCatalog.HasTemplate(entry.Metadata.RobotId) || !entry.Metadata.SandboxSupported)
+            {
+                return;
+            }
+
+            RobotSelectionBridge.SetSelection(entry.Metadata.RobotId, RobotSelectionBridge.SandboxMode);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         private void OnViewDetails(RobotCatalogEntry entry)
@@ -201,7 +240,7 @@ namespace KineTutor3D.UI
 
         private void OnBackClicked()
         {
-            SceneNavigator.Load(SceneId.Onboarding);
+            SceneNavigator.Load(SceneId.Home);
         }
 
         private Button EnsureButton(Transform parent, string name, string label, Vector2 anchor, Vector2 size, Vector2 position, Color background)

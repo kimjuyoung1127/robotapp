@@ -2,3 +2,4 @@
 {"timestamp":"2026-03-11T18:10:00+09:00","event":"product-doc-process-transplant","drift":0,"auto_fix":0,"manual_required":0,"note":"canonical product docs 3종과 PRODUCT-DOC-BOARD를 추가하고 downstream sync 규칙을 연결"}
 {"timestamp":"2026-03-11T19:10:00+09:00","event":"product-doc-branching-plan","drift":0,"auto_fix":0,"manual_required":0,"note":"root canonical 문서를 summary 문서로 축소하고 docs/ref/product 아래 branching leaf 문서를 추가"}
 {"timestamp":"2026-03-11T13:08:14+09:00","event":"scheduled-daily-run","drift":0,"auto_fix":0,"manual_required":0,"note":"첫 자동 실행 — DRY_RUN=true, 변경사항 없음, module/product-doc 정합성 유지"}
+{"timestamp":"2026-03-12T13:09:20+09:00","event":"scheduled-daily-run","drift":1,"auto_fix":0,"manual_required":1,"note":"WIREFRAME 03-12 downstream drift — architecture-diagrams.md not synced"}

@@ -22,7 +22,7 @@
 - `docs/status/PRODUCT-DOC-BOARD.md`
 
 ## Last Updated
-- 2026-03-11 (KST)
+- 2026-03-12 (KST)
 
 ## Release Gates
 1. 문서 drift 0
@@ -30,6 +30,7 @@
 3. 태블릿 기준 사용성 확보
 4. 비공개 자료 비노출 정책 준수
 5. 핵심 런타임 테스트 유지
+6. 온보딩 skip과 재방문 흐름이 초보자 hostile하지 않게 `Home / Continue Hub` 기준으로 정리된다
 
 ## Scope Rejections
 - `vendor lock-in` 금지
@@ -41,6 +42,7 @@
 - 산업용 전문가 툴처럼 메뉴와 설정이 먼저 보이는 구조로 확장하지 않는다.
 - 강사용 기능은 lesson 제어와 시연을 돕는 수준으로 유지하고, 공장 운영 툴처럼 확대하지 않는다.
 - Sandbox는 범용 시뮬레이터가 아니라 학습 목적의 실습 공간으로 유지한다.
+- 온보딩 skip은 고급 step 직접 점프보다 hub/continue 선택 흐름을 우선한다.
 
 ## Plan Change SOP
 - 세부 변경

@@ -34,6 +34,15 @@ namespace KineTutor3D.UI
         public string A2RenderedText => a2Text != null ? a2Text.text : string.Empty;
         public string T02RenderedText => t02Text != null ? t02Text.text : string.Empty;
 
+        /// <summary>패널 가시성을 설정합니다.</summary>
+        public void SetVisible(bool visible)
+        {
+            if (panelRoot != null)
+            {
+                panelRoot.gameObject.SetActive(visible);
+            }
+        }
+
         public void Bind(AppController owner)
         {
             UnbindCurrent();
@@ -104,9 +113,11 @@ namespace KineTutor3D.UI
 
             UiRuntimeStyle.Stretch(matrixRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 20f), new Vector2(-16f, 240f));
 
-            a1Text = EnsureMatrixCard("MatrixA1Card", "MatrixA1Text", ref a1Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
-            a2Text = EnsureMatrixCard("MatrixA2Card", "MatrixA2Text", ref a2Text, new Color(0.13f, 0.20f, 0.31f, 0.96f));
-            t02Text = EnsureMatrixCard("MatrixT02Card", "MatrixT02Text", ref t02Text, new Color(0.24f, 0.18f, 0.10f, 0.96f));
+            var matrixBlue = new Color(UIDesignTokens.Colors.AccentPrimary.r * 0.45f, UIDesignTokens.Colors.AccentPrimary.g * 0.36f, UIDesignTokens.Colors.AccentPrimary.b * 0.36f, 0.96f);
+            var matrixWarm = new Color(UIDesignTokens.Colors.AccentSecondary.r * 0.25f, UIDesignTokens.Colors.AccentSecondary.g * 0.23f, UIDesignTokens.Colors.AccentSecondary.b * 0.67f, 0.96f);
+            a1Text = EnsureMatrixCard("MatrixA1Card", "MatrixA1Text", ref a1Text, matrixBlue);
+            a2Text = EnsureMatrixCard("MatrixA2Card", "MatrixA2Text", ref a2Text, matrixBlue);
+            t02Text = EnsureMatrixCard("MatrixT02Card", "MatrixT02Text", ref t02Text, matrixWarm);
             StyleMatrixHotspots();
         }
 
@@ -130,13 +141,13 @@ namespace KineTutor3D.UI
             var text = card.Find(textName)?.GetComponent<Text>();
             if (text == null)
             {
-                text = UiRuntimeStyle.EnsureText(card, textName, fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+                text = UiRuntimeStyle.EnsureText(card, textName, fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             }
 
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 8f), new Vector2(-10f, -8f));
             text.font = fallbackFont;
             text.fontSize = 13;
-            text.color = UiRuntimeStyle.TextPrimary;
+            text.color = UIDesignTokens.Colors.TextPrimary;
 
             field = text;
             return text;
@@ -152,13 +163,14 @@ namespace KineTutor3D.UI
 
         private void StyleHotspot(string name, string label, Vector2 anchoredPosition)
         {
-            var go = GameObject.Find(name);
-            if (go == null)
+            var found = panelRoot.Find(name);
+            if (found == null)
             {
                 return;
             }
 
-            var rect = go.transform as RectTransform;
+            var go = found.gameObject;
+            var rect = found as RectTransform;
             if (rect == null)
             {
                 return;
@@ -173,9 +185,9 @@ namespace KineTutor3D.UI
                 image = go.AddComponent<Image>();
             }
 
-            image.color = new Color(0.23f, 0.27f, 0.40f, 0.80f);
+            image.color = UIDesignTokens.Colors.NavCurrentScene;
 
-            var text = UiRuntimeStyle.EnsureText(go.transform, "HotspotLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(go.transform, "HotspotLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
             text.text = label;
         }

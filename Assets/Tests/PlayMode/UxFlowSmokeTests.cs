@@ -235,7 +235,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator TemplateSelector_BindsSingleTemplateOption_AndSelectionKeepsRuntimeState()
+        public IEnumerator TemplateSelector_BindsAvailableTemplateOptions_AndKeepsDefaultRuntimeState()
         {
             yield return ReloadWithProgress(1, 0);
 
@@ -252,7 +252,7 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(selector, Is.Not.Null, "TopBar에서 TemplateSelector 컴포넌트를 찾지 못했습니다.");
 
             var templateNameBefore = GetCurrentTemplateName(app);
-            Assert.That(selector.OptionCount, Is.EqualTo(1), "1차 범위에서는 템플릿 옵션이 1개(2DOF_RR)여야 합니다.");
+            Assert.That(selector.OptionCount, Is.GreaterThanOrEqualTo(2), "2DOF_RR와 SCARA_RV 템플릿 옵션이 필요합니다.");
             Assert.That(templateNameBefore, Is.EqualTo("2DOF_RR"));
 
             selector.SelectByIndex(0);

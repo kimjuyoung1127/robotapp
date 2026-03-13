@@ -1,5 +1,6 @@
 using System.Collections;
 using KineTutor3D.App;
+using KineTutor3D.UI;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -30,18 +31,18 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Boot_Visited_RoutesToMain()
+        public IEnumerator Boot_Visited_RoutesToHome()
         {
             StepProgressSaver.MarkVisited();
 
             yield return LoadScene("Boot");
-            yield return WaitForActiveScene("Main");
+            yield return WaitForActiveScene("Home");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Main"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_StartLearning_LoadsMain_AndMarksVisited()
+        public IEnumerator Onboarding_StartLearning_LoadsHome_AndMarksVisited()
         {
             yield return LoadScene("Onboarding");
 
@@ -49,14 +50,14 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(button, Is.Not.Null, "BtnStartLearning을 찾지 못했습니다.");
 
             button.onClick.Invoke();
-            yield return WaitForActiveScene("Main");
+            yield return WaitForActiveScene("Home");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Main"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
             Assert.That(StepProgressSaver.HasVisited(), Is.True, "학습 시작 후 방문 기록이 저장되어야 합니다.");
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_Skip_LoadsMain()
+        public IEnumerator Onboarding_Skip_LoadsHome()
         {
             yield return LoadScene("Onboarding");
 
@@ -64,29 +65,68 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(button, Is.Not.Null, "BtnOnboardingSkip을 찾지 못했습니다.");
 
             button.onClick.Invoke();
-            yield return WaitForActiveScene("Main");
+            yield return WaitForActiveScene("Home");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Main"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
         }
 
         [UnityTest]
-        public IEnumerator GlobalNavigation_CanMoveBetweenOnboarding_And_Main()
+        public IEnumerator Onboarding_DoesNotShowGlobalSceneNavigation()
         {
             yield return LoadScene("Onboarding");
 
-            var toMain = FindComponent<Button>("NavMain");
-            Assert.That(toMain, Is.Not.Null, "Onboarding 씬에서 NavMain 버튼을 찾지 못했습니다.");
+            var toHome = FindComponent<Button>("NavHome");
+            Assert.That(toHome == null || !toHome.gameObject.activeInHierarchy, Is.True, "Onboarding 씬에는 전역 SceneNavigationBar가 표시되지 않아야 합니다.");
+        }
 
-            toMain.onClick.Invoke();
-            yield return WaitForActiveScene("Main");
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Main"));
+        [UnityTest]
+        public IEnumerator Onboarding_Cards_AreChildrenOfModalSurface()
+        {
+            yield return LoadScene("Onboarding");
 
-            var toOnboarding = FindComponent<Button>("NavOnboarding");
-            Assert.That(toOnboarding, Is.Not.Null, "Main 씬에서 NavOnboarding 버튼을 찾지 못했습니다.");
+            var modalSurface = Find("ModalSurface");
+            var cardRow = Find("CardRow");
+            var start = Find("BtnStartLearning");
+            var beginner = Find("BtnBeginner");
+            var skip = Find("BtnOnboardingSkip");
 
-            SceneNavigator.Load(SceneId.Onboarding);
-            yield return WaitForActiveScene("Onboarding");
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Onboarding"));
+            Assert.That(modalSurface, Is.Not.Null, "ModalSurface를 찾지 못했습니다.");
+            Assert.That(cardRow, Is.Not.Null, "CardRow를 찾지 못했습니다.");
+            Assert.That(start, Is.Not.Null, "BtnStartLearning을 찾지 못했습니다.");
+            Assert.That(beginner, Is.Not.Null, "BtnBeginner를 찾지 못했습니다.");
+            Assert.That(skip, Is.Not.Null, "BtnOnboardingSkip을 찾지 못했습니다.");
+            Assert.That(start.transform.parent, Is.EqualTo(cardRow.transform), "학습 시작 버튼은 CardRow 안에 있어야 합니다.");
+            Assert.That(beginner.transform.parent, Is.EqualTo(cardRow.transform), "초보자 버튼은 CardRow 안에 있어야 합니다.");
+            Assert.That(skip.transform.parent, Is.EqualTo(modalSurface.transform), "건너뛰기 버튼은 ModalSurface 안에 있어야 합니다.");
+            Assert.That(cardRow.transform.parent, Is.EqualTo(modalSurface.transform), "CardRow는 ModalSurface 안에 있어야 합니다.");
+
+            var startRect = start.GetComponent<RectTransform>();
+            var beginnerRect = beginner.GetComponent<RectTransform>();
+            Assert.That(startRect, Is.Not.Null);
+            Assert.That(beginnerRect, Is.Not.Null);
+            Assert.That(startRect.sizeDelta, Is.EqualTo(beginnerRect.sizeDelta), "두 선택 카드는 같은 크기여야 합니다.");
+        }
+
+        [UnityTest]
+        public IEnumerator HomeScene_ContainsContinueHubController()
+        {
+            StepProgressSaver.MarkVisited();
+            yield return LoadScene("Home");
+
+            var controller = Object.FindFirstObjectByType<HomeContinueHubController>();
+            Assert.That(controller, Is.Not.Null, "HomeContinueHubController가 필요합니다.");
+            Assert.That(Object.FindFirstObjectByType<Camera>(), Is.Not.Null, "Home 씬은 최소 1개의 카메라를 가져야 합니다.");
+        }
+
+        [UnityTest]
+        public IEnumerator SceneNavigator_CanLoadSandboxScene()
+        {
+            yield return LoadScene("Main");
+
+            SceneNavigator.Load(SceneId.Sandbox);
+            yield return WaitForActiveScene("Sandbox");
+
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Sandbox"));
         }
 
         [UnityTest]
