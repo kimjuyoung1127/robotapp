@@ -400,5 +400,58 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.EnsureButtonLabel(button, UiRuntimeStyle.ResolveFont(font), label, bgColor);
             return button;
         }
+
+        // ── State Views (Empty / Loading / Error) ──────────────────────
+
+        /// <summary>빈 상태 안내 뷰를 생성합니다 (아이콘 + 메시지 + 선택적 CTA).</summary>
+        public static RectTransform CreateEmptyState(Transform parent, string name, string message, string iconName = null, string ctaLabel = null, System.Action onCta = null)
+        {
+            return CreateStateView(parent, name, message, iconName, UIDesignTokens.Colors.TextMuted, ctaLabel, onCta);
+        }
+
+        /// <summary>로딩 상태 뷰를 생성합니다 (메시지 표시).</summary>
+        public static RectTransform CreateLoadingState(Transform parent, string name, string message = "불러오는 중...")
+        {
+            return CreateStateView(parent, name, message, "icon-sync", UIDesignTokens.Colors.TextSecondary, null, null);
+        }
+
+        /// <summary>에러 상태 뷰를 생성합니다 (메시지 + 재시도 CTA).</summary>
+        public static RectTransform CreateErrorState(Transform parent, string name, string message, string retryLabel = "다시 시도", System.Action onRetry = null)
+        {
+            return CreateStateView(parent, name, message, "icon-warning", UIDesignTokens.Colors.AccentDanger, retryLabel, onRetry);
+        }
+
+        private static RectTransform CreateStateView(Transform parent, string name, string message, string iconName, Color textColor, string ctaLabel, System.Action onCta)
+        {
+            var root = CreateVStack(parent, name, (int)UIDesignTokens.Space.Lg, TextAnchor.MiddleCenter);
+            UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            if (!string.IsNullOrEmpty(iconName))
+            {
+                var iconSprite = UIIconResolver.Load(iconName);
+                if (iconSprite != null)
+                {
+                    var iconRect = UiRuntimeStyle.EnsureRectChild(root, "StateIcon");
+                    var iconImage = UiRuntimeStyle.EnsureImage(iconRect, "Img", textColor);
+                    iconImage.sprite = iconSprite;
+                    iconImage.preserveAspect = true;
+                    iconRect.sizeDelta = new Vector2(UIDesignTokens.Size.IconLg, UIDesignTokens.Size.IconLg);
+                }
+            }
+
+            var font = UiRuntimeStyle.ResolveFont(null);
+            var text = CreateText(root, "StateMessage", message, font, UIDesignTokens.Type.Body, textColor, TextAnchor.MiddleCenter);
+            var textLayout = text.GetComponent<LayoutElement>();
+            if (textLayout == null) textLayout = text.gameObject.AddComponent<LayoutElement>();
+            textLayout.preferredWidth = 300f;
+
+            if (!string.IsNullOrEmpty(ctaLabel))
+            {
+                var btn = CreateSecondaryButton(root, "StateCta", ctaLabel, font);
+                if (onCta != null) btn.onClick.AddListener(() => onCta());
+            }
+
+            return root;
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
     /// L2 비교 모드 — J1만/J2만/둘다 버튼을 표시하고 상호작용을 보고합니다.
     /// </summary>
     [ExecuteAlways]
-    public class CompareModePanelHelper : MonoBehaviour
+    public class CompareModePanelHelper : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private Font fallbackFont;
 

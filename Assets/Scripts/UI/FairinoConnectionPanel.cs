@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
     /// FAIRINO 로봇 연결 설정 패널입니다.
     /// IP 입력, Connect/Disconnect, Enable/Disable, Mock↔Live 전환을 제공합니다.
     /// </summary>
-    public class FairinoConnectionPanel : MonoBehaviour
+    public class FairinoConnectionPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private InputField ipInput;
         [SerializeField] private Button connectButton;

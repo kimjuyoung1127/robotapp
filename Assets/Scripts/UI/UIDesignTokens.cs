@@ -69,6 +69,15 @@ namespace KineTutor3D.UI
             public static readonly Color SceneOverlayLight = new Color(0.03f, 0.04f, 0.08f, 0.12f);
             public static readonly Color TopBarBackground  = new Color(0.05f, 0.06f, 0.10f, 0.92f);
 
+            // Text shadow / outline
+            public static readonly Color TextShadow      = new Color(0f, 0f, 0f, 0.28f);
+
+            // MathReadiness concept themes
+            public static readonly Color ConceptOrange   = new Color(0.95f, 0.60f, 0.20f, 1f);
+            public static readonly Color ConceptBlue     = new Color(0.29f, 0.56f, 0.85f, 1f);
+            public static readonly Color ConceptPurple   = new Color(0.62f, 0.38f, 0.85f, 1f);
+            public static readonly Color ConceptGreen    = new Color(0.30f, 0.75f, 0.45f, 1f);
+
             // FK Diagram
             public static readonly Color DiagramLink1      = new Color(0.29f, 0.56f, 0.85f, 1f);
             public static readonly Color DiagramLink2      = new Color(0.95f, 0.77f, 0.15f, 1f);

@@ -10,7 +10,7 @@ namespace KineTutor3D.UI
     /// 용어 사전 패널 표시와 쉬운/수학 설명 모드 전환을 담당합니다.
     /// </summary>
     [ExecuteAlways]
-    public class GlossaryPanelController : MonoBehaviour
+    public class GlossaryPanelController : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private GameObject panelRoot;
         [SerializeField] private Button openButton;
@@ -52,6 +52,15 @@ namespace KineTutor3D.UI
         public void Close()
         {
             if (panelRoot != null) panelRoot.SetActive(false);
+        }
+
+        /// <summary>
+        /// 패널 가시성을 설정합니다.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (visible) Open();
+            else Close();
         }
 
         private void SetMode(bool useMath)

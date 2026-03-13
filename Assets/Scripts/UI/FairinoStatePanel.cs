@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
     /// FAIRINO 로봇 실시간 상태 표시 패널입니다.
     /// 관절 각도, TCP 포즈, 에러 메시지를 표시합니다.
     /// </summary>
-    public class FairinoStatePanel : MonoBehaviour
+    public class FairinoStatePanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private Text jointStateLabel;
         [SerializeField] private Text tcpPoseLabel;

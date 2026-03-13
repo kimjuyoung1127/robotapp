@@ -8,7 +8,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 모든 씬에서 공통으로 사용하는 상단 씬 전환 바입니다.
     /// </summary>
-    public class SceneNavigationBar : MonoBehaviour
+    public class SceneNavigationBar : MonoBehaviour, IVisibilityControllable
     {
         private const float NavButtonWidth = 116f;
         private const float NavButtonHeight = 36f;
@@ -315,6 +315,14 @@ namespace KineTutor3D.UI
             layout.preferredWidth = NavButtonWidth;
             layout.minWidth = 104f;
             return button;
+        }
+
+        /// <summary>
+        /// 네비게이션 바 가시성을 설정합니다.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (topBarRoot != null) topBarRoot.gameObject.SetActive(visible);
         }
 
         private void HideLegacyDirectNavButtons()
