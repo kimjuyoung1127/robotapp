@@ -13,7 +13,7 @@ namespace KineTutor3D.App
         private static readonly SceneEntry[] Entries =
         {
             new(SceneId.Boot, "Boot", "Boot", false),
-            new(SceneId.Onboarding, "Onboarding", "Onboarding", true),
+            new(SceneId.Onboarding, "Onboarding", "Onboarding", false),
             new(SceneId.Home, "Home", "Home", true),
             new(SceneId.Main, "Main", "Main", true),
             new(SceneId.MathReadiness, "MathReadiness", "Math Readiness", true),

@@ -10,7 +10,7 @@ namespace KineTutor3D.UI
     /// </summary>
     public class SceneNavigationBar : MonoBehaviour, IVisibilityControllable
     {
-        private const float NavButtonWidth = 116f;
+        private const float NavButtonWidth = 96f;
         private const float NavButtonHeight = 36f;
         private const float NavButtonSpacing = 10f;
 
@@ -104,7 +104,7 @@ namespace KineTutor3D.UI
                     titleText = UiRuntimeStyle.EnsureText(topBarContentParent, "TitleText", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
                 }
                 UiRuntimeStyle.ReparentTo(titleText, topBarContentParent);
-                UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
+                UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(150f, 40f), new Vector2(26f, 0f));
                 titleText.text = "KineTutor3D";
             }
 
@@ -223,7 +223,7 @@ namespace KineTutor3D.UI
 
                 if (titleText != null)
                 {
-                    UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
+                    UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(150f, 40f), new Vector2(26f, 0f));
                 }
 
                 if (stepDetailText != null)
@@ -313,6 +313,7 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(button.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(NavButtonWidth, NavButtonHeight), new Vector2(index * (NavButtonWidth + NavButtonSpacing), 0f));
             var layout = UiRuntimeStyle.EnsureLayoutElement(button);
             layout.preferredWidth = NavButtonWidth;
+            layout.preferredHeight = NavButtonHeight;
             layout.minWidth = 104f;
             return button;
         }

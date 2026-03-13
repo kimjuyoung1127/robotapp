@@ -62,25 +62,28 @@ namespace KineTutor3D.UI
             // Modal surface
             var surface = UIComponentFactory.CreatePanel(modalRoot, "ModalSurface", UIDesignTokens.Colors.SurfaceRaised);
             UiRuntimeStyle.Stretch(surface, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var surfaceBg = surface.Find("Bg");
+            if (surfaceBg != null) surfaceBg.SetAsFirstSibling();
 
-            // Headline
-            var headline = UIComponentFactory.CreateText(surface, "HeadlineText",
-                TypographyPreset.DisplayLg, UIDesignTokens.Colors.TextPrimary, "KineTutor3D", font);
-            UiRuntimeStyle.Anchor(headline.rectTransform,
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(620f, 48f), new Vector2(0f, -24f));
+            // Headline — TopBar에 앱 이름이 이미 있으므로 숨김 처리
+            var headlineRect = UiRuntimeStyle.EnsureRectChild(surface, "HeadlineText");
+            headlineRect.gameObject.SetActive(false);
+            var headline = headlineRect.GetComponent<Text>();
 
             // Body
             var body = UIComponentFactory.CreateText(surface, "BodyText",
-                TypographyPreset.Body, UIDesignTokens.Colors.TextSecondary,
+                TypographyPreset.HeadingLg, UIDesignTokens.Colors.TextPrimary,
                 "\uc5b4\ub5a4 \uc218\uc900\uc5d0\uc11c \uc2dc\uc791\ud560\uae4c\uc694?", font);
             UiRuntimeStyle.Anchor(body.rectTransform,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(540f, 32f), new Vector2(0f, -76f));
+                new Vector2(540f, 40f), new Vector2(0f, -56f));
 
             // Card row
-            var cardRow = UIComponentFactory.CreateHStack(surface, "CardRow",
-                (int)CardSpacing, TextAnchor.MiddleCenter);
+            var hstack = UIComponentFactory.CreateHStack(surface, "CardRow", CardSpacing);
+            hstack.childAlignment = TextAnchor.MiddleCenter;
+            hstack.childControlWidth = false;
+            hstack.childControlHeight = false;
+            var cardRow = (RectTransform)hstack.transform;
             UiRuntimeStyle.Anchor(cardRow,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(620f, 240f), new Vector2(0f, -10f));

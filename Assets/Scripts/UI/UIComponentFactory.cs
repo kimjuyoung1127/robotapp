@@ -423,7 +423,9 @@ namespace KineTutor3D.UI
 
         private static RectTransform CreateStateView(Transform parent, string name, string message, string iconName, Color textColor, string ctaLabel, System.Action onCta)
         {
-            var root = CreateVStack(parent, name, (int)UIDesignTokens.Space.Lg, TextAnchor.MiddleCenter);
+            var vstack = CreateVStack(parent, name, (int)UIDesignTokens.Space.Lg);
+            vstack.childAlignment = TextAnchor.MiddleCenter;
+            var root = (RectTransform)vstack.transform;
             UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             if (!string.IsNullOrEmpty(iconName))
@@ -440,7 +442,7 @@ namespace KineTutor3D.UI
             }
 
             var font = UiRuntimeStyle.ResolveFont(null);
-            var text = CreateText(root, "StateMessage", message, font, UIDesignTokens.Type.Body, textColor, TextAnchor.MiddleCenter);
+            var text = CreateText(root, "StateMessage", TypographyPreset.Body, textColor, message, font, TextAnchor.MiddleCenter);
             var textLayout = text.GetComponent<LayoutElement>();
             if (textLayout == null) textLayout = text.gameObject.AddComponent<LayoutElement>();
             textLayout.preferredWidth = 300f;
