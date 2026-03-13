@@ -1,3 +1,4 @@
+﻿// Folder: Kinematics - DH parameter and FK algorithms; no UnityEngine references.
 using System;
 using KineTutor3D.Math;
 using KineTutor3D.Types;

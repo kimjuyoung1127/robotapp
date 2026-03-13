@@ -1,8 +1,8 @@
-﻿// Folder: App - application orchestration and runtime state.
+// Folder: App - Application controllers and services; single UnityEngine entry point.
 namespace KineTutor3D.App
 {
     /// <summary>
-    /// DH ?뚯씠釉붿뿉???몄쭛 媛?ν븳 ?꾨뱶 ??낆엯?덈떎.
+    /// DH 테이블에서 편집 가능한 필드 열거형입니다.
     /// </summary>
     public enum DhEditableField
     {
@@ -12,4 +12,3 @@ namespace KineTutor3D.App
         Alpha
     }
 }
-

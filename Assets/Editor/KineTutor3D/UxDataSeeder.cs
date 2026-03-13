@@ -10,14 +10,14 @@ namespace KineTutor3D.Editor
     /// </summary>
     public static class UxDataSeeder
     {
-        private const string TutorStepFolder = "Assets/Resources/TutorSteps";
-        private const string GlossaryFolder = "Assets/Resources/Glossary";
-        private const string OnboardingFolder = "Assets/Resources/Onboarding";
+        private const string TutorStepFolder = "Assets/Runtime/Resources/TutorSteps";
+        private const string GlossaryFolder = "Assets/Runtime/Resources/Glossary";
+        private const string OnboardingFolder = "Assets/Runtime/Resources/Onboarding";
 
         [MenuItem("KineTutor3D/Seed UX Data")]
         public static void Seed()
         {
-            EnsureFolder("Assets/Resources");
+            EnsureFolder("Assets/Runtime/Resources");
             EnsureFolder(TutorStepFolder);
             EnsureFolder(GlossaryFolder);
             EnsureFolder(OnboardingFolder);

@@ -25,16 +25,21 @@ namespace KineTutor3D.UI
 
         private void Awake()
         {
-            if (nextButton == null)
+            var canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+            if (nextButton == null && canvas != null)
             {
-                var next = GameObject.Find("BtnNext");
-                if (next != null) nextButton = next.GetComponent<Button>();
+                foreach (var btn in canvas.GetComponentsInChildren<Button>(true))
+                {
+                    if (btn.gameObject.name == "BtnNext") { nextButton = btn; break; }
+                }
             }
 
-            if (skipButton == null)
+            if (skipButton == null && canvas != null)
             {
-                var skip = GameObject.Find("BtnSkip");
-                if (skip != null) skipButton = skip.GetComponent<Button>();
+                foreach (var btn in canvas.GetComponentsInChildren<Button>(true))
+                {
+                    if (btn.gameObject.name == "BtnSkip") { skipButton = btn; break; }
+                }
             }
         }
 

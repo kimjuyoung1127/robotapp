@@ -1,3 +1,4 @@
+﻿// Folder: Templates - Robot configuration templates; no UnityEngine references.
 using System;
 using System.Collections.Generic;
 using KineTutor3D.Types;
@@ -17,33 +18,78 @@ namespace KineTutor3D.Templates
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
                     "2DOF_RR", "2DOF RR", 2, "RR", "Easy",
+                    convention: "DH-Standard",
                     guidedLessonSupported: true,
                     sandboxSupported: true,
-                    description: "2자유도 회전-회전 로봇. 기구학 입문에 적합합니다."),
+                    description: "2자유도 회전-회전 로봇. 기구학 입문에 적합합니다.",
+                    supportedLessons: new[] { "L0", "L1", "L2", "L3", "S1", "S2", "S3" },
+                    inputModes: new[] { "slider", "numeric" },
+                    visualizationLevel: "Lesson",
+                    importSource: "Assets/Scenes/Main.unity"),
                 Template2DOF_RR.Create));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
-                    "SCARA_RV", "SCARA Robot", 3, "SCARA", "Medium",
+                    "SCARA_RV", "SCARA Robot", 4, "SCARA", "Medium",
+                    convention: "DH",
                     guidedLessonSupported: true,
                     sandboxSupported: true,
-                    description: "3자유도 SCARA 로봇. 수평 다관절 구조입니다."),
+                    instructorRecommended: true,
+                    description: "4자유도 SCARA 로봇. 수평 다관절 구조의 첫 확장 모델입니다.",
+                    supportedLessons: new[] { "SCARA Intro", "Sandbox" },
+                    inputModes: new[] { "slider", "numeric" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, 25d, 0d, 0d },
+                    demoPoseDeg: new[] { 35d, -20d, 40d, 10d },
+                    importSource: "Assets/realvirtual/3DPrefabs/ScaraRobot.prefab"),
                 TemplateSCARA_RV.Create));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
+                    "FAIRINO_FR5", "FAIRINO FR5", 6, "Articulated", "Medium",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: true,
+                    description: "6자유도 FAIRINO FR5 산업로봇. 실기 연동을 지원합니다.",
+                    supportedLessons: new[] { "Sandbox", "RobotControl" },
+                    inputModes: new[] { "slider", "numeric", "live" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, -90d, 0d, -90d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -45d, 60d, -30d, 45d, 0d },
+                    importSource: "Assets/Runtime/Robots/FAIRINO_FR5/fairino5_v6.urdf"),
+                TemplateFAIRINO_FR5.Create));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
                     "GENERIC_6DOF", "6축 산업로봇", 6, "Articulated", "Medium",
-                    description: "6자유도 범용 산업로봇. 다양한 작업에 활용됩니다.")));
+                    convention: "URDF-ready",
+                    description: "6자유도 범용 산업로봇. 다양한 작업에 활용됩니다.",
+                    supportedLessons: new[] { "Demo" },
+                    inputModes: new[] { "demo" },
+                    visualizationLevel: "DemoOnly",
+                    importSource: "Pending")));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
                     "FANUC_CRX10", "Fanuc CRX-10iA/L", 6, "Collaborative", "Hard",
-                    description: "6자유도 협동로봇. Fanuc CRX 시리즈입니다.")));
+                    convention: "URDF-ready",
+                    description: "6자유도 협동로봇. 실제 donor preview를 사용하는 Fanuc CRX 시리즈입니다.",
+                    supportedLessons: new[] { "Demo" },
+                    inputModes: new[] { "demo" },
+                    visualizationLevel: "DonorMesh",
+                    importSource: "Assets/realvirtual/3DPrefabs/FanucCRX-10iA_L.prefab")));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
                     "IGUS_REBEL", "igus REBEL", 6, "Educational", "Medium",
-                    description: "6자유도 교육용 로봇. igus REBEL 시리즈입니다.")));
+                    convention: "URDF-ready",
+                    description: "6자유도 교육용 로봇. 실제 donor preview를 사용하는 igus REBEL 시리즈입니다.",
+                    supportedLessons: new[] { "Demo" },
+                    inputModes: new[] { "demo" },
+                    visualizationLevel: "DonorMesh",
+                    importSource: "Assets/realvirtual/Interfaces/igusREBEL/igusRebel.prefab")));
         }
 
         /// <summary>

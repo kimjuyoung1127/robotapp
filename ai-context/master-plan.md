@@ -2,39 +2,51 @@
 
 최종 업데이트: 2026-03-12 (KST)
 
-## 현재 Phase
-- **Phase 0~5: Foundation → Guided Lesson P0** (모두 완료)
-- **Phase 6: CI/CD** (Hold — runner 미등록)
-- **Product Docs Governance** (진행 중)
+## 현재 기준선
+- 완료: Phase 0~5 (5A~5G Complete)
+- 현재 baseline:
+  - `2DOF + SCARA` runtime
+  - `Home / Continue Hub`
+  - `math_readiness` track
+  - `Beginner Lesson 0~3`
+  - `Why It Moved`
+  - `Robot Library MVP`
+  - `Sandbox.unity` + `snapshot lite` + `Sandbox actions`
+  - curated asset subset + vendor fallback
+- 현재 진행:
+  - `Product Docs Governance`
+  - `Phase 6 CI/CD`는 hold
 
-## Phase 로드맵
+## 근접 P0 순서
+1. `Sandbox polish 마감`
+2. `tablet 4DOF input usability`
+3. `asset subset Git tracking`
+4. `replay / compare / motion history`
+5. `constraint / workspace / singularity preview`
 
-| Phase | 이름 | 핵심 산출물 | 상태 |
-|-------|------|-----------|------|
-| 0 | Foundation | Git, .gitignore, 문서, 클린 컴파일 | 완료 |
-| 1 | 핵심 타입 & 수학 | JointType, DHLink, RobotTemplate, Pose, Vec3D, Mat3D, Mat4D | 완료 |
-| 2 | 기구학 코어 | Standard DH, Forward Kinematics + EditMode 테스트 | 완료 |
-| 3 | 최소 튜터 UI | 2DOF 런타임, 슬라이더, DH 테이블, Step Tutor, Student UX | 완료 |
-| 4 | 시각화 | Frame gizmo, RobotRenderer, Scene Flow, URP | 완료 |
-| 5 | Guided Lesson P0 | Runtime foundation, Track-aware step, Joint Input, Why It Moved, Beginner L0~L3, Robot Library MVP | 완료 |
-| 6 | CI/CD | GitHub Actions 파이프라인 | Hold |
-| 7 | 문서화 | AGENTS hierarchy, architecture-mermaid | 완료 |
+## 후속 P1 순서
+1. `replay / compare / motion history`
+2. `constraint / workspace / singularity preview`
+3. `Instructor demo mode`
+4. `3DOF template`
+5. `6DOF demo-first`
+6. `URDF Import`
 
-## 최근 완료
-- Phase 5 전체 완료 (5A~5G): runtime snapshot, track-aware step, joint input/highlight, Why It Moved, Beginner L0~L3, Robot Library MVP, Tests+Docs sync
-- 테스트 기준: EditMode 107/107, PlayMode 30/30
-- 스킬 라우팅 검증: 13/13 스킬, 112/114 문서 도달 가능 (98.2%)
-- 안정성 리팩터링 완료: AppController/RobotRenderer/DHTableEditor facade + helper 분리
+## P2 이후
+1. `pick foundation`
+2. `Progress / assessment / challenge`
+3. `LLM teaching layer`
+4. `Android tablet internal build`
+5. `CI/CD 실주행`
 
-## 다음 우선순위
-1. Phase 6 CI/CD: self-hosted runner 등록 후 실주행 1회 확인
-2. SCARA/3DOF/6DOF template 실제 기구학 연결 (Robot Library 데모퍼스트 → 실동작)
-3. Sandbox MVP 화면 구현
-4. Workspace Envelope 시각화
-5. Instructor Demo Mode
+## 현재 스프린트 목표
+- `Home / Continue Hub`, `resume / session context`, `snapshot lite`, `math_readiness`를 현재 baseline으로 유지
+- Sandbox를 실제 학습 공간으로 느껴지게 polish 마감
+- SCARA 4DOF 입력을 태블릿 기준에서 usable 상태로 만들기
+- replay 전에 `snapshot lite`를 안정화하고 샌드박스 버튼/패널 구조를 정리
 
 ## 운영 규칙
-- Phase 상태는 `docs/status/PHASE-EXECUTION-BOARD.md`에서 추적
-- 제품 문서 상태는 `docs/status/PRODUCT-DOC-BOARD.md`에서 추적
-- 모듈별 스킬 매핑은 `docs/status/SKILL-DOC-MATRIX.md`에서 관리
-- Phase 완료 시 `sprint-docs-sync` 스킬 실행
+- phase 상태는 `docs/status/PHASE-EXECUTION-BOARD.md`
+- canonical product docs 상태는 `docs/status/PRODUCT-DOC-BOARD.md`
+- 현재 구현 범위와 다음 우선순위는 `docs/ref/product/roadmap/current-feature-checklist.md`
+- 문서 drift가 보이면 실제 코드/테스트 상태를 우선

@@ -99,25 +99,41 @@ namespace KineTutor3D.UI
 
         private void AutoWire()
         {
+            var canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+            if (canvas == null) return;
+
             if (leftPanel == null)
             {
-                leftPanel = GameObject.Find("LeftPanel");
+                var found = FindByName(canvas, "LeftPanel");
+                if (found != null) leftPanel = found;
             }
 
             if (rightPanel == null)
             {
-                rightPanel = GameObject.Find("RightPanel");
+                var found = FindByName(canvas, "RightPanel");
+                if (found != null) rightPanel = found;
             }
 
             if (bottomBar == null)
             {
-                bottomBar = GameObject.Find("BottomBar");
+                var found = FindByName(canvas, "BottomBar");
+                if (found != null) bottomBar = found;
             }
 
             if (frameInfoOverlay == null)
             {
-                frameInfoOverlay = GameObject.Find("FrameInfoOverlay");
+                var found = FindByName(canvas, "FrameInfoOverlay");
+                if (found != null) frameInfoOverlay = found;
             }
+        }
+
+        private static GameObject FindByName(Canvas canvas, string objectName)
+        {
+            foreach (var t in canvas.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.gameObject.name == objectName) return t.gameObject;
+            }
+            return null;
         }
 
         private static IEnumerator Fade(CanvasGroup group, float from, float to, float duration)

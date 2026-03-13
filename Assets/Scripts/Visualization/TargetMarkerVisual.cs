@@ -14,9 +14,23 @@ namespace KineTutor3D.Visualization
     [DisallowMultipleComponent]
     public class TargetMarkerVisual : MonoBehaviour
     {
-        private const string TargetPrefabPath = "Assets/Glowing Rifts/Shooting Target/ShootingTarget.prefab";
-        private const string SuccessPrefabPath = "Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/Checkmark_3D_Icon.prefab";
-        private const string WarningPrefabPath = "Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/Warning_3D_Icon.prefab";
+        private static readonly string[] TargetPrefabPaths =
+        {
+            "Assets/Runtime/Prefabs/Teaching/Markers/ShootingTarget.prefab",
+            "Assets/Vendors/Archive/GlowingRifts/Shooting Target/ShootingTarget.prefab"
+        };
+
+        private static readonly string[] SuccessPrefabPaths =
+        {
+            "Assets/Runtime/Prefabs/Teaching/Markers/Checkmark_3D_Icon.prefab",
+            "Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/Checkmark_3D_Icon.prefab"
+        };
+
+        private static readonly string[] WarningPrefabPaths =
+        {
+            "Assets/Runtime/Prefabs/Teaching/Markers/Warning_3D_Icon.prefab",
+            "Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/Warning_3D_Icon.prefab"
+        };
 
         [SerializeField] private AppController appController;
         [SerializeField] private TargetMarkerConfig config = new TargetMarkerConfig();
@@ -99,7 +113,7 @@ namespace KineTutor3D.Visualization
             markerRoot ??= transform.Find("TargetMarkerRoot");
             if (markerRoot == null)
             {
-                var root = new GameObject("TargetMarkerRoot", typeof(Transform));
+                var root = new GameObject("TargetMarkerRoot");
                 root.transform.SetParent(transform, false);
                 markerRoot = root.transform;
             }
@@ -154,10 +168,29 @@ namespace KineTutor3D.Visualization
         private void ResolveCanonicalPrefabs()
         {
 #if UNITY_EDITOR
-            config.targetPrefab ??= AssetDatabase.LoadAssetAtPath<GameObject>(TargetPrefabPath);
-            config.successPrefab ??= AssetDatabase.LoadAssetAtPath<GameObject>(SuccessPrefabPath);
-            config.warningPrefab ??= AssetDatabase.LoadAssetAtPath<GameObject>(WarningPrefabPath);
+            config.targetPrefab ??= LoadFirstPrefab(TargetPrefabPaths);
+            config.successPrefab ??= LoadFirstPrefab(SuccessPrefabPaths);
+            config.warningPrefab ??= LoadFirstPrefab(WarningPrefabPaths);
 #endif
+        }
+
+        private static GameObject LoadFirstPrefab(string[] paths)
+        {
+            if (paths == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(paths[i]);
+                if (prefab != null)
+                {
+                    return prefab;
+                }
+            }
+
+            return null;
         }
 
         private void ApplyState()

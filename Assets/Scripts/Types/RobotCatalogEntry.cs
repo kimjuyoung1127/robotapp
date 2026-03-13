@@ -1,3 +1,4 @@
+﻿// Folder: Types - Domain value types; no UnityEngine references.
 using System;
 
 namespace KineTutor3D.Types

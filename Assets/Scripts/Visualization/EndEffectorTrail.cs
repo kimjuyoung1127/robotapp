@@ -25,6 +25,7 @@ namespace KineTutor3D.Visualization
         [SerializeField] private bool trailVisible;
 
         private readonly List<Vector3> points = new List<Vector3>();
+        private bool hasRecordedMotion;
 
         public int PointCount => points.Count;
         public bool IsTrailVisible => trailVisible;
@@ -68,10 +69,6 @@ namespace KineTutor3D.Visualization
             {
                 ClearTrail();
             }
-            else
-            {
-                AppendCurrentPoint(force: true);
-            }
 
             ApplyVisibility();
         }
@@ -79,6 +76,7 @@ namespace KineTutor3D.Visualization
         public void ClearTrail()
         {
             points.Clear();
+            hasRecordedMotion = false;
             if (lineRenderer != null)
             {
                 lineRenderer.positionCount = 0;
@@ -87,7 +85,25 @@ namespace KineTutor3D.Visualization
 
         private void HandleKinematicsUpdated(Mat4D _a1, Mat4D _a2, Mat4D _t02, TutorPose _pose)
         {
-            AppendCurrentPoint(force: false);
+            if (!trailVisible || appController == null || appController.LastUpdateCause != RuntimeUpdateCause.JointAngleChange)
+            {
+                return;
+            }
+
+            if (trackedTransform == null)
+            {
+                return;
+            }
+
+            var currentPoint = trackedTransform.position;
+            if (!hasRecordedMotion)
+            {
+                AppendPoint(currentPoint, force: true);
+                hasRecordedMotion = true;
+                return;
+            }
+
+            AppendPoint(currentPoint, force: false);
         }
 
         private void HandleStepChanged(int _step, UI.Data.TutorStepConfig _config)
@@ -135,7 +151,16 @@ namespace KineTutor3D.Visualization
                 return;
             }
 
-            var point = trackedTransform.position;
+            AppendPoint(trackedTransform.position, force);
+        }
+
+        private void AppendPoint(Vector3 point, bool force)
+        {
+            if (lineRenderer == null)
+            {
+                return;
+            }
+
             if (!force && points.Count > 0 && Vector3.Distance(points[points.Count - 1], point) < minDistance)
             {
                 return;

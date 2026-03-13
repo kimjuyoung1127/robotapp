@@ -13,7 +13,8 @@ Main.unity 씬 생성, 카메라/조명/UI 초기 설정, 씬 계층 구조 설�
 - 제품 화면 종류 (`Guided Lesson`, `Robot Library`, `Sandbox`, `Instructor Mode`)
 
 ## Read First
-1. `Assets/Scenes/CLAUDE.md` — 씬 명명 규칙
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§8 Unity 측 규칙 포함)
+2. `Assets/Scenes/CLAUDE.md` — 씬 명명 규칙
 2. `Assets/Scripts/Visualization/CLAUDE.md` — 좌표 변환 규칙
 3. `docs/ref/coordinate-mapping.md` — 로보틱스↔Unity 좌표 매핑
 4. `docs/ref/architecture-diagrams.md` — 데이터 흐름

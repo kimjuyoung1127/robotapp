@@ -11,7 +11,7 @@ namespace KineTutor3D.UI
         {
             var header = new GameObject("DHHeaderRow", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
             header.transform.SetParent(tableRoot, false);
-            header.GetComponent<Image>().color = UiRuntimeStyle.CardBackground;
+            header.GetComponent<Image>().color = UIDesignTokens.Colors.SurfaceCard;
             header.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 34f);
             var layout = UiRuntimeStyle.EnsureHorizontalLayout(header, 6f);
             layout.padding = new RectOffset(10, 10, 6, 6);
@@ -26,7 +26,7 @@ namespace KineTutor3D.UI
         {
             var row = new GameObject($"DHRow_{rowIndex}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
             row.transform.SetParent(tableRoot, false);
-            row.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.22f, 0.88f);
+            row.GetComponent<Image>().color = UIDesignTokens.Colors.SurfaceRaisedAlt;
             row.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 38f);
             var layout = UiRuntimeStyle.EnsureHorizontalLayout(row, 6f);
             layout.padding = new RectOffset(10, 10, 6, 6);
@@ -45,7 +45,7 @@ namespace KineTutor3D.UI
 
         private static Text CreateHeaderLabel(Transform parent, Font fallbackFont, string text, float width)
         {
-            var label = UiRuntimeStyle.EnsureText(parent, $"Header_{text}", fallbackFont, 13, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextSecondary);
+            var label = UiRuntimeStyle.EnsureText(parent, $"Header_{text}", fallbackFont, 13, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextSecondary);
             var element = UiRuntimeStyle.EnsureLayoutElement(label);
             element.minWidth = width;
             element.preferredWidth = width;
@@ -55,7 +55,7 @@ namespace KineTutor3D.UI
 
         private static Text CreateReadOnlyText(Transform parent, Font fallbackFont, string name, float width)
         {
-            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             var element = UiRuntimeStyle.EnsureLayoutElement(text);
             element.minWidth = width;
             element.preferredWidth = width;
@@ -72,11 +72,11 @@ namespace KineTutor3D.UI
             element.minWidth = width;
             element.preferredWidth = width;
             var image = root.GetComponent<Image>();
-            image.color = interactable ? UiRuntimeStyle.PanelBackgroundAlt : new Color(0.09f, 0.10f, 0.15f, 0.75f);
+            image.color = interactable ? UIDesignTokens.Colors.SurfaceRaisedAlt : UIDesignTokens.Colors.SurfaceInput;
             input.interactable = interactable;
             input.contentType = InputField.ContentType.DecimalNumber;
             input.lineType = InputField.LineType.SingleLine;
-            var text = UiRuntimeStyle.EnsureText(root.transform, "Text", fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(root.transform, "Text", fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 1f), new Vector2(-4f, -1f));
             input.textComponent = text;
             input.SetTextWithoutNotify("0");

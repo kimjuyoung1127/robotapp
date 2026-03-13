@@ -1,0 +1,41 @@
+# KineTutor3D EditorConfig
+# https://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8-bom
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.cs]
+charset = utf-8-bom
+dotnet_sort_system_directives_first = true
+
+# Naming: PascalCase for public members
+dotnet_naming_rule.public_members_must_be_pascal.severity = warning
+dotnet_naming_rule.public_members_must_be_pascal.symbols = public_symbols
+dotnet_naming_rule.public_members_must_be_pascal.style = pascal_case_style
+dotnet_naming_symbols.public_symbols.applicable_kinds = property, method, event
+dotnet_naming_symbols.public_symbols.applicable_accessibilities = public, internal
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Naming: camelCase for private fields (no prefix)
+dotnet_naming_rule.private_fields_must_be_camel.severity = warning
+dotnet_naming_rule.private_fields_must_be_camel.symbols = private_fields
+dotnet_naming_rule.private_fields_must_be_camel.style = camel_case_style
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+[*.{json,yaml,yml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.asmdef]
+indent_size = 2

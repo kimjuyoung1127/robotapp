@@ -20,7 +20,7 @@ namespace KineTutor3D.UI.Data
 
         [Header("포커스")]
         public FocusTarget focusTarget = FocusTarget.None;
-        public Color focusHighlightColor = new Color(0.29f, 0.62f, 1f, 1f);
+        public Color focusHighlightColor = default;
 
         [Header("시각화 토글")]
         public bool showFrameGizmos = true;
@@ -32,14 +32,28 @@ namespace KineTutor3D.UI.Data
 
         [Header("Beginner Mode")]
         public bool beginnerMode;
+        public bool mathReadinessMode;
+        public bool showMathReadinessPanel;
         public bool showFormula = true;
         public bool showPlainLanguage;
         public bool showEndEffectorTrail;
         public bool showJointHighlight;
         public bool showTargetMarkers;
         public bool showWhyItMoved;
+        public bool showMathVisualHints;
         public bool showJointInputRail = true;
+        public int interactiveJointCount;
         public BeginnerLeftContent beginnerLeftContent = BeginnerLeftContent.None;
+        public MathReadinessContent mathReadinessContent = MathReadinessContent.None;
+        [TextArea(1, 3)] public string rationaleKo = string.Empty;
+        [TextArea(1, 3)] public string commonMistakeKo = string.Empty;
+        [TextArea(1, 3)] public string coachHintKo = string.Empty;
+        [TextArea(1, 3)] public string warmupPromptKo = string.Empty;
+        public string[] warmupChoicesKo = Array.Empty<string>();
+        [TextArea(1, 3)] public string warmupFollowupKo = string.Empty;
+        [TextArea(1, 3)] public string successToastKo = string.Empty;
+        public string[] correctionMessagesKo = Array.Empty<string>();
+        public MathReadinessQuestion[] readinessQuestions = Array.Empty<MathReadinessQuestion>();
 
         [Header("툴팁")]
         public TooltipEntry[] tooltips = Array.Empty<TooltipEntry>();

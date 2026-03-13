@@ -10,7 +10,7 @@ using TutorPose = KineTutor3D.Types.Pose;
 namespace KineTutor3D.UI
 {
     [ExecuteAlways]
-    public class DHTableEditor : MonoBehaviour
+    public class DHTableEditor : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform panelRoot;
         [SerializeField] private RectTransform tableRoot;
@@ -36,6 +36,17 @@ namespace KineTutor3D.UI
         public static string FormatDouble(double value, int decimals)
         {
             return DHTableValueFormatter.FormatDouble(value, decimals);
+        }
+
+        /// <summary>
+        /// 패널 가시성을 설정합니다.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (panelRoot != null)
+            {
+                panelRoot.gameObject.SetActive(visible);
+            }
         }
 
         public void Bind(AppController owner)
@@ -100,7 +111,7 @@ namespace KineTutor3D.UI
 
             if (panelBackground == null)
             {
-                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "LeftPanelBackground", UiRuntimeStyle.PanelBackground);
+                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "LeftPanelBackground", UIDesignTokens.Colors.SurfaceRaised);
             }
             else
             {
@@ -110,13 +121,13 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Stretch((RectTransform)panelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             panelTitleText = panelTitleText == null
-                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelTitleText", fallbackFont, 22, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary)
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelTitleText", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary)
                 : UiRuntimeStyle.ReparentTo(panelTitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 28f), new Vector2(20f, -18f));
             panelTitleText.text = "DH Parameters";
 
             panelSubtitleText = panelSubtitleText == null
-                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelSubtitleText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary)
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelSubtitleText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary)
                 : UiRuntimeStyle.ReparentTo(panelSubtitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelSubtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 24f), new Vector2(20f, -48f));
             panelSubtitleText.text = "theta is read-only. Edit d / a / alpha only.";
@@ -204,14 +215,15 @@ namespace KineTutor3D.UI
 
         private void StyleInteractiveCards()
         {
-            StyleCard("rz_panel", "Rz(theta)", UiRuntimeStyle.AccentBlue, new Vector2(0f, 0f), new Vector2(164f, 54f));
-            StyleCard("tz_panel", "Tz(d)", UiRuntimeStyle.AccentBlue, new Vector2(176f, 0f), new Vector2(164f, 54f));
-            StyleCard("tx_panel", "Tx(a)", UiRuntimeStyle.AccentYellow, new Vector2(0f, -62f), new Vector2(164f, 54f));
-            StyleCard("rx_panel", "Rx(alpha)", UiRuntimeStyle.AccentYellow, new Vector2(176f, -62f), new Vector2(164f, 54f));
-            StyleCard("mul_progress", "Multiply", UiRuntimeStyle.TextMuted, new Vector2(0f, -124f), new Vector2(164f, 44f));
-            StyleCard("chain_complete", "Chain", UiRuntimeStyle.TextMuted, new Vector2(176f, -124f), new Vector2(164f, 44f));
+            StyleCard("rz_panel", "Rz(theta)", UIDesignTokens.Colors.AccentPrimary, new Vector2(0f, 0f), new Vector2(164f, 54f));
+            StyleCard("tz_panel", "Tz(d)", UIDesignTokens.Colors.AccentPrimary, new Vector2(176f, 0f), new Vector2(164f, 54f));
+            StyleCard("tx_panel", "Tx(a)", UIDesignTokens.Colors.AccentSecondary, new Vector2(0f, -62f), new Vector2(164f, 54f));
+            StyleCard("rx_panel", "Rx(alpha)", UIDesignTokens.Colors.AccentSecondary, new Vector2(176f, -62f), new Vector2(164f, 54f));
+            StyleCard("mul_progress", "Multiply", UIDesignTokens.Colors.TextMuted, new Vector2(0f, -124f), new Vector2(164f, 44f));
+            StyleCard("chain_complete", "Chain", UIDesignTokens.Colors.TextMuted, new Vector2(176f, -124f), new Vector2(164f, 44f));
 
-            var tableTarget = GameObject.Find("DHTableTarget")?.transform as RectTransform;
+            var tableTargetTransform = panelRoot.Find("DHTableTarget");
+            var tableTarget = tableTargetTransform as RectTransform;
             if (tableTarget != null)
             {
                 UiRuntimeStyle.Stretch(tableTarget, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(12f, -88f), new Vector2(-12f, -40f));
@@ -219,7 +231,8 @@ namespace KineTutor3D.UI
                 image.color = new Color(1f, 1f, 1f, 0.01f);
             }
 
-            var cellTarget = GameObject.Find("DHCellTarget")?.transform as RectTransform;
+            var cellTargetTransform = panelRoot.Find("DHCellTarget");
+            var cellTarget = cellTargetTransform as RectTransform;
             if (cellTarget != null)
             {
                 UiRuntimeStyle.Anchor(cellTarget, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(82f, 32f), new Vector2(120f, -132f));
@@ -230,13 +243,14 @@ namespace KineTutor3D.UI
 
         private void StyleCard(string objectName, string label, Color accent, Vector2 anchoredPosition, Vector2 size)
         {
-            var go = GameObject.Find(objectName);
-            if (go == null)
+            var found = panelRoot.Find(objectName);
+            if (found == null)
             {
                 return;
             }
 
-            var rect = go.transform as RectTransform;
+            var go = found.gameObject;
+            var rect = found as RectTransform;
             if (rect == null)
             {
                 return;
@@ -248,7 +262,7 @@ namespace KineTutor3D.UI
             var image = go.GetComponent<Image>() ?? go.AddComponent<Image>();
             image.color = new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, 0.65f);
 
-            var text = UiRuntimeStyle.EnsureText(go.transform, "CardLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(go.transform, "CardLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
             text.text = label;
         }

@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.UI;
 using KineTutor3D.UI.Data;
 using UnityEngine;
@@ -19,7 +19,8 @@ namespace KineTutor3D.App
             var config = stepConfigs[currentIndex];
 
             disclosureController?.ApplyStep(config);
-            focusHighlighter?.ApplyFocus(config.focusTarget, config.focusHighlightColor);
+            var highlightColor = config.focusHighlightColor == default ? UI.UIDesignTokens.Colors.AccentPrimary : config.focusHighlightColor;
+            focusHighlighter?.ApplyFocus(config.focusTarget, highlightColor);
             gateController?.LoadStep(config, currentStep);
             stepTutorPanel?.ApplyStep(config, currentStep, stepConfigs.Length, gateController == null || gateController.IsGateSatisfied, gateController?.GetProgressText() ?? string.Empty);
 

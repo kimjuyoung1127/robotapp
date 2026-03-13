@@ -1,4 +1,4 @@
-// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using UnityEngine;
 
 namespace KineTutor3D.App
@@ -10,10 +10,20 @@ namespace KineTutor3D.App
     {
         private const string RobotIdKey = "KineTutor3D.SelectedRobotId";
         private const string ModeKey = "KineTutor3D.SelectedMode";
+        public const string GuidedLessonMode = "guided_lesson";
+        public const string SandboxMode = "sandbox";
+        public const string RobotControlMode = "robot_control";
 
         public static void SetSelectedRobot(string robotId)
         {
             PlayerPrefs.SetString(RobotIdKey, robotId ?? string.Empty);
+            PlayerPrefs.Save();
+        }
+
+        public static void SetSelection(string robotId, string mode)
+        {
+            PlayerPrefs.SetString(RobotIdKey, robotId ?? string.Empty);
+            PlayerPrefs.SetString(ModeKey, mode ?? string.Empty);
             PlayerPrefs.Save();
         }
 

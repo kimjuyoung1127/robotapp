@@ -6,167 +6,162 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// ?⑤낫???꾩슜 ?ъ뿉???섏쁺 ?⑤꼸怨??쒖옉/嫄대꼫?곌린 ?숈옉???쒖뼱?⑸땲??
+    /// 온보딩 전용 씬에서 환영 화면과 학습 트랙 선택 카드를 제공합니다.
+    /// UI 빌드는 OnboardingViewBuilder에 위임합니다.
     /// </summary>
     [ExecuteAlways]
     public class OnboardingManager : MonoBehaviour
     {
-        [SerializeField] private RectTransform canvasRoot;
-        [SerializeField] private RectTransform modalRoot;
-        [SerializeField] private Font fallbackFont;
-        [SerializeField] private Button startLearningButton;
-        [SerializeField] private Button beginnerButton;
-        [SerializeField] private Button skipButton;
-        [SerializeField] private Text headlineText;
-        [SerializeField] private Text bodyText;
+        private const string DefaultRobotId = "2DOF_RR";
 
-        private bool buttonsBound;
+        [SerializeField] private RectTransform canvasRoot;
+        [SerializeField] private Font fallbackFont;
+        [SerializeField] private SceneNavigationBar sceneNavigationBar;
+
+        private Button startLearningButton;
+        private Button beginnerButton;
+        private Button skipButton;
+        private bool listenersBound;
+        private bool viewBuilt;
 
         private void Awake()
         {
             EnsurePresentation();
-            BindButtons();
+            if (Application.isPlaying)
+            {
+                BindListeners();
+            }
+        }
+
+        private void Start()
+        {
+            if (Application.isPlaying)
+            {
+                EnsurePresentation();
+            }
         }
 
         private void OnEnable()
         {
             EnsurePresentation();
-            BindButtons();
+            if (Application.isPlaying)
+            {
+                UnbindListeners();
+                BindListeners();
+            }
         }
 
         private void OnDisable()
         {
-            UnbindButtons();
+            UnbindListeners();
         }
 
-        /// <summary>
-        /// ?숈뒿 ?쒖옉 ??硫붿씤 ?ъ쑝濡??대룞?⑸땲??
-        /// </summary>
+        private void OnValidate()
+        {
+            if (!Application.isPlaying)
+            {
+                viewBuilt = false;
+                EnsurePresentation();
+            }
+        }
+
         public void BeginLearning()
         {
             StepProgressSaver.MarkVisited();
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
             StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
-            SceneNavigator.Load(SceneId.Main);
+            SessionContextStore.Clear();
+            SceneNavigator.Load(SceneId.Home);
         }
 
         public void BeginAsBeginner()
         {
             StepProgressSaver.MarkVisited();
-            StepProgressSaver.SetCurrentTrack(StepProgressSaver.PreKinematicsTrack);
-            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.PreKinematicsTrack, 0);
-            SceneNavigator.Load(SceneId.Main);
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.MathReadinessTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.MathReadinessTrack, 0);
+            SessionContextStore.Clear();
+            RobotSelectionBridge.SetSelection(DefaultRobotId, RobotSelectionBridge.GuidedLessonMode);
+            SceneNavigator.Load(SceneId.MathReadiness);
         }
 
-        /// <summary>
-        /// ?⑤낫?⑹쓣 嫄대꼫?곌퀬 硫붿씤 ?ъ쑝濡??대룞?⑸땲??
-        /// </summary>
         public void SkipToMain()
         {
             StepProgressSaver.MarkVisited();
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
-            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 7);
-            SceneNavigator.Load(SceneId.Main);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
+            SessionContextStore.Clear();
+            SceneNavigator.Load(SceneId.Home);
         }
 
         private void EnsurePresentation()
         {
-            fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             canvasRoot ??= transform as RectTransform;
+            if (canvasRoot == null) return;
 
-            if (canvasRoot == null)
+            canvasRoot.gameObject.SetActive(true);
+            sceneNavigationBar ??= GetComponentInChildren<SceneNavigationBar>(true);
+            EnsureGlobalNavigation();
+
+            if (!viewBuilt)
             {
-                return;
+                var refs = OnboardingViewBuilder.Build(canvasRoot, fallbackFont);
+                beginnerButton = refs.BeginnerButton;
+                startLearningButton = refs.StartLearningButton;
+                skipButton = refs.SkipButton;
+                viewBuilt = true;
             }
 
-            modalRoot ??= UiRuntimeStyle.EnsureRectChild(canvasRoot, "WelcomeModal");
-            UiRuntimeStyle.Anchor(modalRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(720f, 420f), Vector2.zero);
-
-            var modalImage = UiRuntimeStyle.EnsureImage(modalRoot, "ModalSurface", UiRuntimeStyle.PanelBackground);
-            UiRuntimeStyle.Stretch((RectTransform)modalImage.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-            var title = UiRuntimeStyle.EnsureText(modalRoot, "HeadlineText", fallbackFont, 30, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
-            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(620f, 56f), new Vector2(34f, -34f));
-            title.text = "KineTutor3D";
-            headlineText = title;
-
-            var body = UiRuntimeStyle.EnsureText(modalRoot, "BodyText", fallbackFont, 17, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
-            UiRuntimeStyle.Stretch(body.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 1f), new Vector2(34f, 34f), new Vector2(-34f, -108f));
-            body.text = "濡쒕큸 湲곌뎄?숈쓣 ?덉쑝濡??댄빐?섏꽭??\n\n泥?諛⑸Ц?먯꽌???⑤낫?⑹쓣 蹂닿퀬 ?쒖옉?섍퀬,\n?댄썑?먮뒗 ?곷떒 ?ㅻ퉬寃뚯씠?섏쑝濡??몄젣?좎? Onboarding怨?Main???ㅺ컝 ???덉뒿?덈떎.";
-            headlineText = title;
-            bodyText = body;
-
-            startLearningButton = EnsureActionButton(modalRoot, "BtnStartLearning", "학습 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(180f, 44f), new Vector2(-370f, 30f), UiRuntimeStyle.AccentBlue);
-            beginnerButton = EnsureActionButton(modalRoot, "BtnBeginner", "초보자 시작", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(180f, 44f), new Vector2(-200f, 30f), UiRuntimeStyle.AccentYellow);
-            skipButton = EnsureActionButton(modalRoot, "BtnOnboardingSkip", "건너뛰기", new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(140f, 44f), new Vector2(-52f, 30f), UiRuntimeStyle.CardBackground);
+            BringGlobalNavigationToFront();
         }
 
-        private void BindButtons()
+        private void EnsureGlobalNavigation()
         {
-            if (buttonsBound)
-            {
-                return;
-            }
+            if (sceneNavigationBar == null) return;
+            sceneNavigationBar.enabled = true;
+            sceneNavigationBar.SetHideOnOnboarding(false);
+        }
+
+        private void BringGlobalNavigationToFront()
+        {
+            if (canvasRoot == null) return;
+            var topBarRect = canvasRoot.Find("TopBarRect") as RectTransform;
+            if (topBarRect != null) topBarRect.SetAsLastSibling();
+        }
+
+        private void BindListeners()
+        {
+            if (listenersBound) return;
 
             if (startLearningButton != null)
             {
+                startLearningButton.onClick.RemoveListener(BeginLearning);
                 startLearningButton.onClick.AddListener(BeginLearning);
             }
 
             if (beginnerButton != null)
             {
+                beginnerButton.onClick.RemoveListener(BeginAsBeginner);
                 beginnerButton.onClick.AddListener(BeginAsBeginner);
             }
 
             if (skipButton != null)
             {
+                skipButton.onClick.RemoveListener(SkipToMain);
                 skipButton.onClick.AddListener(SkipToMain);
             }
 
-            buttonsBound = true;
+            listenersBound = true;
         }
 
-        private void UnbindButtons()
+        private void UnbindListeners()
         {
-            if (!buttonsBound)
-            {
-                return;
-            }
+            if (!listenersBound) return;
 
-            if (startLearningButton != null)
-            {
-                startLearningButton.onClick.RemoveListener(BeginLearning);
-            }
+            if (startLearningButton != null) startLearningButton.onClick.RemoveListener(BeginLearning);
+            if (beginnerButton != null) beginnerButton.onClick.RemoveListener(BeginAsBeginner);
+            if (skipButton != null) skipButton.onClick.RemoveListener(SkipToMain);
 
-            if (beginnerButton != null)
-            {
-                beginnerButton.onClick.RemoveListener(BeginAsBeginner);
-            }
-
-            if (skipButton != null)
-            {
-                skipButton.onClick.RemoveListener(SkipToMain);
-            }
-
-            buttonsBound = false;
-        }
-
-        private Button EnsureActionButton(Transform parent, string name, string label, Vector2 anchor, Vector2 pivot, Vector2 size, Vector2 position, Color background)
-        {
-            var existing = parent.Find(name);
-            var button = existing != null ? existing.GetComponent<Button>() : null;
-            if (button == null)
-            {
-                var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-                go.transform.SetParent(parent, false);
-                button = go.GetComponent<Button>();
-            }
-
-            var rect = (RectTransform)button.transform;
-            UiRuntimeStyle.Anchor(rect, anchor, pivot, size, position);
-            UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, label, background);
-            return button;
+            listenersBound = false;
         }
     }
 }
-

@@ -12,8 +12,9 @@ description: "DH 변형 또는 기구학 알고리즘 추가 — DH, Modified DH
 - 기존 알고리즘 확장인지 대체인지 여부
 
 ## Read First
-1. `Assets/Scripts/Kinematics/CLAUDE.md` — 기구학 모듈 규칙
-2. `Assets/Scripts/Kinematics/DHStandard.cs` — 참조 구현 (베이스라인 보호)
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§8 Unity 측 규칙 포함)
+2. `Assets/Scripts/Kinematics/CLAUDE.md` — 기구학 모듈 규칙
+3. `Assets/Scripts/Kinematics/DHStandard.cs` — 참조 구현 (베이스라인 보호)
 3. `Assets/Scripts/Kinematics/ForwardKinematics.cs` — FK 엔진
 4. `Assets/Scripts/Types/DHLink.cs` — DH 파라미터 데이터 구조
 5. `docs/ref/dh-reference.md` — 수학 공식

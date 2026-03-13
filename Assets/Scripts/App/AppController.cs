@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using System.Linq;
 using KineTutor3D.Math;
@@ -36,18 +36,27 @@ namespace KineTutor3D.App
         [SerializeField] private JointInputRail jointInputRail;
         [SerializeField] private WhyItMovedPanel whyItMovedPanel;
         [SerializeField] private BeginnerLeftPanel beginnerLeftPanel;
+        [SerializeField] private MathReadinessPanel mathReadinessPanel;
         [SerializeField] private TargetFeedbackPanel targetFeedbackPanel;
         [SerializeField] private RobotRenderer robotRenderer;
         [SerializeField] private EndEffectorTrail endEffectorTrail;
         [SerializeField] private TargetMarkerVisual targetMarkerVisual;
+        [SerializeField] private SandboxActionPanel sandboxActionPanel;
+        [SerializeField] private SnapshotLitePanel snapshotLitePanel;
+        [SerializeField] private MathVisualOrchestrator mathVisualOrchestrator;
+        [SerializeField] private FKDiagramPanel fkDiagramPanel;
 
         private int currentStepIndex;
         private bool sliderListenersBound;
         private readonly StepFlowService stepFlowService = new StepFlowService();
         private readonly KinematicsRuntimeService kinematicsService = new KinematicsRuntimeService();
         private readonly AppUiBinder uiBinder = new AppUiBinder();
+        private readonly AppSessionContextService sessionContextService = new AppSessionContextService();
+        private readonly SandboxSceneCoordinator sandboxSceneCoordinator = new SandboxSceneCoordinator();
         private string currentTrack = StepProgressSaver.CoreKinematicsTrack;
         private bool jointHighlightEnabled;
+        private bool sandboxMode;
+        private MainLearningShellController mainLearningShellController;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
@@ -58,7 +67,9 @@ namespace KineTutor3D.App
 
         public int CurrentStep => currentStepIndex + 1;
         public int TotalSteps => stepConfigs?.Length ?? 0;
+        public int CurrentDof => CurrentTemplate != null ? CurrentTemplate.Dof : 0;
         public string CurrentTrack => currentTrack;
+        public bool IsSandboxMode => sandboxMode;
         public TutorStepConfig CurrentStepConfig => stepConfigs != null && currentStepIndex >= 0 && currentStepIndex < stepConfigs.Length
             ? stepConfigs[currentStepIndex]
             : null;
@@ -92,6 +103,18 @@ namespace KineTutor3D.App
             InitializeTemplateRuntime();
             BindRuntimeUiControllers();
             currentTrack = StepProgressSaver.GetCurrentTrack();
+            sandboxMode = sandboxSceneCoordinator.IsSandboxScene();
+
+            if (sandboxMode)
+            {
+                EnterSandboxMode();
+                return;
+            }
+
+            if (TryActivateMainLearningShell())
+            {
+                return;
+            }
 
             if (TotalSteps <= 0)
             {
@@ -101,6 +124,7 @@ namespace KineTutor3D.App
 
             stepNavigator?.Bind(this);
             SetCurrentStep(Mathf.Clamp(StepProgressSaver.GetResumeStep(currentTrack, 1), 1, TotalSteps));
+            PersistSessionContext();
         }
 
         private void OnDestroy()
@@ -123,12 +147,18 @@ namespace KineTutor3D.App
             currentStepIndex = stepFlowService.ApplyStep(oneBasedStep, stepConfigs, disclosureController, gateController, stepTutorPanel, stepNavigator, focusHighlighter);
             ApplyFeatureState(stepConfigs[currentStepIndex]);
             OnStepChanged?.Invoke(CurrentStep, stepConfigs[currentStepIndex]);
+            PersistSessionContext();
         }
 
         public void NextStep()
         {
             if (CurrentStep >= TotalSteps)
             {
+                if (TryAdvanceFromMathReadiness())
+                {
+                    return;
+                }
+
                 return;
             }
 
@@ -157,9 +187,31 @@ namespace KineTutor3D.App
             SetCurrentStep(TotalSteps);
         }
 
+        public void OpenCurrentRobotSandbox()
+        {
+            if (CurrentTemplate == null)
+            {
+                return;
+            }
+
+            RobotSelectionBridge.SetSelectedRobot(CurrentTemplate.Name);
+            RobotSelectionBridge.SetSelectedMode(RobotSelectionBridge.SandboxMode);
+            SceneNavigator.Load(SceneId.Sandbox);
+        }
+
         public string[] GetAvailableTemplateNames()
         {
             return RobotCatalog.GetAvailableRobotIds();
+        }
+
+        public JointLimit GetJointLimit(int jointIndex)
+        {
+            return kinematicsService.GetJointLimit(jointIndex);
+        }
+
+        public double GetJointAngleDegrees(int jointIndex)
+        {
+            return kinematicsService.GetJointAngleDegrees(jointIndex);
         }
 
         public void SelectTemplateByName(string templateName)
@@ -176,11 +228,21 @@ namespace KineTutor3D.App
             }
         }
 
+        /// <summary>
+        /// 지정된 DOF로 커스텀 템플릿을 생성하여 적용합니다.
+        /// </summary>
+        public void ApplyCustomTemplate(int dof)
+        {
+            var template = CustomTemplateBuilder.Create(dof);
+            ApplyTemplate(template);
+        }
+
         public void ApplyTemplate(RobotTemplate template)
         {
             kinematicsService.ApplyTemplate(template, jointSlider1, jointSlider2);
             PublishKinematicsUpdate();
             OnTemplateChanged?.Invoke(CurrentTemplate);
+            PersistSessionContext();
         }
 
         public void SetJointAngleDegrees(int jointIndex, float degrees)
@@ -188,6 +250,7 @@ namespace KineTutor3D.App
             kinematicsService.SetJointAngleDegrees(jointIndex, degrees, jointSlider1, jointSlider2);
             RequestJointFocus(jointIndex);
             PublishKinematicsUpdate();
+            CheckSliderTargetReached(jointIndex, degrees);
         }
 
         public bool TrySetDhParameter(int linkIndex, DhEditableField field, double value, out string error)
@@ -240,7 +303,7 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref sandboxActionPanel, ref snapshotLitePanel, ref mathVisualOrchestrator, ref fkDiagramPanel);
         }
 
         private void LoadStepConfigsIfNeeded()
@@ -251,6 +314,12 @@ namespace KineTutor3D.App
             }
 
             var track = StepProgressSaver.GetCurrentTrack();
+            if (string.Equals(track, StepProgressSaver.MathReadinessTrack, StringComparison.Ordinal))
+            {
+                stepConfigs = MathReadinessLessonFactory.CreateLessons();
+                return;
+            }
+
             if (string.Equals(track, StepProgressSaver.PreKinematicsTrack, StringComparison.Ordinal))
             {
                 stepConfigs = BeginnerLessonFactory.CreateLessons();
@@ -281,7 +350,7 @@ namespace KineTutor3D.App
 
         private void BindRuntimeUiControllers()
         {
-            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, whyItMovedPanel, beginnerLeftPanel, targetFeedbackPanel, endEffectorTrail, targetMarkerVisual);
+            uiBinder.BindRuntimeControllers(this, templateSelector, dhTableEditor, matrixDisplay, jointInputRail, whyItMovedPanel, beginnerLeftPanel, mathReadinessPanel, targetFeedbackPanel, endEffectorTrail, targetMarkerVisual);
         }
 
         private void BindSliderEvents()
@@ -309,36 +378,88 @@ namespace KineTutor3D.App
             kinematicsService.HandleJointSliderChanged(jointIndex, valueDegrees);
             RequestJointFocus(jointIndex);
             PublishKinematicsUpdate();
+            CheckSliderTargetReached(jointIndex, valueDegrees);
         }
 
         private void PublishKinematicsUpdate()
         {
             OnKinematicsUpdated?.Invoke(CurrentA1, CurrentA2, CurrentT02, CurrentEndEffectorPose);
+            mathVisualOrchestrator?.UpdateFromJointAngles(CurrentJointValuesRad);
+            fkDiagramPanel?.Refresh(CurrentLinks, CurrentJointValuesRad);
+        }
+
+        private void EnterSandboxMode()
+        {
+            sandboxSceneCoordinator.ApplySandboxPresentation(
+                stepTutorPanel,
+                stepNavigator,
+                focusHighlighter,
+                jointInputRail,
+                whyItMovedPanel,
+                beginnerLeftPanel,
+                mathReadinessPanel,
+                targetFeedbackPanel,
+                targetMarkerVisual,
+                endEffectorTrail,
+                sandboxActionPanel,
+                snapshotLitePanel);
+            jointHighlightEnabled = true;
+            PersistSessionContext();
         }
 
         private void ApplyFeatureState(TutorStepConfig config)
         {
+            if (sandboxMode)
+            {
+                EnterSandboxMode();
+                return;
+            }
+
             if (config == null)
             {
                 return;
             }
 
+            // ── Step 1: 모든 콘텐츠 패널 숨김 (Reset All) ──
+            HideAllContentPanels();
+
+            // ── Step 2: 공통 시각화 상태 적용 ──
             jointHighlightEnabled = config.showJointHighlight;
+            jointInputRail?.SetInteractiveJointCount(config.mathReadinessMode ? config.interactiveJointCount : 0);
             jointInputRail?.SetRailVisible(config.showJointInputRail);
             whyItMovedPanel?.SetVisible(config.showWhyItMoved);
             endEffectorTrail?.SetTrailVisible(config.showEndEffectorTrail);
             targetMarkerVisual?.SetMarkersVisible(config.showTargetMarkers);
             targetMarkerVisual?.ClearFeedback();
 
-            if (config.beginnerMode)
+            // ── Step 2b: Math Visual Hints ──
+            if (mathVisualOrchestrator != null)
             {
-                beginnerLeftPanel?.ApplyContent(config.beginnerLeftContent);
-                targetFeedbackPanel?.SetVisible(config.showTargetMarkers);
+                if (config.showMathVisualHints)
+                {
+                    InitializeMathVisualIfNeeded();
+                    mathVisualOrchestrator.SetVisible(true);
+                    mathVisualOrchestrator.ApplyMathPreset(config.mathReadinessContent);
+                    mathVisualOrchestrator.UpdateFromJointAngles(CurrentJointValuesRad);
+                }
+                else
+                {
+                    mathVisualOrchestrator.SetVisible(false);
+                }
+            }
+
+            // ── Step 3: 현재 모드 전용 패널만 켜기 ──
+            if (config.mathReadinessMode)
+            {
+                ApplyMathReadinessVisibility(config);
+            }
+            else if (config.beginnerMode)
+            {
+                ApplyBeginnerVisibility(config);
             }
             else
             {
-                beginnerLeftPanel?.SetVisible(false);
-                targetFeedbackPanel?.SetVisible(false);
+                ApplyCoreVisibility(config);
             }
 
             if (!jointHighlightEnabled)
@@ -346,6 +467,198 @@ namespace KineTutor3D.App
                 ClearJointFocus();
                 robotRenderer?.ClearJointHighlight();
             }
+        }
+
+        /// <summary>모든 콘텐츠 패널을 숨깁니다. 모드별 메서드가 필요한 것만 다시 켭니다.</summary>
+        private void HideAllContentPanels()
+        {
+            // Left exclusive group
+            dhTableEditor?.SetVisible(false);
+            beginnerLeftPanel?.SetVisible(false);
+            mathReadinessPanel?.SetVisible(false);
+
+            // Right exclusive group
+            stepTutorPanel?.SetVisible(false);
+            matrixDisplay?.SetVisible(false);
+            whyItMovedPanel?.SetVisible(false);
+            targetFeedbackPanel?.SetVisible(false);
+
+            // TopBar controls
+            templateSelector?.SetVisible(false);
+
+            // Sandbox-only
+            sandboxActionPanel?.SetVisible(false);
+            snapshotLitePanel?.SetVisible(false);
+        }
+
+        private void ApplyMathReadinessVisibility(TutorStepConfig config)
+        {
+            whyItMovedPanel?.SetVisible(false);
+            mathReadinessPanel?.ApplyConfig(config);
+            mathReadinessPanel?.SetVisible(config.showMathReadinessPanel);
+        }
+
+        private void CheckSliderTargetReached(int jointIndex, float valueDegrees)
+        {
+            if (CurrentStepConfig?.readinessQuestions == null || mathReadinessPanel == null)
+            {
+                return;
+            }
+
+            if (!mathReadinessPanel.TryGetActiveManipulationQuestion(out var question) || string.IsNullOrWhiteSpace(question.targetReachGateId))
+            {
+                return;
+            }
+
+            if (float.IsNaN(question.targetAngleDeg))
+            {
+                return;
+            }
+
+            var movedPrimary = question.targetJointIndex == jointIndex;
+            var movedSecondary = question.secondaryTargetJointIndex == jointIndex;
+            if (!movedPrimary && !movedSecondary)
+            {
+                return;
+            }
+
+            if (!IsPrimaryTargetSatisfied(question) || !IsSecondaryTargetSatisfied(question))
+            {
+                return;
+            }
+
+            ReportInteraction(InteractionType.SliderReachTarget, question.targetReachGateId);
+        }
+
+        private bool IsPrimaryTargetSatisfied(MathReadinessQuestion question)
+        {
+            if (question == null || float.IsNaN(question.targetAngleDeg))
+            {
+                return false;
+            }
+
+            var primaryDegrees = (float)GetJointAngleDegrees(question.targetJointIndex);
+            return Mathf.Abs(primaryDegrees - question.targetAngleDeg) <= question.targetAngleTolerance;
+        }
+
+        private bool IsSecondaryTargetSatisfied(MathReadinessQuestion question)
+        {
+            if (question == null || float.IsNaN(question.secondaryTargetAngleDeg) || question.secondaryTargetJointIndex < 0)
+            {
+                return true;
+            }
+
+            var secondaryDegrees = (float)GetJointAngleDegrees(question.secondaryTargetJointIndex);
+            return Mathf.Abs(secondaryDegrees - question.secondaryTargetAngleDeg) <= question.secondaryTargetAngleTolerance;
+        }
+
+        private void ApplyBeginnerVisibility(TutorStepConfig config)
+        {
+            stepTutorPanel?.SetVisible(true);
+            templateSelector?.SetVisible(true);
+            dhTableEditor?.SetVisible(config.showDHTable);
+            matrixDisplay?.SetVisible(config.showMatrices);
+            beginnerLeftPanel?.ApplyContent(config.beginnerLeftContent);
+            targetFeedbackPanel?.SetVisible(config.showTargetMarkers);
+        }
+
+        private void ApplyCoreVisibility(TutorStepConfig config)
+        {
+            stepTutorPanel?.SetVisible(true);
+            templateSelector?.SetVisible(true);
+            dhTableEditor?.SetVisible(config.showDHTable);
+            matrixDisplay?.SetVisible(config.showMatrices);
+        }
+
+        private void PersistSessionContext()
+        {
+            sessionContextService.SaveCurrent(CurrentTemplate, sandboxMode, currentTrack, CurrentStep);
+        }
+
+        private void InitializeMathVisualIfNeeded()
+        {
+            if (mathVisualOrchestrator == null || robotRenderer == null)
+            {
+                return;
+            }
+
+            var baseAnchor = robotRenderer.transform.Find("VisualRoot/BaseVisual");
+            var link0Anchor = baseAnchor != null ? baseAnchor.Find("Link0Visual") : null;
+            var link1Anchor = link0Anchor != null ? link0Anchor.Find("Link1Visual") : null;
+            var eeAnchor = robotRenderer.transform.Find("Frame_EE");
+
+            if (baseAnchor != null && link0Anchor != null)
+            {
+                mathVisualOrchestrator.Initialize(baseAnchor, link0Anchor, link1Anchor, eeAnchor);
+            }
+        }
+
+        private bool TryAdvanceFromMathReadiness()
+        {
+            if (!string.Equals(currentTrack, StepProgressSaver.MathReadinessTrack, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            StepProgressSaver.SaveLastCompletedStep(currentTrack, CurrentStep);
+            currentTrack = StepProgressSaver.PreKinematicsTrack;
+            StepProgressSaver.SetCurrentTrack(currentTrack);
+            StepProgressSaver.SaveLastCompletedStep(currentTrack, 0);
+
+            if (SceneCatalog.GetCurrentSceneId() == SceneId.MathReadiness)
+            {
+                RobotSelectionBridge.SetSelection(Template2DOF_RR.Name, RobotSelectionBridge.GuidedLessonMode);
+                SceneNavigator.Load(SceneId.Main);
+                return true;
+            }
+
+            stepConfigs = BeginnerLessonFactory.CreateLessons();
+            ApplyTemplate(Template2DOF_RR.Create());
+            stepNavigator?.Bind(this);
+            SetCurrentStep(1);
+            toastController?.ShowSuccess("좋아요! 이제 로봇 직관 lesson으로 넘어갈게요.", 4f);
+            return true;
+        }
+
+        private bool TryActivateMainLearningShell()
+        {
+            if (!ShouldActivateMainLearningShell(SceneCatalog.GetCurrentSceneId(), StepProgressSaver.GetCurrentTrack()))
+            {
+                return false;
+            }
+
+            mainLearningShellController ??= FindFirstObjectByType<MainLearningShellController>(FindObjectsInactive.Include);
+            if (mainLearningShellController == null)
+            {
+                var canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+                if (canvas == null)
+                {
+                    return false;
+                }
+
+                mainLearningShellController = canvas.GetComponent<MainLearningShellController>();
+                if (mainLearningShellController == null)
+                {
+                    mainLearningShellController = canvas.gameObject.AddComponent<MainLearningShellController>();
+                }
+            }
+
+            mainLearningShellController.Bind(this);
+            mainLearningShellController.ShowShell();
+            currentTrack = StepProgressSaver.CoreKinematicsTrack;
+            StepProgressSaver.SetCurrentTrack(currentTrack);
+            PersistSessionContext();
+            return true;
+        }
+
+        private static bool ShouldActivateMainLearningShell(SceneId currentSceneId, string track)
+        {
+            if (currentSceneId != SceneId.Main)
+            {
+                return false;
+            }
+
+            return string.Equals(track, StepProgressSaver.CoreKinematicsTrack, StringComparison.Ordinal);
         }
     }
 }

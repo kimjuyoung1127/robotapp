@@ -1,7 +1,7 @@
 # KineTutor3D Product Roadmap
 
-Version: 1.1.0  
-Last Updated: 2026-03-11 (KST)
+Version: 1.2.0  
+Last Updated: 2026-03-12 (KST)
 
 ## Purpose
 
@@ -9,18 +9,19 @@ Last Updated: 2026-03-11 (KST)
 
 ## Locked Priorities
 
-1. P0는 `Beginner Lesson 0~3`, `Guided Lesson 중심 UX`, `Tablet first 정책`, `다중 로봇 확장 구조`, `비공개 자료의 UI 재구성 정책`이다.
-2. 기능 확장 순서는 `Robot Library -> Sandbox -> Instructor Mode`다.
+1. P0는 `Beginner Lesson 0~3`, `Guided Lesson 중심 UX`, `Home / Continue Hub`, `Sandbox polish`, `tablet-first 사용성`, `비공개 자료의 UI 재구성 정책`이다.
+2. 차기 UX 완성 순서는 `Home / Continue Hub -> Sandbox polish -> Instructor Mode`다.
 3. 로봇 확장 순서는 `2DOF -> SCARA -> 3DOF -> 6DOF`다.
-4. LLM은 deterministic runtime 위의 설명층으로만 추가한다.
-5. 최종 모바일 배포는 `Android Tablet -> iPad -> WebGL -> Phone 제한형` 우선순위를 따른다.
-6. 플랜 변경 처리는 `leaf -> root canonical -> downstream -> board -> logs` 순서를 따른다.
-7. Phase 5 P0 구현 순서는 `기반 상태 계약 -> track-aware step foundation -> 공통 input/visualization 인프라 -> explanation layer -> Beginner Lesson 0~3`를 따른다.
+4. `snapshot lite`는 `replay / history / constraint preview`보다 먼저 구현한다.
+5. LLM은 deterministic runtime 위의 설명층으로만 추가한다.
+6. 최종 모바일 배포는 `Android Tablet -> iPad -> WebGL -> Phone 제한형` 우선순위를 따른다.
+7. 플랜 변경 처리는 `leaf -> root canonical -> downstream -> board -> logs` 순서를 따른다.
+8. Phase 5G 이후 근접 P0 구현 순서는 `Home / Continue Hub -> Sandbox polish -> resume / session context -> tablet 4DOF input usability -> snapshot lite`를 따른다.
 
 ## Timeline Summary
 
-- 30일: 제품 방향/IA/Beginner Lesson 0~3/로봇 확장 구조/비공개 자료 정책 고정
-- 60일: Home, Robot Library, Sandbox MVP 정리
+- 30일: 제품 방향/IA/Home 허브 정책/Sandbox MVP 기준/비공개 자료 정책 고정
+- 60일: Home / Continue Hub, Sandbox polish, resume context, snapshot lite 정리
 - 90일: Instructor Mode, 로봇 확장, 태블릿 최적화, 배포 준비
 
 ## Change Summary
@@ -31,6 +32,7 @@ Last Updated: 2026-03-11 (KST)
 4. 현재 있는 기능 / 없는 기능 / 우선 추가 기능을 빠르게 보는 `current-feature-checklist.md`를 추가했다.
 5. `Beginner Lesson 0~3`를 roadmap P0 잠금 결정과 timeline에 반영했다.
 6. 플랜 변경 SOP를 roadmap leaf 문서 기준으로 정리했다.
+7. `Home / Continue Hub`, `Sandbox polish`, `snapshot lite`를 차기 P0 우선순위로 승격했다.
 
 ## Read Next
 

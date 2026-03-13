@@ -61,12 +61,11 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void CreateTemplate_SCARA_Valid()
+        public void CreateTemplate_SCARA_ReturnsTemplate()
         {
             var template = RobotCatalog.CreateTemplate("SCARA_RV");
-            Assert.IsNotNull(template, "SCARA template should not be null after factory registration.");
-            Assert.AreEqual("SCARA_RV", template.Name);
-            Assert.AreEqual(3, template.Dof);
+            Assert.IsNotNull(template);
+            Assert.AreEqual(4, template.Dof);
         }
 
         [Test]
@@ -95,7 +94,7 @@ namespace KineTutor3D.Tests.EditMode
             Assert.IsNotNull(entry);
             Assert.AreEqual("SCARA_RV", entry.Metadata.RobotId);
             Assert.AreEqual("SCARA Robot", entry.Metadata.DisplayName);
-            Assert.AreEqual(3, entry.Metadata.Dof);
+            Assert.AreEqual(4, entry.Metadata.Dof);
             Assert.AreEqual("SCARA", entry.Metadata.RobotType);
         }
 
@@ -118,6 +117,7 @@ namespace KineTutor3D.Tests.EditMode
                 Assert.Greater(entry.Metadata.Dof, 0, $"DOF for {entry.Metadata.RobotId} should be positive.");
                 Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.RobotType), $"RobotType for {entry.Metadata.RobotId} should not be empty.");
                 Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.Difficulty), $"Difficulty for {entry.Metadata.RobotId} should not be empty.");
+                Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.VisualizationLevel), $"VisualizationLevel for {entry.Metadata.RobotId} should not be empty.");
             }
         }
     }

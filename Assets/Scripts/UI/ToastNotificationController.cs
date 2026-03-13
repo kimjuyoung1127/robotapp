@@ -8,33 +8,39 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 하단 토스트 메시지 표시를 담당합니다.
     /// </summary>
-    [ExecuteAlways]
-    public class ToastNotificationController : MonoBehaviour
+    public class ToastNotificationController : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private GameObject toastRoot;
         [SerializeField] private Text messageText;
         [SerializeField] private Image background;
         [SerializeField] private Font fallbackFont;
-        [SerializeField] private Color infoColor = new Color(0.16f, 0.16f, 0.31f, 0.95f);
-        [SerializeField] private Color successColor = new Color(0.10f, 0.23f, 0.16f, 0.95f);
-        [SerializeField] private Color warningColor = new Color(0.23f, 0.16f, 0.10f, 0.95f);
+        [SerializeField] private Color infoColor = default;
+        [SerializeField] private Color successColor = default;
+        [SerializeField] private Color warningColor = default;
+
+        private void InitColors()
+        {
+            if (infoColor == default) infoColor = UIDesignTokens.Colors.ToastInfo;
+            if (successColor == default) successColor = UIDesignTokens.Colors.ToastSuccess;
+            if (warningColor == default) warningColor = UIDesignTokens.Colors.ToastWarning;
+        }
 
         private Coroutine hideRoutine;
 
         private void Awake()
         {
+            InitColors();
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
 
             if (toastRoot == null)
             {
-                var go = GameObject.Find("ToastRoot");
-                if (go != null) toastRoot = go;
+                toastRoot = transform.Find("ToastRoot")?.gameObject;
             }
 
-            if (messageText == null)
+            if (messageText == null && toastRoot != null)
             {
-                var go = GameObject.Find("ToastMessageText");
-                if (go != null) messageText = go.GetComponent<Text>();
+                var t = toastRoot.transform.Find("ToastMessageText");
+                if (t != null) messageText = t.GetComponent<Text>();
             }
 
             if (background == null && toastRoot != null)
@@ -47,7 +53,7 @@ namespace KineTutor3D.UI
                 var rect = toastRoot.transform as RectTransform;
                 if (rect != null)
                 {
-                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, 48f), new Vector2(0f, 88f));
+                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, UIDesignTokens.Space.Xxl), new Vector2(0f, 88f));
                 }
 
                 if (background == null)
@@ -58,7 +64,7 @@ namespace KineTutor3D.UI
 
             if (messageText == null && toastRoot != null)
             {
-                messageText = UiRuntimeStyle.EnsureText(toastRoot.transform, "ToastMessageText", fallbackFont, 14, FontStyle.Bold, TextAnchor.MiddleCenter, UiRuntimeStyle.TextPrimary);
+                messageText = UiRuntimeStyle.EnsureText(toastRoot.transform, "ToastMessageText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             }
 
             if (messageText != null)
@@ -78,8 +84,7 @@ namespace KineTutor3D.UI
 
             if (toastRoot == null)
             {
-                var go = GameObject.Find("ToastRoot");
-                if (go != null) toastRoot = go;
+                toastRoot = transform.Find("ToastRoot")?.gameObject;
             }
 
             if (messageText == null && toastRoot != null)
@@ -97,7 +102,7 @@ namespace KineTutor3D.UI
                 var rect = toastRoot.transform as RectTransform;
                 if (rect != null)
                 {
-                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, 48f), new Vector2(0f, 88f));
+                    UiRuntimeStyle.Anchor(rect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(460f, UIDesignTokens.Space.Xxl), new Vector2(0f, 88f));
                 }
             }
         }
@@ -135,6 +140,14 @@ namespace KineTutor3D.UI
             }
 
             hideRoutine = null;
+        }
+
+        /// <summary>
+        /// 패널 가시성을 설정합니다.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (toastRoot != null) toastRoot.SetActive(visible);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace KineTutor3D.UI
     /// </summary>
     [ExecuteAlways]
     [DisallowMultipleComponent]
-    public class BeginnerLeftPanel : MonoBehaviour
+    public class BeginnerLeftPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;
@@ -27,13 +27,13 @@ namespace KineTutor3D.UI
         private void Awake()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
-            EnsureLayout();
         }
 
         private void OnEnable()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             EnsureLayout();
+            SetVisible(false);
         }
 
         private void OnDisable()
@@ -142,14 +142,14 @@ namespace KineTutor3D.UI
 
             if (panelBackground == null)
             {
-                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "BeginnerLeftBackground", UiRuntimeStyle.PanelBackground);
+                panelBackground = UiRuntimeStyle.EnsureImage(panelRoot, "BeginnerLeftBackground", UIDesignTokens.Colors.SurfaceRaised);
             }
             UiRuntimeStyle.Stretch((RectTransform)panelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            guideTitleText = UiRuntimeStyle.EnsureText(panelRoot, "BLP_GuideTitle", fallbackFont, 16, FontStyle.Bold, TextAnchor.UpperLeft, UiRuntimeStyle.TextPrimary);
+            guideTitleText = UiRuntimeStyle.EnsureText(panelRoot, "BLP_GuideTitle", fallbackFont, 16, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(guideTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 24f), new Vector2(16f, -16f));
 
-            guideBodyText = UiRuntimeStyle.EnsureText(panelRoot, "BLP_GuideBody", fallbackFont, 14, FontStyle.Normal, TextAnchor.UpperLeft, UiRuntimeStyle.TextSecondary);
+            guideBodyText = UiRuntimeStyle.EnsureText(panelRoot, "BLP_GuideBody", fallbackFont, 14, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Stretch(guideBodyText.rectTransform,
                 new Vector2(0f, 0.3f), new Vector2(1f, 1f),
                 new Vector2(16f, 16f), new Vector2(-16f, -48f));

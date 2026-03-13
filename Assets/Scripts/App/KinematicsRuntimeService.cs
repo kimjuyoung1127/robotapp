@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using KineTutor3D.Kinematics;
 using KineTutor3D.Math;
@@ -14,6 +14,26 @@ namespace KineTutor3D.App
         private readonly KinematicsRuntimeState state = new KinematicsRuntimeState();
 
         public KinematicsRuntimeState State => state;
+
+        public JointLimit GetJointLimit(int jointIndex)
+        {
+            if (state.CurrentTemplate == null)
+            {
+                return new JointLimit(-System.Math.PI, System.Math.PI);
+            }
+
+            return state.CurrentTemplate.GetJointLimit(jointIndex);
+        }
+
+        public double GetJointAngleDegrees(int jointIndex)
+        {
+            if (jointIndex < 0 || jointIndex >= state.CurrentJointValuesRad.Length)
+            {
+                return 0.0;
+            }
+
+            return state.CurrentJointValuesRad[jointIndex] * Mathf.Rad2Deg;
+        }
 
         public void ApplyTemplate(RobotTemplate template, Slider jointSlider1, Slider jointSlider2)
         {

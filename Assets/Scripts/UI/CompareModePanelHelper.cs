@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
     /// L2 비교 모드 — J1만/J2만/둘다 버튼을 표시하고 상호작용을 보고합니다.
     /// </summary>
     [ExecuteAlways]
-    public class CompareModePanelHelper : MonoBehaviour
+    public class CompareModePanelHelper : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private Font fallbackFont;
 
@@ -22,7 +22,6 @@ namespace KineTutor3D.UI
         private void Awake()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
-            EnsureLayout();
         }
 
         private void OnEnable()
@@ -51,9 +50,9 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            btnJ1Only = EnsureCompareButton("BtnCompareJ1", "J1만", new Vector2(0f, -4f), UiRuntimeStyle.AccentYellow);
-            btnJ2Only = EnsureCompareButton("BtnCompareJ2", "J2만", new Vector2(0f, -40f), UiRuntimeStyle.AccentBlue);
-            btnBoth = EnsureCompareButton("BtnCompareBoth", "둘 다", new Vector2(0f, -76f), UiRuntimeStyle.CardBackground);
+            btnJ1Only = EnsureCompareButton("BtnCompareJ1", "J1만", new Vector2(0f, -4f), UIDesignTokens.Colors.AccentSecondary);
+            btnJ2Only = EnsureCompareButton("BtnCompareJ2", "J2만", new Vector2(0f, -40f), UIDesignTokens.Colors.AccentPrimary);
+            btnBoth = EnsureCompareButton("BtnCompareBoth", "둘 다", new Vector2(0f, -76f), UIDesignTokens.Colors.SurfaceCard);
 
             BindButton(btnJ1Only, "compare_j1_only");
             BindButton(btnJ2Only, "compare_j2_only");

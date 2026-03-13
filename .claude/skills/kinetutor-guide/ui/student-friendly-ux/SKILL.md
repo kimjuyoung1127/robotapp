@@ -20,7 +20,8 @@ description: "학생 친화 UX 통합 워크플로. 점진적 공개, 온보딩,
 - 타겟 기기 (`desktop` / `tablet`)
 
 ## Read First
-1. `references/step-visibility-matrix.md`
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§8 Unity 측 규칙 포함)
+2. `references/step-visibility-matrix.md`
 2. `references/gate-catalog.md`
 3. `references/glossary-ko.md`
 4. `docs/ref/tutor-step-plan.md`

@@ -1,14 +1,27 @@
 # KineTutor3D Phase 5 Implementation Plan
 
 ## Status
-- Phase 5 status: `5A~5G Complete (Phase 5 Done)`
+- Phase 5 status: `5A~5G Complete (Phase 5 Done, 문서 sync + 테스트 보강 완료)`
 - Canonical path: `docs/ref/phase5-implementation-plan.md`
 - Entry docs that reference this plan: `AGENTS.md`, `CLAUDE.md`
 
 ## Context
-Phase 0~4 완료 (Math/Types/Kinematics/2DOF Template/Visualization). 현재 제품은 2DOF Guided Lesson MVP.
-다음 단계는 P0 기반층 우선 구현: runtime snapshot/update cause, track-aware step foundation, 공통 input/visualization 인프라, Why It Moved, Beginner Lesson 0~3.
+Phase 0~4 완료 (Math/Types/Kinematics/2DOF Template/Visualization). 현재 제품은 `2DOF + SCARA` Guided Lesson/Robot Library/Sandbox baseline MVP.
+이 문서의 Phase 5 범위는 foundation -> beginner track -> robot library baseline까지 완료했고, 다음 단계는 post-5G P0 UX 정리다.
 코덱스가 구현하고 Claude가 UI/UX 디자인 가이드를 제공하는 구조.
+
+## Post-5G Next Focus
+- `asset subset Git tracking`
+- `Home / Continue Hub`
+- `resume / session context`
+- `Sandbox polish`
+- `tablet 4DOF input usability`
+- `snapshot lite`
+
+## Current Reality Note
+- 아래 5A~5F 세부 설계는 구현 기록과 검수 기준으로 유지한다.
+- 차기 개발 우선순위의 source of truth는 `PRODUCT-ROADMAP.md`, `current-feature-checklist.md`, `PHASE-EXECUTION-BOARD.md`를 우선한다.
+- `Onboarding -> Core Step 8` direct jump는 현재 runtime fallback으로만 남고, target UX는 `Home / Continue Hub` 기준이다.
 
 ## 읽기 순서
 1. 이 문서 전체를 먼저 읽는다
@@ -29,7 +42,7 @@ Phase 0~4 완료 (Math/Types/Kinematics/2DOF Template/Visualization). 현재 제
 - 이전 상태 snapshot은 `RecomputeForwardKinematics()` 안이 아니라, 값 변경 직전(`SetJointAngleDegrees`, `HandleJointSliderChanged`, `TrySetDhParameter`)에 저장한다.
 - `Why It Moved`는 `LastUpdateCause + ChangedJointIndex`를 함께 받아서, template apply/DH edit를 관절 이동 설명으로 오해하지 않게 한다.
 - `StepProgressSaver`는 `pre_kinematics`와 `core_kinematics`를 별도 resume key로 저장한다.
-- `JointInputRail`은 Phase 5에서 `generic DOF rail`이 아니라 `기존 2-slider 계약 위의 2DOF adapter`로 구현한다.
+- `JointInputRail`은 기존 2DOF rail 계약을 유지하되, SCARA 도입 시 추가 joint row를 동적으로 생성하는 방식으로 확장한다.
 - `TargetMarkerConfig`는 Unity authoring 안정성을 위해 `Vector3`를 저장하고, runtime에서만 `Vec3D`로 변환한다.
 - L2 compare mode는 단일 `TrailRenderer`가 아니라 3개 compare trail 세트를 사용한다.
 - `Robot Library MVP`는 이번 문서에 부록으로 남기되, Phase 5 P0 Definition of Done에는 포함하지 않는다.
@@ -392,7 +405,7 @@ ShootingTarget.prefab를 instantiate하여 목표점에 배치
 - 미도달 시: Warning_3D_Icon + 거리 표시
 
 에셋 매핑:
-- 목표점 마커: ShootingTarget.prefab (Assets/Glowing Rifts/)
+- 목표점 마커: ShootingTarget.prefab (Assets/Vendors/Archive/GlowingRifts/)
 - 도달 아이콘: Checkmark_3D_Icon.prefab (HQP)
 - 미도달 아이콘: Warning_3D_Icon.prefab (HQP)
 ```
@@ -623,14 +636,14 @@ L2 전용 비교 모드 UI 상태 관리
 
 | 기능 | 에셋 | 소스 경로 |
 |------|------|----------|
-| WhyItMoved 관절 아이콘 | Free Flat Arrow 1 E Icon.png | `Assets/_Heathen Engineering/Assets/UX/Icons/Flat Icons [Free]/` |
+| WhyItMoved 관절 아이콘 | Free Flat Arrow 1 E Icon.png | `Assets/Vendors/Archive/HeathenEngineering/Assets/UX/Icons/Flat Icons [Free]/` |
 | WhyItMoved 양수 화살표 | Free Flat Arrow 1 N Icon.png | Heathen |
 | WhyItMoved 음수 화살표 | Free Flat Arrow 1 S Icon.png | Heathen |
 | WhyItMoved 링크 아이콘 | Free Flat Gear 2 Icon.png | Heathen |
 | WhyItMoved 설명 아이콘 | Free Flat Chat 1 Bars Icon.png | Heathen |
 | 힌트 카드 아이콘 | Free Flat Chat 1 Question Icon.png | Heathen |
-| 목표점 마커 | ShootingTarget.prefab | `Assets/Glowing Rifts/Shooting Target/` |
-| 도달 표시 | Checkmark_3D_Icon.prefab | `Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/` |
+| 목표점 마커 | ShootingTarget.prefab | `Assets/Vendors/Archive/GlowingRifts/Shooting Target/` |
+| 도달 표시 | Checkmark_3D_Icon.prefab | `Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/` |
 | 미도달 표시 | Warning_3D_Icon.prefab | HQP Studios |
 | EE trail | TrailRenderer (코드 생성) | Runtime |
 | Joint highlight ring | LineRenderer (코드 생성) | Runtime |

@@ -12,11 +12,23 @@ EditorBuildSettings:
     path: Assets/Scenes/Onboarding.unity
     guid: e3aca4c3f67c11b4bb371d975f1e0b1a
   - enabled: 1
+    path: Assets/Scenes/Home.unity
+    guid: 50ce7c981f3925548af041bd4bee20be
+  - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
     path: Assets/Scenes/RobotLibrary.unity
     guid: 19cbae5f4926eda4abdb6bc48aa9dd66
+  - enabled: 1
+    path: Assets/Scenes/Sandbox.unity
+    guid: 5b61ef6d6f93420691f72609a9f0352d
+  - enabled: 1
+    path: Assets/Scenes/RobotControl.unity
+    guid: 36c06f06bd79fc54c8c9c3d321985038
+  - enabled: 1
+    path: Assets/Scenes/MathReadiness.unity
+    guid: 3aa4d33dbc034a0c98395b3997011924
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
   m_UseUCBPForAssetBundles: 0

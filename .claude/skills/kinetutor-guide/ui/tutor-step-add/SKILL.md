@@ -15,8 +15,9 @@ description: "튜토리얼 스텝 추가 — 튜터, 학습 단계, step, 튜토
 - `why it moved` 설명 필요 여부
 
 ## Read First
-1. `docs/ref/tutor-step-plan.md` — 8개 튜토리얼 스텝 정의 및 요구사항
-2. `Assets/Scripts/UI/CLAUDE.md` — UI 모듈 규칙
+1. `docs/ref/code-patterns.md` — C# 코딩 패턴 (§8 Unity 측 규칙 포함)
+2. `docs/ref/tutor-step-plan.md` — 8개 튜토리얼 스텝 정의 및 요구사항
+3. `Assets/Scripts/UI/CLAUDE.md` — UI 모듈 규칙
 3. `Assets/Scripts/UI/StepTutorPanel.cs` — Step Tutor 구현 (존재 시)
 4. `Assets/Scripts/UI/DHTableEditor.cs` — DH 테이블 표시 (존재 시)
 5. `Assets/Scripts/UI/JointSliderPanel.cs` — 슬라이더 컨트롤 (존재 시)

@@ -16,6 +16,12 @@
 *.mdb.meta
 sysinfo.txt
 *.unitypackage
+Assets/HQP Studios/
+Assets/_Heathen Engineering/
+Assets/Glowing Rifts/
+Assets/HQP Studios.meta
+Assets/_Heathen Engineering.meta
+Assets/Glowing Rifts.meta
 
 # IDE
 .vs/
@@ -36,3 +42,7 @@ sysinfo.txt
 # OS
 .DS_Store
 Thumbs.db
+
+# Docs automation locks
+docs/.docs-nightly.lock
+docs/status/.code-doc-align.lock

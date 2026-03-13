@@ -1,4 +1,4 @@
-﻿// Folder: App - application orchestration and runtime state.
+﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.UI;
 using KineTutor3D.Visualization;
 using UnityEngine;
@@ -9,7 +9,7 @@ namespace KineTutor3D.App
 {
     internal sealed class AppUiBinder
     {
-        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual)
+        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref MathReadinessPanel mathReadinessPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual, ref SandboxActionPanel sandboxActionPanel, ref SnapshotLitePanel snapshotLitePanel, ref MathVisualOrchestrator mathVisualOrchestrator, ref FKDiagramPanel fkDiagramPanel)
         {
             disclosureController ??= Object.FindFirstObjectByType<ProgressiveDisclosureController>(FindObjectsInactive.Include);
             gateController ??= Object.FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
@@ -23,10 +23,15 @@ namespace KineTutor3D.App
             jointInputRail ??= Object.FindFirstObjectByType<JointInputRail>(FindObjectsInactive.Include);
             whyItMovedPanel ??= Object.FindFirstObjectByType<WhyItMovedPanel>(FindObjectsInactive.Include);
             beginnerLeftPanel ??= Object.FindFirstObjectByType<BeginnerLeftPanel>(FindObjectsInactive.Include);
+            mathReadinessPanel ??= Object.FindFirstObjectByType<MathReadinessPanel>(FindObjectsInactive.Include);
             targetFeedbackPanel ??= Object.FindFirstObjectByType<TargetFeedbackPanel>(FindObjectsInactive.Include);
             robotRenderer ??= Object.FindFirstObjectByType<RobotRenderer>(FindObjectsInactive.Include);
             endEffectorTrail ??= Object.FindFirstObjectByType<EndEffectorTrail>(FindObjectsInactive.Include);
             targetMarkerVisual ??= Object.FindFirstObjectByType<TargetMarkerVisual>(FindObjectsInactive.Include);
+            sandboxActionPanel ??= Object.FindFirstObjectByType<SandboxActionPanel>(FindObjectsInactive.Include);
+            snapshotLitePanel ??= Object.FindFirstObjectByType<SnapshotLitePanel>(FindObjectsInactive.Include);
+            mathVisualOrchestrator ??= Object.FindFirstObjectByType<MathVisualOrchestrator>(FindObjectsInactive.Include);
+            fkDiagramPanel ??= Object.FindFirstObjectByType<FKDiagramPanel>(FindObjectsInactive.Include);
 
             if (jointSlider1 == null)
             {
@@ -100,6 +105,15 @@ namespace KineTutor3D.App
                 }
             }
 
+            if (mathReadinessPanel == null)
+            {
+                var leftPanel = GameObject.Find("LeftPanel");
+                if (leftPanel != null)
+                {
+                    mathReadinessPanel = leftPanel.GetComponent<MathReadinessPanel>() ?? leftPanel.AddComponent<MathReadinessPanel>();
+                }
+            }
+
             if (targetFeedbackPanel == null)
             {
                 var rightPanel = GameObject.Find("RightPanel");
@@ -126,9 +140,18 @@ namespace KineTutor3D.App
                     targetMarkerVisual = robotRoot.GetComponent<TargetMarkerVisual>() ?? robotRoot.AddComponent<TargetMarkerVisual>();
                 }
             }
+
+            if (mathVisualOrchestrator == null)
+            {
+                var robotRoot = GameObject.Find("RobotRoot");
+                if (robotRoot != null)
+                {
+                    mathVisualOrchestrator = robotRoot.GetComponent<MathVisualOrchestrator>() ?? robotRoot.AddComponent<MathVisualOrchestrator>();
+                }
+            }
         }
 
-        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay, JointInputRail jointInputRail, WhyItMovedPanel whyItMovedPanel, BeginnerLeftPanel beginnerLeftPanel, TargetFeedbackPanel targetFeedbackPanel, EndEffectorTrail endEffectorTrail, TargetMarkerVisual targetMarkerVisual)
+        public void BindRuntimeControllers(AppController owner, TemplateSelector templateSelector, DHTableEditor dhTableEditor, MatrixDisplay matrixDisplay, JointInputRail jointInputRail, WhyItMovedPanel whyItMovedPanel, BeginnerLeftPanel beginnerLeftPanel, MathReadinessPanel mathReadinessPanel, TargetFeedbackPanel targetFeedbackPanel, EndEffectorTrail endEffectorTrail, TargetMarkerVisual targetMarkerVisual)
         {
             templateSelector?.Bind(owner);
             dhTableEditor?.Bind(owner);
@@ -136,6 +159,7 @@ namespace KineTutor3D.App
             jointInputRail?.Bind(owner);
             whyItMovedPanel?.Bind(owner);
             beginnerLeftPanel?.Bind(owner);
+            mathReadinessPanel?.Bind(owner);
             targetFeedbackPanel?.Bind(owner);
             endEffectorTrail?.Bind(owner);
             targetMarkerVisual?.Bind(owner);

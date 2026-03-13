@@ -1,3 +1,4 @@
+﻿// Folder: Math - Pure C# double-precision math; no UnityEngine references.
 using System;
 using System.Globalization;
 

@@ -31,8 +31,17 @@ namespace KineTutor3D.Tests.EditMode
         [Test]
         public void SetGet_Mode_Roundtrip()
         {
-            RobotSelectionBridge.SetSelectedMode("guided");
-            Assert.AreEqual("guided", RobotSelectionBridge.GetSelectedMode());
+            RobotSelectionBridge.SetSelectedMode(RobotSelectionBridge.GuidedLessonMode);
+            Assert.AreEqual(RobotSelectionBridge.GuidedLessonMode, RobotSelectionBridge.GetSelectedMode());
+        }
+
+        [Test]
+        public void SetSelection_Roundtrip()
+        {
+            RobotSelectionBridge.SetSelection("SCARA_RV", RobotSelectionBridge.SandboxMode);
+
+            Assert.AreEqual("SCARA_RV", RobotSelectionBridge.GetSelectedRobotId());
+            Assert.AreEqual(RobotSelectionBridge.SandboxMode, RobotSelectionBridge.GetSelectedMode());
         }
 
         [Test]
