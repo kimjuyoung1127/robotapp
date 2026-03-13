@@ -1,4 +1,4 @@
-// Folder: UI - HUD/view components only; no kinematics logic.
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 namespace KineTutor3D.UI
 {
     /// <summary>
