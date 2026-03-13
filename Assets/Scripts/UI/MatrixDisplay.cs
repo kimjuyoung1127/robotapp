@@ -141,12 +141,12 @@ namespace KineTutor3D.UI
             var text = card.Find(textName)?.GetComponent<Text>();
             if (text == null)
             {
-                text = UiRuntimeStyle.EnsureText(card, textName, fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
+                text = UiRuntimeStyle.EnsureText(card, textName, fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             }
 
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 8f), new Vector2(-10f, -8f));
             text.font = fallbackFont;
-            text.fontSize = 13;
+            text.fontSize = UIDesignTokens.Type.Body;
             text.color = UIDesignTokens.Colors.TextPrimary;
 
             field = text;
@@ -187,7 +187,7 @@ namespace KineTutor3D.UI
 
             image.color = UIDesignTokens.Colors.NavCurrentScene;
 
-            var text = UiRuntimeStyle.EnsureText(go.transform, "HotspotLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(go.transform, "HotspotLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
             text.text = label;
         }

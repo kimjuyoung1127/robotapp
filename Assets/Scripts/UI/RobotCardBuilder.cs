@@ -90,7 +90,7 @@ namespace KineTutor3D.UI
             var badgeBg = UiRuntimeStyle.EnsureImage(badgeRect, "Bg", new Color(color.r, color.g, color.b, 0.25f));
             UiRuntimeStyle.Stretch((RectTransform)badgeBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            var badgeText = UiRuntimeStyle.EnsureText(badgeRect, "Label", font, 11, FontStyle.Bold, TextAnchor.MiddleCenter, color);
+            var badgeText = UiRuntimeStyle.EnsureText(badgeRect, "Label", font, UIDesignTokens.Type.Tiny, FontStyle.Bold, TextAnchor.MiddleCenter, color);
             UiRuntimeStyle.Stretch(badgeText.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 2f), new Vector2(-4f, -2f));
             badgeText.text = label;
         }

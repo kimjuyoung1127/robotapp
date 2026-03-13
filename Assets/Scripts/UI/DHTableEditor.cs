@@ -121,13 +121,13 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Stretch((RectTransform)panelBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             panelTitleText = panelTitleText == null
-                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelTitleText", fallbackFont, 22, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary)
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelTitleText", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary)
                 : UiRuntimeStyle.ReparentTo(panelTitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 28f), new Vector2(20f, -18f));
             panelTitleText.text = "DH Parameters";
 
             panelSubtitleText = panelSubtitleText == null
-                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelSubtitleText", fallbackFont, 13, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary)
+                ? UiRuntimeStyle.EnsureText(panelRoot, "LeftPanelSubtitleText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary)
                 : UiRuntimeStyle.ReparentTo(panelSubtitleText, panelRoot);
             UiRuntimeStyle.Anchor(panelSubtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 24f), new Vector2(20f, -48f));
             panelSubtitleText.text = "theta is read-only. Edit d / a / alpha only.";
@@ -262,7 +262,7 @@ namespace KineTutor3D.UI
             var image = go.GetComponent<Image>() ?? go.AddComponent<Image>();
             image.color = new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, 0.65f);
 
-            var text = UiRuntimeStyle.EnsureText(go.transform, "CardLabel", fallbackFont, 12, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
+            var text = UiRuntimeStyle.EnsureText(go.transform, "CardLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
             text.text = label;
         }
