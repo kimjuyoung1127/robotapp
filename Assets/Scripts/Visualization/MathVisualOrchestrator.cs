@@ -165,7 +165,7 @@ namespace KineTutor3D.Visualization
             if (coordGrid != null)
             {
                 coordGrid.SetVisible(true);
-                coordGrid.ShowDiagonalGuide(true);
+                coordGrid.ShowDiagonalGuide(true, false);
                 coordGrid.SetDiagonalColor(currentThemeColor);
             }
         }
@@ -177,9 +177,15 @@ namespace KineTutor3D.Visualization
             angleArc0?.SetVisible(true);
             angleArc1?.SetVisible(true);
             angleRef0?.SetVisible(true);
-            angleRef1?.SetVisible(true);
+            angleRef1?.SetVisible(false);
             lengthLabel0?.SetVisible(true);
             lengthLabel1?.SetVisible(true);
+            if (coordGrid != null)
+            {
+                coordGrid.SetVisible(true);
+                coordGrid.ShowDiagonalGuide(true, true);
+                coordGrid.SetDiagonalColor(currentThemeColor);
+            }
         }
 
         private void EnsureComponents()

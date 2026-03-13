@@ -2827,7 +2827,7 @@ MonoBehaviour:
   fallbackFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   topBarBackground: {fileID: 181516915}
   createTitleIfMissing: 1
-  hideOnOnboarding: 1
+  hideOnOnboarding: 0
 --- !u!1 &1337232659
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,6 +25,7 @@ namespace KineTutor3D.Visualization
         private LineRenderer zAxisLine;
         private LineRenderer diagonalLine;
         private bool diagonalVisible;
+        private bool diagonalNegativeSlope;
 
         /// <summary>
         /// 그리드를 생성합니다.
@@ -42,10 +43,18 @@ namespace KineTutor3D.Visualization
         public void ShowDiagonalGuide(bool show)
         {
             diagonalVisible = show;
-            if (diagonalLine != null)
-            {
-                diagonalLine.enabled = show;
-            }
+            diagonalNegativeSlope = false;
+            UpdateDiagonalGuide();
+        }
+
+        /// <summary>
+        /// 대각선 가이드라인 표시와 방향을 제어합니다.
+        /// </summary>
+        public void ShowDiagonalGuide(bool show, bool negativeSlope)
+        {
+            diagonalVisible = show;
+            diagonalNegativeSlope = negativeSlope;
+            UpdateDiagonalGuide();
         }
 
         /// <summary>
@@ -58,6 +67,22 @@ namespace KineTutor3D.Visualization
                 diagonalLine.startColor = color;
                 diagonalLine.endColor = new Color(color.r, color.g, color.b, color.a * 0.4f);
             }
+        }
+
+        private void UpdateDiagonalGuide()
+        {
+            if (diagonalLine == null)
+            {
+                return;
+            }
+
+            var extent = gridExtent * gridSpacing;
+            diagonalLine.positionCount = 2;
+            diagonalLine.SetPosition(0, Vector3.zero);
+            diagonalLine.SetPosition(1, diagonalNegativeSlope
+                ? new Vector3(extent, 0f, -extent)
+                : new Vector3(extent, 0f, extent));
+            diagonalLine.enabled = diagonalVisible;
         }
 
         /// <summary>

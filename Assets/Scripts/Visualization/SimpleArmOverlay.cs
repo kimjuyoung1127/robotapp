@@ -15,6 +15,7 @@ namespace KineTutor3D.Visualization
         [SerializeField] private float jointMarkerRadius = 0.08f;
         [SerializeField] private int jointMarkerSegments = 24;
         [SerializeField] private Color armColor = Color.white;
+        [SerializeField] private bool showArmLine;
 
         private LineRenderer armLine;
         private LineRenderer[] jointMarkers;
@@ -63,6 +64,8 @@ namespace KineTutor3D.Visualization
                 }
             }
 
+            armLine.enabled = showArmLine;
+
             if (jointMarkers != null)
             {
                 for (var i = 0; i < jointMarkers.Length && i < anchors.Length; i++)
@@ -83,7 +86,7 @@ namespace KineTutor3D.Visualization
             EnsureRenderers();
             if (armLine != null)
             {
-                armLine.enabled = visible;
+                armLine.enabled = visible && showArmLine;
             }
 
             if (jointMarkers != null)

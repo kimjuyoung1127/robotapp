@@ -226,26 +226,26 @@ namespace KineTutor3D.UI
             if (jointSlider1 != null)
             {
                 UiRuntimeStyle.ReparentTo(jointSlider1, bottomBarRoot);
-                slider1ValueText = StyleSlider(jointSlider1, "Joint 1", new Vector2(20f, 0f), 308f);
+                slider1ValueText = StyleSlider(jointSlider1, "Joint 1", new Vector2(659f, 229f), 308f);
             }
 
             if (jointSlider2 != null)
             {
                 UiRuntimeStyle.ReparentTo(jointSlider2, bottomBarRoot);
-                slider2ValueText = StyleSlider(jointSlider2, "Joint 2", new Vector2(344f, 0f), 256f);
+                slider2ValueText = StyleSlider(jointSlider2, "Joint 2", new Vector2(999f, 229f), 256f);
             }
 
             if (prevButton != null)
             {
                 UiRuntimeStyle.ReparentTo(prevButton, bottomBarRoot);
-                StyleButton(prevButton, "Prev", new Vector2(-248f, 0f), new Vector2(84f, 44f),
+                StyleButton(prevButton, "Prev", new Vector2(-1587f, 473f), new Vector2(84f, 44f),
                     UIDesignTokens.Colors.SurfaceCard, UIDesignTokens.Colors.TextPrimary);
             }
 
             if (skipButton != null)
             {
                 UiRuntimeStyle.ReparentTo(skipButton, bottomBarRoot);
-                StyleButton(skipButton, "Skip", new Vector2(-154f, 0f), new Vector2(72f, 44f),
+                StyleButton(skipButton, "Skip", new Vector2(-1477f, 473f), new Vector2(72f, 44f),
                     new Color(UIDesignTokens.Colors.SurfaceCard.r, UIDesignTokens.Colors.SurfaceCard.g,
                         UIDesignTokens.Colors.SurfaceCard.b, 0.32f),
                     UIDesignTokens.Colors.TextMuted);
@@ -254,7 +254,7 @@ namespace KineTutor3D.UI
             if (nextButton != null)
             {
                 UiRuntimeStyle.ReparentTo(nextButton, bottomBarRoot);
-                StyleButton(nextButton, "Next", new Vector2(-24f, 0f), new Vector2(116f, 44f),
+                StyleButton(nextButton, "Next", new Vector2(-1347f, 473f), new Vector2(116f, 44f),
                     UIDesignTokens.Colors.AccentPrimary, UIDesignTokens.Colors.TextOnAccent);
             }
         }

@@ -13,10 +13,12 @@ namespace KineTutor3D.Visualization
         private static readonly string[] ReferenceLabels = { "0°", "90°", "180°" };
         private static Material sharedMaterial;
 
-        [SerializeField] private float radius = 0.55f;
+        [SerializeField] private float radius = 0.72f;
         [SerializeField] private float lineWidth = 0.008f;
-        [SerializeField] private float labelHeight = 0.03f;
-        [SerializeField] private float labelScale = 0.075f;
+        [SerializeField] private float planeHeight = 0.18f;
+        [SerializeField] private float labelHeight = 0.08f;
+        [SerializeField] private float labelScale = 0.06f;
+        [SerializeField] private float labelRadialOffset = 0.14f;
 
         private LineRenderer[] lines;
         private TextMesh[] labels;
@@ -39,10 +41,12 @@ namespace KineTutor3D.Visualization
             for (var i = 0; i < ReferenceAnglesDeg.Length; i++)
             {
                 var angleRad = ReferenceAnglesDeg[i] * Mathf.Deg2Rad;
-                var localEnd = new Vector3(Mathf.Cos(angleRad) * radius, 0f, Mathf.Sin(angleRad) * radius);
+                var radial = new Vector3(Mathf.Cos(angleRad), 0f, Mathf.Sin(angleRad));
+                var localStart = new Vector3(0f, planeHeight, 0f);
+                var localEnd = radial * radius + new Vector3(0f, planeHeight, 0f);
                 var line = lines[i];
                 line.positionCount = 2;
-                line.SetPosition(0, Vector3.zero);
+                line.SetPosition(0, localStart);
                 line.SetPosition(1, localEnd);
                 line.startColor = faded;
                 line.endColor = faded;
@@ -51,8 +55,27 @@ namespace KineTutor3D.Visualization
                 var label = labels[i];
                 label.text = ReferenceLabels[i];
                 label.color = new Color(color.r, color.g, color.b, 0.85f);
-                label.transform.localPosition = localEnd + new Vector3(0f, labelHeight, 0f);
+                label.transform.localPosition = GetLabelLocalPosition(i, localEnd);
                 label.gameObject.SetActive(visible);
+            }
+        }
+
+        private Vector3 GetLabelLocalPosition(int index, Vector3 lineEnd)
+        {
+            switch (index)
+            {
+                case 0:
+                    // 0°는 트레일 시작점 오른쪽에 붙여 직관적으로 시작 방향을 읽게 합니다.
+                    return new Vector3(radius + labelRadialOffset, planeHeight + (labelHeight * 0.35f), 0f);
+                case 1:
+                    // 90°는 로봇과 겹치지 않도록 위로 띄워 배치합니다.
+                    return new Vector3(0f, planeHeight + radius + labelHeight, radius * 0.08f);
+                case 2:
+                    // 180°는 트레일 왼쪽 끝 근처에 붙여 반대 방향임을 바로 보이게 합니다.
+                    return new Vector3(-(radius + labelRadialOffset), planeHeight + (labelHeight * 0.35f), 0f);
+                default:
+                    var radial = lineEnd.normalized;
+                    return lineEnd + (radial * labelRadialOffset) + new Vector3(0f, labelHeight, 0f);
             }
         }
 

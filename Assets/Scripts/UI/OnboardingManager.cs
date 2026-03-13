@@ -21,6 +21,8 @@ namespace KineTutor3D.UI
         [SerializeField] private Button skipButton;
         [SerializeField] private Text headlineText;
         [SerializeField] private Text bodyText;
+        [SerializeField] private SceneNavigationBar sceneNavigationBar;
+        [SerializeField] private bool enableGlobalDebugNavigation = true;
 
         [Header("Layout")]
         [SerializeField] private Vector2 modalSize = new(720f, 500f);
@@ -108,13 +110,11 @@ namespace KineTutor3D.UI
             }
 
             canvasRoot.gameObject.SetActive(true);
-            var sceneNavigationBar = GetComponent<SceneNavigationBar>();
+            sceneNavigationBar ??= GetComponent<SceneNavigationBar>();
             if (sceneNavigationBar != null)
             {
-                sceneNavigationBar.enabled = false;
+                sceneNavigationBar.enabled = enableGlobalDebugNavigation;
             }
-
-            HideLegacyNavigationArtifacts();
 
             UiRuntimeStyle.EnsureImage(canvasRoot, "ScreenBg", UIDesignTokens.Colors.SurfaceBase);
             var screenBg = canvasRoot.Find("ScreenBg") as RectTransform;
@@ -265,28 +265,6 @@ namespace KineTutor3D.UI
             hoverLabel.text = "선택하기 →";
 
             return button;
-        }
-
-        private void HideLegacyNavigationArtifacts()
-        {
-            HideChild("TopBarRect");
-            HideChild("TopBarBackground");
-            HideChild("SceneNavButtons");
-            HideChild("TitleText");
-            HideChild("NavOnboarding");
-            HideChild("NavHome");
-            HideChild("NavMain");
-            HideChild("NavRobot Library");
-            HideChild("NavSandbox");
-        }
-
-        private void HideChild(string name)
-        {
-            var child = canvasRoot != null ? canvasRoot.Find(name) : null;
-            if (child != null)
-            {
-                child.gameObject.SetActive(false);
-            }
         }
 
         private void MoveIntoSurface(RectTransform modalSurfaceRect, string childName)

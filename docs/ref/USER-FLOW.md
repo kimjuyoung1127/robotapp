@@ -23,6 +23,7 @@ Last Updated: 2026-03-12 (KST)
    - `학습 시작` (기본 개념 이해): CoreKinematics 트랙 설정 → `Home.unity`
    - `초보자 시작` (완전 초보): MathReadiness 트랙 설정 + `2DOF_RR` 선택 → `Main.unity`
    - `건너뛰기`: CoreKinematics 트랙 설정 → `Home.unity`
+   - QA/디버그 시에는 상단 전역 네비게이션으로 `Onboarding / Home / Main / Robot Library / Sandbox`를 직접 이동할 수 있다
 5. `Home.unity` (Continue Hub)
    - `이어하기`: SessionContextStore 복구 → Main 또는 Sandbox
    - `학습 시작`: CoreKinematics → Main
@@ -113,3 +114,4 @@ flowchart TD
 7. `Home / Continue Hub`가 재방문과 온보딩 skip의 공통 착지점으로 구현 완료되었다.
 8. Sandbox에서 학습 패널과 Sandbox 전용 패널이 배타적으로 제어되어 겹치지 않는다.
 9. Editor QA: `BootScenePlayModeSetup`으로 어떤 씬에서든 Boot부터 시작, `QaToolsMenu`로 PlayerPrefs 리셋 가능.
+10. Onboarding에도 `SceneNavigationBar`를 유지해 페이지 간 즉시 이동과 상태 점검이 가능하다.

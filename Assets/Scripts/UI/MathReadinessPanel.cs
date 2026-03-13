@@ -682,7 +682,7 @@ namespace KineTutor3D.UI
             conceptStripe.gameObject.SetActive(false);
 
             overviewCard = UIComponentFactory.CreatePanel(content, "MRP_OverviewCard", UIDesignTokens.Colors.SurfaceCard);
-            UiRuntimeStyle.Anchor(overviewCard, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(352f, 164f), new Vector2(UIDesignTokens.Space.Md, -UIDesignTokens.Space.Md));
+            UiRuntimeStyle.Anchor(overviewCard, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(352f, 192f), new Vector2(UIDesignTokens.Space.Md, -UIDesignTokens.Space.Md));
 
             lessonEyebrowText = UIComponentFactory.CreateText(overviewCard, "MRP_OverviewLabel", TypographyPreset.Caption, UIDesignTokens.Colors.TextMuted, string.Empty, fallbackFont);
             lessonEyebrowText.fontStyle = FontStyle.Bold;
@@ -691,16 +691,16 @@ namespace KineTutor3D.UI
             lessonTitleText = UIComponentFactory.CreateText(overviewCard, "MRP_LessonTitle", TypographyPreset.HeadingSm, UIDesignTokens.Colors.TextPrimary, string.Empty, fallbackFont);
             lessonTitleText.fontSize = 22;
             lessonTitleText.fontStyle = FontStyle.Bold;
-            UiRuntimeStyle.Anchor(lessonTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 54f), new Vector2(16f, -38f));
+            UiRuntimeStyle.Anchor(lessonTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(308f, 48f), new Vector2(16f, -38f));
 
             lessonGoalText = UIComponentFactory.CreateText(overviewCard, "MRP_LessonGoal", TypographyPreset.Body, UIDesignTokens.Colors.TextPrimary, string.Empty, fallbackFont);
             lessonGoalText.fontSize = 15;
             lessonGoalText.fontStyle = FontStyle.Bold;
-            UiRuntimeStyle.Anchor(lessonGoalText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(316f, 42f), new Vector2(16f, -92f));
+            UiRuntimeStyle.Anchor(lessonGoalText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(316f, 48f), new Vector2(16f, -86f));
 
             introText = UIComponentFactory.CreateText(overviewCard, "MRP_Intro", TypographyPreset.Body, UIDesignTokens.Colors.TextSecondary, string.Empty, fallbackFont);
             introText.fontSize = 13;
-            UiRuntimeStyle.Anchor(introText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(316f, 34f), new Vector2(16f, 18f));
+            UiRuntimeStyle.Anchor(introText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(316f, 44f), new Vector2(16f, 16f));
 
             rationaleText = UIComponentFactory.CreateText(overviewCard, "MRP_Rationale", TypographyPreset.Caption, UIDesignTokens.Colors.TextMuted, string.Empty, fallbackFont);
             rationaleText.fontSize = 12;
@@ -708,7 +708,7 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(rationaleText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(316f, 24f), new Vector2(16f, 10f));
 
             questionCard = UIComponentFactory.CreatePanel(content, "MRP_QuestionCard", UIDesignTokens.Colors.SurfaceRaisedAlt);
-            UiRuntimeStyle.Stretch(questionCard, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(UIDesignTokens.Space.Md, 164f), new Vector2(-(UIDesignTokens.Space.Md + 4f), -196f));
+            UiRuntimeStyle.Stretch(questionCard, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(UIDesignTokens.Space.Md, 192f), new Vector2(-(UIDesignTokens.Space.Md + 4f), -196f));
 
             progressBadge = UIComponentFactory.CreateBadge(questionCard, "MRP_ProgressBadge", "Q1/1", UIDesignTokens.Colors.AccentSecondary, fallbackFont);
             progressBadgeText = progressBadge.GetComponentInChildren<Text>();
