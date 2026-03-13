@@ -8,7 +8,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// 샌드박스 스냅샷 저장/불러오기/비교 UI를 표시합니다.
     /// </summary>
-    public class SnapshotLitePanel : MonoBehaviour
+    public class SnapshotLitePanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;

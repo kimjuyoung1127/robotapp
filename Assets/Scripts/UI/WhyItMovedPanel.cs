@@ -14,7 +14,7 @@ namespace KineTutor3D.UI
     /// </summary>
     [ExecuteAlways]
     [DisallowMultipleComponent]
-    public class WhyItMovedPanel : MonoBehaviour
+    public class WhyItMovedPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;

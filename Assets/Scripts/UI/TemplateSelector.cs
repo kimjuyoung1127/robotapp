@@ -12,7 +12,7 @@ namespace KineTutor3D.UI
     /// 로봇 템플릿 드롭다운을 렌더링하고 선택을 AppController에 전달합니다.
     /// </summary>
     [ExecuteAlways]
-    public class TemplateSelector : MonoBehaviour
+    public class TemplateSelector : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform topBarRoot;
         [SerializeField] private Dropdown dropdown;

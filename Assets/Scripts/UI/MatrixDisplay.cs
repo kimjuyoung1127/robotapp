@@ -13,7 +13,7 @@ namespace KineTutor3D.UI
     /// A1/A2/T02 행렬을 실시간으로 표시합니다.
     /// </summary>
     [ExecuteAlways]
-    public class MatrixDisplay : MonoBehaviour
+    public class MatrixDisplay : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform panelRoot;
         [SerializeField] private RectTransform matrixRoot;

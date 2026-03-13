@@ -9,7 +9,7 @@ namespace KineTutor3D.UI
 {
     [ExecuteAlways]
     [DisallowMultipleComponent]
-    public class MathReadinessPanel : MonoBehaviour
+    public class MathReadinessPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private ToastNotificationController toastController;

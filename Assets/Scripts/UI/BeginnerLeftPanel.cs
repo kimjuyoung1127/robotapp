@@ -11,7 +11,7 @@ namespace KineTutor3D.UI
     /// </summary>
     [ExecuteAlways]
     [DisallowMultipleComponent]
-    public class BeginnerLeftPanel : MonoBehaviour
+    public class BeginnerLeftPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;

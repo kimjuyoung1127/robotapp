@@ -10,7 +10,7 @@ namespace KineTutor3D.UI
     /// FAIRINO FR5 6축 관절 제어 패널입니다.
     /// 슬라이더, MoveJ/ServoJ 버튼, DryRun 토글, 비상정지를 제공합니다.
     /// </summary>
-    public class FairinoJointControlPanel : MonoBehaviour
+    public class FairinoJointControlPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private Slider[] jointSliders = new Slider[6];
         [SerializeField] private Text[] jointLabels = new Text[6];

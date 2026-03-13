@@ -10,7 +10,7 @@ using TutorPose = KineTutor3D.Types.Pose;
 namespace KineTutor3D.UI
 {
     [ExecuteAlways]
-    public class DHTableEditor : MonoBehaviour
+    public class DHTableEditor : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private RectTransform panelRoot;
         [SerializeField] private RectTransform tableRoot;
