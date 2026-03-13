@@ -1,4 +1,4 @@
-// Folder: UI - HUD/view components only; no kinematics logic.
+// Folder: UI - Snapshot Lite 패널 뷰 빌더.
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +18,10 @@ namespace KineTutor3D.UI
 
     internal static class SnapshotLitePanelViewBuilder
     {
+        private const string SaveIcon = "icon-save";
+        private const string LoadIcon = "icon-load";
+        private const string CheckIcon = "icon-check";
+
         public static SnapshotLiteViewRefs Build(
             SnapshotLitePanel host,
             RectTransform panelRoot,
@@ -67,27 +71,35 @@ namespace KineTutor3D.UI
             layout.childControlWidth = true;
 
             var buttonWidth = UILayoutProfile.IsTablet ? 82f : 96f;
-            CreateButton(actionsRow, fallbackFont, "BtnSaveSnapshot", "Save", onSave, buttonWidth);
-            CreateButton(actionsRow, fallbackFont, "BtnLoadSnapshot", "Load", onLoad, buttonWidth);
-            CreateButton(actionsRow, fallbackFont, "BtnCompareSnapshot", "Compare", onCompare, buttonWidth);
+            CreateButton(actionsRow, fallbackFont, "BtnSaveSnapshot", "Save", onSave, buttonWidth, SaveIcon);
+            CreateButton(actionsRow, fallbackFont, "BtnLoadSnapshot", "Load", onLoad, buttonWidth, LoadIcon);
+            CreateButton(actionsRow, fallbackFont, "BtnCompareSnapshot", "Compare", onCompare, buttonWidth, CheckIcon);
 
             return new SnapshotLiteViewRefs(panelRoot, statusText);
         }
 
-        private static Button CreateButton(Transform parent, Font fallbackFont, string name, string label, UnityEngine.Events.UnityAction onClick, float width)
+        private static Button CreateButton(Transform parent, Font fallbackFont, string name, string label, UnityEngine.Events.UnityAction onClick, float width, string iconName = null)
         {
             var button = UIComponentFactory.CreateSecondaryButton(parent, name, label, fallbackFont, width);
             var element = UiRuntimeStyle.EnsureLayoutElement(button);
             element.preferredWidth = width;
             element.preferredHeight = UIDesignTokens.Size.ButtonHeightMd;
+
+            if (!string.IsNullOrEmpty(iconName))
+            {
+                UIComponentFactory.AttachLeadingIcon(button, iconName, UIDesignTokens.Size.IconSm);
+            }
+
             var labelText = button.transform.Find("Label")?.GetComponent<Text>();
             if (labelText != null)
             {
                 labelText.alignment = TextAnchor.MiddleCenter;
-                labelText.resizeTextForBestFit = true;
-                labelText.resizeTextMinSize = UIDesignTokens.Type.Tiny;
-                labelText.resizeTextMaxSize = UIDesignTokens.Type.Body;
+                labelText.resizeTextForBestFit = false;
+                labelText.fontSize = UIDesignTokens.Type.Caption;
+                labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                labelText.verticalOverflow = VerticalWrapMode.Truncate;
             }
+
             button.onClick.RemoveAllListeners();
             if (onClick != null)
             {

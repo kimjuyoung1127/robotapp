@@ -1,4 +1,4 @@
-// Folder: UI - HUD/view components only; no kinematics logic.
+// Folder: UI - Sandbox 액션 패널 뷰 빌더.
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +9,9 @@ namespace KineTutor3D.UI
         private const string HomeIcon = "icon-home";
         private const string ResetIcon = "icon-reset";
         private const string LibraryIcon = "icon-search";
+        private const string PlayIcon = "icon-play";
+        private const string BackIcon = "icon-back";
+        private const string EditIcon = "icon-edit";
 
         public static RectTransform Build(
             SandboxActionPanel host,
@@ -50,11 +53,11 @@ namespace KineTutor3D.UI
                 new Vector2(0f, 1f),
                 new Vector2(width, 184f),
                 new Vector2(UIDesignTokens.Space.Md, -56f));
-            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnZeroPose", "Zero", onZeroPose);
-            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnHomePose", "Home", onHomePose);
-            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnDemoPose", "Demo", onDemoPose);
-            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnResetPose", "Reset", onResetPose);
-            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnChangeRobot", "Change Robot", onChangeRobot);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnZeroPose", "Zero Pose", onZeroPose, ResetIcon);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnHomePose", "Home Pose", onHomePose, HomeIcon);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnDemoPose", "Demo Pose", onDemoPose, PlayIcon);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnResetPose", "Reset", onResetPose, ResetIcon);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnChangeRobot", "Change Robot", onChangeRobot, EditIcon);
 
             var navDivider = UIComponentFactory.CreateDivider(content, "NavDivider");
             UiRuntimeStyle.Anchor(
@@ -71,8 +74,8 @@ namespace KineTutor3D.UI
                 new Vector2(0f, 0f),
                 new Vector2(width, 96f),
                 new Vector2(UIDesignTokens.Space.Md, UIDesignTokens.Space.Md));
-            CreateWideButton(navGroup.transform, fallbackFont, "BtnBackHome", "Back Home", onBackHome);
-            CreateWideButton(navGroup.transform, fallbackFont, "BtnOpenRobotLibrary", "Robot Library", onOpenRobotLibrary);
+            CreateWideButton(navGroup.transform, fallbackFont, "BtnBackHome", "← Back to Home", onBackHome, BackIcon);
+            CreateWideButton(navGroup.transform, fallbackFont, "BtnOpenRobotLibrary", "Robot Library", onOpenRobotLibrary, LibraryIcon);
             return panelRoot;
         }
 
@@ -83,13 +86,19 @@ namespace KineTutor3D.UI
             var element = UiRuntimeStyle.EnsureLayoutElement(button);
             element.preferredWidth = width;
             element.preferredHeight = UIDesignTokens.Size.ButtonHeightMd;
-            var labelText = button.transform.Find("Label")?.GetComponent<Text>();
-            if (labelText != null)
+            if (!string.IsNullOrEmpty(iconName))
             {
-                labelText.alignment = TextAnchor.MiddleCenter;
-                labelText.resizeTextForBestFit = false;
-                labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
-                labelText.verticalOverflow = VerticalWrapMode.Truncate;
+                UIComponentFactory.AttachLeadingIcon(button, iconName);
+            }
+            else
+            {
+                var labelText = button.transform.Find("Label")?.GetComponent<Text>();
+                if (labelText != null)
+                {
+                    labelText.alignment = TextAnchor.MiddleCenter;
+                    labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    labelText.verticalOverflow = VerticalWrapMode.Truncate;
+                }
             }
             button.onClick.RemoveAllListeners();
             if (onClick != null)
