@@ -1,7 +1,7 @@
 # KineTutor3D Phase 5 Implementation Plan
 
 ## Status
-- Phase 5 status: `5A~5F Complete, 5G In Progress`
+- Phase 5 status: `5A~5G Complete (문서 sync + 테스트 보강 완료)`
 - Canonical path: `docs/ref/phase5-implementation-plan.md`
 - Entry docs that reference this plan: `AGENTS.md`, `CLAUDE.md`
 

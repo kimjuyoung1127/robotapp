@@ -65,6 +65,13 @@
 - [x] Onboarding 전역 QA navigation fallback (`OnboardingDebugNav`)
 - [x] Robot Library 3D showroom 초기 3대 프리뷰 (`2DOF RR + SCARA + 6DOF placeholder`)
 - [x] non-`realvirtual` vendor source 아카이브화 + curated runtime 자산을 `Assets/Runtime/*`로 재배치
+- [x] FAIRINO FR5 RobotControl console baseline (`RobotControl.unity` 씬 + Build Settings index 6)
+- [x] SceneCameraDirector: Main/Sandbox/RobotControl/Onboarding/Home 메인 카메라 중앙 관리
+- [x] FR5 dual prefab 경로 분리 (showroom preview vs. control)
+- [x] RobotLibrary FR5 CTA 확장: Robot Control 진입점 연결
+- [x] IVisibilityControllable 인터페이스 + 18개 패널 적용
+- [x] OnboardingViewBuilder 추출 (OnboardingManager → ViewBuilder 패턴)
+- [x] UIDesignTokens 토큰 마이그레이션 (하드코딩 색상/fontSize → 토큰 참조)
 
 ## 지금 없는 기능
 - [ ] Sandbox MVP polish 마감 (panel overlap 제거 + 버튼/아이콘 가독성 + exit clarity)

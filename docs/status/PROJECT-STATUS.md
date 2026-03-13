@@ -401,9 +401,18 @@
 5. `MathReadinessLessonFactory`는 M0~M3를 실모델 기준 좌표와 조작 우선 시나리오로 다시 작성했다.
 6. 검증: `dotnet build robotapp2.sln` 성공, EditMode `210/210` 통과, MathReadiness PlayMode 핵심 시나리오(`M0 조작 시작`, `기준선 노출`, `목표 도달 후 질문`, `정답 후 Next`, `M3 두 관절 순서 무관`) 개별 통과. 전체 PlayMode assembly는 기존 Visualization smoke 실패로 별도 후속 정리가 필요하다.
 
+## 이번 턴 반영 내용 (Phase 5G Tests + Docs 최종 정리)
+1. 문서 Sync 체크리스트 7항목 점검 완료:
+   - `current-feature-checklist.md`: FR5/Camera/IVisibilityControllable/ViewBuilder/TokenMigration 7개 항목 추가
+   - `architecture-mermaid.md`: 8개 씬 전체 flowchart + Scene Build Settings 표 + 씬 coordinator 반영
+   - `PHASE-EXECUTION-BOARD.md`: IVisibilityControllable/OnboardingViewBuilder/5G Tests+Docs 행 추가
+   - `tutor-step-plan.md`: 동기화 완료 확인 (변경 불필요)
+   - `USER-FLOW.md`: 동기화 완료 확인 (변경 불필요)
+2. EditMode 테스트 보강: `OnboardingViewBuilderTests`, `VisibilityControllableContractTests`, `TargetFeedbackPanelTests` 추가
+3. 검증: `dotnet build KineTutor3D.Runtime.csproj` 성공
+
 ## 다음 작업
-1. Phase 5G Tests + Docs 최종 정리
-2. Sandbox polish 마감: 버튼/아이콘 가독성 정리
+1. Sandbox polish 마감: 버튼/아이콘 가독성 정리
 3. tablet 4DOF rail 사용성 보정
 4. `asset subset Git tracking` 마무리
 5. replay / constraint preview 설계 진입

@@ -39,6 +39,9 @@
 | Phase 5 | Instructor Demo Mode | P1 | Ready | - | student-friendly-ux | docs/ref/product/ux/instructor-mode.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | FAIRINO FR5 Robot Control Console | P1 | InProgress | codex | fairino-fr5-integration, scene-scaffold, ui-design-system | docs/ref/product/robots/fairino-fr5-integration-reference.md, docs/status/page-qa/robot-control.md | 2026-03-13 |
 | Phase 5 | Gameplay Camera Centralization | P1 | Done | codex | scene-scaffold | docs/status/PROJECT-STATUS.md, Assets/Scenes/CLAUDE.md | 2026-03-13 |
+| Phase 5 | IVisibilityControllable + Token Migration | P1 | Done | codex | ui-design-system, scene-ui-visibility | Assets/Scripts/UI/CLAUDE.md, docs/status/PROJECT-STATUS.md | 2026-03-13 |
+| Phase 5 | OnboardingViewBuilder Extract | P1 | Done | codex | viewbuilder-extract, ui-design-system | Assets/Scripts/UI/CLAUDE.md | 2026-03-13 |
+| Phase 5 | Phase 5G Tests + Docs Final | P0 | InProgress | codex | editmode-test-add, sprint-docs-sync | docs/ref/phase5-implementation-plan.md | 2026-03-13 |
 | Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
 | Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
