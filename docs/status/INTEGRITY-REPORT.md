@@ -4,7 +4,7 @@
 
 ## 최종 실행
 - 일시: 2026-03-12 13:09 KST
-- 상태: completed (DRY_RUN=false)
+- 상태: completed (sprint-docs-sync Phase 5G + DRY_RUN=false)
 
 ## 결과
 | 항목 | 값 |
@@ -30,8 +30,9 @@
   - tutor-step-plan.md (2026-03-12): ✓
   - **architecture-diagrams.md (2026-03-09): ✗ — NOT synced with WIREFRAME 03-12 changes**
 - PRODUCT-ROADMAP downstream sync: ✓ (PROJECT-STATUS ✓, PHASE-EXECUTION-BOARD ✓, ai-context/master-plan ✓ — confirmed via 03-12 daily logs)
-- daily log created for product-doc change (03-12): ✓ (module-master-plan-home-sandbox-sync.md, module-p0-p1-reprioritization-home-sandbox.md)
+- daily log created for product-doc change (03-12): ✓ (module-master-plan-home-sandbox-sync.md, module-p0-p1-reprioritization-home-sandbox.md, scara-template-and-docs-completion.md)
 - weekly rollup updated for milestone-level doc change (2026-W11): ✓ (exists; will be updated in docs-nightly pass)
+- skill routing verification: 13/13 skills, 114/114 documents reachable (100%)
 
 ## 상세 이슈
 | # | 유형 | 대상 | 설명 | 조치 |
@@ -43,8 +44,9 @@
 |------|-----|
 | managed_modules | App, Kinematics, Math, Templates, Types, UI, Visualization |
 | board rows | 30 (Done: 18, Ready: 11, Hold: 1, InProgress: 0, QA: 0) |
-| matrix rows | 12 skills mapped |
+| matrix rows | 13 skills mapped |
 | product doc last_updated match | PRD: ✓  WIREFRAME: ✓  PRODUCT-ROADMAP: ✓ |
+| test results | EditMode 107/107, PlayMode 30/30 |
 
 ## 규칙
 - 이 파일은 `code-doc-align` 자동화가 덮어씁니다.

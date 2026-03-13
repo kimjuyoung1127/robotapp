@@ -2,9 +2,12 @@
 
 로봇 설정 템플릿 (2DOF, 3DOF, 6DOF, 커스텀).
 
-## 파일 (예정)
+## 파일
 - `Template2DOF_RR.cs` — 2관절 Revolute-Revolute (베이스라인 참조 패턴)
-- `Template3DOF_SCARA.cs` — 3관절 SCARA
+- `TemplateSCARA_RV.cs` — 3관절 SCARA (2R+1P, a=0.5, α₂=π)
+- `RobotCatalog.cs` — 로봇 카탈로그 (등록/조회/팩토리)
+
+## 파일 (예정)
 - `Template6DOF_IndustryA.cs` — 6관절 산업용
 
 ## 규칙

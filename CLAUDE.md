@@ -45,6 +45,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - UI Design System 도입: `UIDesignTokens`(색상 25+, 타이포 7단계, 간격 7단계, 컴포넌트 치수), `UITypography`(TMP 프리셋), `UIIconResolver`, `UIComponentFactory`, `UILayoutProfile` 추가. `UiRuntimeStyle`을 Obsolete bridge로 전환. Heathen 아이콘 25개 `Resources/UI/Icons/`로 큐레이션. `GameObject.Find` 10개 → `Transform.Find`/`FindFirstObjectByType`로 교체. 하드코딩 색상 8+ → 토큰 참조로 교체. `Unity.TextMeshPro` asmdef 참조 추가
 - 실제 에셋 기준선 정리: `HQP Studios`, `_Heathen Engineering`, `Glowing Rifts` 복구 후 curated runtime subset(`Assets/Runtime/Art/UI/Icons`, `Assets/Runtime/Prefabs/Teaching/Markers`, `Assets/Runtime/Prefabs/Teaching/RobotLibrary`) 도입
 - SCARA 활성화: `TemplateSCARA_RV`, expanded `RobotMetadataInfo`, 4DOF-aware `JointInputRail`, `Sandbox.unity`, Robot Library lesson/sandbox routing 추가
+- Phase 5G 완료: Tests + Docs 최종 정리 — 전체 문서 동기화 (PROJECT-STATUS, PHASE-EXECUTION-BOARD, PRODUCT-DOC-BOARD, INTEGRITY-REPORT, master-plan, project-context, current-feature-checklist, architecture-mermaid), 스킬 라우팅 검증 (13/13 스킬, 112/114 문서 도달), EditMode 107/107 PlayMode 30/30
 - Phase 5F 완료: Robot Library MVP — RobotMetadataInfo/RobotCatalogEntry(Types), RobotCatalog(Templates, 5개 로봇 등록), RobotSelectionBridge(App), RobotLibrary.unity 씬, RobotLibraryManager/RobotCardBuilder/RobotDetailDrawer(UI), SceneNavigationBar 버튼 재바인딩 안정화, EditMode 107/107 PlayMode 31/31
 - Phase 5E 완료: BeginnerLessonFactory(L0~L3), BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel 추가, OnboardingManager 초보자 버튼 추가, EditMode 87/87 PlayMode 31/31
 - Phase 5D 완료: WhyItMovedState/Formatter/Panel 추가, AppController+AppUiBinder 연동
@@ -166,11 +167,11 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 3. `UNITY_EXE` 환경변수 필요
 
 ## 즉시 다음 작업
-1. Phase 5G Tests + Docs 최종 정리
-2. Sandbox UI polish 마감: overlap 제거 + 버튼/아이콘 가독성 정리
-3. tablet 4DOF rail 사용성 기준 정리
-4. `asset subset Git tracking` 마무리
-5. replay / constraint preview 설계 진입
+1. Sandbox UI polish 마감: overlap 제거 + 버튼/아이콘 가독성 정리
+2. tablet 4DOF rail 사용성 기준 정리
+3. `asset subset Git tracking` 마무리
+4. replay / constraint preview 설계 진입
+5. Phase 6 CI/CD: self-hosted runner 등록 후 PR에서 `unity-tests` 워크플로우 실주행 1회 확인
 
 ## Task Routing
 1. 제품 방향 변경: `docs/ref/PRD.md` + `docs/ref/product/foundation/*`

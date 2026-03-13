@@ -23,6 +23,7 @@
 | Phase 5 | Beginner Lesson L0~L3 integration | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
 | Phase 5 | Math Readiness Track | P0 | Done | codex | tutor-step-add, student-friendly-ux | docs/ref/tutor-step-plan.md, docs/ref/USER-FLOW.md | 2026-03-12 |
 | Phase 5 | Robot Library MVP | P1 | Done | codex | robot-template-add, student-friendly-ux | docs/ref/phase5-implementation-plan.md, docs/ref/product/ux/robot-library.md | 2026-03-12 |
+| Phase 5 | Tests + Docs (5G) | P0 | Done | codex | sprint-docs-sync, pre-commit-validate | docs/ref/phase5-implementation-plan.md, docs/status/PROJECT-STATUS.md | 2026-03-12 |
 | Phase 5 | Home / Continue Hub | P0 | Done | codex | student-friendly-ux, scene-scaffold | docs/ref/WIREFRAME.md, docs/ref/USER-FLOW.md | 2026-03-12 |
 | Phase 5 | Scene UI Visibility Cleanup | P0 | Done | codex | scene-ui-visibility, ui-design-system | Assets/Scripts/UI/CLAUDE.md, .claude/skills/kinetutor-guide/ui/scene-ui-visibility/SKILL.md | 2026-03-12 |
 | Phase 5 | Page QA Hardening | P0 | InProgress | codex | student-friendly-ux, scene-ui-visibility, ui-design-system | docs/status/PAGE-QA-MATRIX.md, docs/ref/product/ux/guided-lesson.md, docs/ref/product/ux/sandbox.md | 2026-03-12 |
@@ -41,11 +42,10 @@
 | Phase 5 | Gameplay Camera Centralization | P1 | Done | codex | scene-scaffold | docs/status/PROJECT-STATUS.md, Assets/Scenes/CLAUDE.md | 2026-03-13 |
 | Phase 5 | IVisibilityControllable + Token Migration | P1 | Done | codex | ui-design-system, scene-ui-visibility | Assets/Scripts/UI/CLAUDE.md, docs/status/PROJECT-STATUS.md | 2026-03-13 |
 | Phase 5 | OnboardingViewBuilder Extract | P1 | Done | codex | viewbuilder-extract, ui-design-system | Assets/Scripts/UI/CLAUDE.md | 2026-03-13 |
-| Phase 5 | Phase 5G Tests + Docs Final | P0 | InProgress | codex | editmode-test-add, sprint-docs-sync | docs/ref/phase5-implementation-plan.md | 2026-03-13 |
-| Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
-| Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-11 |
+| Phase 5 | Template 3DOF | P1 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-12 |
+| Phase 5 | Template 6DOF | P2 | Ready | - | robot-template-add | docs/ref/product/robots/robot-template-expansion.md | 2026-03-12 |
 | Phase 6 | CI/CD | P2 | Hold | - | pre-commit-validate | .github/workflows/unity-tests.yml | 2026-03-12 |
-| Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-09 |
+| Phase 7 | Documentation | P1 | Done | codex | sprint-docs-sync | AGENTS.md, docs/ref/architecture-mermaid.md | 2026-03-12 |
 
 ## Zero-Drift 규칙
 1. `Assets/Scripts/` 구조를 코드 모듈 Source of Truth로 간주한다.

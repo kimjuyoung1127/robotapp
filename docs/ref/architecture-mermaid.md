@@ -34,29 +34,41 @@ flowchart TD
     Sandbox --> SandboxCoord["SandboxSceneCoordinator"]
     RobotCtrl --> RobotCtrlCoord["RobotControlSceneCoordinator"]
 
-    App --> UI["HUD UI\nDHTableEditor / MatrixDisplay / StepNavigator"]
+    App --> UI["HUD UI\nDHTableEditor / MatrixDisplay / StepNavigator\nWhyItMovedPanel / JointInputRail / BeginnerLeftPanel"]
     App --> Viz["RobotRenderer"]
     Viz --> Frame["FrameGizmo"]
     Viz --> Donor["Scara donor visuals\nBase / Axis1 / Axis2 / Gripper"]
+    Viz --> Trail["EndEffectorTrail / JointHighlightRing"]
+    Viz --> Target["TargetMarkerVisual"]
+
+    Router -->|robot library| RobotLib["RobotLibrary.unity"]
+    RobotLib --> RLM["RobotLibraryManager\nRobotCardBuilder / RobotDetailDrawer"]
+    RLM --> Catalog["RobotCatalog\n5 robots registered"]
 ```
 
 ## 2. Runtime Data Flow
 
 ```mermaid
 flowchart LR
-    Input["Slider / DH input"] --> App["AppController"]
+    Input["Slider / DH / JointInputRail"] --> App["AppController"]
     App --> Step["StepFlowService"]
     App --> Runtime["KinematicsRuntimeService"]
     App --> Binder["AppUiBinder"]
 
     Runtime --> FK["DHStandard + ForwardKinematics"]
+    Runtime --> Snap["CapturePreviousState\nsnapshot / update cause"]
     FK --> State["CurrentA1 / CurrentA2 / CurrentT02 / Pose"]
     State --> HUD["MatrixDisplay / DHTableEditor / StepTutorPanel"]
+    State --> WhyMoved["WhyItMovedPanel\nWhyItMovedState / Formatter"]
     State --> Render["RobotRenderer"]
     Render --> Rig["RobotRigBinder"]
     Render --> DonorMap["ScaraDonorMapper"]
     Render --> Copy["DonorMeshCopier"]
     Render --> Probe["RobotVisibilityProbe"]
+    Render --> TrailViz["EndEffectorTrail"]
+    Render --> Highlight["JointHighlightRing / LinkHighlighter"]
+
+    State --> Beginner["BeginnerLeftPanel\nCompareModePanelHelper\nTargetFeedbackPanel"]
 ```
 
 ## 3. Folder Responsibility Map
@@ -99,5 +111,9 @@ flowchart TD
 - `AppController` is the public runtime state and event facade.
 - `RobotRenderer` is the public visualization facade.
 - `Math`, `Types`, and `Kinematics` stay pure C# `double`-based domain code.
+- Build Settings: `Boot`(0), `Onboarding`(1), `Home`(2), `Main`(3), `RobotLibrary`(4), `Sandbox`(5), `RobotControl`(6), `MathReadiness`(7).
+- `KinematicsRuntimeState` holds previous/current snapshots and `RuntimeUpdateCause`.
+- `RobotCatalog` (Templates) is the single registry for all robot metadata + template factories.
+- `RobotSelectionBridge` (App) passes robot selection between scenes via PlayerPrefs.
 - Scene cameras are managed by `SceneCameraDirector` (except RobotLibrary showroom).
 - `IVisibilityControllable.SetVisible(bool)` is the standard panel visibility contract.

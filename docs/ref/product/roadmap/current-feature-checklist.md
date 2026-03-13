@@ -41,8 +41,13 @@
 - [x] 방문 여부, 마지막 step, reduced motion 로컬 저장
 - [x] 전역 scene navigation
 - [x] EditMode / PlayMode 테스트 기반
-- [x] `Why It Moved` 패널/설명 기능
-- [x] Beginner Lesson 0~3 초보자 진입 트랙
+- [x] runtime snapshot + update cause foundation
+- [x] track-aware step 저장/복귀 (pre_kinematics / core_kinematics)
+- [x] joint 숫자 직접 입력 + slider/numeric 양방향 동기화
+- [x] joint highlight (ring + link emission)
+- [x] trail / target marker 공통 인프라
+- [x] `Why It Moved` 패널 (WhyItMovedState/Formatter/Panel)
+- [x] Beginner Lesson 0~3 초보자 진입 트랙 (BeginnerLessonFactory, BeginnerLeftPanel, CompareModePanelHelper, TargetFeedbackPanel)
 - [x] Robot Library MVP 화면 구현
 - [x] SCARA template/metadata 기반 첫 다중 로봇 활성화
 - [x] Sandbox 씬 baseline + Robot Library sandbox 라우팅
@@ -89,6 +94,15 @@
 
 ## 우선 추가할 기능
 ### P0
+- [x] runtime snapshot + update cause foundation (Phase 5 — Complete)
+- [x] track-aware step 저장/복귀 (Phase 5 — Complete)
+- [x] joint 숫자 직접 입력 (Phase 5 — Complete)
+- [x] slider + numeric input 동기화 (Phase 5 — Complete)
+- [x] joint highlight (Phase 5 — Complete)
+- [x] trail / target marker 공통 인프라 (Phase 5 — Complete)
+- [x] `Why It Moved` (Phase 5 — Complete)
+- [x] Beginner Lesson 0~3 (Phase 5 — Complete)
+- [x] Robot Library MVP (Phase 5 — Complete)
 - [ ] Sandbox MVP polish 마감
 - [ ] tablet 기준 4DOF joint rail 최적화
 - [ ] asset subset Git tracking 마무리
@@ -117,5 +131,5 @@
 
 ## Quick Read
 - 지금 제품은 `2DOF + SCARA` 기준으로 `Home / Continue Hub`, `math_readiness`(조작 우선 + 3D 각도 기준선 + 좌측 3블록), Guided Lesson, Robot Library, Sandbox, snapshot lite를 연결한 학습 MVP이며, 모드별 패널 격리로 각 페이지가 자기 콘텐츠만 표시한다.
-- 다음 구현 순서는 `Sandbox polish 마감 -> tablet 4DOF rail -> asset subset tracking -> replay / constraint preview -> Instructor demo`다.
+- Phase 5 P0 완료. 다음 구현 순서는 `Sandbox polish 마감 -> tablet 4DOF rail -> asset subset tracking -> replay / constraint preview -> Instructor demo`다.
 - UI 품질 기준은 `page-quality-baseline.md`를 참조한다.

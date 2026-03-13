@@ -9,7 +9,7 @@
 - **Phase 2: Kinematics Core (DH + FK)** (완료)
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
-- **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5F Complete, 5G remaining)
+- **Phase 5: Guided Lesson P0 구현** (Done: 5A~5G Complete)
 - **Phase 6: CI/CD (Unity tests workflow)** (Hold — 로컬 테스트 전용, runner 미등록)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
@@ -411,12 +411,26 @@
 2. EditMode 테스트 보강: `OnboardingViewBuilderTests`, `VisibilityControllableContractTests`, `TargetFeedbackPanelTests` 추가
 3. 검증: `dotnet build KineTutor3D.Runtime.csproj` 성공
 
+## 이번 턴 반영 내용 (Phase 5G Tests + Docs 최종 정리)
+1. Phase 5 전체 완료 (5A~5G Done)
+   - 5A: Runtime foundation (snapshot/update cause)
+   - 5B: Track-aware step foundation
+   - 5C: Joint Numeric Input + Highlight
+   - 5D: Why It Moved explanation layer
+   - 5E: Beginner Lesson L0~L3 integration
+   - 5F: Robot Library MVP
+   - 5G: Tests + Docs sync
+2. `current-feature-checklist.md` 갱신: 완료된 기능 8개를 "현재 있는 기능"으로 이동
+3. 전체 문서 동기화: PROJECT-STATUS, PHASE-EXECUTION-BOARD, PRODUCT-DOC-BOARD, SKILL-DOC-MATRIX, INTEGRITY-REPORT, master-plan, project-context, CLAUDE.md, architecture-mermaid
+4. 스킬 라우팅 검증 리포트 추가: 13/13 스킬, 112/114 문서 도달 가능 (98.2%)
+5. 테스트 현황: EditMode 107/107, PlayMode 30/30
+
 ## 다음 작업
 1. Sandbox polish 마감: 버튼/아이콘 가독성 정리
-3. tablet 4DOF rail 사용성 보정
-4. `asset subset Git tracking` 마무리
-5. replay / constraint preview 설계 진입
-6. Phase 6 CI/CD 실주행 확인
+2. tablet 4DOF rail 사용성 보정
+3. `asset subset Git tracking` 마무리
+4. replay / constraint preview 설계 진입
+5. Phase 6 CI/CD 실주행 확인
 
 ## 이번 턴 반영 내용 (Page QA Matrix baseline)
 1. `docs/status/PAGE-QA-MATRIX.md`를 추가해 실제 진입 가능한 페이지 기준 QA baseline을 잠갔다.

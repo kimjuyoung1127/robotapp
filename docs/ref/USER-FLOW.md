@@ -2,6 +2,7 @@
 
 Version: 1.5.1
 Last Updated: 2026-03-13 (KST)
+Implementation Status: Phase 5 Complete (Boot/Onboarding/Home/Main/RobotLibrary/Sandbox/RobotControl/MathReadiness flow implemented)
 
 ## 목표
 - 초보 학습자가 수학 이전의 직관 lesson을 거쳐 8단계 코어 튜토리얼까지 압도감 없이 완료한다.

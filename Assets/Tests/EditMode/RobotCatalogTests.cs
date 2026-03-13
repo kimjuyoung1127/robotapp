@@ -87,6 +87,26 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
+        public void TryGet_SCARA_Valid()
+        {
+            var found = RobotCatalog.TryGet("SCARA_RV", out var entry);
+            Assert.IsTrue(found);
+            Assert.IsNotNull(entry);
+            Assert.AreEqual("SCARA_RV", entry.Metadata.RobotId);
+            Assert.AreEqual("SCARA Robot", entry.Metadata.DisplayName);
+            Assert.AreEqual(4, entry.Metadata.Dof);
+            Assert.AreEqual("SCARA", entry.Metadata.RobotType);
+        }
+
+        [Test]
+        public void GetAvailableRobotIds_IncludesSCARA()
+        {
+            var ids = RobotCatalog.GetAvailableRobotIds();
+            Assert.GreaterOrEqual(ids.Length, 2, "At least 2DOF_RR and SCARA_RV should have factories.");
+            Assert.Contains("SCARA_RV", ids);
+        }
+
+        [Test]
         public void GetAll_AllHaveValidMetadata()
         {
             var entries = RobotCatalog.GetAll();

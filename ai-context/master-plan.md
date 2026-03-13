@@ -3,7 +3,7 @@
 최종 업데이트: 2026-03-12 (KST)
 
 ## 현재 기준선
-- 완료: Phase 0~4, Phase 5A~5F
+- 완료: Phase 0~5 (5A~5G Complete)
 - 현재 baseline:
   - `2DOF + SCARA` runtime
   - `Home / Continue Hub`
@@ -14,7 +14,6 @@
   - `Sandbox.unity` + `snapshot lite` + `Sandbox actions`
   - curated asset subset + vendor fallback
 - 현재 진행:
-  - `Phase 5G Tests + Docs` 마감
   - `Product Docs Governance`
   - `Phase 6 CI/CD`는 hold
 
