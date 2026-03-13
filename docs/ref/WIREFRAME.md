@@ -46,6 +46,7 @@ Home / Continue Hub -> Settings
 ## Read Next
 
 - [information-architecture.md](./product/ux/information-architecture.md)
+- [page-quality-baseline.md](./product/ux/page-quality-baseline.md)
 - [guided-lesson.md](./product/ux/guided-lesson.md)
 - [robot-library.md](./product/ux/robot-library.md)
 - [sandbox.md](./product/ux/sandbox.md)

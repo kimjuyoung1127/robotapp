@@ -10,7 +10,7 @@
 - **Phase 3: Template 2DOF + App/UI 연결 (MVP)** (완료)
 - **Phase 4: Visualization (FrameGizmo + RobotRenderer Core)** (완료)
 - **Phase 5: Guided Lesson P0 구현** (In Progress: 5A~5F Complete, 5G remaining)
-- **Phase 6: CI/CD (Unity tests workflow)** (진행 중)
+- **Phase 6: CI/CD (Unity tests workflow)** (Hold — 로컬 테스트 전용, runner 미등록)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
 
@@ -178,7 +178,7 @@
 - [x] unity-mcp 패키지 설치
 - [x] Git 초기화 및 Unity `.gitignore` 적용
 - [x] 씬 baseline 확정 (`Assets/Scenes/Boot.unity`, `Assets/Scenes/Onboarding.unity`, `Assets/Scenes/Main.unity`)
-- [x] Build Settings 순서 설정 (`Boot` 0, `Onboarding` 1, `Main` 2)
+- [x] Build Settings 순서 설정 (`Boot` 0, `Onboarding` 1, `Home` 2, `Main` 3, `RobotLibrary` 4, `Sandbox` 5, `RobotControl` 6, `MathReadiness` 7)
 - [x] MCP 연결 스모크 확인 (telemetry/scene/console 응답)
 - [x] Unity Console 컴파일 에러 0 최종 확인 (MCP 시스템 로그 제외 기준)
 - [x] 공식문서 근거 검증 완료 (`docs.unity3d.com` 링크 첨부 규칙)
@@ -319,9 +319,9 @@
    - `AppController.InitializeTemplateRuntime()` → `RobotSelectionBridge` 확인 후 적용
 2. Scene Infrastructure
    - `RobotSelectionBridge` (App, static class): PlayerPrefs 기반 씬 간 로봇 선택 전달
-   - `SceneId.RobotLibrary = 3` 추가, `SceneCatalog`에 등록
+   - `SceneId.RobotLibrary = 4` 추가 (Home 씬 도입으로 재번호), `SceneCatalog`에 등록
    - `RobotLibrary.unity` 씬 생성 (Camera + Light + Canvas + EventSystem + RobotLibraryManager)
-   - `EditorBuildSettings`에 빌드 인덱스 3으로 등록
+   - `EditorBuildSettings`에 빌드 인덱스 4로 등록 (Home 씬 도입 이후 재번호)
 3. UI Shell
    - `RobotLibraryManager` (UI, [ExecuteAlways]): TopBar + ScrollRect 그리드 + 상세 패널 통합
    - `RobotCardBuilder` (UI, static): 로봇 카드 UI (이름, DOF 배지, 난이도, 설명, CTA)
