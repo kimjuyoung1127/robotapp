@@ -27,8 +27,9 @@
 
 ### 진입 경로
 ```text
-Onboarding "처음이에요" 카드 → MathReadinessTrack 설정 → Home / Continue Hub
-Home → "수학 기초 워밍업" 카드 → Main 씬 → MathReadinessLessonFactory M0~M3 로드
+Onboarding "처음이에요" 카드 → MathReadinessTrack 설정 → MathReadiness.unity
+Home → "수학 기초 워밍업" 카드 → MathReadiness.unity → MathReadinessLessonFactory M0~M3 로드
+MathReadiness M3 완료 → Main.unity → PreKinematics Lesson L0~L3
 ```
 
 ### MathReadiness Left Panel 전략

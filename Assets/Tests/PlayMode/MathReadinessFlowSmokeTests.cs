@@ -20,7 +20,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_Beginner_LoadsMain_AndSetsMathTrack()
+        public IEnumerator Onboarding_Beginner_LoadsMathReadiness_AndSetsMathTrack()
         {
             yield return LoadScene("Onboarding");
 
@@ -28,7 +28,7 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(button, Is.Not.Null);
 
             button.onClick.Invoke();
-            yield return WaitForActiveScene("Main");
+            yield return WaitForActiveScene("MathReadiness");
 
             Assert.That(StepProgressSaver.GetCurrentTrack(), Is.EqualTo(StepProgressSaver.MathReadinessTrack));
             Assert.That(RobotSelectionBridge.GetSelectedRobotId(), Is.EqualTo("2DOF_RR"));
@@ -227,10 +227,12 @@ namespace KineTutor3D.Tests.PlayMode
             app.SetCurrentStep(4);
             yield return null;
             app.NextStep();
-            yield return null;
+            yield return WaitForActiveScene("Main");
 
-            Assert.That(app.CurrentTrack, Is.EqualTo(StepProgressSaver.PreKinematicsTrack));
-            Assert.That(app.CurrentStep, Is.EqualTo(1));
+            var reloadedApp = Object.FindFirstObjectByType<AppController>();
+            Assert.That(reloadedApp, Is.Not.Null);
+            Assert.That(reloadedApp.CurrentTrack, Is.EqualTo(StepProgressSaver.PreKinematicsTrack));
+            Assert.That(reloadedApp.CurrentStep, Is.EqualTo(1));
         }
 
         [UnityTest]
@@ -265,7 +267,7 @@ namespace KineTutor3D.Tests.PlayMode
             StepProgressSaver.MarkVisited();
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.MathReadinessTrack);
             RobotSelectionBridge.SetSelection("2DOF_RR", RobotSelectionBridge.GuidedLessonMode);
-            yield return LoadScene("Main");
+            yield return LoadScene("MathReadiness");
         }
 
         private static IEnumerator LoadScene(string sceneName)

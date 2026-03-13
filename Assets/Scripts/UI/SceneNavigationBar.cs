@@ -10,6 +10,10 @@ namespace KineTutor3D.UI
     /// </summary>
     public class SceneNavigationBar : MonoBehaviour
     {
+        private const float NavButtonWidth = 116f;
+        private const float NavButtonHeight = 36f;
+        private const float NavButtonSpacing = 10f;
+
         [SerializeField] private RectTransform topBarRoot;
         [SerializeField] private RectTransform buttonContainer;
         [SerializeField] private Font fallbackFont;
@@ -19,6 +23,7 @@ namespace KineTutor3D.UI
         [SerializeField] private AppController appController;
         [SerializeField] private Text titleText;
         [SerializeField] private Text contextText;
+        private bool? onboardingHideOverride;
 
         private void Awake()
         {
@@ -43,10 +48,17 @@ namespace KineTutor3D.UI
             }
         }
 
+        public void SetHideOnOnboarding(bool hide)
+        {
+            onboardingHideOverride = hide;
+            EnsurePresentation();
+        }
+
         private void EnsurePresentation()
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             topBarRoot ??= ResolveTopBarRoot();
+            var entries = SceneCatalog.GetNavigableEntries();
 
             if (topBarRoot == null)
             {
@@ -54,13 +66,16 @@ namespace KineTutor3D.UI
             }
 
             var currentScene = SceneCatalog.GetCurrentSceneId();
-            var shouldHide = hideOnOnboarding && currentScene == SceneId.Onboarding;
+            var hideOnOnboardingValue = onboardingHideOverride ?? hideOnOnboarding;
+            var shouldHide = hideOnOnboardingValue && currentScene == SceneId.Onboarding;
             topBarRoot.gameObject.SetActive(!shouldHide);
             HideLegacyCanvasChildren(shouldHide);
             if (shouldHide)
             {
                 return;
             }
+
+            topBarRoot.SetAsLastSibling();
 
             UiRuntimeStyle.Stretch(topBarRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -76f), new Vector2(-16f, -16f));
 
@@ -74,32 +89,49 @@ namespace KineTutor3D.UI
             }
 
             UiRuntimeStyle.Stretch((RectTransform)topBarBackground.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var topBarContentParent = topBarBackground.transform;
 
             if (createTitleIfMissing)
             {
-                var existing = topBarRoot.Find("TitleText");
+                var existing = topBarContentParent.Find("TitleText");
+                if (existing == null)
+                {
+                    existing = topBarRoot.Find("TitleText");
+                }
                 titleText = existing != null ? existing.GetComponent<Text>() : titleText;
                 if (titleText == null)
                 {
-                    titleText = UiRuntimeStyle.EnsureText(topBarRoot, "TitleText", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
-                    UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
+                    titleText = UiRuntimeStyle.EnsureText(topBarContentParent, "TitleText", fallbackFont, UIDesignTokens.Type.DisplaySm, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
                 }
+                UiRuntimeStyle.ReparentTo(titleText, topBarContentParent);
+                UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(220f, 40f), new Vector2(26f, 0f));
                 titleText.text = "KineTutor3D";
             }
 
-            contextText ??= topBarRoot.Find("TopBarContextText")?.GetComponent<Text>();
+            contextText ??= topBarContentParent.Find("TopBarContextText")?.GetComponent<Text>();
             if (contextText == null)
             {
-                contextText = UiRuntimeStyle.EnsureText(topBarRoot, "TopBarContextText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextSecondary);
+                contextText = topBarRoot.Find("TopBarContextText")?.GetComponent<Text>();
             }
+            if (contextText == null)
+            {
+                contextText = UiRuntimeStyle.EnsureText(topBarContentParent, "TopBarContextText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextSecondary);
+            }
+            UiRuntimeStyle.ReparentTo(contextText, topBarContentParent);
             UiRuntimeStyle.Anchor(contextText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(360f, 22f), new Vector2(250f, 10f));
 
-            buttonContainer ??= topBarRoot.Find("SceneNavButtons") as RectTransform;
+            buttonContainer ??= topBarContentParent.Find("SceneNavButtons") as RectTransform;
             if (buttonContainer == null)
             {
-                buttonContainer = UiRuntimeStyle.EnsureRectChild(topBarRoot, "SceneNavButtons");
+                buttonContainer = topBarRoot.Find("SceneNavButtons") as RectTransform;
             }
-            UiRuntimeStyle.Anchor(buttonContainer, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(252f, 36f), new Vector2(-156f, 0f));
+            if (buttonContainer == null)
+            {
+                buttonContainer = UiRuntimeStyle.EnsureRectChild(topBarContentParent, "SceneNavButtons");
+            }
+            UiRuntimeStyle.ReparentTo(buttonContainer, topBarContentParent);
+            var navWidth = (entries.Count * NavButtonWidth) + (Mathf.Max(0, entries.Count - 1) * NavButtonSpacing);
+            UiRuntimeStyle.Anchor(buttonContainer, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(navWidth, NavButtonHeight), new Vector2(-26f, 0f));
 
             buttonContainer.gameObject.SetActive(true);
             RebuildButtons();
@@ -171,7 +203,9 @@ namespace KineTutor3D.UI
 
         private void ApplyCompactLearningMode(SceneId currentScene)
         {
-            var compactLearning = currentScene == SceneId.Main && appController != null && appController.CurrentStepConfig != null;
+            var compactLearning = (currentScene == SceneId.Main || currentScene == SceneId.MathReadiness) &&
+                appController != null &&
+                appController.CurrentStepConfig != null;
             var stepDetailText = topBarRoot != null ? topBarRoot.Find("StepIndicatorText")?.GetComponent<Text>() : null;
 
             if (!compactLearning)
@@ -276,9 +310,9 @@ namespace KineTutor3D.UI
                 ? UIDesignTokens.Colors.NavCurrentScene
                 : UIDesignTokens.Colors.AccentPrimary;
             UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, entry.DisplayName, background);
-            UiRuntimeStyle.Anchor(button.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(116f, 36f), new Vector2(index * 126f, 0f));
+            UiRuntimeStyle.Anchor(button.transform as RectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(NavButtonWidth, NavButtonHeight), new Vector2(index * (NavButtonWidth + NavButtonSpacing), 0f));
             var layout = UiRuntimeStyle.EnsureLayoutElement(button);
-            layout.preferredWidth = 116f;
+            layout.preferredWidth = NavButtonWidth;
             layout.minWidth = 104f;
             return button;
         }

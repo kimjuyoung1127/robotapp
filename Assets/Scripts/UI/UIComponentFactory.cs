@@ -1,4 +1,4 @@
-// Folder: UI - HUD/view components only; no kinematics logic.
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -332,6 +332,36 @@ namespace KineTutor3D.UI
             bg.raycastTarget = true;
 
             return rect;
+        }
+
+        // ── Toggle ──────────────────────────────────────────────────────
+
+        /// <summary>토글 위젯을 생성합니다.</summary>
+        public static Toggle CreateToggle(Transform parent, string name, string label, Font font = null)
+        {
+            var existing = parent.Find(name)?.GetComponent<Toggle>();
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var toggleGo = new GameObject(name, typeof(RectTransform), typeof(Toggle));
+            toggleGo.transform.SetParent(parent, false);
+            var toggle = toggleGo.GetComponent<Toggle>();
+
+            var background = UiRuntimeStyle.EnsureImage(toggleGo.transform, "Background", UIDesignTokens.Colors.SurfaceCard);
+            UiRuntimeStyle.Anchor(background.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(20f, 20f), new Vector2(0f, 0f));
+
+            var checkmark = UiRuntimeStyle.EnsureImage(background.transform, "Checkmark", UIDesignTokens.Colors.AccentPrimary);
+            UiRuntimeStyle.Stretch(checkmark.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
+            toggle.targetGraphic = background;
+            toggle.graphic = checkmark;
+
+            var text = UiRuntimeStyle.EnsureText(toggleGo.transform, "Label", UiRuntimeStyle.ResolveFont(font), UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
+            UiRuntimeStyle.Anchor(text.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(160f, 20f), new Vector2(28f, 0f));
+            text.text = label;
+
+            return toggle;
         }
 
         // ── Internal ─────────────────────────────────────────────────────

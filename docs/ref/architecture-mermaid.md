@@ -13,8 +13,10 @@ flowchart TD
 
     Onboarding --> Nav["SceneNavigationBar"]
     Main --> Nav
+    MathReady["MathReadiness.unity"] --> Nav
 
     Main --> App["AppController"]
+    MathReady --> App
     App --> UI["HUD UI\nDHTableEditor / MatrixDisplay / StepNavigator"]
     App --> Viz["RobotRenderer"]
     Viz --> Frame["FrameGizmo"]

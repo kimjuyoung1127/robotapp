@@ -61,16 +61,15 @@ namespace KineTutor3D.App
             RobotSelectionBridge.SetSelection(data.RobotId, data.EntryMode);
             SceneNavigator.Load(string.Equals(data.EntryMode, RobotSelectionBridge.SandboxMode, System.StringComparison.Ordinal)
                 ? SceneId.Sandbox
-                : SceneId.Main);
+                : ResolveLearningScene(data.Track));
             return true;
         }
 
         public void StartGuidedLesson()
         {
-            var track = StepProgressSaver.GetCurrentTrack();
-            StepProgressSaver.SetCurrentTrack(track);
-            StepProgressSaver.SaveLastCompletedStep(track, 0);
-            RobotSelectionBridge.SetSelection(ResolveStartRobotId(track), RobotSelectionBridge.GuidedLessonMode);
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
+            RobotSelectionBridge.SetSelection(ResolveStartRobotId(StepProgressSaver.CoreKinematicsTrack), RobotSelectionBridge.GuidedLessonMode);
             SceneNavigator.Load(SceneId.Main);
         }
 
@@ -79,7 +78,7 @@ namespace KineTutor3D.App
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.MathReadinessTrack);
             StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.MathReadinessTrack, 0);
             RobotSelectionBridge.SetSelection(DefaultRobotId, RobotSelectionBridge.GuidedLessonMode);
-            SceneNavigator.Load(SceneId.Main);
+            SceneNavigator.Load(SceneId.MathReadiness);
         }
 
         public void OpenRobotLibrary()
@@ -132,6 +131,13 @@ namespace KineTutor3D.App
             }
 
             return $"코어 Step {Mathf.Max(1, step)}";
+        }
+
+        private static SceneId ResolveLearningScene(string track)
+        {
+            return string.Equals(track, StepProgressSaver.MathReadinessTrack, System.StringComparison.Ordinal)
+                ? SceneId.MathReadiness
+                : SceneId.Main;
         }
     }
 }

@@ -405,7 +405,7 @@ ShootingTarget.prefab를 instantiate하여 목표점에 배치
 - 미도달 시: Warning_3D_Icon + 거리 표시
 
 에셋 매핑:
-- 목표점 마커: ShootingTarget.prefab (Assets/Glowing Rifts/)
+- 목표점 마커: ShootingTarget.prefab (Assets/Vendors/Archive/GlowingRifts/)
 - 도달 아이콘: Checkmark_3D_Icon.prefab (HQP)
 - 미도달 아이콘: Warning_3D_Icon.prefab (HQP)
 ```
@@ -636,14 +636,14 @@ L2 전용 비교 모드 UI 상태 관리
 
 | 기능 | 에셋 | 소스 경로 |
 |------|------|----------|
-| WhyItMoved 관절 아이콘 | Free Flat Arrow 1 E Icon.png | `Assets/_Heathen Engineering/Assets/UX/Icons/Flat Icons [Free]/` |
+| WhyItMoved 관절 아이콘 | Free Flat Arrow 1 E Icon.png | `Assets/Vendors/Archive/HeathenEngineering/Assets/UX/Icons/Flat Icons [Free]/` |
 | WhyItMoved 양수 화살표 | Free Flat Arrow 1 N Icon.png | Heathen |
 | WhyItMoved 음수 화살표 | Free Flat Arrow 1 S Icon.png | Heathen |
 | WhyItMoved 링크 아이콘 | Free Flat Gear 2 Icon.png | Heathen |
 | WhyItMoved 설명 아이콘 | Free Flat Chat 1 Bars Icon.png | Heathen |
 | 힌트 카드 아이콘 | Free Flat Chat 1 Question Icon.png | Heathen |
-| 목표점 마커 | ShootingTarget.prefab | `Assets/Glowing Rifts/Shooting Target/` |
-| 도달 표시 | Checkmark_3D_Icon.prefab | `Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/` |
+| 목표점 마커 | ShootingTarget.prefab | `Assets/Vendors/Archive/GlowingRifts/Shooting Target/` |
+| 도달 표시 | Checkmark_3D_Icon.prefab | `Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/` |
 | 미도달 표시 | Warning_3D_Icon.prefab | HQP Studios |
 | EE trail | TrailRenderer (코드 생성) | Runtime |
 | Joint highlight ring | LineRenderer (코드 생성) | Runtime |

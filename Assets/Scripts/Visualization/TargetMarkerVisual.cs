@@ -16,20 +16,20 @@ namespace KineTutor3D.Visualization
     {
         private static readonly string[] TargetPrefabPaths =
         {
-            "Assets/Prefabs/Teaching/Markers/ShootingTarget.prefab",
-            "Assets/Glowing Rifts/Shooting Target/ShootingTarget.prefab"
+            "Assets/Runtime/Prefabs/Teaching/Markers/ShootingTarget.prefab",
+            "Assets/Vendors/Archive/GlowingRifts/Shooting Target/ShootingTarget.prefab"
         };
 
         private static readonly string[] SuccessPrefabPaths =
         {
-            "Assets/Prefabs/Teaching/Markers/Checkmark_3D_Icon.prefab",
-            "Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/Checkmark_3D_Icon.prefab"
+            "Assets/Runtime/Prefabs/Teaching/Markers/Checkmark_3D_Icon.prefab",
+            "Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/Checkmark_3D_Icon.prefab"
         };
 
         private static readonly string[] WarningPrefabPaths =
         {
-            "Assets/Prefabs/Teaching/Markers/Warning_3D_Icon.prefab",
-            "Assets/HQP Studios/Low Poly 3D Icons - Pack Lite/Prefabs/Warning_3D_Icon.prefab"
+            "Assets/Runtime/Prefabs/Teaching/Markers/Warning_3D_Icon.prefab",
+            "Assets/Vendors/Archive/HQPStudios/Low Poly 3D Icons - Pack Lite/Prefabs/Warning_3D_Icon.prefab"
         };
 
         [SerializeField] private AppController appController;

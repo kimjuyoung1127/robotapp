@@ -1,4 +1,4 @@
-// Folder: UI - HUD/view components only; no kinematics logic.
+﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -60,6 +60,26 @@ namespace KineTutor3D.UI
 
             // Danger muted (disabled/placeholder)
             public static readonly Color DangerMuted       = new Color(0.42f, 0.18f, 0.15f, 0.92f);
+
+            // Showroom
+            public static readonly Color PedestalSurface   = new Color(0.14f, 0.16f, 0.24f, 0.95f);
+            public static readonly Color PreviewPlaceholder = new Color(0.40f, 0.42f, 0.48f, 0.80f);
+
+            // Scene overlay
+            public static readonly Color SceneOverlayLight = new Color(0.03f, 0.04f, 0.08f, 0.12f);
+            public static readonly Color TopBarBackground  = new Color(0.05f, 0.06f, 0.10f, 0.92f);
+
+            // FK Diagram
+            public static readonly Color DiagramLink1      = new Color(0.29f, 0.56f, 0.85f, 1f);
+            public static readonly Color DiagramLink2      = new Color(0.95f, 0.77f, 0.15f, 1f);
+            public static readonly Color DiagramLink3      = new Color(0.30f, 0.85f, 0.45f, 1f);
+            public static readonly Color DiagramLink4      = new Color(0.90f, 0.35f, 0.30f, 1f);
+            public static readonly Color DiagramLink5      = new Color(0.70f, 0.40f, 0.90f, 1f);
+            public static readonly Color DiagramLink6      = new Color(0.95f, 0.55f, 0.25f, 1f);
+            public static readonly Color DiagramJoint      = new Color(0.92f, 0.93f, 0.96f, 1f);
+            public static readonly Color DiagramGrid       = new Color(0.20f, 0.22f, 0.30f, 0.40f);
+            public static readonly Color DiagramAxis       = new Color(0.55f, 0.60f, 0.72f, 0.70f);
+            public static readonly Color DiagramEE         = new Color(0.30f, 0.85f, 0.45f, 1f);
         }
 
         // ── Typography ───────────────────────────────────────────────────
@@ -132,6 +152,15 @@ namespace KineTutor3D.UI
 
             // Grid
             public const float GridSpacing      = 20f;
+
+            // FK Diagram
+            public const int DiagramResolution  = 512;
+
+            // Showroom
+            public const float PedestalRadius         = 0.35f;
+            public const float PedestalHeight         = 0.02f;
+            public const float PodSpacing             = 1.2f;
+            public const float ShowroomViewportRatio  = 0.55f;
 
             // Badge
             public const float BadgeWidth       = 70f;

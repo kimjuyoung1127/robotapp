@@ -1,4 +1,4 @@
-// Editor-only: ensures Play Mode always starts from Boot.unity
+// Editor-only: ensures Play Mode always starts from Onboarding.unity
 // regardless of which scene is currently open in the editor.
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,9 +8,9 @@ namespace KineTutor3D.Editor
     [InitializeOnLoad]
     internal static class BootScenePlayModeSetup
     {
-        private const string BootScenePath = "Assets/Scenes/Boot.unity";
-        private const string MenuPath = "KineTutor3D/Always Start From Boot";
-        private const string PrefKey = "KineTutor3D.AlwaysStartFromBoot";
+        private const string StartScenePath = "Assets/Scenes/Onboarding.unity";
+        private const string MenuPath = "KineTutor3D/Always Start From Onboarding";
+        private const string PrefKey = "KineTutor3D.AlwaysStartFromOnboarding";
 
         static BootScenePlayModeSetup()
         {
@@ -24,14 +24,14 @@ namespace KineTutor3D.Editor
         }
 
         [MenuItem(MenuPath, priority = 200)]
-        private static void ToggleAlwaysStartFromBoot()
+        private static void ToggleAlwaysStartFromOnboarding()
         {
             IsEnabled = !IsEnabled;
             ApplyIfEnabled();
         }
 
         [MenuItem(MenuPath, true)]
-        private static bool ToggleAlwaysStartFromBootValidate()
+        private static bool ToggleAlwaysStartFromOnboardingValidate()
         {
             Menu.SetChecked(MenuPath, IsEnabled);
             return true;
@@ -45,10 +45,10 @@ namespace KineTutor3D.Editor
                 return;
             }
 
-            var bootScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(BootScenePath);
-            if (bootScene != null)
+            var startScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(StartScenePath);
+            if (startScene != null)
             {
-                EditorSceneManager.playModeStartScene = bootScene;
+                EditorSceneManager.playModeStartScene = startScene;
             }
         }
     }

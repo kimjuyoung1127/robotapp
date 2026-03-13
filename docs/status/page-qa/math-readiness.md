@@ -7,7 +7,7 @@
 ## Entry Route
 1. `Play`
 2. `Home`에서 `수학 기초 워밍업` 클릭
-3. `Main` 진입 후 Math Readiness 패널 표시 확인
+3. `MathReadiness` 진입 후 Math Readiness 패널 표시 확인
 
 ## Core Checks
 - [ ] `MathReadinessPanel`이 보인다.
@@ -15,7 +15,7 @@
 - [ ] 오답 선택 시 soft correction 메시지가 나온다.
 - [ ] 정답 + 슬라이더 이동 후 `Next`가 활성화된다.
 - [ ] 사용하지 않는 joint row는 숨겨진다.
-- [ ] 마지막 단계 후 `pre_kinematics` 흐름으로 이어질 준비가 된다.
+- [ ] 마지막 단계 후 `Main`으로 이동하며 `pre_kinematics` 흐름으로 이어진다.
 
 ## Layout / UI Checks
 - [ ] `MRP_Content`가 LeftPanel 범위를 넘지 않는다.
@@ -29,5 +29,5 @@
 - [ ] 초보자가 다음 행동을 쉽게 찾을 수 있다.
 
 ## Quick Inspect Targets
-- scene: `Main.unity`
+- scene: `MathReadiness.unity`
 - objects: `MRP_Content`, `BtnWarmupChoice_0`, `BtnReadinessChoice_0`, `BtnReadinessChoice_1`, `MRP_CoachHintBody`, `BtnNext`

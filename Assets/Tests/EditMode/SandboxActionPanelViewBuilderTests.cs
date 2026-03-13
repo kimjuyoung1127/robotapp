@@ -41,6 +41,7 @@ namespace KineTutor3D.Tests.EditMode
 
             Assert.IsNotNull(root.Find("SandboxActionContent/PrimaryActions/BtnZeroPose"));
             Assert.IsNotNull(root.Find("SandboxActionContent/PrimaryActions/BtnResetPose"));
+            Assert.IsNotNull(root.Find("SandboxActionContent/PrimaryActions/BtnChangeRobot"));
             Assert.IsNotNull(root.Find("SandboxActionContent/NavigationActions/BtnBackHome"));
             Assert.IsNotNull(root.Find("SandboxActionContent/NavigationActions/BtnOpenRobotLibrary"));
         }
@@ -49,7 +50,7 @@ namespace KineTutor3D.Tests.EditMode
         {
             var type = typeof(SandboxActionPanel).Assembly.GetType("KineTutor3D.UI.SandboxActionPanelViewBuilder");
             var method = type.GetMethod("Build", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            return (RectTransform)method.Invoke(null, new object[] { _panel, null, _font, null, null, null, null, null, null });
+            return (RectTransform)method.Invoke(null, new object[] { _panel, null, _font, null, null, null, null, null, null, null });
         }
     }
 }

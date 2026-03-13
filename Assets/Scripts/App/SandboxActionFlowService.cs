@@ -36,6 +36,17 @@ namespace KineTutor3D.App
             SceneNavigator.Load(SceneId.RobotLibrary);
         }
 
+        public void ChangeRobot(string robotId)
+        {
+            if (string.IsNullOrWhiteSpace(robotId))
+            {
+                return;
+            }
+
+            RobotSelectionBridge.SetSelection(robotId, RobotSelectionBridge.SandboxMode);
+            SceneNavigator.Load(SceneId.Sandbox);
+        }
+
         private static void ApplyPoseArray(AppController appController, double[] pose)
         {
             if (appController == null || pose == null)

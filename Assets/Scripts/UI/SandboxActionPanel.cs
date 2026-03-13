@@ -12,6 +12,7 @@ namespace KineTutor3D.UI
         [SerializeField] private AppController appController;
         [SerializeField] private RectTransform panelRoot;
         [SerializeField] private Font fallbackFont;
+        [SerializeField] private SandboxRobotPickerOverlay robotPickerOverlay;
 
         private readonly SandboxActionFlowService flowService = new SandboxActionFlowService();
         private bool viewBuilt;
@@ -48,6 +49,7 @@ namespace KineTutor3D.UI
                 OnHomePose,
                 OnDemoPose,
                 OnResetPose,
+                OnChangeRobot,
                 OnBackHome,
                 OnOpenRobotLibrary);
             viewBuilt = panelRoot != null;
@@ -76,6 +78,18 @@ namespace KineTutor3D.UI
         private void OnBackHome()
         {
             flowService.BackHome();
+        }
+
+        private void OnChangeRobot()
+        {
+            robotPickerOverlay ??= gameObject.GetComponent<SandboxRobotPickerOverlay>() ?? gameObject.AddComponent<SandboxRobotPickerOverlay>();
+            var parent = panelRoot != null ? panelRoot.parent as RectTransform : transform as RectTransform;
+            robotPickerOverlay.Show(parent, fallbackFont, OnRobotSelected);
+        }
+
+        private void OnRobotSelected(string robotId)
+        {
+            flowService.ChangeRobot(robotId);
         }
 
         private void OnOpenRobotLibrary()

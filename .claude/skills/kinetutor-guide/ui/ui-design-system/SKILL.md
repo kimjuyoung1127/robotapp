@@ -50,7 +50,7 @@
 4. `GameObject.Find(` 0개
 
 ## Icon Registry
-`Assets/Resources/UI/Icons/` 에 25개 큐레이션 아이콘:
+`Assets/Runtime/Resources/UI/Icons/` 에 25개 큐레이션 아이콘:
 - Navigation: `icon-home`, `icon-back`, `icon-menu`, `icon-close`
 - Actions: `icon-play`, `icon-pause`, `icon-reset`, `icon-save`, `icon-load`, `icon-settings`, `icon-edit`
 - Status: `icon-check`, `icon-warning`, `icon-lock`, `icon-unlock`, `icon-info`

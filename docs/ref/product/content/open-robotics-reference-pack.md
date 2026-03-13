@@ -37,6 +37,7 @@
 | [Robotics Toolbox for Python](https://petercorke.github.io/robotics-toolbox-python/intro.html) | manipulator models, DH/MDH/ETS, joint limits, robot model taxonomy | 중간 | Robot Library metadata, Instructor Notes, concept validation | robot model taxonomy, DH/MDH convention warning, joint limit metadata, model comparison | Python API나 external dependency 흐름을 그대로 옮기기 |
 | [MoveIt 2 Pick and Place](https://moveit.picknik.ai/main/doc/examples/pick_place/pick_place_tutorial.html) | grasp pose, pre-grasp approach, post-grasp retreat, grasp posture | 중간 | Pick Foundation, future Sandbox | `grasp_pose`, `pre_grasp_approach`, `post_grasp_retreat`, `grasp_posture` 상태 정의 | full planning pipeline, ROS-heavy architecture, action/service 구조를 그대로 가져오기 |
 | [Unity Robotics Hub](https://github.com/Unity-Technologies/Unity-Robotics-Hub) | URDF import, Unity robot sim structure, pick-and-place tutorial organization | 중간 | Unity-side import/sim reference, future robot onboarding | Unity robot import structure, scene organization, pick-and-place tutorial scaffolding | ROS dependency 흐름, external stack 전제를 현재 MVP에 강제하기 |
+| [FAIRINO Official Docs](https://fairino-doc-en.readthedocs.io/latest/index.html) | FR5/FR series hardware spec, installation, DH, C# SDK, feedback protocol, command protocol | 중간 | Robot Library metadata, real-robot bridge, Instructor Notes | FR5 실기 제어용 source map, C# SDK motion/status API, drawings/DH downloads, installation/load constraints | 전체 사이트 미러링, ZIP/PDF 바이너리 커밋, firmware/port 동작을 현장 검증 없이 단정하기 |
 | [roboticsbook](https://www.roboticsbook.org/) | introductory robotics, state, motion, perception context | 높음 | Glossary, Guided Lesson concepts | beginner wording, structured concept progression | perception/decision 파트를 현 단계 범위 이상으로 확대하기 |
 | [Pybotics](https://pybotics.readthedocs.io/) | DH-based modeling, calibration-adjacent concepts | 중간 | Sandbox notes, metadata concepts | robot model structuring, DH-centric thinking | calibration tooling/implementation을 현재 범위에 직접 넣기 |
 | [general_robotics_toolbox](https://general-robotics-toolbox.readthedocs.io/en/latest/readme.html) | transform utilities, robot representation | 중간 | Instructor Notes, DH/MDH caution | compact robotics representation ideas, transform vocabulary | library-specific usage 문법을 lesson 본문에 넣기 |
@@ -59,3 +60,6 @@
   - `grasp_pose`, `pre_grasp_approach`, `post_grasp_retreat`, `grasp_posture`를 pick foundation 상태 정의에 반영
 - `Unity Robotics Hub` -> future implementation notes
   - URDF-ready import slot, Unity robot scene organization, pick tutorial scaffold를 런타임 고도화 참고로만 사용
+- `FAIRINO Official Docs` -> `fairino-fr5-integration-reference.md`
+  - FR5 실기 제어용 hardware/SDK/protocol source map을 정리
+  - Unity UI -> validation -> simulation -> live adapter 구조와 8083/20004 구분 메모를 남김

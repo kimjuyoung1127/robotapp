@@ -12,7 +12,7 @@
 - [ ] `BtnStartLearning`, `BtnBeginner`, `BtnOnboardingSkip` 3개 버튼이 보인다.
 - [ ] 3개 버튼이 모두 `ModalSurface` 카드 안에 들어가 있다.
 - [ ] `학습 시작` 클릭 시 `Home`으로 이동한다.
-- [ ] `초보자 시작` 클릭 시 `Main`으로 이동하고 `MathReadinessPanel`이 바로 열린다.
+- [ ] `초보자 시작` 클릭 시 `MathReadiness`로 이동하고 `MathReadinessPanel`이 바로 열린다.
 - [ ] `건너뛰기` 클릭 시 `Home`으로 이동한다.
 - [ ] 상단 전역 네비게이션은 보이지 않는다.
 

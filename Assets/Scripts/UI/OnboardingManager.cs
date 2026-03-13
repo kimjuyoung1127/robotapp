@@ -22,6 +22,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Text headlineText;
         [SerializeField] private Text bodyText;
         [SerializeField] private SceneNavigationBar sceneNavigationBar;
+        [SerializeField] private RectTransform debugNavigationRoot;
         [SerializeField] private bool enableGlobalDebugNavigation = true;
 
         [Header("Layout")]
@@ -45,6 +46,14 @@ namespace KineTutor3D.UI
             if (Application.isPlaying)
             {
                 BindListeners();
+            }
+        }
+
+        private void Start()
+        {
+            if (Application.isPlaying)
+            {
+                EnsurePresentation();
             }
         }
 
@@ -87,7 +96,7 @@ namespace KineTutor3D.UI
             StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.MathReadinessTrack, 0);
             SessionContextStore.Clear();
             RobotSelectionBridge.SetSelection(DefaultRobotId, RobotSelectionBridge.GuidedLessonMode);
-            SceneNavigator.Load(SceneId.Main);
+            SceneNavigator.Load(SceneId.MathReadiness);
         }
 
         public void SkipToMain()
@@ -110,11 +119,10 @@ namespace KineTutor3D.UI
             }
 
             canvasRoot.gameObject.SetActive(true);
-            sceneNavigationBar ??= GetComponent<SceneNavigationBar>();
-            if (sceneNavigationBar != null)
-            {
-                sceneNavigationBar.enabled = enableGlobalDebugNavigation;
-            }
+            sceneNavigationBar ??= GetComponentInChildren<SceneNavigationBar>(true);
+            EnsureGlobalNavigation();
+
+            EnsureDebugNavigation();
 
             UiRuntimeStyle.EnsureImage(canvasRoot, "ScreenBg", UIDesignTokens.Colors.SurfaceBase);
             var screenBg = canvasRoot.Find("ScreenBg") as RectTransform;
@@ -197,6 +205,33 @@ namespace KineTutor3D.UI
             {
                 skipLabel.color = UIDesignTokens.Colors.TextMuted;
             }
+
+            BringGlobalNavigationToFront();
+        }
+
+        private void EnsureGlobalNavigation()
+        {
+            if (sceneNavigationBar == null)
+            {
+                return;
+            }
+
+            sceneNavigationBar.enabled = true;
+            sceneNavigationBar.SetHideOnOnboarding(false);
+        }
+
+        private void BringGlobalNavigationToFront()
+        {
+            if (canvasRoot == null)
+            {
+                return;
+            }
+
+            var topBarRect = canvasRoot.Find("TopBarRect") as RectTransform;
+            if (topBarRect != null)
+            {
+                topBarRect.SetAsLastSibling();
+            }
         }
 
         private Button BuildSelectionCard(Transform parent, string name,
@@ -264,6 +299,90 @@ namespace KineTutor3D.UI
                 new Vector2(200f, 24f), new Vector2(0f, UIDesignTokens.Space.Sm));
             hoverLabel.text = "선택하기 →";
 
+            return button;
+        }
+
+        private void EnsureDebugNavigation()
+        {
+            if (canvasRoot == null)
+            {
+                if (debugNavigationRoot != null)
+                {
+                    debugNavigationRoot.gameObject.SetActive(false);
+                }
+
+                return;
+            }
+
+            debugNavigationRoot ??= UiRuntimeStyle.EnsureRectChild(canvasRoot, "OnboardingDebugNav");
+            debugNavigationRoot.SetAsLastSibling();
+            debugNavigationRoot.gameObject.SetActive(true);
+            UiRuntimeStyle.Anchor(
+                debugNavigationRoot,
+                new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 1f),
+                new Vector2(760f, 44f),
+                new Vector2(0f, -24f));
+
+            var layout = debugNavigationRoot.GetComponent<HorizontalLayoutGroup>();
+            if (layout == null)
+            {
+                layout = debugNavigationRoot.gameObject.AddComponent<HorizontalLayoutGroup>();
+            }
+
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = false;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            var entries = SceneCatalog.GetNavigableEntries();
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                var button = ResolveOrCreateDebugButton(i, entry);
+                var targetScene = entry.Id;
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => SceneNavigator.Load(targetScene));
+            }
+
+            for (var i = entries.Count; i < debugNavigationRoot.childCount; i++)
+            {
+                var child = debugNavigationRoot.GetChild(i);
+                if (child != null)
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        private Button ResolveOrCreateDebugButton(int index, SceneEntry entry)
+        {
+            Button button = null;
+            if (index < debugNavigationRoot.childCount)
+            {
+                button = debugNavigationRoot.GetChild(index).GetComponent<Button>();
+            }
+
+            if (button == null)
+            {
+                var go = new GameObject($"DebugNav{entry.DisplayName}", typeof(RectTransform), typeof(Image), typeof(Button));
+                go.transform.SetParent(debugNavigationRoot, false);
+                button = go.GetComponent<Button>();
+            }
+
+            button.gameObject.SetActive(true);
+            UiRuntimeStyle.Anchor(
+                button.transform as RectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(116f, 36f),
+                Vector2.zero);
+            UiRuntimeStyle.EnsureButtonLabel(button, fallbackFont, entry.DisplayName, UIDesignTokens.Colors.AccentPrimary);
+            var layout = UiRuntimeStyle.EnsureLayoutElement(button);
+            layout.preferredWidth = 116f;
+            layout.preferredHeight = 36f;
             return button;
         }
 

@@ -24,7 +24,7 @@
 - `ai-context/master-plan.md`
 
 ## Last Updated
-- 2026-03-12 (KST)
+- 2026-03-13 (KST)
 
 ## 현재 있는 기능
 - [x] Onboarding 시작/건너뛰기 흐름
@@ -62,6 +62,9 @@
 - [x] MathReadiness 학습 셸 정리 (좌측 3블록, 워밍업 선행 노출, 우측 패널 숨김, 하단 컨트롤 바 재정렬)
 - [x] MathReadiness 조작 우선 흐름 (목표 각도 도달 후 확인 질문 노출)
 - [x] MathReadiness 3D 각도 기준선 (0°/90°/180° reference marker)
+- [x] Onboarding 전역 QA navigation fallback (`OnboardingDebugNav`)
+- [x] Robot Library 3D showroom 초기 3대 프리뷰 (`2DOF RR + SCARA + 6DOF placeholder`)
+- [x] non-`realvirtual` vendor source 아카이브화 + curated runtime 자산을 `Assets/Runtime/*`로 재배치
 
 ## 지금 없는 기능
 - [ ] Sandbox MVP polish 마감 (panel overlap 제거 + 버튼/아이콘 가독성 + exit clarity)
@@ -71,6 +74,7 @@
 - [ ] constraint / workspace / singularity 시각화
 - [ ] pick foundation 실제 흐름
 - [ ] 3DOF / 6DOF 실제 전환
+- [ ] Robot Library showroom 후속 프리뷰 확장 (`FANUC`, `IGUS`) + 페이지/캐러셀 규칙
 - [ ] Progress 화면
 - [ ] Challenge / Assessment
 - [ ] LLM 설명층 연결
@@ -87,6 +91,7 @@
 - [ ] constraint / workspace / singularity 시각화
 - [ ] Instructor demo mode
 - [ ] Asset subset Git tracking 완료
+- [ ] Robot Library showroom 후속 프리뷰 안정화 (`FANUC`, `IGUS`) + 다수 로봇 페이지 전환
 - [ ] 3DOF / 6DOF 실제 전환
 - [ ] URDF Import 기반 로봇 확장 (UR5, Puma560, Franka 사전 조사 완료)
 - [ ] interactive matrix viz 확장 (ncase.me/matrix 패턴 디자인 레퍼런스 완료)

@@ -18,6 +18,7 @@ namespace KineTutor3D.UI
             UnityEngine.Events.UnityAction onHomePose,
             UnityEngine.Events.UnityAction onDemoPose,
             UnityEngine.Events.UnityAction onResetPose,
+            UnityEngine.Events.UnityAction onChangeRobot,
             UnityEngine.Events.UnityAction onBackHome,
             UnityEngine.Events.UnityAction onOpenRobotLibrary)
         {
@@ -53,6 +54,7 @@ namespace KineTutor3D.UI
             CreateWideButton(primaryGroup.transform, fallbackFont, "BtnHomePose", "Home", onHomePose);
             CreateWideButton(primaryGroup.transform, fallbackFont, "BtnDemoPose", "Demo", onDemoPose);
             CreateWideButton(primaryGroup.transform, fallbackFont, "BtnResetPose", "Reset", onResetPose);
+            CreateWideButton(primaryGroup.transform, fallbackFont, "BtnChangeRobot", "Change Robot", onChangeRobot);
 
             var navDivider = UIComponentFactory.CreateDivider(content, "NavDivider");
             UiRuntimeStyle.Anchor(
@@ -60,7 +62,7 @@ namespace KineTutor3D.UI
                 new Vector2(0f, 1f),
                 new Vector2(0f, 1f),
                 new Vector2(width, 1f),
-                new Vector2(UIDesignTokens.Space.Md, -258f));
+                new Vector2(UIDesignTokens.Space.Md, -306f));
 
             var navGroup = UIComponentFactory.CreateVStack(content, "NavigationActions", UIDesignTokens.Space.Sm);
             UiRuntimeStyle.Anchor(

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// 아이콘 로딩을 중앙화합니다. Assets/Resources/UI/Icons/ 경로에서 Sprite를 로드합니다.
+    /// 아이콘 로딩을 중앙화합니다. Assets/Runtime/Resources/UI/Icons/ 경로의 Sprite를 로드합니다.
     /// </summary>
     public static class UIIconResolver
     {
