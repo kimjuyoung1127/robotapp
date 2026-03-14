@@ -170,6 +170,30 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 현재 로봇 상태를 읽어 반환합니다. Live 모드에서 관절 동기화용입니다.
+        /// </summary>
+        public FairinoResult<FairinoRobotState> SyncCurrentState()
+        {
+            if (!client.IsConnected)
+            {
+                return FairinoResult<FairinoRobotState>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            var result = client.ReadState();
+            if (result.IsSuccess)
+            {
+                lastState = result.Value;
+                OnStateUpdated?.Invoke(lastState);
+            }
+            else
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 상태 폴링 간격을 설정합니다 (초 단위).
         /// </summary>
         public void SetPollInterval(float seconds)

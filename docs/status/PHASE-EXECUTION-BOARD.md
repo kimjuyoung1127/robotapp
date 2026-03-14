@@ -38,7 +38,7 @@
 | Phase 5 | Replay / Compare / Motion History | P1 | Ready | - | student-friendly-ux, editmode-test-add | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | Constraint Preview | P1 | Ready | - | student-friendly-ux, scene-scaffold | docs/ref/product/ux/sandbox.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
 | Phase 5 | Instructor Demo Mode | P1 | Ready | - | student-friendly-ux | docs/ref/product/ux/instructor-mode.md, docs/ref/product/roadmap/current-feature-checklist.md | 2026-03-12 |
-| Phase 5 | FAIRINO FR5 Robot Control Console | P1 | InProgress | codex | fairino-fr5-integration, scene-scaffold, ui-design-system | docs/ref/product/robots/fairino-fr5-integration-reference.md, docs/status/page-qa/robot-control.md | 2026-03-13 |
+| Phase 5 | FAIRINO FR5 Robot Control Console | P1 | QA | codex | fairino-fr5-integration, scene-scaffold, ui-design-system | docs/ref/product/robots/fairino-fr5-integration-reference.md, docs/status/ROBOTCONTROL-IMPL-BOARD.md | 2026-03-14 |
 | Phase 5 | Gameplay Camera Centralization | P1 | Done | codex | scene-scaffold | docs/status/PROJECT-STATUS.md, Assets/Scenes/CLAUDE.md | 2026-03-13 |
 | Phase 5 | IVisibilityControllable + Token Migration | P1 | Done | codex | ui-design-system, scene-ui-visibility | Assets/Scripts/UI/CLAUDE.md, docs/status/PROJECT-STATUS.md | 2026-03-13 |
 | Phase 5 | OnboardingViewBuilder Extract | P1 | Done | codex | viewbuilder-extract, ui-design-system | Assets/Scripts/UI/CLAUDE.md | 2026-03-13 |

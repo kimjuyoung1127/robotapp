@@ -57,6 +57,14 @@ namespace KineTutor3D.App.Fairino
         FairinoResult<FairinoRobotState> ReadState();
 
         /// <summary>
+        /// 직교 공간 직선 이동 명령을 전송합니다 (MoveL).
+        /// </summary>
+        /// <param name="tcpPose">목표 TCP 포즈 [X, Y, Z, Rx, Ry, Rz].</param>
+        /// <param name="speedPercent">속도 비율 (0~100).</param>
+        /// <param name="accPercent">가속도 비율 (0~100).</param>
+        FairinoResult MoveL(double[] tcpPose, int speedPercent, int accPercent);
+
+        /// <summary>
         /// 모든 동작을 즉시 정지합니다.
         /// </summary>
         FairinoResult StopMotion();

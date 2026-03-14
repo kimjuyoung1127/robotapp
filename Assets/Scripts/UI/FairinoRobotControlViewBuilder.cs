@@ -1,17 +1,24 @@
-﻿// Folder: UI - HUD/view components only; no kinematics logic.
+// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace KineTutor3D.UI
 {
     /// <summary>
     /// RobotControl 씬의 기본 Canvas, 패널, 카메라, 조명 레이아웃을 생성합니다.
+    /// 3탭 바(Joint Control / TCP Control / State)를 지원합니다.
     /// </summary>
     public static class FairinoRobotControlViewBuilder
     {
+        private const float TabBarHeight = 40f;
+
+        /// <summary>
+        /// Canvas를 확인하거나 생성합니다.
+        /// </summary>
         public static Canvas EnsureCanvas(Canvas canvas, Font fallbackFont)
         {
             if (canvas != null)
@@ -36,23 +43,36 @@ namespace KineTutor3D.UI
             return canvas;
         }
 
+        /// <summary>
+        /// EventSystem을 확인하거나 생성합니다.
+        /// </summary>
         public static void EnsureEventSystem()
         {
-            if (Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) != null)
+            var existing = Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
+            if (existing != null)
             {
+                // 기존 EventSystem에 InputModule이 없으면 추가
+                if (existing.GetComponent<InputSystemUIInputModule>() == null
+                    && existing.GetComponent<BaseInputModule>() == null)
+                {
+                    var module = existing.gameObject.AddComponent<InputSystemUIInputModule>();
+                    module.AssignDefaultActions();
+                    Debug.Log("[EventSystem] Added InputSystemUIInputModule to existing EventSystem.");
+                }
+
                 return;
             }
 
             var go = new GameObject("EventSystem", typeof(EventSystem));
-            var inputModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
-            if (inputModuleType != null)
-            {
-                go.AddComponent(inputModuleType);
-            }
-
+            var inputModule = go.AddComponent<InputSystemUIInputModule>();
+            inputModule.AssignDefaultActions();
             go.transform.SetParent(null, false);
+            Debug.Log("[EventSystem] Created new EventSystem with InputSystemUIInputModule.");
         }
 
+        /// <summary>
+        /// 메인 카메라를 확인하거나 생성합니다.
+        /// </summary>
         public static Camera EnsureCamera()
         {
             var camera = Camera.main;
@@ -66,6 +86,9 @@ namespace KineTutor3D.UI
             return camera;
         }
 
+        /// <summary>
+        /// 방향 조명을 확인하거나 생성합니다.
+        /// </summary>
         public static Light EnsureLight()
         {
             var light = Object.FindFirstObjectByType<Light>(FindObjectsInactive.Include);
@@ -81,29 +104,118 @@ namespace KineTutor3D.UI
             return light;
         }
 
+        /// <summary>
+        /// 3탭 바와 전체 패널 레이아웃을 생성합니다.
+        /// </summary>
         public static void EnsureLayout(
             Canvas canvas,
             Font fallbackFont,
             out FairinoConnectionPanel connectionPanel,
             out FairinoJointControlPanel jointControlPanel,
-            out FairinoStatePanel statePanel)
+            out FairinoStatePanel statePanel,
+            out FairinoTcpControlPanel tcpPanel,
+            out FairinoWhyItMovedLabel whyItMovedLabel,
+            out FairinoMoveConfirmDialog moveConfirmDialog,
+            out Toggle gizmoToggle,
+            out Button clearTrailButton)
         {
             var root = canvas.transform as RectTransform;
             var shellRoot = UiRuntimeStyle.EnsureRectChild(root, "RobotControlShell");
             UiRuntimeStyle.Stretch(shellRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             var overlay = UiRuntimeStyle.EnsureImage(shellRoot, "RobotControlOverlay", UIDesignTokens.Colors.SceneOverlayLight);
+            overlay.raycastTarget = false;
             UiRuntimeStyle.Stretch((RectTransform)overlay.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            BuildTopBar(shellRoot, fallbackFont);
+            BuildTopBar(shellRoot, fallbackFont, out gizmoToggle, out clearTrailButton);
 
+            // Tab bar
+            var tabBar = BuildTabBar(shellRoot, fallbackFont);
+
+            // Connection bar — top-left below TopBar
             var connectionRoot = BuildPanelHost(shellRoot, "ConnectionPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(360f, 210f), new Vector2(16f, -90f));
+
+            // Left content panels — below connection bar
             var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, 460f), new Vector2(16f, 16f));
-            var stateRoot = BuildPanelHost(shellRoot, "StatePanel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 240f), new Vector2(-16f, 16f));
+            var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, 460f), new Vector2(16f, 16f));
+
+            // Right panels — state + why it moved
+            var stateRoot = BuildPanelHost(shellRoot, "StatePanel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 280f), new Vector2(-16f, 80f));
+            var whyRoot = BuildPanelHost(shellRoot, "WhyItMovedLabel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 80f), new Vector2(-16f, 16f));
 
             connectionPanel = connectionRoot.GetComponent<FairinoConnectionPanel>() ?? connectionRoot.gameObject.AddComponent<FairinoConnectionPanel>();
             jointControlPanel = jointRoot.GetComponent<FairinoJointControlPanel>() ?? jointRoot.gameObject.AddComponent<FairinoJointControlPanel>();
             statePanel = stateRoot.GetComponent<FairinoStatePanel>() ?? stateRoot.gameObject.AddComponent<FairinoStatePanel>();
+            tcpPanel = tcpRoot.GetComponent<FairinoTcpControlPanel>() ?? tcpRoot.gameObject.AddComponent<FairinoTcpControlPanel>();
+            whyItMovedLabel = whyRoot.GetComponent<FairinoWhyItMovedLabel>() ?? whyRoot.gameObject.AddComponent<FairinoWhyItMovedLabel>();
+
+            // TCP panel starts hidden (Joint Control is default tab)
+            tcpRoot.gameObject.SetActive(false);
+
+            // Move confirm dialog — overlay, starts hidden
+            var dialogRoot = BuildPanelHost(shellRoot, "MoveConfirmDialog", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(1920f, 1080f), Vector2.zero);
+            dialogRoot.GetComponent<Image>().color = Color.clear;
+            moveConfirmDialog = dialogRoot.GetComponent<FairinoMoveConfirmDialog>() ?? dialogRoot.gameObject.AddComponent<FairinoMoveConfirmDialog>();
+            dialogRoot.gameObject.SetActive(false);
+
+            // Wire tab switching
+            WireTabButtons(tabBar, jointRoot.gameObject, tcpRoot.gameObject, stateRoot.gameObject);
+        }
+
+        private static RectTransform BuildTabBar(RectTransform parent, Font fallbackFont)
+        {
+            var tabBar = UiRuntimeStyle.EnsureRectChild(parent, "TabBar");
+            UiRuntimeStyle.Anchor(tabBar, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, TabBarHeight), new Vector2(16f, 480f));
+
+            var tabBg = tabBar.GetComponent<Image>() ?? tabBar.gameObject.AddComponent<Image>();
+            tabBg.color = UIDesignTokens.Colors.SurfaceCard;
+
+            var tabNames = new[] { "Joint Control", "TCP Control", "State" };
+            var tabWidth = 420f / tabNames.Length;
+
+            for (var i = 0; i < tabNames.Length; i++)
+            {
+                var btn = tabBar.Find($"Tab_{i}")?.GetComponent<Button>();
+                if (btn == null)
+                {
+                    btn = UIComponentFactory.CreateGhostButton(tabBar, $"Tab_{i}", tabNames[i], fallbackFont);
+                }
+
+                UiRuntimeStyle.Anchor((RectTransform)btn.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(tabWidth, TabBarHeight), new Vector2(i * tabWidth, 0f));
+                var label = btn.GetComponentInChildren<Text>();
+                if (label != null) label.text = tabNames[i];
+            }
+
+            return tabBar;
+        }
+
+        private static void WireTabButtons(RectTransform tabBar, GameObject jointPanel, GameObject tcpPanel, GameObject statePanel)
+        {
+            var panels = new[] { jointPanel, tcpPanel, statePanel };
+
+            for (var i = 0; i < 3; i++)
+            {
+                var btn = tabBar.Find($"Tab_{i}")?.GetComponent<Button>();
+                if (btn == null) continue;
+
+                var capturedIndex = i;
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() =>
+                {
+                    for (var p = 0; p < panels.Length; p++)
+                    {
+                        if (panels[p] != null)
+                        {
+                            // Tab 0 (Joint) and Tab 1 (TCP) share left panel area
+                            // Tab 2 (State) is always visible on right, tabs 0/1 are exclusive
+                            if (p < 2)
+                            {
+                                panels[p].SetActive(p == capturedIndex);
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         private static RectTransform BuildPanelHost(Transform parent, string name, Vector2 anchor, Vector2 pivot, Vector2 size, Vector2 anchoredPosition)
@@ -115,7 +227,7 @@ namespace KineTutor3D.UI
             return panelRoot;
         }
 
-        private static void BuildTopBar(RectTransform parent, Font fallbackFont)
+        private static void BuildTopBar(RectTransform parent, Font fallbackFont, out Toggle gizmoToggle, out Button clearTrailButton)
         {
             var topBar = UiRuntimeStyle.EnsureRectChild(parent, "TopBar");
             UiRuntimeStyle.Stretch(topBar, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -72f), new Vector2(-16f, -16f));
@@ -129,8 +241,27 @@ namespace KineTutor3D.UI
 
             var mode = UiRuntimeStyle.EnsureText(topBar, "ModeText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.AccentSecondary);
             UiRuntimeStyle.Anchor(mode.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(240f, 20f), new Vector2(260f, 0f));
-            mode.text = "FR5 · Mock by default";
+            mode.text = "FR5 \u00b7 Mock by default";
 
+            // 기즈모 토글
+            gizmoToggle = topBar.Find("GizmoToggle")?.GetComponent<Toggle>();
+            if (gizmoToggle == null)
+            {
+                gizmoToggle = UIComponentFactory.CreateToggle(topBar, "GizmoToggle", "Gizmos", fallbackFont);
+            }
+
+            UiRuntimeStyle.Anchor((RectTransform)gizmoToggle.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(100f, 24f), new Vector2(-290f, 0f));
+
+            // 트레일 Clear 버튼
+            clearTrailButton = topBar.Find("BtnClearTrail")?.GetComponent<Button>();
+            if (clearTrailButton == null)
+            {
+                clearTrailButton = UIComponentFactory.CreateGhostButton(topBar, "BtnClearTrail", "Clear Trail", fallbackFont);
+            }
+
+            UiRuntimeStyle.Anchor((RectTransform)clearTrailButton.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-180f, 0f));
+
+            // Back 버튼
             var backButton = topBar.Find("BtnBackToLibrary")?.GetComponent<Button>();
             if (backButton == null)
             {

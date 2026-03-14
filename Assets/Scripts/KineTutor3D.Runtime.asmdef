@@ -7,7 +7,8 @@
     "KineTutor3D.Templates",
     "KineTutor3D.Types",
     "UnityEngine.UI",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

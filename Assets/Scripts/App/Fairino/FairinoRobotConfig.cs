@@ -81,6 +81,19 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// Medium 속도/가속 프리셋을 반환합니다. 설정이 없으면 기본값(30, 50)을 사용합니다.
+        /// </summary>
+        public (int speed, int acc) GetMediumSpeedAcc()
+        {
+            if (speedPresets?.medium != null)
+            {
+                return (speedPresets.medium.jointSpeedPercent, speedPresets.medium.accPercent);
+            }
+
+            return (30, 50);
+        }
+
+        /// <summary>
         /// DH 파라미터 JSON 항목입니다.
         /// </summary>
         [Serializable]

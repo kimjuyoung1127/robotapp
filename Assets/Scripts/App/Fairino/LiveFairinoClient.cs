@@ -160,6 +160,19 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 직교 공간 직선 이동 명령을 전송합니다 (MoveL).
+        /// </summary>
+        public FairinoResult MoveL(double[] tcpPose, int speedPercent, int accPercent)
+        {
+            if (!connected) return errorTranslator.ToResult(-1);
+            if (!enabled) return errorTranslator.ToResult(-2);
+            if (tcpPose == null || tcpPose.Length != 6)
+                return FairinoResult.Fail(-3, "6축 TCP 포즈가 필요합니다.");
+
+            return InvokeSdk("MoveL", tcpPose, speedPercent, accPercent);
+        }
+
+        /// <summary>
         /// 모든 동작을 즉시 정지합니다.
         /// </summary>
         public FairinoResult StopMotion()

@@ -1,7 +1,7 @@
 ﻿# KineTutor3D Architecture Diagrams
 
-Version: 1.5.0
-Last Updated: 2026-03-09 (KST)
+Version: 1.6.0
+Last Updated: 2026-03-14 (KST)
 
 ## Fast Context Entry
 
@@ -108,6 +108,90 @@ flowchart TB
   E --> E1["Joint Sliders + Prev / Next / Skip"]
   F --> F1["Tooltip / Toast / Spotlight / Glossary"]
   F --> F2["No default center modal / no viewport fill box during Play"]
+```
+
+## RobotControl Scene Architecture (Phase 7)
+
+```mermaid
+flowchart TD
+    Coord["RobotControlSceneCoordinator"]
+
+    subgraph Panels["UI 패널"]
+        ConnP["FairinoConnectionPanel"]
+        JointP["FairinoJointControlPanel\n6 Sliders + MoveJ/ServoJ/Stop/Sync"]
+        TcpP["FairinoTcpControlPanel\nX/Y/Z/Rx/Ry/Rz + MoveL/ServoCart"]
+        StateP["FairinoStatePanel\nEE XYZ RGB"]
+        WhyP["FairinoWhyItMovedLabel\nTop-2 joint + XYZ component"]
+        DialogP["FairinoMoveConfirmDialog"]
+    end
+
+    subgraph Services["서비스"]
+        ConnSvc["FairinoConnectionService\nMock↔Live + SyncCurrentState"]
+        Client["IFairinoRobotClient\nMoveJ / MoveL / ServoJ / ReadState"]
+        FK["FR5KinematicsFacade\nDH + FK chain"]
+        Presets["FR5PosePresets\nHome/Ready/Folded/Current"]
+    end
+
+    subgraph Viz3D["3D 시각화"]
+        Driver["FairinoUrdfJointDriver\nTransform.localRotation"]
+        Handles["JointRotationHandle ×6\n1축 회전 링 + 드래그"]
+        Gizmos["FrameGizmoFactory\n6관절 좌표 프레임"]
+        Trail["EETrailRenderer\n궤적"]
+        Arrow["DisplacementArrow\n변위 화살표"]
+        Orbit["OrbitCameraController\n핸들 드래그 시 잠금"]
+    end
+
+    Coord --> ConnSvc
+    Coord --> FK
+    Coord --> Driver
+    Coord --> Handles
+    Coord --> Gizmos
+    Coord --> Trail
+    Coord --> Arrow
+    ConnSvc --> Client
+    JointP --> Coord
+    TcpP --> Coord
+    Coord --> StateP
+    Coord --> WhyP
+```
+
+## RobotControl File Tree
+
+```
+App/Fairino/
+├── RobotControlSceneCoordinator.cs  ← 씬 오케스트레이터
+├── FairinoConnectionService.cs      ← Mock↔Live 전환 + 상태 폴링 + SyncCurrentState
+├── FairinoRobotConfig.cs            ← JSON 설정 + GetMediumSpeedAcc
+├── FR5KinematicsFacade.cs           ← DH-FK facade
+├── FR5PosePresets.cs                ← Home/Ready/Folded/Current (캐시)
+├── IFairinoRobotClient.cs           ← 통신 인터페이스 (MoveJ/MoveL/ServoJ)
+├── MockFairinoClient.cs             ← 오프라인 mock
+├── LiveFairinoClient.cs             ← SDK 리플렉션 래퍼
+├── FairinoResult.cs                 ← 결과 타입
+├── FairinoRobotState.cs             ← 불변 상태
+├── FairinoErrorTranslator.cs        ← 에러 코드→메시지
+└── FairinoVersionInfo.cs            ← 버전 정보
+
+UI/ (Fairino*)
+├── FairinoRobotControlViewBuilder.cs ← 레이아웃 빌더 (3탭 + TopBar)
+├── FairinoConnectionPanel.cs         ← IP/Port 연결 UI
+├── FairinoJointControlPanel.cs       ← 6축 슬라이더 + 프리셋 + Sync
+├── FairinoTcpControlPanel.cs         ← TCP XYZ/Rx/Ry/Rz + MoveL
+├── FairinoStatePanel.cs              ← 실시간 상태 (EE XYZ RGB)
+├── FairinoWhyItMovedLabel.cs         ← 변화 설명 (다관절 요약)
+├── FairinoDHPanel.cs                 ← DH 파라미터 (탭에서 제외, 파일 보존)
+└── FairinoMoveConfirmDialog.cs       ← Live 이동 확인
+
+Visualization/Shared/
+├── SharedLineMaterial.cs      ← 공유 Material 캐시
+├── CoordConverter.cs          ← 좌표 변환
+├── EETrailRenderer.cs         ← EE 궤적
+├── EndEffectorTrail.cs        ← EETrailRenderer 어댑터
+├── FrameGizmo.cs              ← 단일 프레임
+├── FrameGizmoFactory.cs       ← 6관절 기즈모
+├── OrbitCameraController.cs   ← 궤도 카메라
+├── DisplacementArrow.cs       ← EE 변위 화살표
+└── JointRotationHandle.cs     ← 관절 회전 핸들
 ```
 
 ## 신규 런타임 컴포넌트

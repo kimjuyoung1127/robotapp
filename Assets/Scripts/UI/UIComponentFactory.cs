@@ -195,8 +195,10 @@ namespace KineTutor3D.UI
             var rect = UiRuntimeStyle.EnsureRectChild(parent, name);
             rect.sizeDelta = new Vector2(200f, UIDesignTokens.Size.SliderHeight);
 
-            var bgImage = UiRuntimeStyle.EnsureImage(rect, "Background", UIDesignTokens.Colors.SliderTrack);
-            UiRuntimeStyle.Stretch((RectTransform)bgImage.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            // Slider 자체 GameObject에 Image 필수 — GraphicRaycaster가 포인터 이벤트를 감지하려면
+            // Selectable(Slider 부모 클래스)의 targetGraphic 역할도 겸함
+            var sliderBg = rect.GetComponent<Image>() ?? rect.gameObject.AddComponent<Image>();
+            sliderBg.color = UIDesignTokens.Colors.SliderTrack;
 
             var fillArea = UiRuntimeStyle.EnsureRectChild(rect, "FillArea");
             UiRuntimeStyle.Stretch(fillArea, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -214,6 +216,7 @@ namespace KineTutor3D.UI
                 slider = rect.gameObject.AddComponent<Slider>();
             }
 
+            slider.targetGraphic = handle;
             slider.fillRect = (RectTransform)fill.transform;
             slider.handleRect = handle.rectTransform;
             slider.minValue = min;

@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-13 (KST)
+최종 업데이트: 2026-03-14 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -24,7 +24,18 @@
 7. `Sandbox.unity` 씬과 build settings entry를 추가해 sandbox 라우팅 기반을 만들었다.
 8. 검증 결과: EditMode `107/107`, PlayMode `31/31`.
 
-## 이번 턴 반영 내용 (FR5 RobotControl + Camera Director)
+## 이번 턴 반영 내용 (RobotControl P0~P5 확장 + 공용화)
+1. **P0 카메라**: `SceneCameraDirector` RobotControl 프로파일 좌표 확정 (pos 1.0/0.75/1.0, euler 22/215/0, FOV 40)
+2. **P1 회전 핸들**: `JointRotationHandle` 6관절 1축 회전 링 (LineRenderer 원호, 마우스 드래그→슬라이더 양방향 동기화, 드래그 중 OrbitCamera 잠금)
+3. **P2 TCP 제어**: `FairinoTcpControlPanel` (X/Y/Z/Rx/Ry/Rz InputField + MoveL/ServoCart + DryRun), `IFairinoRobotClient.MoveL` 인터페이스 + Mock/Live 구현, ViewBuilder 탭 "DH Params"→"TCP Control" 교체
+4. **P3 동기화**: `FairinoConnectionService.SyncCurrentState()`, `FairinoJointControlPanel` Sync 버튼 (Mock 비활성), `FR5PosePresets.Current` 동적 프리셋 + 캐시
+5. **P4 변위 화살표**: `DisplacementArrow` EE 변위 벡터 (LineRenderer+원뿔 헤드, 0.01m 임계), `FairinoWhyItMovedLabel` 다관절 상위 2개 요약 + XYZ 성분별 표시
+6. **P5 UI 편의**: TopBar에 기즈모 토글 + 트레일 Clear 버튼, `FairinoStatePanel` EE XYZ RGB 색상 코딩
+7. **공용 컴포넌트 추출**: `SharedLineMaterial` (EETrailRenderer/DisplacementArrow/JointRotationHandle Material 통합), `FairinoRobotConfig.GetMediumSpeedAcc()`, `FR5PosePresets.All` 캐시
+8. **자기리뷰 버그 6건 수정**: OnHandleDragged 슬라이더 동기화, 핸들 Ray-plane 히트 판정, EndDrag 선택 해제, 공유 Material 색상 오염, TCP 패널 재진입 가드, 핸들 이벤트 중복 바인딩
+9. 검증: EditMode 테스트 green. PlayMode 시각 검증 미완 (MCP 스크린샷 대기)
+
+## 이전 턴 반영 내용 (FR5 RobotControl + Camera Director)
 1. `RobotControl.unity`를 추가하고 Build Settings index `6`에 등록해 FR5 전용 제어 콘솔 진입점을 만들었다.
 2. `RobotControlSceneCoordinator`는 `Mock ON` 기본 시작, FR5 강제 selection, panel auto-wire, control prefab 복원을 담당하도록 보강했다.
 3. FR5 사용 경로를 분리했다.

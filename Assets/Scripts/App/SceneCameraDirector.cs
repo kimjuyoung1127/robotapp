@@ -90,10 +90,10 @@ namespace KineTutor3D.App
                     return true;
                 case SceneId.RobotControl:
                     profile = new CameraProfile(
-                        new Vector3(2.95f, 2.15f, -6.9f),
-                        new Vector3(12f, -28f, 0f),
-                        64f,
-                        0.05f,
+                        new Vector3(1.0f, 0.75f, 1.0f),
+                        new Vector3(22f, 215f, 0f),
+                        40f,
+                        0.01f,
                         30f,
                         new Color(0.08f, 0.10f, 0.16f, 1f));
                     return true;

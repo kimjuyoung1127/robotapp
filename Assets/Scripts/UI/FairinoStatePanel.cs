@@ -1,4 +1,5 @@
-﻿// Folder: UI - HUD/view components only; no kinematics logic.
+// Folder: UI - HUD/view components only; no kinematics logic.
+using System.Globalization;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ namespace KineTutor3D.UI
 {
     /// <summary>
     /// FAIRINO 로봇 실시간 상태 표시 패널입니다.
-    /// 관절 각도, TCP 포즈, 에러 메시지를 표시합니다.
+    /// 관절 각도, TCP 포즈, 에러 메시지, 관절 델타를 표시합니다.
     /// </summary>
     public class FairinoStatePanel : MonoBehaviour, IVisibilityControllable
     {
@@ -16,18 +17,26 @@ namespace KineTutor3D.UI
         [SerializeField] private Text errorLabel;
         [SerializeField] private Font fallbackFont;
 
+        private static readonly Color ColorAxisX = new Color(0.90f, 0.30f, 0.25f, 1f);
+        private static readonly Color ColorAxisY = new Color(0.30f, 0.85f, 0.35f, 1f);
+        private static readonly Color ColorAxisZ = new Color(0.29f, 0.56f, 0.85f, 1f);
+
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
+        private FR5KinematicsFacade kinematicsFacade;
+        private double[] previousJointsDeg;
+        private bool hasPrevious;
         private bool listenersBound;
 
         /// <summary>
-        /// 연결 서비스와 에러 번역기를 주입합니다.
+        /// 연결 서비스, 에러 번역기, FK facade를 주입합니다.
         /// </summary>
-        public void Inject(FairinoConnectionService service, FairinoErrorTranslator translator)
+        public void Inject(FairinoConnectionService service, FairinoErrorTranslator translator, FR5KinematicsFacade facade = null)
         {
             UnsubscribeService();
             connectionService = service;
             errorTranslator = translator ?? new FairinoErrorTranslator();
+            kinematicsFacade = facade;
             EnsurePresentation();
             SubscribeService();
         }
@@ -65,10 +74,11 @@ namespace KineTutor3D.UI
             title.text = "Robot State";
 
             jointStateLabel = UiRuntimeStyle.EnsureText(root, "JointStateLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(jointStateLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 54f), new Vector2(16f, -46f));
+            UiRuntimeStyle.Anchor(jointStateLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 80f), new Vector2(16f, -46f));
 
             tcpPoseLabel = UiRuntimeStyle.EnsureText(root, "TcpPoseLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(tcpPoseLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 54f), new Vector2(16f, -106f));
+            UiRuntimeStyle.Anchor(tcpPoseLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 54f), new Vector2(16f, -132f));
+            tcpPoseLabel.supportRichText = true;
 
             errorLabel = UiRuntimeStyle.EnsureText(root, "ErrorLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentDanger);
             UiRuntimeStyle.Anchor(errorLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 48f), new Vector2(16f, 16f));
@@ -115,19 +125,50 @@ namespace KineTutor3D.UI
             if (jointStateLabel != null)
             {
                 var j = state.JointPosDeg;
-                jointStateLabel.text = $"J1:{j[0]:F1} J2:{j[1]:F1} J3:{j[2]:F1}\nJ4:{j[3]:F1} J5:{j[4]:F1} J6:{j[5]:F1}";
+                if (j != null && hasPrevious && previousJointsDeg != null)
+                {
+                    jointStateLabel.text = FormatJointsWithDelta(j, previousJointsDeg);
+                }
+                else
+                {
+                    jointStateLabel.text = $"J1:{j[0]:F1} J2:{j[1]:F1} J3:{j[2]:F1}\nJ4:{j[3]:F1} J5:{j[4]:F1} J6:{j[5]:F1}";
+                }
+
+                previousJointsDeg = (double[])j.Clone();
+                hasPrevious = true;
             }
 
             if (tcpPoseLabel != null)
             {
                 var t = state.TcpPose;
-                tcpPoseLabel.text = $"X:{t[0]:F2} Y:{t[1]:F2} Z:{t[2]:F2}\nRx:{t[3]:F2} Ry:{t[4]:F2} Rz:{t[5]:F2}";
+                tcpPoseLabel.text = $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisX)}>X:{t[0]:F2}</color> "
+                    + $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisY)}>Y:{t[1]:F2}</color> "
+                    + $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisZ)}>Z:{t[2]:F2}</color>\n"
+                    + $"Rx:{t[3]:F2} Ry:{t[4]:F2} Rz:{t[5]:F2}";
             }
 
             if (errorLabel != null)
             {
                 errorLabel.text = string.Empty;
             }
+        }
+
+        private static string FormatJointsWithDelta(double[] current, double[] previous)
+        {
+            var lines = new System.Text.StringBuilder();
+            for (var i = 0; i < 6; i++)
+            {
+                var delta = current[i] - previous[i];
+                var sign = delta >= 0 ? "+" : "";
+                var deltaText = System.Math.Abs(delta) > 0.05
+                    ? $" ({sign}{delta.ToString("F1", CultureInfo.InvariantCulture)}°)"
+                    : "";
+                lines.Append($"J{i + 1}:{current[i].ToString("F1", CultureInfo.InvariantCulture)}°{deltaText}");
+                if (i == 2) lines.Append("\n");
+                else if (i < 5) lines.Append(" ");
+            }
+
+            return lines.ToString();
         }
 
         private void OnErrorReceived(FairinoResult result)

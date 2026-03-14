@@ -1,4 +1,4 @@
-﻿// Folder: UI - HUD/view components only; no kinematics logic.
+// Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +7,7 @@ namespace KineTutor3D.UI
 {
     /// <summary>
     /// FAIRINO 로봇 연결 설정 패널입니다.
-    /// IP 입력, Connect/Disconnect, Enable/Disable, Mock↔Live 전환을 제공합니다.
+    /// IP 입력, Connect/Disconnect, Enable/Disable, Mock↔Live 전환, 버전 표시를 제공합니다.
     /// </summary>
     public class FairinoConnectionPanel : MonoBehaviour, IVisibilityControllable
     {
@@ -16,6 +16,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Button enableButton;
         [SerializeField] private Toggle mockToggle;
         [SerializeField] private Text statusLabel;
+        [SerializeField] private Text versionLabel;
         [SerializeField] private Font fallbackFont;
 
         private FairinoConnectionService connectionService;
@@ -94,8 +95,13 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor((RectTransform)mockToggle.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, 24f), new Vector2(16f, -122f));
             var mockLabel = mockToggle.transform.Find("Label")?.GetComponent<Text>();
             if (mockLabel != null) mockLabel.text = "Mock Mode";
+
             statusLabel = UiRuntimeStyle.EnsureText(root, "StatusLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 44f), new Vector2(16f, 16f));
+            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 24f), new Vector2(16f, 36f));
+
+            versionLabel = UiRuntimeStyle.EnsureText(root, "VersionLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 20f), new Vector2(16f, 16f));
+            versionLabel.text = string.Empty;
         }
 
         private void BindListeners()
@@ -165,12 +171,18 @@ namespace KineTutor3D.UI
             if (connectionService.Client.IsConnected)
             {
                 connectionService.Disconnect();
+                ClearVersionLabel();
                 return;
             }
 
             var ip = ipInput != null ? ipInput.text : "192.168.58.2";
             var port = config != null ? config.defaultPort : 8080;
-            connectionService.Connect(ip, port);
+            var result = connectionService.Connect(ip, port);
+
+            if (result.IsSuccess)
+            {
+                FetchAndDisplayVersion();
+            }
         }
 
         private void OnEnableClicked()
@@ -192,6 +204,7 @@ namespace KineTutor3D.UI
         private void OnMockToggleChanged(bool isMock)
         {
             connectionService?.SetMockMode(isMock);
+            ClearVersionLabel();
         }
 
         private void HandleServiceStateChanged(bool _)
@@ -259,6 +272,32 @@ namespace KineTutor3D.UI
             if (mockToggle != null)
             {
                 mockToggle.SetIsOnWithoutNotify(connectionService.IsMockMode);
+            }
+        }
+
+        private void FetchAndDisplayVersion()
+        {
+            if (connectionService == null || versionLabel == null)
+            {
+                return;
+            }
+
+            var versionResult = connectionService.Client.GetVersion();
+            if (versionResult.IsSuccess)
+            {
+                versionLabel.text = $"FW: {versionResult.Value.FirmwareVersion} | SDK: {versionResult.Value.SdkVersion}";
+            }
+            else
+            {
+                versionLabel.text = string.Empty;
+            }
+        }
+
+        private void ClearVersionLabel()
+        {
+            if (versionLabel != null)
+            {
+                versionLabel.text = string.Empty;
             }
         }
 

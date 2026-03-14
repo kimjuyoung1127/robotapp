@@ -1,13 +1,16 @@
-﻿// Folder: App - Application controllers and services; single UnityEngine entry point.
+// Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.UI;
+using KineTutor3D.Visualization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace KineTutor3D.App.Fairino
 {
     /// <summary>
     /// RobotControl 씬의 초기화를 담당하는 코디네이터입니다.
     /// 연결 서비스, 패널, 설정 로드, FR5 control prefab 복원을 조율합니다.
+    /// 3D 관절 미러, 슬라이더 프리뷰, TCP 제어, 기즈모/트레일, 프리셋, 핸들을 통합합니다.
     /// </summary>
     public class RobotControlSceneCoordinator : MonoBehaviour
     {
@@ -15,10 +18,14 @@ namespace KineTutor3D.App.Fairino
         private const string RuntimeRootName = "FR5_RuntimeRoot";
         private const string ControlRobotInstanceName = "FR5_UrdfInstance";
         private const string ControlPrefabResourcePath = "Robots/FAIRINO_FR5_Control";
+        private const string ShowroomPrefabResourcePath = "Robots/FAIRINO_FR5";
+        private const float TargetRobotHeight = 1.5f;
+        private const int JointCount = 6;
 
         [SerializeField] private FairinoConnectionPanel connectionPanel;
         [SerializeField] private FairinoJointControlPanel jointControlPanel;
         [SerializeField] private FairinoStatePanel statePanel;
+        [SerializeField] private FairinoTcpControlPanel tcpPanel;
         [SerializeField] private Canvas canvas;
         [SerializeField] private Font fallbackFont;
         [SerializeField] private Transform runtimeRoot;
@@ -27,6 +34,18 @@ namespace KineTutor3D.App.Fairino
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
         private FairinoRobotConfig config;
+        private FairinoUrdfJointDriver jointDriver;
+        private FR5KinematicsFacade kinematicsFacade;
+        private FrameGizmoFactory frameGizmoFactory;
+        private EETrailRenderer eeTrailRenderer;
+        private DisplacementArrow displacementArrow;
+        private FairinoWhyItMovedLabel whyItMovedLabel;
+        private FairinoMoveConfirmDialog moveConfirmDialog;
+        private JointRotationHandle[] jointHandles;
+        private OrbitCameraController orbitCamera;
+        private Toggle gizmoToggle;
+        private Button clearTrailButton;
+        private bool listenersBound;
 
         private void Awake()
         {
@@ -34,17 +53,37 @@ namespace KineTutor3D.App.Fairino
             canvas = FairinoRobotControlViewBuilder.EnsureCanvas(canvas, fallbackFont);
             FairinoRobotControlViewBuilder.EnsureCamera();
             FairinoRobotControlViewBuilder.EnsureLight();
-            FairinoRobotControlViewBuilder.EnsureLayout(canvas, fallbackFont, out connectionPanel, out jointControlPanel, out statePanel);
+            FairinoRobotControlViewBuilder.EnsureLayout(canvas, fallbackFont,
+                out connectionPanel, out jointControlPanel, out statePanel,
+                out tcpPanel, out whyItMovedLabel, out moveConfirmDialog,
+                out gizmoToggle, out clearTrailButton);
 
             errorTranslator = new FairinoErrorTranslator();
             connectionService = new FairinoConnectionService(errorTranslator);
             connectionService.SetMockMode(true);
             config = FairinoRobotConfig.Load() ?? BuildFallbackConfig();
 
+            kinematicsFacade = new FR5KinematicsFacade();
+
             EnsureRobotSelection();
             EnsureRuntimeRoot();
             EnsureControlRobot();
+            EnsureJointDriver();
+            EnsureVisualizationHelpers();
+            EnsureOrbitCamera();
+            EnsureJointHandles();
             InjectDependencies();
+            BindListeners();
+        }
+
+        private void OnEnable()
+        {
+            BindListeners();
+        }
+
+        private void OnDisable()
+        {
+            UnbindListeners();
         }
 
         private void Update()
@@ -56,7 +95,247 @@ namespace KineTutor3D.App.Fairino
         {
             connectionPanel?.Inject(connectionService, config);
             jointControlPanel?.Inject(connectionService, config);
-            statePanel?.Inject(connectionService, errorTranslator);
+            statePanel?.Inject(connectionService, errorTranslator, kinematicsFacade);
+            tcpPanel?.Inject(connectionService, config, kinematicsFacade);
+            whyItMovedLabel?.Inject(kinematicsFacade);
+            jointControlPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
+            tcpPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
+
+            // Mock 모드에서는 Sync 버튼 비활성화
+            jointControlPanel?.SetSyncEnabled(!connectionService.IsMockMode);
+        }
+
+        private void BindListeners()
+        {
+            if (listenersBound)
+            {
+                return;
+            }
+
+            if (connectionService != null)
+            {
+                connectionService.OnStateUpdated += OnStateUpdated;
+                connectionService.OnModeChanged += OnModeChanged;
+            }
+
+            if (jointControlPanel != null)
+            {
+                jointControlPanel.OnJointSliderPreview += OnJointSliderPreview;
+                jointControlPanel.OnPresetApplied += OnPresetApplied;
+                jointControlPanel.OnSyncRequested += OnSyncRequested;
+            }
+
+            if (tcpPanel != null)
+            {
+                tcpPanel.OnTcpMoveRequested += OnTcpMoveRequested;
+            }
+
+            if (gizmoToggle != null)
+            {
+                gizmoToggle.onValueChanged.AddListener(OnGizmoToggleChanged);
+            }
+
+            if (clearTrailButton != null)
+            {
+                clearTrailButton.onClick.AddListener(OnClearTrailClicked);
+            }
+
+            listenersBound = true;
+        }
+
+        private void UnbindListeners()
+        {
+            if (!listenersBound)
+            {
+                return;
+            }
+
+            if (connectionService != null)
+            {
+                connectionService.OnStateUpdated -= OnStateUpdated;
+                connectionService.OnModeChanged -= OnModeChanged;
+            }
+
+            if (jointControlPanel != null)
+            {
+                jointControlPanel.OnJointSliderPreview -= OnJointSliderPreview;
+                jointControlPanel.OnPresetApplied -= OnPresetApplied;
+                jointControlPanel.OnSyncRequested -= OnSyncRequested;
+            }
+
+            if (tcpPanel != null)
+            {
+                tcpPanel.OnTcpMoveRequested -= OnTcpMoveRequested;
+            }
+
+            if (gizmoToggle != null)
+            {
+                gizmoToggle.onValueChanged.RemoveListener(OnGizmoToggleChanged);
+            }
+
+            if (clearTrailButton != null)
+            {
+                clearTrailButton.onClick.RemoveListener(OnClearTrailClicked);
+            }
+
+            UnbindHandleListeners();
+
+            listenersBound = false;
+        }
+
+        private void UnbindHandleListeners()
+        {
+            if (jointHandles == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < jointHandles.Length; i++)
+            {
+                if (jointHandles[i] != null)
+                {
+                    jointHandles[i].OnHandleDragged -= OnHandleDragged;
+                    jointHandles[i].OnDragStateChanged -= OnHandleDragStateChanged;
+                }
+            }
+        }
+
+        private void OnStateUpdated(FairinoRobotState state)
+        {
+            if (jointDriver != null)
+            {
+                jointDriver.ApplyJointAngles(state);
+            }
+
+            jointControlPanel?.SetSliderValues(state.JointPosDeg);
+
+            kinematicsFacade?.SetJointAnglesDegrees(state.JointPosDeg);
+
+            whyItMovedLabel?.HandleStateUpdated(state);
+
+            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+
+            SyncHandleAngles(state.JointPosDeg);
+        }
+
+        private void OnJointSliderPreview(double[] jointAnglesDeg)
+        {
+            if (jointDriver != null)
+            {
+                jointDriver.ApplyJointAngles(jointAnglesDeg);
+            }
+
+            kinematicsFacade?.SetJointAnglesDegrees(jointAnglesDeg);
+
+            if (eeTrailRenderer != null && kinematicsFacade != null)
+            {
+                eeTrailRenderer.AddPoint(kinematicsFacade.EndEffectorTransform);
+            }
+
+            if (displacementArrow != null && kinematicsFacade != null)
+            {
+                displacementArrow.UpdateFromFK(kinematicsFacade.EndEffectorTransform);
+            }
+
+            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+
+            SyncHandleAngles(jointAnglesDeg);
+        }
+
+        private void OnPresetApplied(double[] jointAnglesDeg)
+        {
+            if (jointDriver != null)
+            {
+                jointDriver.ApplyJointAngles(jointAnglesDeg);
+            }
+
+            kinematicsFacade?.SetJointAnglesDegrees(jointAnglesDeg);
+
+            eeTrailRenderer?.Clear();
+            displacementArrow?.Clear();
+
+            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+
+            SyncHandleAngles(jointAnglesDeg);
+        }
+
+        private void OnTcpMoveRequested(double[] tcpPose)
+        {
+            // TCP 이동 후 FK 결과로 3D 업데이트 (실제 로봇 상태는 폴링으로 반영)
+            Debug.Log($"[Coordinator] TCP Move requested: X={tcpPose[0]:F1} Y={tcpPose[1]:F1} Z={tcpPose[2]:F1}");
+        }
+
+        private void OnSyncRequested()
+        {
+            if (connectionService == null)
+            {
+                return;
+            }
+
+            var result = connectionService.SyncCurrentState();
+            if (result.IsSuccess)
+            {
+                FR5PosePresets.UpdateCurrent(result.Value.JointPosDeg);
+            }
+        }
+
+        private void OnModeChanged(bool isMock)
+        {
+            jointControlPanel?.SetSyncEnabled(!isMock);
+        }
+
+        private void OnGizmoToggleChanged(bool value)
+        {
+            frameGizmoFactory?.SetVisible(value);
+            if (value && kinematicsFacade != null && frameGizmoFactory != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+        }
+
+        private void OnClearTrailClicked()
+        {
+            eeTrailRenderer?.Clear();
+            displacementArrow?.Clear();
+        }
+
+        private void OnHandleDragged(int jointIndex, float angleDeg)
+        {
+            if (jointControlPanel == null || kinematicsFacade == null)
+            {
+                return;
+            }
+
+            // 현재 FK의 관절값을 기준으로 해당 관절만 업데이트
+            var currentRad = kinematicsFacade.JointValuesRad;
+            var values = new double[JointCount];
+            for (var i = 0; i < JointCount && i < currentRad.Length; i++)
+            {
+                values[i] = currentRad[i] * (180.0 / System.Math.PI);
+            }
+
+            values[jointIndex] = angleDeg;
+            jointControlPanel.SetSliderValues(values);
+
+            // 슬라이더 이벤트를 직접 트리거하여 3D/FK 동기화
+            OnJointSliderPreview(values);
+        }
+
+        private void OnHandleDragStateChanged(bool isDragging)
+        {
+            if (orbitCamera != null)
+            {
+                orbitCamera.OrbitEnabled = !isDragging;
+            }
         }
 
         /// <summary>
@@ -65,6 +344,174 @@ namespace KineTutor3D.App.Fairino
         public void SetMockMode(bool mock)
         {
             connectionService?.SetMockMode(mock);
+        }
+
+        /// <summary>
+        /// 프레임 기즈모 가시성을 토글합니다.
+        /// </summary>
+        public void SetFrameGizmosVisible(bool visible)
+        {
+            frameGizmoFactory?.SetVisible(visible);
+        }
+
+        /// <summary>
+        /// EE 트레일을 초기화합니다.
+        /// </summary>
+        public void ClearTrail()
+        {
+            eeTrailRenderer?.Clear();
+        }
+
+        private void SyncHandleAngles(double[] jointAnglesDeg)
+        {
+            if (jointHandles == null || jointAnglesDeg == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < JointCount && i < jointAnglesDeg.Length && i < jointHandles.Length; i++)
+            {
+                if (jointHandles[i] != null)
+                {
+                    jointHandles[i].SetAngle((float)jointAnglesDeg[i]);
+                }
+            }
+        }
+
+        private void EnsureJointDriver()
+        {
+            if (controlRobotInstance == null)
+            {
+                return;
+            }
+
+            jointDriver = controlRobotInstance.GetComponent<FairinoUrdfJointDriver>()
+                ?? controlRobotInstance.AddComponent<FairinoUrdfJointDriver>();
+
+            var baseLink = controlRobotInstance.transform.Find("base_link");
+            if (baseLink != null)
+            {
+                jointDriver.Inject(baseLink);
+            }
+        }
+
+        private void EnsureVisualizationHelpers()
+        {
+            if (runtimeRoot == null)
+            {
+                return;
+            }
+
+            var gizmoHost = runtimeRoot.Find("FrameGizmos");
+            if (gizmoHost == null)
+            {
+                var go = new GameObject("FrameGizmos");
+                go.transform.SetParent(runtimeRoot, false);
+                gizmoHost = go.transform;
+            }
+
+            frameGizmoFactory = gizmoHost.GetComponent<FrameGizmoFactory>()
+                ?? gizmoHost.gameObject.AddComponent<FrameGizmoFactory>();
+            frameGizmoFactory.SetVisible(false);
+
+            var trailHost = runtimeRoot.Find("EETrail");
+            if (trailHost == null)
+            {
+                var go = new GameObject("EETrail");
+                go.transform.SetParent(runtimeRoot, false);
+                trailHost = go.transform;
+            }
+
+            eeTrailRenderer = trailHost.GetComponent<EETrailRenderer>()
+                ?? trailHost.gameObject.AddComponent<EETrailRenderer>();
+
+            var arrowHost = runtimeRoot.Find("DisplacementArrow");
+            if (arrowHost == null)
+            {
+                var go = new GameObject("DisplacementArrow");
+                go.transform.SetParent(runtimeRoot, false);
+                arrowHost = go.transform;
+            }
+
+            displacementArrow = arrowHost.GetComponent<DisplacementArrow>()
+                ?? arrowHost.gameObject.AddComponent<DisplacementArrow>();
+        }
+
+        private void EnsureOrbitCamera()
+        {
+            var camera = Camera.main;
+            if (camera == null || controlRobotInstance == null)
+            {
+                return;
+            }
+
+            orbitCamera = camera.GetComponent<OrbitCameraController>();
+            if (orbitCamera == null)
+            {
+                orbitCamera = camera.gameObject.AddComponent<OrbitCameraController>();
+            }
+
+            var baseLink = controlRobotInstance.transform.Find("base_link");
+            orbitCamera.SetTarget(baseLink != null ? baseLink : controlRobotInstance.transform);
+        }
+
+        private void EnsureJointHandles()
+        {
+            if (jointDriver == null || runtimeRoot == null)
+            {
+                return;
+            }
+
+            var handleHost = runtimeRoot.Find("JointHandles");
+            if (handleHost == null)
+            {
+                var go = new GameObject("JointHandles");
+                go.transform.SetParent(runtimeRoot, false);
+                handleHost = go.transform;
+            }
+
+            jointHandles = new JointRotationHandle[JointCount];
+            var jointColors = new[]
+            {
+                UIDesignTokens.Colors.DiagramLink1,
+                UIDesignTokens.Colors.DiagramLink2,
+                UIDesignTokens.Colors.DiagramLink3,
+                UIDesignTokens.Colors.DiagramLink4,
+                UIDesignTokens.Colors.DiagramLink5,
+                UIDesignTokens.Colors.DiagramLink6
+            };
+
+            for (var i = 0; i < JointCount; i++)
+            {
+                var jointTransform = jointDriver.GetJointTransform(i);
+                if (jointTransform == null)
+                {
+                    continue;
+                }
+
+                var handleName = $"Handle_J{i + 1}";
+                var existing = handleHost.Find(handleName);
+                GameObject handleGo;
+
+                if (existing != null)
+                {
+                    handleGo = existing.gameObject;
+                }
+                else
+                {
+                    handleGo = new GameObject(handleName);
+                    handleGo.transform.SetParent(jointTransform, false);
+                    handleGo.transform.localPosition = Vector3.zero;
+                }
+
+                jointHandles[i] = handleGo.GetComponent<JointRotationHandle>()
+                    ?? handleGo.AddComponent<JointRotationHandle>();
+
+                var axis = jointDriver.GetJointRotationAxis(i);
+                jointHandles[i].Initialize(i, axis, jointColors[i]);
+                jointHandles[i].OnHandleDragged += OnHandleDragged;
+                jointHandles[i].OnDragStateChanged += OnHandleDragStateChanged;
+            }
         }
 
         private void EnsureRobotSelection()
@@ -100,8 +547,15 @@ namespace KineTutor3D.App.Fairino
 
         private void EnsureControlRobot()
         {
-            if (runtimeRoot == null || controlRobotInstance != null)
+            if (runtimeRoot == null)
             {
+                return;
+            }
+
+            if (controlRobotInstance != null)
+            {
+                StabilizeControlRobot(controlRobotInstance);
+                TeleportRootUpright(controlRobotInstance);
                 return;
             }
 
@@ -109,23 +563,71 @@ namespace KineTutor3D.App.Fairino
             if (existing != null)
             {
                 controlRobotInstance = existing.gameObject;
+                StabilizeControlRobot(controlRobotInstance);
+                TeleportRootUpright(controlRobotInstance);
                 return;
             }
 
             if (!TryLoadControlPrefab(out var prefab, out var diagnostic, out var meshFilterCount, out var meshRendererCount))
             {
                 Debug.LogWarning($"[RobotControlSceneCoordinator] {diagnostic}");
-                controlRobotInstance = CreatePlaceholderControlRobot(runtimeRoot);
+                if (TryLoadShowroomFallback(out prefab, out meshFilterCount, out meshRendererCount))
+                {
+                    Debug.Log($"[RobotControlSceneCoordinator] Using showroom prefab as visual fallback ({meshFilterCount} meshes).");
+                }
+                else
+                {
+                    controlRobotInstance = CreatePlaceholderControlRobot(runtimeRoot);
+                    return;
+                }
+            }
+
+            controlRobotInstance = InstantiateAndSetup(prefab);
+            RepairVisualMeshes(controlRobotInstance);
+            StabilizeControlRobot(controlRobotInstance);
+            TeleportRootUpright(controlRobotInstance);
+
+            if (!HasVisibleBounds(controlRobotInstance))
+            {
+                Debug.LogWarning("[RobotControlSceneCoordinator] Instantiated prefab has zero render bounds. Trying showroom fallback.");
+                Destroy(controlRobotInstance);
+                controlRobotInstance = null;
+                if (TryLoadShowroomFallback(out var fallback, out meshFilterCount, out meshRendererCount))
+                {
+                    controlRobotInstance = InstantiateAndSetup(fallback);
+                    StabilizeControlRobot(controlRobotInstance);
+                    TeleportRootUpright(controlRobotInstance);
+                    NormalizeScale(controlRobotInstance, TargetRobotHeight);
+                    Debug.Log($"[RobotControlSceneCoordinator] Showroom fallback loaded with {meshFilterCount} meshes.");
+                }
+                else
+                {
+                    controlRobotInstance = CreatePlaceholderControlRobot(runtimeRoot);
+                }
                 return;
             }
 
-            controlRobotInstance = Instantiate(prefab, runtimeRoot);
-            controlRobotInstance.name = ControlRobotInstanceName;
-            controlRobotInstance.transform.localPosition = Vector3.zero;
-            controlRobotInstance.transform.localRotation = Quaternion.identity;
-            RepairVisualMeshes(controlRobotInstance);
-            StabilizeControlRobot(controlRobotInstance);
-            Debug.Log($"[RobotControlSceneCoordinator] Loaded FR5 control prefab with {meshFilterCount} MeshFilter(s) and {meshRendererCount} MeshRenderer(s).");
+            Debug.Log($"[RobotControlSceneCoordinator] Loaded FR5 control prefab with {meshFilterCount} MeshFilter(s) and {meshRendererCount} MeshRenderer(s). No scale applied (ArticulationBody).");
+        }
+
+        private static void TeleportRootUpright(GameObject root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            var baseLink = root.transform.Find("base_link");
+            if (baseLink == null)
+            {
+                return;
+            }
+
+            var baseBody = baseLink.GetComponent<ArticulationBody>();
+            if (baseBody != null)
+            {
+                baseBody.TeleportRoot(baseLink.position, baseLink.rotation);
+            }
         }
 
         private static Transform FindSceneRuntimeRoot()
@@ -160,7 +662,8 @@ namespace KineTutor3D.App.Fairino
                 return false;
             }
 
-            meshFilterCount = prefab.GetComponentsInChildren<MeshFilter>(true).Length;
+            var meshFilters = prefab.GetComponentsInChildren<MeshFilter>(true);
+            meshFilterCount = meshFilters.Length;
             meshRendererCount = prefab.GetComponentsInChildren<MeshRenderer>(true).Length;
             if (meshFilterCount <= 0 || meshRendererCount <= 0)
             {
@@ -168,8 +671,94 @@ namespace KineTutor3D.App.Fairino
                 return false;
             }
 
+            var totalVertices = 0;
+            for (var i = 0; i < meshFilters.Length; i++)
+            {
+                var mesh = meshFilters[i] != null ? meshFilters[i].sharedMesh : null;
+                if (mesh != null)
+                {
+                    totalVertices += mesh.vertexCount;
+                }
+            }
+
+            if (totalVertices <= 0)
+            {
+                diagnostic = $"Control prefab at Resources/{ControlPrefabResourcePath} has {meshFilterCount} MeshFilter(s) but 0 vertices. Re-run FR5 import/repair.";
+                return false;
+            }
+
             diagnostic = $"Loaded control prefab '{prefab.name}'.";
             return true;
+        }
+
+        private GameObject InstantiateAndSetup(GameObject prefab)
+        {
+            var instance = Instantiate(prefab, runtimeRoot);
+            instance.name = ControlRobotInstanceName;
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            return instance;
+        }
+
+        private static void NormalizeScale(GameObject root, float targetHeight)
+        {
+            var renderers = root.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0)
+            {
+                return;
+            }
+
+            var bounds = renderers[0].bounds;
+            for (var i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            var maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+            if (maxSize > 0.0001f)
+            {
+                var scale = targetHeight / maxSize;
+                root.transform.localScale *= scale;
+            }
+
+            renderers = root.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length > 0)
+            {
+                bounds = renderers[0].bounds;
+                for (var i = 1; i < renderers.Length; i++)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+                root.transform.position += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
+            }
+        }
+
+        private static bool HasVisibleBounds(GameObject root)
+        {
+            var renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null && renderers[i].bounds.size.sqrMagnitude > 0.0001f)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool TryLoadShowroomFallback(out GameObject prefab, out int meshFilterCount, out int meshRendererCount)
+        {
+            prefab = Resources.Load<GameObject>(ShowroomPrefabResourcePath);
+            meshFilterCount = 0;
+            meshRendererCount = 0;
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            meshFilterCount = prefab.GetComponentsInChildren<MeshFilter>(true).Length;
+            meshRendererCount = prefab.GetComponentsInChildren<MeshRenderer>(true).Length;
+            return meshFilterCount > 0 && meshRendererCount > 0;
         }
 
         private static GameObject CreatePlaceholderControlRobot(Transform parent)
@@ -268,6 +857,11 @@ namespace KineTutor3D.App.Fairino
                 body.useGravity = false;
                 body.linearVelocity = Vector3.zero;
                 body.angularVelocity = Vector3.zero;
+
+                if (!body.isRoot)
+                {
+                    body.enabled = false;
+                }
             }
 
             var baseLink = controlRoot.transform.Find("base_link");

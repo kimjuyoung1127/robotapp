@@ -112,6 +112,20 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 직교 공간 직선 이동 명령입니다 (Mock: 즉시 목표 포즈로 이동).
+        /// </summary>
+        public FairinoResult MoveL(double[] tcpPose, int speedPercent, int accPercent)
+        {
+            if (!IsConnected) return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            if (!IsEnabled) return FairinoResult.Fail(-2, "로봇이 비활성 상태입니다.");
+            if (tcpPose == null || tcpPose.Length != 6)
+                return FairinoResult.Fail(-3, "6축 TCP 포즈가 필요합니다.");
+
+            Array.Copy(tcpPose, currentTcpPose, 6);
+            return FairinoResult.Ok("Mock MoveL 완료");
+        }
+
+        /// <summary>
         /// 모든 동작을 정지합니다 (Mock: 즉시 성공).
         /// </summary>
         public FairinoResult StopMotion()

@@ -2,10 +2,34 @@
 
 3D 렌더링 헬퍼 (로봇 기구학 시각화).
 
-## 파일 (예정)
-- `FrameGizmo.cs` — 좌표 프레임 축 표시
-- `VectorArrow.cs` — 3D 벡터 화살표 렌더링
-- `StepAnimator.cs` — 단계별 애니메이션 컨트롤러
+## 폴더 구조
+```
+Visualization/
+├── Shared/           ← 로봇 무관 공용 컴포넌트 (어느 씬에서든 AddComponent로 사용)
+│   ├── CoordConverter.cs         — 로보틱스↔Unity 좌표 변환
+│   ├── EETrailRenderer.cs       — 공유 EE 궤적 코어 (거리게이팅, FIFO, 그라데이션)
+│   ├── EndEffectorTrail.cs      — EETrailRenderer + AppController 이벤트 바인딩 어댑터
+│   ├── FrameGizmo.cs            — 단일 좌표 프레임 축 표시
+│   ├── FrameGizmoFactory.cs     — 다관절 좌표 프레임 기즈모 관리
+│   ├── OrbitCameraController.cs — 궤도 카메라 (좌클릭 회전, 스크롤 줌, 우클릭 팬)
+│   ├── SharedLineMaterial.cs    — LineRenderer용 공유 Material 캐시 + 설정 헬퍼
+│   ├── DisplacementArrow.cs     — EE 변위 벡터 화살표 (LineRenderer + 원뿔 헤드)
+│   └── JointRotationHandle.cs   — 관절 회전 링 핸들 (마우스 드래그→각도 emit)
+├── FairinoUrdfJointDriver.cs    — FR5 URDF Transform 관절 제어
+├── RobotRenderer.cs             — 범용 2DOF/SCARA 3D 렌더러
+├── RobotRigBinder.cs            — 씬 계층 유틸리티
+├── DonorMeshCopier.cs           — URDF 메시 복사
+├── ScaraDonorMapper.cs          — SCARA 전용 메시 매핑
+├── RobotPreviewFactory.cs       — RobotLibrary 프리뷰 생성
+└── ...                          — 기타 시각화 헬퍼
+```
+
+## Shared/ 사용 규칙
+- 새 공용 시각화 컴포넌트는 `Shared/`에 작성
+- 네임스페이스는 `KineTutor3D.Visualization` 유지 (하위 네임스페이스 불필요)
+- 특정 로봇(FR5, SCARA 등)에 종속되는 코드는 `Visualization/` 루트에 유지
+- LineRenderer Material은 `SharedLineMaterial.Get()` 사용 (개별 static Material 캐시 금지)
+- LineRenderer 기본 설정은 `SharedLineMaterial.ConfigureLineRenderer()` 사용
 
 ## 규칙
 1. **이 모듈만** `double → float` 캐스팅 수행 (렌더링 경계)
