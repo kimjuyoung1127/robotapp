@@ -55,8 +55,8 @@ namespace KineTutor3D.App.Fairino
         /// </summary>
         public static readonly Preset Ready = new Preset(
             "Ready",
-            "작업 준비 자세",
-            new double[] { 0, -90, 90, 0, 90, 0 });
+            "작업 준비 자세 (EE 하향)",
+            new double[] { 0, -45, 0, -59, -92, -42 });
 
         /// <summary>
         /// Folded 포즈 (접힌 자세)입니다.

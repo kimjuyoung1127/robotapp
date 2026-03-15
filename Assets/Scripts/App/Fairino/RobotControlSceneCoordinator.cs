@@ -77,6 +77,7 @@ namespace KineTutor3D.App.Fairino
             EnsurePresetAnimator();
             InjectDependencies();
             BindListeners();
+            ApplyJointSnapshot(FR5PosePresets.Ready.JointAnglesDeg);
         }
 
         private void OnEnable()

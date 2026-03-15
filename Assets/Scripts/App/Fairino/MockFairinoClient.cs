@@ -9,7 +9,7 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     public sealed class MockFairinoClient : IFairinoRobotClient
     {
-        private double[] currentJointPosDeg = new double[6];
+        private double[] currentJointPosDeg = { 0, -45, 0, -59, -92, -42 };
         private double[] currentTcpPose = new double[6];
 
         /// <summary>
