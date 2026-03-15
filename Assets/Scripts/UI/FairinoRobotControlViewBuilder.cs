@@ -136,7 +136,7 @@ namespace KineTutor3D.UI
             var tabBar = BuildTabBar(shellRoot, fallbackFont);
 
             // Left content panels — below tab bar, top-anchored
-            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 580f), new Vector2(16f, -270f));
+            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 720f), new Vector2(16f, -270f));
             var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 580f), new Vector2(16f, -270f));
 
             // Right panels — state (always visible) + why it moved

@@ -116,6 +116,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 17 | robot-showroom-debug | robot showroom, showroomoutput, comparestrip, preview pod, Game/Scene size mismatch | `kinetutor-guide/ui/robot-showroom-debug/` |
 | 18 | main-learning-tabs-json | Main 탭 JSON, LearningTabs, robot-specific tab content, JsonUtility fallback, MainLearningTabsLoader | `kinetutor-guide/ui/main-learning-tabs-json/` |
 | 19 | viewbuilder-extract | ViewBuilder, UI 분리, Refs struct, 패널 추출 | `kinetutor-guide/ui/viewbuilder-extract/` |
+| 20 | waypoint-teaching | waypoint, teaching, playback, sequence, loop, export | `kinetutor-guide/content/waypoint-teaching/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
@@ -126,6 +127,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - `robot-showroom-debug` -> `scene-scaffold` + `scene-ui-visibility` + `ui-design-system`
 - `main-learning-tabs-json` -> `ui-design-system` + `scene-ui-visibility`
 - `fairino-fr5-integration` -> `robotics-reference-to-lesson` + `robot-template-add`
+- `waypoint-teaching` -> `fairino-fr5-integration` + `ui-design-system`
 - `robotics-reference-to-lesson` -> `student-friendly-ux` + `tutor-step-add`
 - `asmdef-setup` -> `unity-official-docs`
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`

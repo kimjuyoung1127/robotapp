@@ -44,6 +44,8 @@ namespace KineTutor3D.App.Fairino
         private PresetTransitionAnimator presetAnimator;
         private JointRotationHandle[] jointHandles;
         private OrbitCameraController orbitCamera;
+        private WaypointCycleRunner waypointRunner;
+        private WaypointSequence currentSequence;
         private Toggle gizmoToggle;
         private Button clearTrailButton;
         private bool listenersBound;
@@ -75,6 +77,7 @@ namespace KineTutor3D.App.Fairino
             EnsureOrbitCamera();
             EnsureJointHandles();
             EnsurePresetAnimator();
+            EnsureWaypointRunner();
             InjectDependencies();
             BindListeners();
             ApplyJointSnapshot(FR5PosePresets.Ready.JointAnglesDeg);
@@ -129,6 +132,14 @@ namespace KineTutor3D.App.Fairino
                 jointControlPanel.OnJointSliderPreview += OnJointSliderPreview;
                 jointControlPanel.OnPresetApplied += OnPresetApplied;
                 jointControlPanel.OnSyncRequested += OnSyncRequested;
+                jointControlPanel.OnSaveWaypointRequested += OnSaveWaypoint;
+                jointControlPanel.OnPlayRequested += OnTeachPlay;
+                jointControlPanel.OnLoopRequested += OnTeachLoop;
+                jointControlPanel.OnTeachStopRequested += OnTeachStop;
+                jointControlPanel.OnExportRequested += OnTeachExport;
+                jointControlPanel.OnImportRequested += OnTeachImport;
+                jointControlPanel.OnUndoLastRequested += OnTeachUndoLast;
+                jointControlPanel.OnClearAllRequested += OnTeachClearAll;
             }
 
             if (tcpPanel != null)
@@ -175,6 +186,14 @@ namespace KineTutor3D.App.Fairino
                 jointControlPanel.OnJointSliderPreview -= OnJointSliderPreview;
                 jointControlPanel.OnPresetApplied -= OnPresetApplied;
                 jointControlPanel.OnSyncRequested -= OnSyncRequested;
+                jointControlPanel.OnSaveWaypointRequested -= OnSaveWaypoint;
+                jointControlPanel.OnPlayRequested -= OnTeachPlay;
+                jointControlPanel.OnLoopRequested -= OnTeachLoop;
+                jointControlPanel.OnTeachStopRequested -= OnTeachStop;
+                jointControlPanel.OnExportRequested -= OnTeachExport;
+                jointControlPanel.OnImportRequested -= OnTeachImport;
+                jointControlPanel.OnUndoLastRequested -= OnTeachUndoLast;
+                jointControlPanel.OnClearAllRequested -= OnTeachClearAll;
             }
 
             if (tcpPanel != null)
@@ -196,6 +215,13 @@ namespace KineTutor3D.App.Fairino
             {
                 presetAnimator.OnFrameUpdated -= OnAnimationFrameUpdated;
                 presetAnimator.OnTransitionComplete -= OnAnimationComplete;
+            }
+
+            if (waypointRunner != null)
+            {
+                waypointRunner.OnWaypointReached -= OnRunnerWaypointReached;
+                waypointRunner.OnSequenceComplete -= OnRunnerSequenceComplete;
+                waypointRunner.OnError -= OnRunnerError;
             }
 
             UnbindHandleListeners();
@@ -930,6 +956,187 @@ namespace KineTutor3D.App.Fairino
         {
             presetAnimator = gameObject.GetComponent<PresetTransitionAnimator>()
                 ?? gameObject.AddComponent<PresetTransitionAnimator>();
+        }
+
+        private void EnsureWaypointRunner()
+        {
+            waypointRunner = gameObject.GetComponent<WaypointCycleRunner>()
+                ?? gameObject.AddComponent<WaypointCycleRunner>();
+            waypointRunner.Inject(connectionService, config, presetAnimator);
+
+            waypointRunner.OnWaypointReached += OnRunnerWaypointReached;
+            waypointRunner.OnSequenceComplete += OnRunnerSequenceComplete;
+            waypointRunner.OnError += OnRunnerError;
+
+            currentSequence = WaypointStore.CreateEmpty("Untitled");
+        }
+
+        // ── Teaching 핸들러 ──
+
+        private void OnSaveWaypoint()
+        {
+            if (currentSequence == null)
+            {
+                currentSequence = WaypointStore.CreateEmpty("Untitled");
+            }
+
+            var anglesDeg = GetCurrentAnglesDeg();
+            var tcpMm = ComputeTcpMm();
+            var index = currentSequence.waypoints != null ? currentSequence.waypoints.Length + 1 : 1;
+
+            var wp = new Waypoint
+            {
+                name = $"W{index}",
+                jointsDeg = anglesDeg,
+                tcpMm = tcpMm,
+                moveType = "MoveJ",
+                speedPreset = jointControlPanel != null ? jointControlPanel.GetSelectedSpeedPreset() : "medium",
+                dwellSec = 0
+            };
+
+            WaypointStore.AddWaypoint(currentSequence, wp);
+            jointControlPanel?.UpdateWaypointList(currentSequence);
+            jointControlPanel?.ShowTeachFeedback($"W{index} 저장 완료 ({anglesDeg[0]:F0}, {anglesDeg[1]:F0}, {anglesDeg[2]:F0}...)");
+        }
+
+        private void OnTeachPlay()
+        {
+            if (waypointRunner == null || currentSequence == null)
+            {
+                return;
+            }
+
+            jointControlPanel?.SetTeachingState(true);
+            waypointRunner.PlayOnce(currentSequence, connectionService == null || connectionService.IsMockMode);
+        }
+
+        private void OnTeachLoop()
+        {
+            if (waypointRunner == null || currentSequence == null)
+            {
+                return;
+            }
+
+            jointControlPanel?.SetTeachingState(true);
+            waypointRunner.PlayLoop(currentSequence, connectionService == null || connectionService.IsMockMode);
+        }
+
+        private void OnTeachStop()
+        {
+            waypointRunner?.Stop();
+            jointControlPanel?.SetTeachingState(false);
+            jointControlPanel?.ShowTeachFeedback("정지");
+        }
+
+        private void OnTeachExport()
+        {
+            if (currentSequence == null || currentSequence.waypoints == null || currentSequence.waypoints.Length == 0)
+            {
+                jointControlPanel?.ShowTeachFeedback("익스포트할 웨이포인트가 없습니다.");
+                return;
+            }
+
+            WaypointStore.Save(currentSequence);
+            var path = WaypointStore.GetStoragePath();
+            jointControlPanel?.ShowTeachFeedback($"저장 완료: {path}");
+            Debug.Log($"[Coordinator] 시퀀스 '{currentSequence.name}' 익스포트 → {path}");
+        }
+
+        private void OnTeachImport()
+        {
+            // 저장된 시퀀스 중 첫 번째를 로드 (UI 파일 선택은 향후 확장)
+            var names = WaypointStore.LoadAllNames();
+            if (names.Length == 0)
+            {
+                jointControlPanel?.ShowTeachFeedback("저장된 시퀀스가 없습니다.");
+                return;
+            }
+
+            currentSequence = WaypointStore.Load(names[0]);
+            if (currentSequence != null)
+            {
+                jointControlPanel?.UpdateWaypointList(currentSequence);
+                jointControlPanel?.ShowTeachFeedback($"'{currentSequence.name}' 로드 완료 ({currentSequence.waypoints.Length}개)");
+            }
+        }
+
+        private void OnTeachUndoLast()
+        {
+            if (WaypointStore.RemoveLast(currentSequence))
+            {
+                jointControlPanel?.UpdateWaypointList(currentSequence);
+                jointControlPanel?.ShowTeachFeedback("마지막 웨이포인트 제거");
+            }
+        }
+
+        private void OnTeachClearAll()
+        {
+            // 실행 중이면 먼저 정지
+            if (waypointRunner != null && waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                waypointRunner.Stop();
+            }
+
+            WaypointStore.ClearWaypoints(currentSequence);
+            eeTrailRenderer?.Clear();
+            displacementArrow?.Clear();
+            jointControlPanel?.UpdateWaypointList(currentSequence);
+            jointControlPanel?.SetTeachingState(false);
+            jointControlPanel?.ShowTeachFeedback("모든 웨이포인트 제거");
+        }
+
+        private void OnRunnerWaypointReached(int index, string wpName)
+        {
+            var total = currentSequence != null ? currentSequence.waypoints.Length : 0;
+            jointControlPanel?.ShowTeachFeedback($"W{index + 1}/{total} {wpName} 도달");
+        }
+
+        private void OnRunnerSequenceComplete()
+        {
+            jointControlPanel?.SetTeachingState(false);
+            jointControlPanel?.ShowTeachFeedback("시퀀스 완료");
+        }
+
+        private void OnRunnerError(string message)
+        {
+            jointControlPanel?.SetTeachingState(false);
+            jointControlPanel?.ShowTeachFeedback($"에러: {message}");
+        }
+
+        private double[] ComputeTcpMm()
+        {
+            if (kinematicsFacade == null)
+            {
+                return new double[6];
+            }
+
+            var ee = kinematicsFacade.EndEffectorTransform;
+            var pos = ee.ExtractPosition();
+            var rot = ee.ExtractRotation();
+
+            var cosB = System.Math.Sqrt(rot[0, 0] * rot[0, 0] + rot[1, 0] * rot[1, 0]);
+            double rx, ry, rz;
+
+            if (cosB < 1e-6)
+            {
+                ry = rot[2, 0] < 0 ? System.Math.PI / 2.0 : -System.Math.PI / 2.0;
+                rx = 0.0;
+                rz = System.Math.Atan2(rot[0, 1], rot[1, 1]);
+            }
+            else
+            {
+                ry = System.Math.Atan2(-rot[2, 0], cosB);
+                rx = System.Math.Atan2(rot[2, 1], rot[2, 2]);
+                rz = System.Math.Atan2(rot[1, 0], rot[0, 0]);
+            }
+
+            return new[]
+            {
+                pos.X * 1000.0, pos.Y * 1000.0, pos.Z * 1000.0,
+                rx * (180.0 / System.Math.PI),
+                ry * (180.0 / System.Math.PI),
+                rz * (180.0 / System.Math.PI)
+            };
         }
 
         private double[] GetCurrentAnglesDeg()

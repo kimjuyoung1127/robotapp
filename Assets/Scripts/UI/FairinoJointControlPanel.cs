@@ -9,8 +9,8 @@ namespace KineTutor3D.UI
 {
     /// <summary>
     /// FAIRINO FR5 6축 관절 제어 패널입니다.
-    /// 슬라이더, MoveJ/ServoJ 버튼, DryRun 토글, 비상정지, 프리셋 포즈를 제공합니다.
-    /// 안전 모드 배너와 섹션 구분 라벨을 포함합니다.
+    /// 슬라이더, MoveJ/ServoJ 버튼, DryRun 토글, 프리셋, 안전 모드 배너,
+    /// 그리고 Waypoint Teaching 섹션(Save/Play/Loop/Stop/Export/Import)을 포함합니다.
     /// </summary>
     public class FairinoJointControlPanel : MonoBehaviour, IVisibilityControllable
     {
@@ -24,6 +24,19 @@ namespace KineTutor3D.UI
         [SerializeField] private Text feedbackLabel;
         [SerializeField] private Image modeBannerBg;
         [SerializeField] private Text modeBannerText;
+
+        // Teaching 섹션
+        [SerializeField] private Button savePointButton;
+        [SerializeField] private Button playButton;
+        [SerializeField] private Button loopButton;
+        [SerializeField] private Button teachStopButton;
+        [SerializeField] private Button exportButton;
+        [SerializeField] private Button importButton;
+        [SerializeField] private Button undoLastButton;
+        [SerializeField] private Button clearAllButton;
+        [SerializeField] private Text waypointListLabel;
+        [SerializeField] private Text teachFeedbackLabel;
+
         [SerializeField] private Font fallbackFont;
 
         private static readonly string[] SpeedPresetNames = { "slow", "medium", "fast" };
@@ -41,13 +54,12 @@ namespace KineTutor3D.UI
         private bool dryRun = true;
 
         /// <summary>
-        /// 슬라이더 프리뷰 이벤트입니다. 슬라이더 드래그 시 6축 각도를 emit합니다.
+        /// 슬라이더 프리뷰 이벤트입니다.
         /// </summary>
         public event Action<double[]> OnJointSliderPreview;
 
         /// <summary>
-        /// 프리셋 적용 이벤트입니다. 프리셋 버튼 클릭 시 6축 각도를 emit합니다.
-        /// 슬라이더 프리뷰와 분리하여 EE 궤적 생성을 방지합니다.
+        /// 프리셋 적용 이벤트입니다.
         /// </summary>
         public event Action<double[]> OnPresetApplied;
 
@@ -55,6 +67,47 @@ namespace KineTutor3D.UI
         /// Sync 버튼 클릭 이벤트입니다.
         /// </summary>
         public event Action OnSyncRequested;
+
+        // Teaching 이벤트
+        /// <summary>
+        /// Save Point 버튼 클릭 이벤트입니다. 현재 관절 각도를 웨이포인트로 저장합니다.
+        /// </summary>
+        public event Action OnSaveWaypointRequested;
+
+        /// <summary>
+        /// Play 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnPlayRequested;
+
+        /// <summary>
+        /// Loop 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnLoopRequested;
+
+        /// <summary>
+        /// Teaching Stop 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnTeachStopRequested;
+
+        /// <summary>
+        /// Export 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnExportRequested;
+
+        /// <summary>
+        /// Import 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnImportRequested;
+
+        /// <summary>
+        /// Undo Last 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnUndoLastRequested;
+
+        /// <summary>
+        /// Clear All 버튼 클릭 이벤트입니다.
+        /// </summary>
+        public event Action OnClearAllRequested;
 
         /// <summary>
         /// 연결 서비스와 설정을 주입합니다.
@@ -79,7 +132,7 @@ namespace KineTutor3D.UI
         }
 
         /// <summary>
-        /// 슬라이더 값을 외부에서 동기화합니다 (상태 폴링 시 사용).
+        /// 슬라이더 값을 외부에서 동기화합니다.
         /// </summary>
         public void SetSliderValues(double[] values)
         {
@@ -96,6 +149,60 @@ namespace KineTutor3D.UI
                     UpdateJointLabel(i);
                 }
             }
+        }
+
+        /// <summary>
+        /// 웨이포인트 리스트 표시를 갱신합니다.
+        /// </summary>
+        public void UpdateWaypointList(WaypointSequence sequence)
+        {
+            if (waypointListLabel == null)
+            {
+                return;
+            }
+
+            if (sequence == null || sequence.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                waypointListLabel.text = "웨이포인트 없음";
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            for (var i = 0; i < sequence.waypoints.Length; i++)
+            {
+                var wp = sequence.waypoints[i];
+                sb.Append($"W{i + 1}: {wp.name} ({wp.moveType}, {wp.speedPreset})");
+                if (i < sequence.waypoints.Length - 1)
+                {
+                    sb.Append("\n");
+                }
+            }
+
+            waypointListLabel.text = sb.ToString();
+        }
+
+        /// <summary>
+        /// Teaching 피드백 텍스트를 표시합니다.
+        /// </summary>
+        public void ShowTeachFeedback(string text)
+        {
+            if (teachFeedbackLabel != null)
+            {
+                teachFeedbackLabel.text = text;
+            }
+        }
+
+        /// <summary>
+        /// Teaching 실행 상태에 따라 버튼을 활성/비활성합니다.
+        /// </summary>
+        public void SetTeachingState(bool isRunning)
+        {
+            if (savePointButton != null) savePointButton.interactable = !isRunning;
+            if (playButton != null) playButton.interactable = !isRunning;
+            if (loopButton != null) loopButton.interactable = !isRunning;
+            if (teachStopButton != null) teachStopButton.interactable = isRunning;
+            if (undoLastButton != null) undoLastButton.interactable = !isRunning;
+            if (clearAllButton != null) clearAllButton.interactable = !isRunning;
         }
 
         private void Awake()
@@ -164,36 +271,42 @@ namespace KineTutor3D.UI
                 UpdateJointLabel(i);
             }
 
+            // ═══ 하단 섹션 (bottom-anchored, 패딩 8px 간격) ═══
+
             // ── Presets 섹션 ──
-            EnsureSectionHeader(root, "Presets", "Presets", 202f, 217f);
+            EnsureSectionHeader(root, "Presets", "Presets", 348f, 364f);
             EnsurePresetButtons(root);
 
             // ── Speed 섹션 ──
-            EnsureSectionHeader(root, "Speed", "Speed", 148f, 163f);
+            EnsureSectionHeader(root, "Speed", "Speed", 292f, 308f);
             EnsureSpeedButtons(root);
 
             // ── Actions 섹션 ──
-            EnsureSectionHeader(root, "Actions", "Actions", 94f, 109f);
+            EnsureSectionHeader(root, "Actions", "Actions", 236f, 252f);
 
             moveJButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnMoveJ", "MoveJ", fallbackFont, 92f);
-            UiRuntimeStyle.Anchor((RectTransform)moveJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 62f));
+            UiRuntimeStyle.Anchor((RectTransform)moveJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 204f));
 
             servoJButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnServoJ", "ServoJ", fallbackFont, 92f);
-            UiRuntimeStyle.Anchor((RectTransform)servoJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(116f, 62f));
+            UiRuntimeStyle.Anchor((RectTransform)servoJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(116f, 204f));
 
             stopButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnStop", "Stop", fallbackFont, 72f);
-            UiRuntimeStyle.Anchor((RectTransform)stopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, 62f));
+            UiRuntimeStyle.Anchor((RectTransform)stopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, 204f));
 
             syncButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnSync", "Sync", fallbackFont, 72f);
-            UiRuntimeStyle.Anchor((RectTransform)syncButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(296f, 62f));
+            UiRuntimeStyle.Anchor((RectTransform)syncButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(296f, 204f));
 
             dryRunToggle ??= UIComponentFactory.CreateToggle(root, "DryRunToggle", "DryRun", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 24f), new Vector2(16f, 32f));
+            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 24f), new Vector2(16f, 174f));
             var dryRunLabel = dryRunToggle.transform.Find("Label")?.GetComponent<Text>();
             if (dryRunLabel != null) dryRunLabel.text = "DryRun";
 
             feedbackLabel = UiRuntimeStyle.EnsureText(root, "FeedbackLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 20f), new Vector2(16f, 8f));
+            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 16f), new Vector2(210f, 178f));
+
+            // ── Teaching 섹션 ──
+            EnsureSectionHeader(root, "Teaching", "Teaching", 142f, 158f);
+            EnsureTeachingSection(root);
 
             if (dryRunToggle != null)
             {
@@ -201,6 +314,45 @@ namespace KineTutor3D.UI
             }
 
             RefreshModeIndicator();
+        }
+
+        private void EnsureTeachingSection(RectTransform root)
+        {
+            // Row 1: Save Point / Play / Loop / Stop
+            savePointButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnSavePoint", "Save Point", fallbackFont, 96f);
+            UiRuntimeStyle.Anchor((RectTransform)savePointButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(96f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 112f));
+
+            playButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnTeachPlay", "\u25b6 Play", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)playButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(120f, 112f));
+
+            loopButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnTeachLoop", "\u27f3 Loop", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)loopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(200f, 112f));
+
+            teachStopButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnTeachStop", "\u25a0 Stop", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)teachStopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(280f, 112f));
+            if (teachStopButton != null) teachStopButton.interactable = false;
+
+            // Waypoint 리스트 (텍스트 표시)
+            waypointListLabel = UiRuntimeStyle.EnsureText(root, "WaypointListLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
+            UiRuntimeStyle.Anchor(waypointListLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 56f), new Vector2(16f, 50f));
+            waypointListLabel.text = "웨이포인트 없음";
+
+            // Row 2: Undo Last / Export / Import / Clear All
+            undoLastButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnUndoLast", "Undo", fallbackFont, 60f);
+            UiRuntimeStyle.Anchor((RectTransform)undoLastButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(60f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 20f));
+
+            exportButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnExport", "Export", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)exportButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(84f, 20f));
+
+            importButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnImport", "Import", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)importButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(164f, 20f));
+
+            clearAllButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnClearAll", "Clear All", fallbackFont, 80f);
+            UiRuntimeStyle.Anchor((RectTransform)clearAllButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(80f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(244f, 20f));
+
+            // Teaching 피드백
+            teachFeedbackLabel = UiRuntimeStyle.EnsureText(root, "TeachFeedbackLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(teachFeedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 14f), new Vector2(16f, 4f));
         }
 
         private void EnsureSectionHeader(RectTransform root, string name, string label, float labelY, float dividerY)
@@ -228,7 +380,7 @@ namespace KineTutor3D.UI
                 var btnName = $"BtnPreset_{presets[i].Name}";
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 presetButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, presets[i].Name, fallbackFont, 90f);
-                UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 170f));
+                UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 316f));
             }
         }
 
@@ -240,7 +392,7 @@ namespace KineTutor3D.UI
                 var btnName = $"BtnSpeed_{SpeedPresetNames[i]}";
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 speedButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, SpeedPresetLabels[i], fallbackFont, 100f);
-                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 116f));
+                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 260f));
             }
 
             RefreshSpeedButtonColors();
@@ -252,6 +404,14 @@ namespace KineTutor3D.UI
         public (int speed, int acc) GetSelectedSpeedAcc()
         {
             return config != null ? config.GetSpeedAcc(selectedSpeedPreset) : (30, 50);
+        }
+
+        /// <summary>
+        /// 현재 선택된 속도 프리셋 이름을 반환합니다.
+        /// </summary>
+        public string GetSelectedSpeedPreset()
+        {
+            return selectedSpeedPreset;
         }
 
         private void OnSpeedSelected(int index)
@@ -339,6 +499,16 @@ namespace KineTutor3D.UI
                 }
             }
 
+            // Teaching 버튼
+            savePointButton?.onClick.AddListener(() => OnSaveWaypointRequested?.Invoke());
+            playButton?.onClick.AddListener(() => OnPlayRequested?.Invoke());
+            loopButton?.onClick.AddListener(() => OnLoopRequested?.Invoke());
+            teachStopButton?.onClick.AddListener(() => OnTeachStopRequested?.Invoke());
+            exportButton?.onClick.AddListener(() => OnExportRequested?.Invoke());
+            importButton?.onClick.AddListener(() => OnImportRequested?.Invoke());
+            undoLastButton?.onClick.AddListener(() => OnUndoLastRequested?.Invoke());
+            clearAllButton?.onClick.AddListener(() => OnClearAllRequested?.Invoke());
+
             listenersBound = true;
         }
 
@@ -381,6 +551,16 @@ namespace KineTutor3D.UI
                 }
             }
 
+            // Teaching 버튼
+            savePointButton?.onClick.RemoveAllListeners();
+            playButton?.onClick.RemoveAllListeners();
+            loopButton?.onClick.RemoveAllListeners();
+            teachStopButton?.onClick.RemoveAllListeners();
+            exportButton?.onClick.RemoveAllListeners();
+            importButton?.onClick.RemoveAllListeners();
+            undoLastButton?.onClick.RemoveAllListeners();
+            clearAllButton?.onClick.RemoveAllListeners();
+
             listenersBound = false;
         }
 
@@ -411,9 +591,6 @@ namespace KineTutor3D.UI
             RefreshModeIndicator();
         }
 
-        /// <summary>
-        /// 안전 모드 배너를 현재 상태에 맞게 갱신합니다.
-        /// </summary>
         private void RefreshModeIndicator()
         {
             if (modeBannerBg == null || modeBannerText == null)
