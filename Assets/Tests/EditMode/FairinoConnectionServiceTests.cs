@@ -22,6 +22,8 @@ namespace KineTutor3D.Tests.EditMode
             service.OnEnableStateChanged += value => enableChanged = value;
             service.OnStateUpdated += value => latestState = value;
 
+            // 생성자에서 이미 Mock=true이므로, false→true로 전환해야 이벤트 발생
+            service.SetMockMode(false);
             service.SetMockMode(true);
 
             Assert.That(modeChanged, Is.True);
