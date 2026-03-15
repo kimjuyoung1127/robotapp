@@ -24,10 +24,15 @@ namespace KineTutor3D.UI
         [SerializeField] private Text feedbackLabel;
         [SerializeField] private Font fallbackFont;
 
+        private static readonly string[] SpeedPresetNames = { "slow", "medium", "fast" };
+        private static readonly string[] SpeedPresetLabels = { "Slow 10%", "Medium 30%", "Fast 60%" };
+
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
         private FR5KinematicsFacade kinematicsFacade;
         private FairinoMoveConfirmDialog moveConfirmDialog;
+        private Button[] speedButtons;
+        private string selectedSpeedPreset = "medium";
         private bool listenersBound;
         private bool dryRun = true;
 
@@ -152,6 +157,69 @@ namespace KineTutor3D.UI
             {
                 dryRunToggle.SetIsOnWithoutNotify(dryRun);
             }
+
+            EnsureSpeedButtons(root);
+        }
+
+        private void EnsureSpeedButtons(RectTransform root)
+        {
+            speedButtons = new Button[SpeedPresetNames.Length];
+            for (var i = 0; i < SpeedPresetNames.Length; i++)
+            {
+                var btnName = $"BtnTcpSpeed_{SpeedPresetNames[i]}";
+                var existing = root.Find(btnName)?.GetComponent<Button>();
+                speedButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, SpeedPresetLabels[i], fallbackFont, 100f);
+                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 48f));
+            }
+
+            RefreshSpeedButtonColors();
+        }
+
+        /// <summary>
+        /// 선택된 속도 프리셋에 해당하는 속도/가속을 반환합니다.
+        /// </summary>
+        public (int speed, int acc) GetSelectedSpeedAcc()
+        {
+            return config != null ? config.GetSpeedAcc(selectedSpeedPreset) : (30, 50);
+        }
+
+        private void OnSpeedSelected(int index)
+        {
+            if (index < 0 || index >= SpeedPresetNames.Length)
+            {
+                return;
+            }
+
+            selectedSpeedPreset = SpeedPresetNames[index];
+            RefreshSpeedButtonColors();
+            ShowFeedback($"속도: {SpeedPresetLabels[index]}");
+        }
+
+        private void RefreshSpeedButtonColors()
+        {
+            if (speedButtons == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < speedButtons.Length; i++)
+            {
+                if (speedButtons[i] == null)
+                {
+                    continue;
+                }
+
+                var isSelected = SpeedPresetNames[i] == selectedSpeedPreset;
+                speedButtons[i].colors = isSelected
+                    ? UIDesignTokens.ButtonColors(UIDesignTokens.Colors.AccentPrimary)
+                    : UIDesignTokens.ButtonColors(UIDesignTokens.Colors.SurfaceCard);
+
+                var label = speedButtons[i].GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.color = isSelected ? UIDesignTokens.Colors.TextOnAccent : UIDesignTokens.Colors.TextSecondary;
+                }
+            }
         }
 
         private void BindListeners()
@@ -164,6 +232,17 @@ namespace KineTutor3D.UI
             moveLButton?.onClick.AddListener(OnMoveLClicked);
             servoCartButton?.onClick.AddListener(OnServoCartClicked);
             dryRunToggle?.onValueChanged.AddListener(OnDryRunChanged);
+
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    if (speedButtons[i] == null) continue;
+                    var capturedIndex = i;
+                    speedButtons[i].onClick.AddListener(() => OnSpeedSelected(capturedIndex));
+                }
+            }
+
             listenersBound = true;
         }
 
@@ -177,6 +256,15 @@ namespace KineTutor3D.UI
             moveLButton?.onClick.RemoveListener(OnMoveLClicked);
             servoCartButton?.onClick.RemoveListener(OnServoCartClicked);
             dryRunToggle?.onValueChanged.RemoveListener(OnDryRunChanged);
+
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    speedButtons[i]?.onClick.RemoveAllListeners();
+                }
+            }
+
             listenersBound = false;
         }
 
@@ -202,18 +290,18 @@ namespace KineTutor3D.UI
             }
 
             var target = GetInputValues();
-            var (speed, acc) = config != null ? config.GetMediumSpeedAcc() : (30, 50);
+            var (speed, acc) = GetSelectedSpeedAcc();
 
             if (dryRun)
             {
-                ShowFeedback($"[DryRun] MoveL \u2192 X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}");
+                ShowFeedback($"[DryRun] MoveL ({selectedSpeedPreset}) \u2192 X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}");
                 OnTcpMoveRequested?.Invoke(target);
                 return;
             }
 
             if (!connectionService.IsMockMode && moveConfirmDialog != null)
             {
-                var msg = $"Live 모드에서 MoveL을 실행합니다.\n목표: X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}";
+                var msg = $"Live 모드에서 MoveL을 실행합니다.\n속도: {selectedSpeedPreset}\n목표: X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}";
                 var capturedSpeed = speed;
                 var capturedAcc = acc;
                 var capturedTarget = target;
@@ -264,6 +352,31 @@ namespace KineTutor3D.UI
             currentTcpLabel.text = $"현재 TCP (FK): X:{pos.X.ToString("F3", CultureInfo.InvariantCulture)}m "
                 + $"Y:{pos.Y.ToString("F3", CultureInfo.InvariantCulture)}m "
                 + $"Z:{pos.Z.ToString("F3", CultureInfo.InvariantCulture)}m";
+        }
+
+        /// <summary>
+        /// 입력 필드와 버튼의 일괄 활성/비활성을 설정합니다.
+        /// </summary>
+        public void SetControlsEnabled(bool enabled)
+        {
+            for (var i = 0; i < tcpInputs.Length; i++)
+            {
+                if (tcpInputs[i] != null)
+                {
+                    tcpInputs[i].interactable = enabled;
+                }
+            }
+
+            if (moveLButton != null) moveLButton.interactable = enabled;
+            if (servoCartButton != null) servoCartButton.interactable = enabled;
+
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    if (speedButtons[i] != null) speedButtons[i].interactable = enabled;
+                }
+            }
         }
 
         private void ShowFeedback(string text)

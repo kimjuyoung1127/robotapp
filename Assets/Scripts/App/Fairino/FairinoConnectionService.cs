@@ -9,11 +9,14 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     public sealed class FairinoConnectionService
     {
+        private const int ConnectionLostThreshold = 3;
+
         private IFairinoRobotClient client;
         private readonly FairinoErrorTranslator errorTranslator;
         private float pollInterval = 0.1f;
         private float pollTimer;
         private FairinoRobotState lastState;
+        private int consecutiveErrors;
         private bool useMock = true;
 
         /// <summary>
@@ -55,6 +58,11 @@ namespace KineTutor3D.App.Fairino
         /// Mock/Live 모드가 바뀔 때 발생하는 이벤트입니다.
         /// </summary>
         public event Action<bool> OnModeChanged;
+
+        /// <summary>
+        /// 연속 폴링 실패로 연결이 끊어진 것으로 판단될 때 발생하는 이벤트입니다.
+        /// </summary>
+        public event Action OnConnectionLost;
 
         /// <summary>
         /// 서비스를 생성합니다.
@@ -106,6 +114,7 @@ namespace KineTutor3D.App.Fairino
                 return result;
             }
 
+            consecutiveErrors = 0;
             OnConnectionStateChanged?.Invoke(client.IsConnected);
             OnEnableStateChanged?.Invoke(client.IsEnabled);
             EmitCurrentState();
@@ -215,12 +224,22 @@ namespace KineTutor3D.App.Fairino
             var result = client.ReadState();
             if (result.IsSuccess)
             {
+                consecutiveErrors = 0;
                 lastState = result.Value;
                 OnStateUpdated?.Invoke(lastState);
             }
             else
             {
+                consecutiveErrors++;
                 OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+
+                if (!useMock && consecutiveErrors >= ConnectionLostThreshold)
+                {
+                    consecutiveErrors = 0;
+                    client.Disconnect();
+                    OnConnectionLost?.Invoke();
+                    OnConnectionStateChanged?.Invoke(false);
+                }
             }
         }
 

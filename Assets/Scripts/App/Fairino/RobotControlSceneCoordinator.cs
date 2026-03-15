@@ -41,11 +41,13 @@ namespace KineTutor3D.App.Fairino
         private DisplacementArrow displacementArrow;
         private FairinoWhyItMovedLabel whyItMovedLabel;
         private FairinoMoveConfirmDialog moveConfirmDialog;
+        private PresetTransitionAnimator presetAnimator;
         private JointRotationHandle[] jointHandles;
         private OrbitCameraController orbitCamera;
         private Toggle gizmoToggle;
         private Button clearTrailButton;
         private bool listenersBound;
+        private bool isFirstStateAfterConnect;
 
         private void Awake()
         {
@@ -72,6 +74,7 @@ namespace KineTutor3D.App.Fairino
             EnsureVisualizationHelpers();
             EnsureOrbitCamera();
             EnsureJointHandles();
+            EnsurePresetAnimator();
             InjectDependencies();
             BindListeners();
         }
@@ -116,6 +119,8 @@ namespace KineTutor3D.App.Fairino
             {
                 connectionService.OnStateUpdated += OnStateUpdated;
                 connectionService.OnModeChanged += OnModeChanged;
+                connectionService.OnConnectionLost += OnConnectionLost;
+                connectionService.OnConnectionStateChanged += OnConnectionStateChanged;
             }
 
             if (jointControlPanel != null)
@@ -140,6 +145,12 @@ namespace KineTutor3D.App.Fairino
                 clearTrailButton.onClick.AddListener(OnClearTrailClicked);
             }
 
+            if (presetAnimator != null)
+            {
+                presetAnimator.OnFrameUpdated += OnAnimationFrameUpdated;
+                presetAnimator.OnTransitionComplete += OnAnimationComplete;
+            }
+
             listenersBound = true;
         }
 
@@ -154,6 +165,8 @@ namespace KineTutor3D.App.Fairino
             {
                 connectionService.OnStateUpdated -= OnStateUpdated;
                 connectionService.OnModeChanged -= OnModeChanged;
+                connectionService.OnConnectionLost -= OnConnectionLost;
+                connectionService.OnConnectionStateChanged -= OnConnectionStateChanged;
             }
 
             if (jointControlPanel != null)
@@ -176,6 +189,12 @@ namespace KineTutor3D.App.Fairino
             if (clearTrailButton != null)
             {
                 clearTrailButton.onClick.RemoveListener(OnClearTrailClicked);
+            }
+
+            if (presetAnimator != null)
+            {
+                presetAnimator.OnFrameUpdated -= OnAnimationFrameUpdated;
+                presetAnimator.OnTransitionComplete -= OnAnimationComplete;
             }
 
             UnbindHandleListeners();
@@ -202,6 +221,15 @@ namespace KineTutor3D.App.Fairino
 
         private void OnStateUpdated(FairinoRobotState state)
         {
+            // 연결 직후 첫 상태: 현재 포즈에서 실제 포즈로 부드럽게 전환
+            if (isFirstStateAfterConnect && presetAnimator != null)
+            {
+                isFirstStateAfterConnect = false;
+                var currentAngles = GetCurrentAnglesDeg();
+                presetAnimator.StartTransition(currentAngles, state.JointPosDeg, UIDesignTokens.Anim.ConnectionSync);
+                return;
+            }
+
             if (jointDriver != null)
             {
                 jointDriver.ApplyJointAngles(state);
@@ -223,6 +251,11 @@ namespace KineTutor3D.App.Fairino
 
         private void OnJointSliderPreview(double[] jointAnglesDeg)
         {
+            if (presetAnimator != null && presetAnimator.IsAnimating)
+            {
+                presetAnimator.Cancel();
+            }
+
             if (jointDriver != null)
             {
                 jointDriver.ApplyJointAngles(jointAnglesDeg);
@@ -250,22 +283,18 @@ namespace KineTutor3D.App.Fairino
 
         private void OnPresetApplied(double[] jointAnglesDeg)
         {
-            if (jointDriver != null)
-            {
-                jointDriver.ApplyJointAngles(jointAnglesDeg);
-            }
-
-            kinematicsFacade?.SetJointAnglesDegrees(jointAnglesDeg);
-
             eeTrailRenderer?.Clear();
             displacementArrow?.Clear();
 
-            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            if (presetAnimator != null && kinematicsFacade != null)
             {
-                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+                var currentAngles = GetCurrentAnglesDeg();
+                presetAnimator.StartTransition(currentAngles, jointAnglesDeg, UIDesignTokens.Anim.PresetTransition);
+                return;
             }
 
-            SyncHandleAngles(jointAnglesDeg);
+            // Fallback: 즉시 적용
+            ApplyJointSnapshot(jointAnglesDeg);
         }
 
         private void OnTcpMoveRequested(double[] tcpPose)
@@ -293,6 +322,25 @@ namespace KineTutor3D.App.Fairino
             jointControlPanel?.SetSyncEnabled(!isMock);
         }
 
+        private void OnConnectionLost()
+        {
+            presetAnimator?.Cancel();
+            jointControlPanel?.SetControlsEnabled(false);
+            tcpPanel?.SetControlsEnabled(false);
+            connectionPanel?.ShowConnectionLost();
+            Debug.LogWarning("[RobotControlSceneCoordinator] 연결 끊김 감지 — 패널 비활성화");
+        }
+
+        private void OnConnectionStateChanged(bool connected)
+        {
+            if (connected)
+            {
+                jointControlPanel?.SetControlsEnabled(true);
+                tcpPanel?.SetControlsEnabled(true);
+                isFirstStateAfterConnect = true;
+            }
+        }
+
         private void OnGizmoToggleChanged(bool value)
         {
             frameGizmoFactory?.SetVisible(value);
@@ -310,6 +358,11 @@ namespace KineTutor3D.App.Fairino
 
         private void OnHandleDragged(int jointIndex, float angleDeg)
         {
+            if (presetAnimator != null && presetAnimator.IsAnimating)
+            {
+                presetAnimator.Cancel();
+            }
+
             if (jointControlPanel == null || kinematicsFacade == null)
             {
                 return;
@@ -869,6 +922,84 @@ namespace KineTutor3D.App.Fairino
             if (baseBody != null)
             {
                 baseBody.immovable = true;
+            }
+        }
+
+        private void EnsurePresetAnimator()
+        {
+            presetAnimator = gameObject.GetComponent<PresetTransitionAnimator>()
+                ?? gameObject.AddComponent<PresetTransitionAnimator>();
+        }
+
+        private double[] GetCurrentAnglesDeg()
+        {
+            if (kinematicsFacade == null)
+            {
+                return new double[JointCount];
+            }
+
+            var currentRad = kinematicsFacade.JointValuesRad;
+            var values = new double[JointCount];
+            for (var i = 0; i < JointCount && i < currentRad.Length; i++)
+            {
+                values[i] = currentRad[i] * (180.0 / System.Math.PI);
+            }
+
+            return values;
+        }
+
+        private void ApplyJointSnapshot(double[] jointAnglesDeg)
+        {
+            if (jointDriver != null)
+            {
+                jointDriver.ApplyJointAngles(jointAnglesDeg);
+            }
+
+            jointControlPanel?.SetSliderValues(jointAnglesDeg);
+            kinematicsFacade?.SetJointAnglesDegrees(jointAnglesDeg);
+
+            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+
+            SyncHandleAngles(jointAnglesDeg);
+        }
+
+        private void OnAnimationFrameUpdated(double[] jointAnglesDeg)
+        {
+            if (jointDriver != null)
+            {
+                jointDriver.ApplyJointAngles(jointAnglesDeg);
+            }
+
+            jointControlPanel?.SetSliderValues(jointAnglesDeg);
+            kinematicsFacade?.SetJointAnglesDegrees(jointAnglesDeg);
+
+            if (eeTrailRenderer != null && kinematicsFacade != null)
+            {
+                eeTrailRenderer.AddPoint(kinematicsFacade.EndEffectorTransform);
+            }
+
+            if (displacementArrow != null && kinematicsFacade != null)
+            {
+                displacementArrow.UpdateFromFK(kinematicsFacade.EndEffectorTransform);
+            }
+
+            if (frameGizmoFactory != null && frameGizmoFactory.IsVisible && kinematicsFacade != null)
+            {
+                frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
+            }
+
+            SyncHandleAngles(jointAnglesDeg);
+        }
+
+        private void OnAnimationComplete(double[] jointAnglesDeg)
+        {
+            if (whyItMovedLabel != null)
+            {
+                var syntheticState = new FairinoRobotState(jointAnglesDeg, new double[6]);
+                whyItMovedLabel.HandleStateUpdated(syntheticState);
             }
         }
 

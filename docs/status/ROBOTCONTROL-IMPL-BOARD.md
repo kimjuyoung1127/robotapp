@@ -1,6 +1,6 @@
 # RobotControl 구현 보드
 
-> 최종 갱신: 2026-03-14
+> 최종 갱신: 2026-03-15
 
 ## 재활용 컴포넌트 매트릭스
 
@@ -74,13 +74,149 @@
 - [x] **P4 변위 화살표**: `Visualization/Shared/DisplacementArrow.cs` 신규 — EE 변위 벡터 화살표
 - [x] **P5 TopBar**: `FairinoRobotControlViewBuilder.cs` — 기즈모 토글 + 트레일 Clear 버튼
 - [x] **공용화**: `Visualization/Shared/SharedLineMaterial.cs` 신규 — Material 캐시 통합
-- [x] **공용화**: `FairinoRobotConfig.cs` — `GetMediumSpeedAcc()` 속도/가속 헬퍼
+- [x] **공용화**: `FairinoRobotConfig.cs` — `GetMediumSpeedAcc()` + `GetSpeedAcc(preset)` 속도/가속 헬퍼
 - [ ] Play Mode 검증: 전체 회전 핸들 + TCP 제어 + 변위 화살표 시각 검증
 
-### Phase 8: 최종 검증
-- [x] EditMode 테스트 green (FR5KinematicsFacade + FR5PosePresets + Integration)
+### Phase 8: 프리셋 애니메이션 + Speed Selector + 연결 안전
+- [x] **프리셋 애니메이션**: `App/Fairino/PresetTransitionAnimator.cs` 신규 — EaseInOutCubic 보간 (1.5초)
+- [x] **Speed Selector**: `FairinoJointControlPanel.cs` + `FairinoTcpControlPanel.cs` — Slow/Medium/Fast 속도 선택
+- [x] **연결 끊김**: `FairinoConnectionService.cs` — 3회 연속 에러 → `OnConnectionLost` + 자동 해제
+- [x] **패널 비활성화**: `SetControlsEnabled(bool)` — JointControlPanel + TcpControlPanel
+- [x] **재연결 안내**: `FairinoConnectionPanel.ShowConnectionLost()` — 빨간색 상태 텍스트
+- [x] **연결 초기화**: `OnStateUpdated` 첫 프레임 → 0.8초 보간 전환
+- [x] **UI 토큰**: `UIDesignTokens.Anim.PresetTransition=1.5f`, `ConnectionSync=0.8f`
+- [x] **EditMode 테스트**: `PresetTransitionAnimatorTests.cs` — EaseInOutCubic + LerpDouble 13개
+- [ ] Play Mode 검증: 프리셋 보간 + Speed 선택 + 연결 끊김/복구 시각 검증
+
+### Phase 9: 최종 검증
+- [x] EditMode 테스트 green (FR5KinematicsFacade + FR5PosePresets + PresetTransitionAnimator + Integration)
 - [ ] 전체 Mock 루프: 슬라이더→핸들→3D + TCP 탭 검증
 - [ ] 스크린샷 캡처
+
+---
+
+## UI 계층 트리
+
+```
+RobotControl.unity
+├── FR5_RuntimeRoot
+│   ├── FR5_UrdfInstance (FAIRINO_FR5_Control prefab)
+│   │   └── base_link → shoulder_link → upperarm_link → forearm_link → wrist1 → wrist2 → wrist3
+│   ├── FrameGizmos (FrameGizmoFactory — 6관절 좌표 프레임)
+│   ├── EETrail (EETrailRenderer — End Effector 궤적)
+│   ├── DisplacementArrow (EE 변위 벡터)
+│   └── JointHandles
+│       ├── Handle_J1..J6 (JointRotationHandle — 관절 회전 링)
+│
+├── Canvas (Screen Space - Overlay)
+│   ├── TopBar
+│   │   ├── GizmoToggle (Frame Gizmo On/Off)
+│   │   └── ClearTrailButton
+│   ├── TabBar (Joint Control / TCP Control / State)
+│   ├── ConnectionPanel (FairinoConnectionPanel)
+│   │   ├── IP Input + Connect/Disconnect
+│   │   ├── Enable/Disable + Mock Toggle
+│   │   ├── StatusLabel (AccentSuccess/AccentDanger)
+│   │   └── VersionLabel
+│   ├── JointControlPanel (FairinoJointControlPanel)
+│   │   ├── JointRow_1..6 (Slider + Label, 관절 색상 코딩)
+│   │   ├── SpeedButtons [Slow 10%] [Medium 30%] [Fast 60%]
+│   │   ├── MoveJ / ServoJ / Stop / Sync
+│   │   ├── DryRun Toggle
+│   │   ├── FeedbackLabel
+│   │   └── PresetButtons [Zero] [Home] [Ready] [Current]
+│   ├── TcpControlPanel (FairinoTcpControlPanel)
+│   │   ├── TcpRow_0..5 (X/Y/Z/Rx/Ry/Rz InputField)
+│   │   ├── SpeedButtons [Slow 10%] [Medium 30%] [Fast 60%]
+│   │   ├── MoveL / ServoCart
+│   │   ├── DryRun Toggle
+│   │   ├── CurrentTcpLabel (FK 결과 읽기 전용)
+│   │   └── FeedbackLabel
+│   ├── StatePanel (FairinoStatePanel — EE XYZ RGB)
+│   ├── WhyItMovedLabel (관절→TCP 이동 설명)
+│   └── MoveConfirmDialog (Live 모드 확인)
+│
+├── Main Camera (OrbitCameraController)
+├── Directional Light
+└── EventSystem
+```
+
+## 데이터 흐름 다이어그램
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    RobotControlSceneCoordinator                     │
+│  (오케스트레이터: 모든 이벤트 라우팅 + 시각화 동기화)                 │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+   ┌──────────────┬────────────┼────────────┬───────────────┐
+   │              │            │            │               │
+   ▼              ▼            ▼            ▼               ▼
+Connection    JointControl  TcpControl  PresetTransition  ConnectionService
+  Panel         Panel        Panel       Animator          (Mock/Live)
+   │              │            │            │               │
+   │  ┌───────────┘            │            │               │
+   │  │ OnJointSliderPreview   │            │               │
+   │  │ OnPresetApplied        │            │               │
+   │  │ OnSyncRequested        │            │               │
+   │  │                        │            │               │
+   │  ▼                        │            │               │
+   │  ┌────────────────┐       │            │               │
+   │  │ Speed Selector │───────┼───► GetSpeedAcc(preset)    │
+   │  │ [S] [M] [F]    │       │     ──────►FairinoRobot    │
+   │  └────────────────┘       │            Config          │
+   │                           │                            │
+   │                           ▼                            │
+   │                    OnTcpMoveRequested                   │
+   │                                                        │
+   ▼                                                        ▼
+Connect/                                              Tick(deltaTime)
+Disconnect ──► OnConnectionStateChanged              ReadState() 폴링
+               OnConnectionLost (3회 실패)                  │
+               isFirstStateAfterConnect                     │
+                        │                                   │
+                        ▼                                   ▼
+                  ┌──────────────────────────────────────────┐
+                  │        Coordinator Event Handlers         │
+                  │                                          │
+                  │  OnStateUpdated:                         │
+                  │    첫 연결 → Animator(0.8s 보간)          │
+                  │    이후    → 즉시 적용                    │
+                  │                                          │
+                  │  OnPresetApplied:                        │
+                  │    → Animator(1.5s EaseInOutCubic 보간)   │
+                  │    → Trail/Arrow Clear                   │
+                  │                                          │
+                  │  OnJointSliderPreview / OnHandleDragged: │
+                  │    → 애니메이션 Cancel                    │
+                  │    → 즉시 JointDriver + FK + 시각화       │
+                  │                                          │
+                  │  OnConnectionLost:                       │
+                  │    → 애니메이션 Cancel                    │
+                  │    → SetControlsEnabled(false)           │
+                  │    → ShowConnectionLost()                │
+                  │                                          │
+                  │  OnConnectionStateChanged(true):         │
+                  │    → SetControlsEnabled(true)            │
+                  │    → isFirstStateAfterConnect = true     │
+                  └──────────────┬───────────────────────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+     FairinoUrdfJoint    FR5Kinematics      Visualization
+        Driver            Facade            (Gizmo/Trail/Arrow)
+     (Transform 직접)   (FK 계산)          (3D 렌더링)
+```
+
+## 실기 연결 체크리스트
+
+1. FR5 전원 ON + 네트워크 연결 확인
+2. Mock Toggle → OFF (Live 모드 전환)
+3. IP 입력 → Connect → StatusLabel 녹색 확인
+4. Enable 버튼 → 서보 활성 확인
+5. DryRun OFF → MoveJ 또는 MoveL 실행
+6. 연결 끊김 테스트: 케이블 분리 → 3회 폴링 실패 → 빨간 "연결 끊김" 확인
+7. 재연결: Connect → 패널 자동 활성화 + 0.8초 포즈 보간
 
 ---
 
@@ -123,13 +259,13 @@
 
 ---
 
-## 파일 총괄 (이번 턴 신규 4 + 수정 10 + 기존 유지 11 = 25)
+## 파일 총괄 (신규 5 + 수정 12 + 기존 유지 11 = 28)
 
 | # | 파일 | Phase | 작업 | 역할 |
 |---|------|-------|------|------|
 | 1 | Visualization/FairinoUrdfJointDriver.cs | P1 | 수정 | Transform 관절 제어 + GetJointTransform/GetJointRotationAxis API |
-| 2 | App/Fairino/RobotControlSceneCoordinator.cs | ALL | 전면 재작성 | 전체 코디네이터: TCP/핸들/화살표/기즈모토글/Sync 통합 |
-| 3 | UI/FairinoJointControlPanel.cs | P2,P3 | 수정 | 슬라이더 + 프리셋 + Sync 버튼 |
+| 2 | App/Fairino/RobotControlSceneCoordinator.cs | ALL | 전면 재작성 | 전체 코디네이터: 애니메이션/TCP/핸들/화살표/기즈모/Sync/연결끊김 통합 |
+| 3 | UI/FairinoJointControlPanel.cs | P2,P3,P8 | 수정 | 슬라이더 + 프리셋 + Sync + Speed Selector + SetControlsEnabled |
 | 4 | UI/FairinoRobotControlViewBuilder.cs | P2,P5 | 전면 재작성 | 3탭(Joint/TCP/State) + TopBar(기즈모토글/Clear Trail) |
 | 5 | UI/UIComponentFactory.cs | P2 | 수정 | Slider Image 추가 |
 | 6 | App/Fairino/FR5KinematicsFacade.cs | P3 | 기존 | FK facade |
@@ -141,22 +277,26 @@
 | 12 | App/Fairino/FR5PosePresets.cs | P6 | 수정 | Current 동적 프리셋 + 캐시 |
 | 13 | UI/FairinoMoveConfirmDialog.cs | P6 | 기존 | Live 확인 대화상자 |
 | 14 | App/SceneCameraDirector.cs | P0 | 수정 | RobotControl 카메라 프로파일 |
-| 15 | **UI/FairinoTcpControlPanel.cs** | P2 | **신규** | TCP X/Y/Z/Rx/Ry/Rz 제어 |
-| 16 | **Visualization/Shared/JointRotationHandle.cs** | P1 | **신규** | 관절 회전 링 핸들 |
-| 17 | **Visualization/Shared/DisplacementArrow.cs** | P4 | **신규** | EE 변위 벡터 화살표 |
-| 18 | **Visualization/Shared/SharedLineMaterial.cs** | 공용 | **신규** | LineRenderer Material 캐시 |
+| 15 | UI/FairinoTcpControlPanel.cs | P2,P8 | 수정 | TCP 제어 + Speed Selector + SetControlsEnabled |
+| 16 | Visualization/Shared/JointRotationHandle.cs | P1 | 기존 | 관절 회전 링 핸들 |
+| 17 | Visualization/Shared/DisplacementArrow.cs | P4 | 기존 | EE 변위 벡터 화살표 |
+| 18 | Visualization/Shared/SharedLineMaterial.cs | 공용 | 기존 | LineRenderer Material 캐시 |
 | 19 | App/Fairino/IFairinoRobotClient.cs | P2 | 수정 | MoveL 인터페이스 추가 |
 | 20 | App/Fairino/MockFairinoClient.cs | P2 | 수정 | MoveL mock 구현 |
 | 21 | App/Fairino/LiveFairinoClient.cs | P2 | 수정 | MoveL SDK 연동 |
-| 22 | App/Fairino/FairinoConnectionService.cs | P3 | 수정 | SyncCurrentState 추가 |
-| 23 | App/Fairino/FairinoRobotConfig.cs | 공용 | 수정 | GetMediumSpeedAcc 헬퍼 |
-| 24 | KineTutor3D.Runtime.asmdef | - | 기존 | Unity.InputSystem 참조 |
-| 25 | UI/FairinoConnectionPanel.cs | P6 | 기존 | 버전 표시 |
+| 22 | App/Fairino/FairinoConnectionService.cs | P3,P8 | 수정 | SyncCurrentState + OnConnectionLost (3회 실패) |
+| 23 | App/Fairino/FairinoRobotConfig.cs | P8 | 수정 | GetSpeedAcc(preset) 추가 |
+| 24 | UI/FairinoConnectionPanel.cs | P6,P8 | 수정 | ShowConnectionLost() 추가 |
+| 25 | UI/UIDesignTokens.cs | P8 | 수정 | Anim.PresetTransition + ConnectionSync |
+| 26 | **App/Fairino/PresetTransitionAnimator.cs** | P8 | **신규** | EaseInOutCubic 관절 보간 |
+| 27 | KineTutor3D.Runtime.asmdef | - | 기존 | Unity.InputSystem 참조 |
+| 28 | App/Fairino/FairinoRobotState.cs | - | 기존 | 불변 상태 구조체 |
 
-## 테스트 파일 (신규 3 + 수정 1)
+## 테스트 파일 (신규 4 + 수정 1)
 
 | # | 파일 | 테스트 수 | 상태 |
 |---|------|----------|------|
 | 1 | Tests/EditMode/FR5KinematicsFacadeTests.cs | 22 | 22 Passed |
 | 2 | Tests/EditMode/FR5PosePresetsTests.cs | 10 | 수정 (4프리셋 + UpdateCurrent) |
 | 3 | Tests/EditMode/FR5KinematicsFacadeIntegrationTests.cs | 6 | 6 Passed |
+| 4 | **Tests/EditMode/PresetTransitionAnimatorTests.cs** | 13 | **신규** (EaseInOutCubic + LerpDouble) |

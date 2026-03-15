@@ -94,6 +94,26 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 프리셋 이름(slow/medium/fast)에 해당하는 속도/가속을 반환합니다.
+        /// </summary>
+        public (int speed, int acc) GetSpeedAcc(string preset)
+        {
+            switch (preset)
+            {
+                case "slow":
+                    return speedPresets?.slow != null
+                        ? (speedPresets.slow.jointSpeedPercent, speedPresets.slow.accPercent)
+                        : (10, 20);
+                case "fast":
+                    return speedPresets?.fast != null
+                        ? (speedPresets.fast.jointSpeedPercent, speedPresets.fast.accPercent)
+                        : (60, 80);
+                default:
+                    return GetMediumSpeedAcc();
+            }
+        }
+
+        /// <summary>
         /// DH 파라미터 JSON 항목입니다.
         /// </summary>
         [Serializable]

@@ -184,6 +184,8 @@ namespace KineTutor3D.UI
             public const float FadeFast   = 0.15f;
             public const float FadeNormal = 0.25f;
             public const float SlideIn    = 0.30f;
+            public const float PresetTransition = 1.5f;
+            public const float ConnectionSync   = 0.8f;
         }
 
         // ── Helpers ──────────────────────────────────────────────────────

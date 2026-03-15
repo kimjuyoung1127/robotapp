@@ -275,6 +275,34 @@ namespace KineTutor3D.UI
             }
         }
 
+        /// <summary>
+        /// 연결 끊김 상태를 표시합니다.
+        /// </summary>
+        public void ShowConnectionLost()
+        {
+            if (statusLabel != null)
+            {
+                statusLabel.text = "연결 끊김 \u2014 재연결하세요";
+                statusLabel.color = UIDesignTokens.Colors.AccentDanger;
+            }
+
+            if (connectButton != null)
+            {
+                var label = connectButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = "Connect";
+                }
+            }
+
+            if (enableButton != null)
+            {
+                enableButton.interactable = false;
+            }
+
+            ClearVersionLabel();
+        }
+
         private void FetchAndDisplayVersion()
         {
             if (connectionService == null || versionLabel == null)

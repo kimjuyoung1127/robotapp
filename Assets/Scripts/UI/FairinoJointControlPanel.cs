@@ -23,11 +23,16 @@ namespace KineTutor3D.UI
         [SerializeField] private Text feedbackLabel;
         [SerializeField] private Font fallbackFont;
 
+        private static readonly string[] SpeedPresetNames = { "slow", "medium", "fast" };
+        private static readonly string[] SpeedPresetLabels = { "Slow 10%", "Medium 30%", "Fast 60%" };
+
         private readonly UnityAction<float>[] sliderListeners = new UnityAction<float>[6];
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
         private FairinoMoveConfirmDialog moveConfirmDialog;
         private Button[] presetButtons;
+        private Button[] speedButtons;
+        private string selectedSpeedPreset = "medium";
         private bool listenersBound;
         private bool dryRun = true;
 
@@ -164,6 +169,7 @@ namespace KineTutor3D.UI
                 dryRunToggle.SetIsOnWithoutNotify(dryRun);
             }
 
+            EnsureSpeedButtons(root);
             EnsurePresetButtons(root);
         }
 
@@ -178,6 +184,67 @@ namespace KineTutor3D.UI
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 presetButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, presets[i].Name, fallbackFont, 90f);
                 UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 16f));
+            }
+        }
+
+        private void EnsureSpeedButtons(RectTransform root)
+        {
+            speedButtons = new Button[SpeedPresetNames.Length];
+            for (var i = 0; i < SpeedPresetNames.Length; i++)
+            {
+                var btnName = $"BtnSpeed_{SpeedPresetNames[i]}";
+                var existing = root.Find(btnName)?.GetComponent<Button>();
+                speedButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, SpeedPresetLabels[i], fallbackFont, 100f);
+                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 48f));
+            }
+
+            RefreshSpeedButtonColors();
+        }
+
+        /// <summary>
+        /// 선택된 속도 프리셋에 해당하는 속도/가속을 반환합니다.
+        /// </summary>
+        public (int speed, int acc) GetSelectedSpeedAcc()
+        {
+            return config != null ? config.GetSpeedAcc(selectedSpeedPreset) : (30, 50);
+        }
+
+        private void OnSpeedSelected(int index)
+        {
+            if (index < 0 || index >= SpeedPresetNames.Length)
+            {
+                return;
+            }
+
+            selectedSpeedPreset = SpeedPresetNames[index];
+            RefreshSpeedButtonColors();
+            ShowFeedback($"속도: {SpeedPresetLabels[index]}");
+        }
+
+        private void RefreshSpeedButtonColors()
+        {
+            if (speedButtons == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < speedButtons.Length; i++)
+            {
+                if (speedButtons[i] == null)
+                {
+                    continue;
+                }
+
+                var isSelected = SpeedPresetNames[i] == selectedSpeedPreset;
+                speedButtons[i].colors = isSelected
+                    ? UIDesignTokens.ButtonColors(UIDesignTokens.Colors.AccentPrimary)
+                    : UIDesignTokens.ButtonColors(UIDesignTokens.Colors.SurfaceCard);
+
+                var label = speedButtons[i].GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.color = isSelected ? UIDesignTokens.Colors.TextOnAccent : UIDesignTokens.Colors.TextSecondary;
+                }
             }
         }
 
@@ -217,6 +284,16 @@ namespace KineTutor3D.UI
                 }
             }
 
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    if (speedButtons[i] == null) continue;
+                    var capturedIndex = i;
+                    speedButtons[i].onClick.AddListener(() => OnSpeedSelected(capturedIndex));
+                }
+            }
+
             listenersBound = true;
         }
 
@@ -248,6 +325,14 @@ namespace KineTutor3D.UI
                 for (var i = 0; i < presetButtons.Length; i++)
                 {
                     presetButtons[i]?.onClick.RemoveAllListeners();
+                }
+            }
+
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    speedButtons[i]?.onClick.RemoveAllListeners();
                 }
             }
 
@@ -314,17 +399,17 @@ namespace KineTutor3D.UI
             }
 
             var target = GetSliderValues();
-            var (speed, acc) = config != null ? config.GetMediumSpeedAcc() : (30, 50);
+            var (speed, acc) = GetSelectedSpeedAcc();
 
             if (dryRun)
             {
-                ShowFeedback($"[DryRun] MoveJ \u2192 [{target[0]:F1}, {target[1]:F1}, {target[2]:F1}, {target[3]:F1}, {target[4]:F1}, {target[5]:F1}]");
+                ShowFeedback($"[DryRun] MoveJ ({selectedSpeedPreset}) \u2192 [{target[0]:F1}, {target[1]:F1}, {target[2]:F1}, {target[3]:F1}, {target[4]:F1}, {target[5]:F1}]");
                 return;
             }
 
             if (!connectionService.IsMockMode && moveConfirmDialog != null)
             {
-                var msg = $"Live 모드에서 MoveJ를 실행합니다.\n목표: [{target[0]:F1}, {target[1]:F1}, {target[2]:F1}, {target[3]:F1}, {target[4]:F1}, {target[5]:F1}]";
+                var msg = $"Live 모드에서 MoveJ를 실행합니다.\n속도: {selectedSpeedPreset}\n목표: [{target[0]:F1}, {target[1]:F1}, {target[2]:F1}, {target[3]:F1}, {target[4]:F1}, {target[5]:F1}]";
                 var capturedSpeed = speed;
                 var capturedAcc = acc;
                 var capturedTarget = target;
@@ -400,7 +485,6 @@ namespace KineTutor3D.UI
 
         private void OnPresetClicked(FR5PosePresets.Preset preset)
         {
-            SetSliderValues(preset.JointAnglesDeg);
             OnPresetApplied?.Invoke(preset.JointAnglesDeg);
             ShowFeedback($"프리셋 '{preset.Name}' 적용: {preset.Description}");
         }
@@ -423,6 +507,40 @@ namespace KineTutor3D.UI
                 case 3: return UIDesignTokens.Colors.DiagramLink4;
                 case 4: return UIDesignTokens.Colors.DiagramLink5;
                 default: return UIDesignTokens.Colors.DiagramLink6;
+            }
+        }
+
+        /// <summary>
+        /// 슬라이더와 버튼의 일괄 활성/비활성을 설정합니다.
+        /// </summary>
+        public void SetControlsEnabled(bool enabled)
+        {
+            for (var i = 0; i < jointSliders.Length; i++)
+            {
+                if (jointSliders[i] != null)
+                {
+                    jointSliders[i].interactable = enabled;
+                }
+            }
+
+            if (moveJButton != null) moveJButton.interactable = enabled;
+            if (servoJButton != null) servoJButton.interactable = enabled;
+            if (stopButton != null) stopButton.interactable = enabled;
+
+            if (speedButtons != null)
+            {
+                for (var i = 0; i < speedButtons.Length; i++)
+                {
+                    if (speedButtons[i] != null) speedButtons[i].interactable = enabled;
+                }
+            }
+
+            if (presetButtons != null)
+            {
+                for (var i = 0; i < presetButtons.Length; i++)
+                {
+                    if (presetButtons[i] != null) presetButtons[i].interactable = enabled;
+                }
             }
         }
 
