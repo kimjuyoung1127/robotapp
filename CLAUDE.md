@@ -15,7 +15,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 6. `docs/ref/PRODUCT-ROADMAP.md`
 7. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시 필수)
 
-## 현재 상태 (2026-03-14)
+## 현재 상태 (2026-03-15)
 - Phase 0: Done
 - Phase 1: Done
 - Phase 2: Done
@@ -28,8 +28,9 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Current Cycle: InProgress (FR5 RobotControl Console QA + Page QA Hardening + Sandbox polish)
 
 최근 확정 사항:
+- RobotControl Phase 8 구현 완료 (2026-03-15): 프리셋 애니메이션 전환(PresetTransitionAnimator, 1.5초 EaseInOutCubic), Speed Selector UI(Slow 10%/Medium 30%/Fast 60% 3단 버튼, JointControlPanel+TcpControlPanel), 연결 끊김 안전 처리(3회 연속 에러→OnConnectionLost+패널 비활성화+빨간 재연결 안내), 연결 초기화 보간(0.8초), 자기리뷰 2건 수정(ShowConnectionLost 컴파일 에러, duration<=0 가드). EditMode 345/351 passed (6 failed=기존)
 - RobotControl P0~P5 전체 구현 완료: 카메라 프로파일 고정, 관절 회전 핸들(JointRotationHandle ×6), TCP 직교 제어(FairinoTcpControlPanel + MoveL), 프리셋→Sync 동기화(SyncCurrentState + Current 동적 프리셋), EE 변위 화살표(DisplacementArrow), TopBar 기즈모 토글/트레일 Clear, EE XYZ RGB 색상 코딩, WhyItMoved 다관절 요약+XYZ 성분
-- 공용 컴포넌트 추출: SharedLineMaterial(Material 캐시 3개 통합), FairinoRobotConfig.GetMediumSpeedAcc(speed 해소 중복 제거), FR5PosePresets.All 캐시
+- 공용 컴포넌트 추출: SharedLineMaterial(Material 캐시 3개 통합), FairinoRobotConfig.GetMediumSpeedAcc+GetSpeedAcc(speed 해소 중복 제거), FR5PosePresets.All 캐시
 - 자기리뷰 버그 6건 수정: OnHandleDragged 슬라이더 동기화, 핸들 히트 판정(Ray-plane 교차), EndDrag 선택 해제, 공유 Material 색상 오염, TCP 패널 재진입 가드, 핸들 이벤트 중복 바인딩
 - FR5 RobotControl 슬라이더→3D 파이프라인 완성: Transform 기반 관절 제어 전환 + Slider GraphicRaycaster 감지 수정(`UIComponentFactory.CreateSlider`에 자체 Image 추가) + EventSystem `AssignDefaultActions` + overlay `raycastTarget=false`. 슬라이더 드래그→3D 회전 확인 완료
 - EE 트레일 공유 코어 통합: `EETrailRenderer`를 공유 컴포넌트로 리팩터링(거리게이팅+FIFO+파랑→금색 그라데이션). `EndEffectorTrail`은 AppController 이벤트 바인딩 어댑터로 전환. 새 로봇 추가 시 `EETrailRenderer`만 사용하면 궤적 표시 가능

@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-14 (KST)
+최종 업데이트: 2026-03-15 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -24,7 +24,17 @@
 7. `Sandbox.unity` 씬과 build settings entry를 추가해 sandbox 라우팅 기반을 만들었다.
 8. 검증 결과: EditMode `107/107`, PlayMode `31/31`.
 
-## 이번 턴 반영 내용 (RobotControl P0~P5 확장 + 공용화)
+## 이번 턴 반영 내용 (RobotControl Phase 8: 애니메이션 + Speed + 안전)
+1. **프리셋 애니메이션**: `PresetTransitionAnimator` 신규 (EaseInOutCubic 1.5초 보간, 슬라이더/핸들 드래그 시 Cancel)
+2. **Speed Selector**: JointControlPanel + TcpControlPanel에 `[Slow 10%] [Medium 30%] [Fast 60%]` 3단 버튼, `FairinoRobotConfig.GetSpeedAcc(preset)` 추가
+3. **연결 끊김 안전**: `FairinoConnectionService` 3회 연속 에러 → `OnConnectionLost` + 자동 Disconnect, `SetControlsEnabled(false)`, 빨간색 "연결 끊김 — 재연결하세요" 안내
+4. **연결 초기화 보간**: 첫 연결 시 현재 포즈 → 실제 로봇 포즈 0.8초 보간, `isFirstStateAfterConnect` 플래그
+5. **UI 토큰**: `UIDesignTokens.Anim.PresetTransition=1.5f`, `ConnectionSync=0.8f`
+6. **자기리뷰 2건 수정**: ShowConnectionLost RefreshUI 코드 침범(컴파일 에러), duration<=0 가드
+7. **테스트**: `PresetTransitionAnimatorTests` 13개 신규, `FairinoConnectionServiceTests` Mock 전환 순서 수정. EditMode 345/351 (6 failed=기존)
+8. **문서**: ROBOTCONTROL-IMPL-BOARD.md에 UI 계층 트리 + 데이터 흐름 다이어그램 + 실기 연결 체크리스트 추가
+
+## 이전 턴 반영 내용 (RobotControl P0~P5 확장 + 공용화)
 1. **P0 카메라**: `SceneCameraDirector` RobotControl 프로파일 좌표 확정 (pos 1.0/0.75/1.0, euler 22/215/0, FOV 40)
 2. **P1 회전 핸들**: `JointRotationHandle` 6관절 1축 회전 링 (LineRenderer 원호, 마우스 드래그→슬라이더 양방향 동기화, 드래그 중 OrbitCamera 잠금)
 3. **P2 TCP 제어**: `FairinoTcpControlPanel` (X/Y/Z/Rx/Ry/Rz InputField + MoveL/ServoCart + DryRun), `IFairinoRobotClient.MoveL` 인터페이스 + Mock/Live 구현, ViewBuilder 탭 "DH Params"→"TCP Control" 교체
