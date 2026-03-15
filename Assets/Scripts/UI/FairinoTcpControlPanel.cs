@@ -9,17 +9,20 @@ namespace KineTutor3D.UI
 {
     /// <summary>
     /// FR5 TCP 직교 좌표 제어 패널입니다.
-    /// X/Y/Z (mm) + Rx/Ry/Rz (°) 입력과 MoveL/ServoCart 버튼을 제공합니다.
+    /// X/Y/Z (mm) + Rx/Ry/Rz (°) 입력과 MoveL/ServoCart/Stop 버튼을 제공합니다.
     /// FK 계산 결과로부터 현재 TCP 위치를 읽기 전용으로 표시합니다.
+    /// Fill Current 버튼으로 FK 결과를 입력 필드에 자동 채울 수 있습니다.
     /// </summary>
     public class FairinoTcpControlPanel : MonoBehaviour, IVisibilityControllable
     {
-        private static readonly string[] Labels = { "X (mm)", "Y (mm)", "Z (mm)", "Rx (°)", "Ry (°)", "Rz (°)" };
+        private static readonly string[] Labels = { "X (mm)", "Y (mm)", "Z (mm)", "Rx (\u00b0)", "Ry (\u00b0)", "Rz (\u00b0)" };
 
         [SerializeField] private InputField[] tcpInputs = new InputField[6];
         [SerializeField] private Text currentTcpLabel;
         [SerializeField] private Button moveLButton;
         [SerializeField] private Button servoCartButton;
+        [SerializeField] private Button stopButton;
+        [SerializeField] private Button fillCurrentButton;
         [SerializeField] private Toggle dryRunToggle;
         [SerializeField] private Text feedbackLabel;
         [SerializeField] private Font fallbackFont;
@@ -137,28 +140,37 @@ namespace KineTutor3D.UI
                 tcpInputs[i].contentType = InputField.ContentType.DecimalNumber;
             }
 
+            // 현재 TCP 위치 (읽기 전용) + Fill Current 버튼
             currentTcpLabel = UiRuntimeStyle.EnsureText(root, "CurrentTcpLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(currentTcpLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(380f, 40f), new Vector2(16f, 120f));
+            UiRuntimeStyle.Anchor(currentTcpLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(280f, 36f), new Vector2(16f, 152f));
             currentTcpLabel.text = "현재 TCP: 대기 중...";
 
-            moveLButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnMoveL", "MoveL", fallbackFont, 110f);
-            UiRuntimeStyle.Anchor((RectTransform)moveLButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(110f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(16f, 70f));
+            fillCurrentButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnFillCurrent", "Fill Current", fallbackFont, 96f);
+            UiRuntimeStyle.Anchor((RectTransform)fillCurrentButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(96f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(306f, 156f));
 
-            servoCartButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnServoCart", "ServoCart", fallbackFont, 110f);
-            UiRuntimeStyle.Anchor((RectTransform)servoCartButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(110f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(136f, 70f));
+            // Speed 버튼
+            EnsureSpeedButtons(root);
+
+            // Action 버튼: MoveL / ServoCart / Stop
+            moveLButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnMoveL", "MoveL", fallbackFont, 92f);
+            UiRuntimeStyle.Anchor((RectTransform)moveLButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 68f));
+
+            servoCartButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnServoCart", "ServoCart", fallbackFont, 92f);
+            UiRuntimeStyle.Anchor((RectTransform)servoCartButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(116f, 68f));
+
+            stopButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnStop", "Stop", fallbackFont, 72f);
+            UiRuntimeStyle.Anchor((RectTransform)stopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, 68f));
 
             dryRunToggle ??= UIComponentFactory.CreateToggle(root, "TcpDryRunToggle", "DryRun", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 24f), new Vector2(256f, 76f));
+            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(120f, 24f), new Vector2(296f, 72f));
 
             feedbackLabel = UiRuntimeStyle.EnsureText(root, "TcpFeedbackLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(380f, 36f), new Vector2(16f, 16f));
+            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 24f), new Vector2(16f, 8f));
 
             if (dryRunToggle != null)
             {
                 dryRunToggle.SetIsOnWithoutNotify(dryRun);
             }
-
-            EnsureSpeedButtons(root);
         }
 
         private void EnsureSpeedButtons(RectTransform root)
@@ -169,7 +181,7 @@ namespace KineTutor3D.UI
                 var btnName = $"BtnTcpSpeed_{SpeedPresetNames[i]}";
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 speedButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, SpeedPresetLabels[i], fallbackFont, 100f);
-                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 48f));
+                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 104f));
             }
 
             RefreshSpeedButtonColors();
@@ -231,6 +243,8 @@ namespace KineTutor3D.UI
 
             moveLButton?.onClick.AddListener(OnMoveLClicked);
             servoCartButton?.onClick.AddListener(OnServoCartClicked);
+            stopButton?.onClick.AddListener(OnStopClicked);
+            fillCurrentButton?.onClick.AddListener(OnFillCurrentClicked);
             dryRunToggle?.onValueChanged.AddListener(OnDryRunChanged);
 
             if (speedButtons != null)
@@ -255,6 +269,8 @@ namespace KineTutor3D.UI
 
             moveLButton?.onClick.RemoveListener(OnMoveLClicked);
             servoCartButton?.onClick.RemoveListener(OnServoCartClicked);
+            stopButton?.onClick.RemoveListener(OnStopClicked);
+            fillCurrentButton?.onClick.RemoveListener(OnFillCurrentClicked);
             dryRunToggle?.onValueChanged.RemoveListener(OnDryRunChanged);
 
             if (speedButtons != null)
@@ -330,6 +346,72 @@ namespace KineTutor3D.UI
             ShowFeedback("ServoCart는 Live 모드에서만 사용할 수 있습니다.");
         }
 
+        private void OnStopClicked()
+        {
+            if (connectionService == null)
+            {
+                return;
+            }
+
+            var result = connectionService.StopMotion();
+            ShowFeedback(result.Message);
+        }
+
+        private void OnFillCurrentClicked()
+        {
+            if (kinematicsFacade == null)
+            {
+                ShowFeedback("FK 데이터 없음");
+                return;
+            }
+
+            var ee = kinematicsFacade.EndEffectorTransform;
+            var pos = ee.ExtractPosition();
+
+            // FK 위치를 mm로 변환 (DH 파라미터는 미터 단위)
+            SetInputValue(0, pos.X * 1000.0);
+            SetInputValue(1, pos.Y * 1000.0);
+            SetInputValue(2, pos.Z * 1000.0);
+
+            // 회전 행렬에서 ZYX 오일러각 추출 (degrees)
+            var rot = ee.ExtractRotation();
+            var (rx, ry, rz) = ExtractEulerZYX(rot);
+            SetInputValue(3, rx * (180.0 / System.Math.PI));
+            SetInputValue(4, ry * (180.0 / System.Math.PI));
+            SetInputValue(5, rz * (180.0 / System.Math.PI));
+
+            ShowFeedback("현재 FK 위치로 채움 완료");
+        }
+
+        private void SetInputValue(int index, double value)
+        {
+            if (index >= 0 && index < tcpInputs.Length && tcpInputs[index] != null)
+            {
+                tcpInputs[index].text = value.ToString("F1", CultureInfo.InvariantCulture);
+            }
+        }
+
+        /// <summary>
+        /// 회전 행렬에서 ZYX 오일러각(라디안)을 추출합니다.
+        /// </summary>
+        private static (double rx, double ry, double rz) ExtractEulerZYX(KineTutor3D.Math.Mat3D rot)
+        {
+            var r20 = rot[2, 0];
+            var cosB = System.Math.Sqrt(rot[0, 0] * rot[0, 0] + rot[1, 0] * rot[1, 0]);
+
+            if (cosB < 1e-6)
+            {
+                // 김벌락 (Gimbal lock)
+                var ryLock = r20 < 0 ? System.Math.PI / 2.0 : -System.Math.PI / 2.0;
+                return (0.0, ryLock, System.Math.Atan2(rot[0, 1], rot[1, 1]));
+            }
+
+            var ry = System.Math.Atan2(-r20, cosB);
+            var rx = System.Math.Atan2(rot[2, 1], rot[2, 2]);
+            var rz = System.Math.Atan2(rot[1, 0], rot[0, 0]);
+            return (rx, ry, rz);
+        }
+
         private void OnDryRunChanged(bool value)
         {
             dryRun = value;
@@ -369,6 +451,8 @@ namespace KineTutor3D.UI
 
             if (moveLButton != null) moveLButton.interactable = enabled;
             if (servoCartButton != null) servoCartButton.interactable = enabled;
+            if (stopButton != null) stopButton.interactable = enabled;
+            if (fillCurrentButton != null) fillCurrentButton.interactable = enabled;
 
             if (speedButtons != null)
             {

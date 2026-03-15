@@ -159,8 +159,13 @@ namespace KineTutor3D.UI
             var rect = UiRuntimeStyle.EnsureRectChild(parent, name);
             rect.sizeDelta = new Vector2(UIDesignTokens.Size.InputFieldWidth, UIDesignTokens.Size.ButtonHeightMd);
 
-            var bg = UiRuntimeStyle.EnsureImage(rect, "Bg", UIDesignTokens.Colors.SurfaceInput);
-            UiRuntimeStyle.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            // InputField의 targetGraphic으로 자체 Image 사용 (raycast 수신 필수)
+            var bg = rect.GetComponent<Image>() ?? rect.gameObject.AddComponent<Image>();
+            bg.color = UIDesignTokens.Colors.SurfaceInput;
+
+            // 이전 레이아웃에서 남은 자식 Bg 제거
+            var staleBg = rect.Find("Bg");
+            if (staleBg != null) Object.Destroy(staleBg.gameObject);
 
             var resolvedFont = UiRuntimeStyle.ResolveFont(font);
             var inputText = UiRuntimeStyle.EnsureText(rect, "Text", resolvedFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
@@ -183,6 +188,7 @@ namespace KineTutor3D.UI
 
             inputField.textComponent = inputText;
             inputField.placeholder = placeholderText;
+            inputField.targetGraphic = bg;
 
             return inputField;
         }

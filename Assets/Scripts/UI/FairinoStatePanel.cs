@@ -73,11 +73,15 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -14f));
             title.text = "Robot State";
 
+            var subtitle = UiRuntimeStyle.EnsureText(root, "Subtitle", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(subtitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 16f), new Vector2(16f, -38f));
+            subtitle.text = "실시간 관절/TCP 상태";
+
             jointStateLabel = UiRuntimeStyle.EnsureText(root, "JointStateLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(jointStateLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 80f), new Vector2(16f, -46f));
+            UiRuntimeStyle.Anchor(jointStateLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 80f), new Vector2(16f, -58f));
 
             tcpPoseLabel = UiRuntimeStyle.EnsureText(root, "TcpPoseLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(tcpPoseLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 54f), new Vector2(16f, -132f));
+            UiRuntimeStyle.Anchor(tcpPoseLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 54f), new Vector2(16f, -144f));
             tcpPoseLabel.supportRichText = true;
 
             errorLabel = UiRuntimeStyle.EnsureText(root, "ErrorLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentDanger);

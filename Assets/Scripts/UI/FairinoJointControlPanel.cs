@@ -10,6 +10,7 @@ namespace KineTutor3D.UI
     /// <summary>
     /// FAIRINO FR5 6축 관절 제어 패널입니다.
     /// 슬라이더, MoveJ/ServoJ 버튼, DryRun 토글, 비상정지, 프리셋 포즈를 제공합니다.
+    /// 안전 모드 배너와 섹션 구분 라벨을 포함합니다.
     /// </summary>
     public class FairinoJointControlPanel : MonoBehaviour, IVisibilityControllable
     {
@@ -21,6 +22,8 @@ namespace KineTutor3D.UI
         [SerializeField] private Button syncButton;
         [SerializeField] private Toggle dryRunToggle;
         [SerializeField] private Text feedbackLabel;
+        [SerializeField] private Image modeBannerBg;
+        [SerializeField] private Text modeBannerText;
         [SerializeField] private Font fallbackFont;
 
         private static readonly string[] SpeedPresetNames = { "slow", "medium", "fast" };
@@ -34,6 +37,7 @@ namespace KineTutor3D.UI
         private Button[] speedButtons;
         private string selectedSpeedPreset = "medium";
         private bool listenersBound;
+        private bool serviceSubscribed;
         private bool dryRun = true;
 
         /// <summary>
@@ -57,10 +61,13 @@ namespace KineTutor3D.UI
         /// </summary>
         public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig)
         {
+            UnsubscribeService();
             connectionService = service;
             config = robotConfig;
             EnsurePresentation();
             InitSliders();
+            SubscribeService();
+            RefreshModeIndicator();
         }
 
         /// <summary>
@@ -101,11 +108,14 @@ namespace KineTutor3D.UI
         {
             EnsurePresentation();
             BindListeners();
+            SubscribeService();
+            RefreshModeIndicator();
         }
 
         private void OnDisable()
         {
             UnbindListeners();
+            UnsubscribeService();
         }
 
         private void EnsurePresentation()
@@ -121,13 +131,23 @@ namespace KineTutor3D.UI
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
 
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
-            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -14f));
+            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -12f));
             title.text = "Joint Control";
 
+            // 안전 모드 배너
+            var bannerRect = UiRuntimeStyle.EnsureRectChild(root, "ModeBanner");
+            UiRuntimeStyle.Anchor(bannerRect, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(390f, 24f), new Vector2(16f, -38f));
+            modeBannerBg = bannerRect.GetComponent<Image>() ?? bannerRect.gameObject.AddComponent<Image>();
+            modeBannerBg.color = UIDesignTokens.Colors.AccentSuccess;
+
+            modeBannerText = UiRuntimeStyle.EnsureText(bannerRect, "BannerText", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextOnAccent);
+            UiRuntimeStyle.Stretch(modeBannerText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            // 6축 슬라이더 (배너 아래)
             for (var i = 0; i < 6; i++)
             {
                 var row = UiRuntimeStyle.EnsureRectChild(root, $"JointRow_{i + 1}");
-                UiRuntimeStyle.Anchor(row, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(390f, 44f), new Vector2(16f, -50f - (i * 46f)));
+                UiRuntimeStyle.Anchor(row, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(390f, 44f), new Vector2(16f, -68f - (i * 46f)));
                 var rowBg = row.GetComponent<Image>() ?? row.gameObject.AddComponent<Image>();
                 rowBg.color = UIDesignTokens.Colors.SurfaceCard;
 
@@ -144,33 +164,58 @@ namespace KineTutor3D.UI
                 UpdateJointLabel(i);
             }
 
-            moveJButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnMoveJ", "MoveJ", fallbackFont, 110f);
-            UiRuntimeStyle.Anchor((RectTransform)moveJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(110f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(16f, 70f));
+            // ── Presets 섹션 ──
+            EnsureSectionHeader(root, "Presets", "Presets", 202f, 217f);
+            EnsurePresetButtons(root);
 
-            servoJButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnServoJ", "ServoJ", fallbackFont, 110f);
-            UiRuntimeStyle.Anchor((RectTransform)servoJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(110f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(136f, 70f));
+            // ── Speed 섹션 ──
+            EnsureSectionHeader(root, "Speed", "Speed", 148f, 163f);
+            EnsureSpeedButtons(root);
+
+            // ── Actions 섹션 ──
+            EnsureSectionHeader(root, "Actions", "Actions", 94f, 109f);
+
+            moveJButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnMoveJ", "MoveJ", fallbackFont, 92f);
+            UiRuntimeStyle.Anchor((RectTransform)moveJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 62f));
+
+            servoJButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnServoJ", "ServoJ", fallbackFont, 92f);
+            UiRuntimeStyle.Anchor((RectTransform)servoJButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(116f, 62f));
 
             stopButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnStop", "Stop", fallbackFont, 72f);
-            UiRuntimeStyle.Anchor((RectTransform)stopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(256f, 70f));
+            UiRuntimeStyle.Anchor((RectTransform)stopButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, 62f));
 
             syncButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnSync", "Sync", fallbackFont, 72f);
-            UiRuntimeStyle.Anchor((RectTransform)syncButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(338f, 70f));
+            UiRuntimeStyle.Anchor((RectTransform)syncButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(296f, 62f));
 
             dryRunToggle ??= UIComponentFactory.CreateToggle(root, "DryRunToggle", "DryRun", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 24f), new Vector2(16f, 110f));
+            UiRuntimeStyle.Anchor((RectTransform)dryRunToggle.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 24f), new Vector2(16f, 32f));
             var dryRunLabel = dryRunToggle.transform.Find("Label")?.GetComponent<Text>();
             if (dryRunLabel != null) dryRunLabel.text = "DryRun";
 
             feedbackLabel = UiRuntimeStyle.EnsureText(root, "FeedbackLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 36f), new Vector2(16f, 136f));
+            UiRuntimeStyle.Anchor(feedbackLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 20f), new Vector2(16f, 8f));
 
             if (dryRunToggle != null)
             {
                 dryRunToggle.SetIsOnWithoutNotify(dryRun);
             }
 
-            EnsureSpeedButtons(root);
-            EnsurePresetButtons(root);
+            RefreshModeIndicator();
+        }
+
+        private void EnsureSectionHeader(RectTransform root, string name, string label, float labelY, float dividerY)
+        {
+            var dividerColor = new Color(
+                UIDesignTokens.Colors.TextMuted.r,
+                UIDesignTokens.Colors.TextMuted.g,
+                UIDesignTokens.Colors.TextMuted.b, 0.25f);
+            var divider = UiRuntimeStyle.EnsureImage(root, $"Divider_{name}", dividerColor);
+            divider.raycastTarget = false;
+            UiRuntimeStyle.Anchor((RectTransform)divider.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 1f), new Vector2(16f, dividerY));
+
+            var sectionLabel = UiRuntimeStyle.EnsureText(root, $"Section_{name}", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(sectionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 14f), new Vector2(16f, labelY));
+            sectionLabel.text = label;
         }
 
         private void EnsurePresetButtons(RectTransform root)
@@ -183,7 +228,7 @@ namespace KineTutor3D.UI
                 var btnName = $"BtnPreset_{presets[i].Name}";
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 presetButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, presets[i].Name, fallbackFont, 90f);
-                UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 16f));
+                UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 170f));
             }
         }
 
@@ -195,7 +240,7 @@ namespace KineTutor3D.UI
                 var btnName = $"BtnSpeed_{SpeedPresetNames[i]}";
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 speedButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, SpeedPresetLabels[i], fallbackFont, 100f);
-                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 48f));
+                UiRuntimeStyle.Anchor((RectTransform)speedButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 108f), 116f));
             }
 
             RefreshSpeedButtonColors();
@@ -337,6 +382,60 @@ namespace KineTutor3D.UI
             }
 
             listenersBound = false;
+        }
+
+        private void SubscribeService()
+        {
+            if (serviceSubscribed || connectionService == null)
+            {
+                return;
+            }
+
+            connectionService.OnModeChanged += HandleModeChanged;
+            serviceSubscribed = true;
+        }
+
+        private void UnsubscribeService()
+        {
+            if (!serviceSubscribed || connectionService == null)
+            {
+                return;
+            }
+
+            connectionService.OnModeChanged -= HandleModeChanged;
+            serviceSubscribed = false;
+        }
+
+        private void HandleModeChanged(bool isMock)
+        {
+            RefreshModeIndicator();
+        }
+
+        /// <summary>
+        /// 안전 모드 배너를 현재 상태에 맞게 갱신합니다.
+        /// </summary>
+        private void RefreshModeIndicator()
+        {
+            if (modeBannerBg == null || modeBannerText == null)
+            {
+                return;
+            }
+
+            if (connectionService == null || connectionService.IsMockMode)
+            {
+                modeBannerBg.color = UIDesignTokens.Colors.AccentSuccess;
+                modeBannerText.text = "시뮬레이션 — 슬라이더 안전";
+            }
+            else if (dryRun)
+            {
+                modeBannerBg.color = UIDesignTokens.Colors.AccentWarning;
+                modeBannerText.text = "Live 연결, DryRun ON";
+            }
+            else
+            {
+                modeBannerBg.color = UIDesignTokens.Colors.AccentDanger;
+                modeBannerText.text = "LIVE — 실제 로봇 동작";
+            }
         }
 
         private void InitSliders()
@@ -481,6 +580,7 @@ namespace KineTutor3D.UI
         {
             dryRun = value;
             ShowFeedback(dryRun ? "DryRun 모드 활성" : "DryRun 모드 해제 \u2014 실제 명령이 전송됩니다!");
+            RefreshModeIndicator();
         }
 
         private void OnPresetClicked(FR5PosePresets.Preset preset)

@@ -10,7 +10,7 @@ namespace KineTutor3D.UI
 {
     /// <summary>
     /// RobotControl 씬의 기본 Canvas, 패널, 카메라, 조명 레이아웃을 생성합니다.
-    /// 3탭 바(Joint Control / TCP Control / State)를 지원합니다.
+    /// 2탭 바(Joint Control / TCP Control)를 지원하며, State 패널은 우측 상시 표시입니다.
     /// </summary>
     public static class FairinoRobotControlViewBuilder
     {
@@ -105,7 +105,7 @@ namespace KineTutor3D.UI
         }
 
         /// <summary>
-        /// 3탭 바와 전체 패널 레이아웃을 생성합니다.
+        /// 2탭 바와 전체 패널 레이아웃을 생성합니다.
         /// </summary>
         public static void EnsureLayout(
             Canvas canvas,
@@ -129,17 +129,17 @@ namespace KineTutor3D.UI
 
             BuildTopBar(shellRoot, fallbackFont, out gizmoToggle, out clearTrailButton);
 
-            // Tab bar
+            // Connection panel — compact horizontal layout below TopBar
+            var connectionRoot = BuildPanelHost(shellRoot, "ConnectionPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 140f), new Vector2(16f, -78f));
+
+            // Tab bar — 2 tabs (Joint/TCP), below ConnectionPanel
             var tabBar = BuildTabBar(shellRoot, fallbackFont);
 
-            // Connection bar — top-left below TopBar
-            var connectionRoot = BuildPanelHost(shellRoot, "ConnectionPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(360f, 210f), new Vector2(16f, -90f));
+            // Left content panels — below tab bar, top-anchored
+            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 580f), new Vector2(16f, -270f));
+            var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 580f), new Vector2(16f, -270f));
 
-            // Left content panels — below connection bar
-            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, 460f), new Vector2(16f, 16f));
-            var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, 460f), new Vector2(16f, 16f));
-
-            // Right panels — state + why it moved
+            // Right panels — state (always visible) + why it moved
             var stateRoot = BuildPanelHost(shellRoot, "StatePanel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 280f), new Vector2(-16f, 80f));
             var whyRoot = BuildPanelHost(shellRoot, "WhyItMovedLabel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 80f), new Vector2(-16f, 16f));
 
@@ -158,20 +158,20 @@ namespace KineTutor3D.UI
             moveConfirmDialog = dialogRoot.GetComponent<FairinoMoveConfirmDialog>() ?? dialogRoot.gameObject.AddComponent<FairinoMoveConfirmDialog>();
             dialogRoot.gameObject.SetActive(false);
 
-            // Wire tab switching
-            WireTabButtons(tabBar, jointRoot.gameObject, tcpRoot.gameObject, stateRoot.gameObject);
+            // Wire tab switching (Joint ↔ TCP only, State is always visible on right)
+            WireTabButtons(tabBar, jointRoot.gameObject, tcpRoot.gameObject);
         }
 
         private static RectTransform BuildTabBar(RectTransform parent, Font fallbackFont)
         {
             var tabBar = UiRuntimeStyle.EnsureRectChild(parent, "TabBar");
-            UiRuntimeStyle.Anchor(tabBar, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(420f, TabBarHeight), new Vector2(16f, 480f));
+            UiRuntimeStyle.Anchor(tabBar, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, TabBarHeight), new Vector2(16f, -224f));
 
             var tabBg = tabBar.GetComponent<Image>() ?? tabBar.gameObject.AddComponent<Image>();
             tabBg.color = UIDesignTokens.Colors.SurfaceCard;
 
-            var tabNames = new[] { "Joint Control", "TCP Control", "State" };
-            var tabWidth = 420f / tabNames.Length;
+            var tabNames = new[] { "Joint Control", "TCP Control" };
+            const float tabWidth = 210f;
 
             for (var i = 0; i < tabNames.Length; i++)
             {
@@ -186,14 +186,18 @@ namespace KineTutor3D.UI
                 if (label != null) label.text = tabNames[i];
             }
 
+            // 이전 3탭 레이아웃에서 남은 탭 제거
+            var staleTab = tabBar.Find("Tab_2");
+            if (staleTab != null) Object.Destroy(staleTab.gameObject);
+
             return tabBar;
         }
 
-        private static void WireTabButtons(RectTransform tabBar, GameObject jointPanel, GameObject tcpPanel, GameObject statePanel)
+        private static void WireTabButtons(RectTransform tabBar, GameObject jointPanel, GameObject tcpPanel)
         {
-            var panels = new[] { jointPanel, tcpPanel, statePanel };
+            var panels = new[] { jointPanel, tcpPanel };
 
-            for (var i = 0; i < 3; i++)
+            for (var i = 0; i < 2; i++)
             {
                 var btn = tabBar.Find($"Tab_{i}")?.GetComponent<Button>();
                 if (btn == null) continue;
@@ -206,12 +210,7 @@ namespace KineTutor3D.UI
                     {
                         if (panels[p] != null)
                         {
-                            // Tab 0 (Joint) and Tab 1 (TCP) share left panel area
-                            // Tab 2 (State) is always visible on right, tabs 0/1 are exclusive
-                            if (p < 2)
-                            {
-                                panels[p].SetActive(p == capturedIndex);
-                            }
+                            panels[p].SetActive(p == capturedIndex);
                         }
                     }
                 });

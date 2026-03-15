@@ -74,33 +74,36 @@ namespace KineTutor3D.UI
             var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
 
+            // 이전 레이아웃에서 남은 IpLabel 제거
+            var staleIpLabel = root.Find("IpLabel");
+            if (staleIpLabel != null) Object.Destroy(staleIpLabel.gameObject);
+
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
-            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -14f));
+            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(200f, 20f), new Vector2(16f, -10f));
             title.text = "FR5 Connection";
 
-            var ipLabel = UiRuntimeStyle.EnsureText(root, "IpLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(ipLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(120f, 18f), new Vector2(16f, -46f));
-            ipLabel.text = "IP Address";
-
+            // Row 1: IP input + Connect
             ipInput ??= UIComponentFactory.CreateInputField(root, "IpInput", "192.168.58.2", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)ipInput.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(16f, -72f));
+            UiRuntimeStyle.Anchor((RectTransform)ipInput.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(192f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, -34f));
 
-            connectButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnConnect", "Connect", fallbackFont, 124f);
-            UiRuntimeStyle.Anchor((RectTransform)connectButton.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(124f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(212f, -72f));
+            connectButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnConnect", "Connect", fallbackFont, 100f);
+            UiRuntimeStyle.Anchor((RectTransform)connectButton.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, -34f));
 
-            enableButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnEnable", "Enable", fallbackFont, 124f);
-            UiRuntimeStyle.Anchor((RectTransform)enableButton.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(124f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(212f, -116f));
-
+            // Row 2: Mock toggle + Enable
             mockToggle ??= UIComponentFactory.CreateToggle(root, "MockToggle", "Mock Mode", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)mockToggle.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, 24f), new Vector2(16f, -122f));
+            UiRuntimeStyle.Anchor((RectTransform)mockToggle.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(140f, 24f), new Vector2(16f, -70f));
             var mockLabel = mockToggle.transform.Find("Label")?.GetComponent<Text>();
             if (mockLabel != null) mockLabel.text = "Mock Mode";
 
-            statusLabel = UiRuntimeStyle.EnsureText(root, "StatusLabel", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 24f), new Vector2(16f, 36f));
+            enableButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnEnable", "Enable", fallbackFont, 100f);
+            UiRuntimeStyle.Anchor((RectTransform)enableButton.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, -68f));
+
+            // Bottom: status + version
+            statusLabel = UiRuntimeStyle.EnsureText(root, "StatusLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 18f), new Vector2(16f, 20f));
 
             versionLabel = UiRuntimeStyle.EnsureText(root, "VersionLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(320f, 20f), new Vector2(16f, 16f));
+            UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 14f), new Vector2(16f, 4f));
             versionLabel.text = string.Empty;
         }
 
