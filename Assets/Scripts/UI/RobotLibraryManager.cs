@@ -2,6 +2,7 @@
 using KineTutor3D.App;
 using KineTutor3D.Templates;
 using KineTutor3D.Types;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -24,6 +25,7 @@ namespace KineTutor3D.UI
         private RectTransform gridContainer;
         private ScrollRect libraryScrollRect;
         private RobotDetailDrawer detailDrawer;
+        private RobotLibrarySelectionPanel selectionPanel;
         private RawImage showroomOutput;
         private RobotShowroomManager showroomManager;
         private Button previousPageButton;
@@ -33,6 +35,9 @@ namespace KineTutor3D.UI
         private Light showroomLight;
         private RenderTexture showroomTexture;
         private GameObject showroomRuntimeRoot;
+        private readonly Dictionary<string, double[]> previewPoseByRobotId = new Dictionary<string, double[]>();
+        private RobotCatalogEntry selectedEntry;
+        private bool useSceneAuthoredGridLayout;
         private bool showroomConfigured;
         private bool uiBuilt;
 
@@ -83,7 +88,12 @@ namespace KineTutor3D.UI
                     EnsureShowroomOutput(showroomArea);
                 }
 
+                EnsureSelectionPanel();
                 uiBuilt = true;
+            }
+            else
+            {
+                EnsureSelectionPanel();
             }
 
             if (Application.isPlaying)
@@ -112,8 +122,9 @@ namespace KineTutor3D.UI
             var viewport = scrollArea != null ? scrollArea.Find("Viewport") as RectTransform : null;
             gridContainer = viewport != null ? viewport.Find("GridContent") as RectTransform : null;
             detailDrawer = GetComponentInChildren<RobotDetailDrawer>(true);
+            selectionPanel = GetComponentInChildren<RobotLibrarySelectionPanel>(true);
 
-            if (topBar == null || showroomArea == null || showroomOutput == null || scrollArea == null || viewport == null || gridContainer == null || detailDrawer == null)
+            if (topBar == null || showroomArea == null || showroomOutput == null || detailDrawer == null)
             {
                 return false;
             }
@@ -125,9 +136,38 @@ namespace KineTutor3D.UI
                 backBtn.onClick.AddListener(OnBackClicked);
             }
 
+            if (viewport != null && gridContainer != null)
+            {
+                ConfigureScrollViewport(viewport);
+                if (IsGridContainerInvalid(gridContainer))
+                {
+                    gridContainer = RecreateGridContainer(viewport);
+                }
+
+                ConfigureGridContainer(gridContainer);
+                ConfigureGridLayout(gridContainer, RobotCatalog.GetAll().Length);
+                useSceneAuthoredGridLayout = false;
+                if (libraryScrollRect != null)
+                {
+                    libraryScrollRect.content = gridContainer;
+                    libraryScrollRect.viewport = viewport;
+                    libraryScrollRect.horizontal = false;
+                    libraryScrollRect.vertical = true;
+                }
+            }
+            else
+            {
+                libraryScrollRect = null;
+                gridContainer = null;
+            }
+
             detailDrawer.Initialize(canvasRoot, fallbackFont);
             RemoveCompareStrip();
             BuildShowroomOverlay(showroomArea);
+            if (scrollArea != null)
+            {
+                ApplyBottomLayout(scrollArea);
+            }
             return true;
         }
 
@@ -348,17 +388,17 @@ namespace KineTutor3D.UI
                 ? Mathf.Max(1, showroomManager.GetVisibleRobotIds().Length)
                 : 3;
 
-            const float verticalFov = 42f;
+            const float verticalFov = 36f;
             float halfVerticalFovRad = verticalFov * 0.5f * Mathf.Deg2Rad;
             float halfHorizontalFovRad = Mathf.Atan(Mathf.Tan(halfVerticalFovRad) * aspect);
 
-            float halfGroupWidth = ((visibleCount - 1) * UIDesignTokens.Size.PodSpacing * 0.5f) + 0.9f;
-            float halfGroupHeight = 1.35f;
+            float halfGroupWidth = ((visibleCount - 1) * UIDesignTokens.Size.PodSpacing * 0.5f) + 0.65f;
+            float halfGroupHeight = 1.1f;
             float distanceForWidth = halfGroupWidth / Mathf.Max(0.1f, Mathf.Tan(halfHorizontalFovRad));
             float distanceForHeight = halfGroupHeight / Mathf.Max(0.1f, Mathf.Tan(halfVerticalFovRad));
-            float distance = Mathf.Max(distanceForWidth, distanceForHeight) + 1.35f;
-            Vector3 focusPoint = new Vector3(0f, 0.72f, 0f);
-            Vector3 cameraPosition = focusPoint + new Vector3(0f, 0.52f, -distance);
+            float distance = Mathf.Max(distanceForWidth, distanceForHeight) + 0.7f;
+            Vector3 focusPoint = new Vector3(0f, 0.82f, 0f);
+            Vector3 cameraPosition = focusPoint + new Vector3(0f, 0.42f, -distance);
 
             showroomCamera.fieldOfView = verticalFov;
             showroomCamera.aspect = aspect;
@@ -424,12 +464,15 @@ namespace KineTutor3D.UI
                 primaryCtaKind: RobotShowroomCtaKind.GuidedLesson,
                 secondaryCtaKind: RobotShowroomCtaKind.Sandbox);
 
-            showroomManager.Configure(ctx);
-
             showroomManager.OnRobotSelected -= OnShowroomRobotSelected;
             showroomManager.OnRobotSelected += OnShowroomRobotSelected;
             showroomManager.OnPageChanged -= OnShowroomPageChanged;
             showroomManager.OnPageChanged += OnShowroomPageChanged;
+            showroomManager.Configure(ctx);
+            if (!string.IsNullOrEmpty(showroomManager.GetCurrentHeroId()))
+            {
+                OnShowroomRobotSelected(showroomManager.GetCurrentHeroId());
+            }
             UpdateShowroomFraming();
             showroomConfigured = true;
         }
@@ -441,11 +484,13 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            selectedEntry = entry;
+            RefreshSelectionPanel();
+            RebuildGrid();
             if (detailDrawer != null && detailDrawer.IsVisible)
             {
                 detailDrawer.Show(entry);
             }
-
         }
 
         private void OnShowroomPageChanged(int currentPage, int totalPages)
@@ -470,72 +515,183 @@ namespace KineTutor3D.UI
 
         private void BuildScrollGrid()
         {
-            var scrollArea = UiRuntimeStyle.EnsureRectChild(canvasRoot, "ScrollArea");
-            float viewportRatio = UIDesignTokens.Size.ShowroomViewportRatio;
+            libraryScrollRect = null;
+            gridContainer = null;
+        }
 
-            // 하단 45%: 쇼룸 아래 ~ 바닥
-            scrollArea.anchorMin = Vector2.zero;
-            scrollArea.anchorMax = new Vector2(1f, 1f - viewportRatio);
-            scrollArea.offsetMin = new Vector2(UIDesignTokens.Space.Md, UIDesignTokens.Space.Md);
-            scrollArea.offsetMax = new Vector2(-UIDesignTokens.Space.Md, -UIDesignTokens.Space.Xs);
-            scrollArea.pivot = new Vector2(0.5f, 0.5f);
-
-            libraryScrollRect = scrollArea.GetComponent<ScrollRect>();
-            if (libraryScrollRect == null)
+        private void ConfigureScrollViewport(RectTransform viewport)
+        {
+            if (viewport == null)
             {
-                libraryScrollRect = scrollArea.gameObject.AddComponent<ScrollRect>();
+                return;
             }
 
-            var viewport = UiRuntimeStyle.EnsureRectChild(scrollArea, "Viewport");
             UiRuntimeStyle.Stretch(viewport, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            var viewportMask = viewport.GetComponent<Mask>();
-            if (viewportMask == null)
+            var stencilMask = viewport.GetComponent<Mask>();
+            if (stencilMask != null)
             {
-                viewportMask = viewport.gameObject.AddComponent<Mask>();
-                viewportMask.showMaskGraphic = false;
+                SafeDestroy(stencilMask);
             }
+
+            var rectMask = viewport.GetComponent<RectMask2D>();
+            if (rectMask == null)
+            {
+                rectMask = viewport.gameObject.AddComponent<RectMask2D>();
+            }
+
+            rectMask.padding = Vector4.zero;
+            rectMask.softness = Vector2Int.zero;
 
             var viewportImage = viewport.GetComponent<Image>();
             if (viewportImage == null)
             {
                 viewportImage = viewport.gameObject.AddComponent<Image>();
-                viewportImage.color = Color.clear;
             }
 
-            gridContainer = UiRuntimeStyle.EnsureRectChild(viewport, "GridContent");
-            UiRuntimeStyle.Anchor(gridContainer, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), Vector2.zero);
-            gridContainer.anchorMin = new Vector2(0f, 1f);
-            gridContainer.anchorMax = new Vector2(1f, 1f);
-            gridContainer.pivot = new Vector2(0f, 1f);
+            viewportImage.color = Color.clear;
+            viewportImage.raycastTarget = true;
+        }
 
-            var gridLayout = gridContainer.GetComponent<GridLayoutGroup>();
+        private RectTransform EnsureGridContainer(RectTransform viewport)
+        {
+            if (viewport == null)
+            {
+                return null;
+            }
+
+            var existing = viewport.Find("GridContent") as RectTransform;
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var go = new GameObject("GridContent", typeof(RectTransform));
+            go.transform.SetParent(viewport, false);
+            return go.GetComponent<RectTransform>();
+        }
+
+        private RectTransform RecreateGridContainer(RectTransform viewport)
+        {
+            if (viewport == null)
+            {
+                return null;
+            }
+
+            var existing = viewport.Find("GridContent") as RectTransform;
+            if (existing != null)
+            {
+                existing.name = "GridContent_Deleted";
+                existing.SetParent(null, false);
+                SafeDestroy(existing.gameObject);
+            }
+
+            return EnsureGridContainer(viewport);
+        }
+
+        private void ConfigureGridContainer(RectTransform content)
+        {
+            if (content == null)
+            {
+                return;
+            }
+
+            content.anchorMin = new Vector2(0.5f, 0.5f);
+            content.anchorMax = new Vector2(0.5f, 0.5f);
+            content.pivot = new Vector2(0.5f, 0.5f);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+            content.localScale = Vector3.one;
+        }
+
+        private Vector2 ConfigureGridLayout(RectTransform content, int itemCount)
+        {
+            if (content == null)
+            {
+                return new Vector2(UIDesignTokens.Size.CardWidth, UIDesignTokens.Size.CardHeight);
+            }
+
+            var gridLayout = content.GetComponent<GridLayoutGroup>();
             if (gridLayout == null)
             {
-                gridLayout = gridContainer.gameObject.AddComponent<GridLayoutGroup>();
+                gridLayout = content.gameObject.AddComponent<GridLayoutGroup>();
             }
 
-            gridLayout.cellSize = new Vector2(UIDesignTokens.Size.CardWidth, UIDesignTokens.Size.CardHeight);
-            gridLayout.spacing = new Vector2(UIDesignTokens.Size.GridSpacing, UIDesignTokens.Size.GridSpacing);
-            gridLayout.padding = new RectOffset(10, 10, 10, 10);
+            Canvas.ForceUpdateCanvases();
+
+            Rect viewportRect = libraryScrollRect != null && libraryScrollRect.viewport != null
+                ? libraryScrollRect.viewport.rect
+                : content.parent is RectTransform parentRect
+                    ? parentRect.rect
+                    : new Rect(0f, 0f, UIDesignTokens.Size.CardWidth * 2f, UIDesignTokens.Size.CardHeight * 3f);
+
+            int columnCount = Mathf.Max(1, Mathf.Min(3, itemCount));
+            int totalRows = Mathf.Max(1, Mathf.CeilToInt(itemCount / (float)columnCount));
+            int visibleRows = Mathf.Min(2, totalRows);
+            float horizontalPadding = Mathf.Clamp(viewportRect.width * 0.014f, 10f, 16f);
+            float verticalPadding = Mathf.Clamp(viewportRect.height * 0.014f, 8f, 14f);
+            float spacingX = Mathf.Clamp(viewportRect.width * 0.014f, 12f, 18f);
+            float spacingY = Mathf.Clamp(viewportRect.height * 0.014f, 10f, 16f);
+            float availableWidth = Mathf.Max(UIDesignTokens.Size.CardWidth, viewportRect.width - horizontalPadding * 2f - spacingX * (columnCount - 1));
+            float availableHeight = Mathf.Max(UIDesignTokens.Size.CardHeight, viewportRect.height - verticalPadding * 2f - spacingY * (visibleRows - 1));
+            float cellWidth = Mathf.Floor(availableWidth / columnCount);
+            float cellHeight = Mathf.Floor(availableHeight / visibleRows);
+            cellHeight = Mathf.Clamp(cellHeight, 220f, 340f);
+            cellWidth = Mathf.Clamp(cellWidth, 170f, 360f);
+
+            gridLayout.cellSize = new Vector2(cellWidth, cellHeight);
+            gridLayout.spacing = new Vector2(spacingX, spacingY);
+            gridLayout.padding = new RectOffset(
+                Mathf.RoundToInt(horizontalPadding),
+                Mathf.RoundToInt(horizontalPadding),
+                Mathf.RoundToInt(verticalPadding),
+                Mathf.RoundToInt(verticalPadding));
             gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
             gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
             gridLayout.childAlignment = TextAnchor.UpperLeft;
-            gridLayout.constraint = GridLayoutGroup.Constraint.Flexible;
+            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayout.constraintCount = columnCount;
 
-            var fitter = gridContainer.GetComponent<ContentSizeFitter>();
-            if (fitter == null)
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
             {
-                fitter = gridContainer.gameObject.AddComponent<ContentSizeFitter>();
+                SafeDestroy(fitter);
             }
 
-            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            int rowCount = Mathf.Max(1, Mathf.CeilToInt(itemCount / (float)columnCount));
+            float contentWidth = gridLayout.padding.left + gridLayout.padding.right + (cellWidth * columnCount) + (spacingX * Mathf.Max(0, columnCount - 1));
+            float contentHeight = gridLayout.padding.top + gridLayout.padding.bottom + (cellHeight * rowCount) + (spacingY * Mathf.Max(0, rowCount - 1));
+            content.sizeDelta = new Vector2(contentWidth, contentHeight);
+            return gridLayout.cellSize;
+        }
 
-            libraryScrollRect.content = gridContainer;
-            libraryScrollRect.viewport = viewport;
-            libraryScrollRect.horizontal = false;
-            libraryScrollRect.vertical = true;
+        private void ApplyBottomLayout(RectTransform scrollArea)
+        {
+            if (scrollArea == null)
+            {
+                return;
+            }
+
+            float leftWidth = UILayoutProfile.IsTablet ? 0.58f : 0.66f;
+            scrollArea.anchorMin = Vector2.zero;
+            scrollArea.anchorMax = new Vector2(leftWidth, 1f - UIDesignTokens.Size.ShowroomViewportRatio);
+            scrollArea.offsetMin = new Vector2(UIDesignTokens.Space.Md, UIDesignTokens.Space.Md);
+            scrollArea.offsetMax = new Vector2(-UIDesignTokens.Space.Xs, -UIDesignTokens.Space.Xs);
+        }
+
+        private void ApplySelectionPanelLayout(RectTransform panelRect)
+        {
+            if (panelRect == null)
+            {
+                return;
+            }
+
+            float leftWidth = UILayoutProfile.IsTablet ? 0.58f : 0.66f;
+            panelRect.anchorMin = new Vector2(leftWidth, 0f);
+            panelRect.anchorMax = new Vector2(1f, 1f - UIDesignTokens.Size.ShowroomViewportRatio);
+            panelRect.offsetMin = new Vector2(UIDesignTokens.Space.Xs, UIDesignTokens.Space.Md);
+            panelRect.offsetMax = new Vector2(-UIDesignTokens.Space.Md, -UIDesignTokens.Space.Xs);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
         }
 
         private void EnsureDetailDrawer()
@@ -551,6 +707,46 @@ namespace KineTutor3D.UI
             detailDrawer.Initialize(canvasRoot, fallbackFont);
         }
 
+        private void EnsureSelectionPanel()
+        {
+            selectionPanel = GetComponentInChildren<RobotLibrarySelectionPanel>(true);
+            if (selectionPanel == null)
+            {
+                var go = new GameObject("RobotLibrarySelectionPanel", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(canvasRoot, false);
+                selectionPanel = go.AddComponent<RobotLibrarySelectionPanel>();
+            }
+
+            var panelRect = selectionPanel.transform as RectTransform;
+            if (panelRect != null)
+            {
+                ApplySelectionPanelLayout(panelRect);
+            }
+
+            selectionPanel.Initialize(canvasRoot, fallbackFont);
+            selectionPanel.OnGuidedLessonRequested -= OnSelectionGuidedLessonRequested;
+            selectionPanel.OnGuidedLessonRequested += OnSelectionGuidedLessonRequested;
+            selectionPanel.OnSandboxRequested -= OnSelectionSandboxRequested;
+            selectionPanel.OnSandboxRequested += OnSelectionSandboxRequested;
+            selectionPanel.OnRobotControlRequested -= OnSelectionRobotControlRequested;
+            selectionPanel.OnRobotControlRequested += OnSelectionRobotControlRequested;
+            selectionPanel.OnPosePreviewChanged -= OnSelectionPosePreviewChanged;
+            selectionPanel.OnPosePreviewChanged += OnSelectionPosePreviewChanged;
+            selectionPanel.OnResetPoseRequested -= OnSelectionResetPoseRequested;
+            selectionPanel.OnResetPoseRequested += OnSelectionResetPoseRequested;
+            selectionPanel.OnDemoPoseRequested -= OnSelectionDemoPoseRequested;
+            selectionPanel.OnDemoPoseRequested += OnSelectionDemoPoseRequested;
+
+            if (selectedEntry != null)
+            {
+                RefreshSelectionPanel();
+            }
+            else
+            {
+                selectionPanel.ShowRobot(null, null, null, null, null);
+            }
+        }
+
         private void RebuildGrid()
         {
             if (gridContainer == null)
@@ -558,12 +754,23 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            var staleChildren = new List<GameObject>(gridContainer.childCount);
+            var validNames = new HashSet<string>(StringComparer.Ordinal);
+            var entries = RobotCatalog.GetAll();
+            Vector2 cardSize = useSceneAuthoredGridLayout ? ReadCurrentCardSize(gridContainer) : ConfigureGridLayout(gridContainer, entries.Length);
+            foreach (var entry in entries)
+            {
+                validNames.Add("Card_" + entry.Metadata.RobotId);
+            }
+
+            var staleChildren = new List<GameObject>();
             for (int i = gridContainer.childCount - 1; i >= 0; i--)
             {
                 var child = gridContainer.GetChild(i).gameObject;
-                staleChildren.Add(child);
-                child.transform.SetParent(null, false);
+                if (!validNames.Contains(child.name))
+                {
+                    staleChildren.Add(child);
+                    child.transform.SetParent(null, false);
+                }
             }
 
             foreach (var child in staleChildren)
@@ -571,7 +778,6 @@ namespace KineTutor3D.UI
                 SafeDestroy(child);
             }
 
-            var entries = RobotCatalog.GetAll();
             foreach (var entry in entries)
             {
                 var captured = entry;
@@ -579,10 +785,11 @@ namespace KineTutor3D.UI
                     gridContainer,
                     captured,
                     fallbackFont,
-                    () => OnStartLesson(captured),
-                    () => OnOpenSandbox(captured),
-                    () => OnOpenRobotControl(captured),
-                    () => OnCardSelected(captured));
+                    selectedEntry != null && string.Equals(selectedEntry.Metadata.RobotId, captured.Metadata.RobotId, System.StringComparison.Ordinal),
+                    () => OnCardSelected(captured),
+                    () => OnViewDetails(captured),
+                    cardSize.x,
+                    cardSize.y);
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(gridContainer);
@@ -594,14 +801,51 @@ namespace KineTutor3D.UI
             }
         }
 
-        private void OnCardSelected(RobotCatalogEntry entry)
+        private static Vector2 ReadCurrentCardSize(RectTransform content)
         {
-            if (showroomManager != null && Application.isPlaying)
+            if (content == null)
             {
-                showroomManager.SelectRobot(entry.Metadata.RobotId);
+                return new Vector2(UIDesignTokens.Size.CardWidth, UIDesignTokens.Size.CardHeight);
             }
 
-            LaunchPrimaryExperience(entry);
+            var gridLayout = content.GetComponent<GridLayoutGroup>();
+            return gridLayout != null ? gridLayout.cellSize : new Vector2(UIDesignTokens.Size.CardWidth, UIDesignTokens.Size.CardHeight);
+        }
+
+        private static bool IsGridContainerInvalid(RectTransform content)
+        {
+            if (content == null)
+            {
+                return true;
+            }
+
+            if (content.anchorMin != new Vector2(0.5f, 0.5f) || content.anchorMax != new Vector2(0.5f, 0.5f))
+            {
+                return true;
+            }
+
+            if (content.pivot != new Vector2(0.5f, 0.5f))
+            {
+                return true;
+            }
+
+            if (content.rect.width <= 1f || content.rect.height <= 1f)
+            {
+                return true;
+            }
+
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null && fitter.enabled)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void OnCardSelected(RobotCatalogEntry entry)
+        {
+            SelectRobot(entry, true);
         }
 
         private void BuildShowroomOverlay(RectTransform parent)
@@ -628,6 +872,124 @@ namespace KineTutor3D.UI
         private void OnNextPageClicked()
         {
             showroomManager?.NextPage();
+        }
+
+        private void SelectRobot(RobotCatalogEntry entry, bool syncShowroom)
+        {
+            if (entry == null)
+            {
+                return;
+            }
+
+            selectedEntry = entry;
+            if (syncShowroom && showroomManager != null && Application.isPlaying)
+            {
+                showroomManager.SelectRobot(entry.Metadata.RobotId);
+            }
+
+            RefreshSelectionPanel();
+            RebuildGrid();
+        }
+
+        private void RefreshSelectionPanel()
+        {
+            if (selectionPanel == null)
+            {
+                return;
+            }
+
+            if (selectedEntry == null)
+            {
+                selectionPanel.ShowRobot(null, null, null, null, null);
+                return;
+            }
+
+            var pose = GetOrCreatePreviewPose(selectedEntry);
+            GetControlSpecs(selectedEntry, out var minLimits, out var maxLimits, out var isRotational);
+            selectionPanel.ShowRobot(selectedEntry, pose, minLimits, maxLimits, isRotational);
+            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
+        }
+
+        private double[] GetOrCreatePreviewPose(RobotCatalogEntry entry)
+        {
+            if (entry == null)
+            {
+                return System.Array.Empty<double>();
+            }
+
+            var robotId = entry.Metadata.RobotId;
+            if (!previewPoseByRobotId.TryGetValue(robotId, out var pose) || pose == null || pose.Length == 0)
+            {
+                pose = CreateInitialPreviewPose(entry.Metadata);
+                previewPoseByRobotId[robotId] = pose;
+            }
+
+            return (double[])pose.Clone();
+        }
+
+        private static double[] CreateInitialPreviewPose(RobotMetadataInfo metadata)
+        {
+            if (metadata.DemoPoseDeg != null && metadata.DemoPoseDeg.Length > 0)
+            {
+                return (double[])metadata.DemoPoseDeg.Clone();
+            }
+
+            if (metadata.HomePoseDeg != null && metadata.HomePoseDeg.Length > 0)
+            {
+                return (double[])metadata.HomePoseDeg.Clone();
+            }
+
+            return new double[Mathf.Max(1, metadata.Dof)];
+        }
+
+        private void GetControlSpecs(RobotCatalogEntry entry, out float[] minLimits, out float[] maxLimits, out bool[] isRotational)
+        {
+            minLimits = Array.Empty<float>();
+            maxLimits = Array.Empty<float>();
+            isRotational = Array.Empty<bool>();
+
+            if (entry == null)
+            {
+                return;
+            }
+
+            var robotId = entry.Metadata.RobotId;
+            if (showroomManager != null && showroomManager.TryGetPod(robotId, out var pod) && pod.SupportsPoseControl)
+            {
+                pod.GetControlSpecs(out minLimits, out maxLimits, out isRotational);
+                return;
+            }
+
+            var template = RobotCatalog.CreateTemplate(robotId);
+            if (template == null)
+            {
+                return;
+            }
+
+            minLimits = new float[template.Dof];
+            maxLimits = new float[template.Dof];
+            isRotational = new bool[template.Dof];
+            for (var i = 0; i < template.Dof; i++)
+            {
+                var limit = template.GetJointLimit(i);
+                var link = template.GetLink(i);
+                minLimits[i] = (float)limit.Min * Mathf.Rad2Deg;
+                maxLimits[i] = (float)limit.Max * Mathf.Rad2Deg;
+                isRotational[i] = link.JointType != JointType.Prismatic;
+            }
+        }
+
+        private void ApplyPreviewPose(string robotId)
+        {
+            if (string.IsNullOrWhiteSpace(robotId) || showroomManager == null || !showroomManager.TryGetPod(robotId, out var pod))
+            {
+                return;
+            }
+
+            if (previewPoseByRobotId.TryGetValue(robotId, out var pose) && pose != null)
+            {
+                pod.SetPose(pose);
+            }
         }
 
         private void OnStartLesson(RobotCatalogEntry entry)
@@ -699,6 +1061,69 @@ namespace KineTutor3D.UI
         private void OnBackClicked()
         {
             SceneNavigator.Load(SceneId.Home);
+        }
+
+        private void OnSelectionGuidedLessonRequested()
+        {
+            if (selectedEntry != null)
+            {
+                OnStartLesson(selectedEntry);
+            }
+        }
+
+        private void OnSelectionSandboxRequested()
+        {
+            if (selectedEntry != null)
+            {
+                OnOpenSandbox(selectedEntry);
+            }
+        }
+
+        private void OnSelectionRobotControlRequested()
+        {
+            if (selectedEntry != null)
+            {
+                OnOpenRobotControl(selectedEntry);
+            }
+        }
+
+        private void OnSelectionPosePreviewChanged(double[] poseDeg)
+        {
+            if (selectedEntry == null || poseDeg == null)
+            {
+                return;
+            }
+
+            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = (double[])poseDeg.Clone();
+            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
+        }
+
+        private void OnSelectionResetPoseRequested()
+        {
+            if (selectedEntry == null)
+            {
+                return;
+            }
+
+            var pose = selectedEntry.Metadata.ZeroPoseDeg != null && selectedEntry.Metadata.ZeroPoseDeg.Length > 0
+                ? (double[])selectedEntry.Metadata.ZeroPoseDeg.Clone()
+                : new double[Mathf.Max(1, selectedEntry.Metadata.Dof)];
+            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = pose;
+            selectionPanel?.SetPoseWithoutNotify(pose);
+            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
+        }
+
+        private void OnSelectionDemoPoseRequested()
+        {
+            if (selectedEntry == null)
+            {
+                return;
+            }
+
+            var pose = CreateInitialPreviewPose(selectedEntry.Metadata);
+            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = pose;
+            selectionPanel?.SetPoseWithoutNotify(pose);
+            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
         }
 
         private void RemoveCompareStrip()
@@ -775,7 +1200,7 @@ namespace KineTutor3D.UI
             showroomManager?.SelectRobot(pod.RobotId);
             if (RobotCatalog.TryGet(pod.RobotId, out var entry))
             {
-                LaunchPrimaryExperience(entry);
+                SelectRobot(entry, false);
             }
         }
 
@@ -796,7 +1221,7 @@ namespace KineTutor3D.UI
             return button;
         }
 
-        private static void SafeDestroy(Object target)
+        private static void SafeDestroy(UnityEngine.Object target)
         {
             if (target == null)
             {

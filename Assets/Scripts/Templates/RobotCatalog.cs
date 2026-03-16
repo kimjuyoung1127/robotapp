@@ -63,16 +63,6 @@ namespace KineTutor3D.Templates
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
-                    "GENERIC_6DOF", "6축 산업로봇", 6, "Articulated", "Medium",
-                    convention: "URDF-ready",
-                    description: "6자유도 범용 산업로봇. 다양한 작업에 활용됩니다.",
-                    supportedLessons: new[] { "Demo" },
-                    inputModes: new[] { "demo" },
-                    visualizationLevel: "DemoOnly",
-                    importSource: "Pending")));
-
-            Register(new RobotCatalogEntry(
-                new RobotMetadataInfo(
                     "FANUC_CRX10", "Fanuc CRX-10iA/L", 6, "Collaborative", "Hard",
                     convention: "URDF-ready",
                     description: "6자유도 협동로봇. 실제 donor preview를 사용하는 Fanuc CRX 시리즈입니다.",

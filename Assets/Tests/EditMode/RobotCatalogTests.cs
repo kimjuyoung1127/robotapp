@@ -120,5 +120,23 @@ namespace KineTutor3D.Tests.EditMode
                 Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Metadata.VisualizationLevel), $"VisualizationLevel for {entry.Metadata.RobotId} should not be empty.");
             }
         }
+
+        [Test]
+        public void GetAll_DoesNotContainGeneric6Dof_AndContainsSingleFr5()
+        {
+            var entries = RobotCatalog.GetAll();
+            var fr5Count = 0;
+            foreach (var entry in entries)
+            {
+                Assert.AreNotEqual("GENERIC_6DOF", entry.Metadata.RobotId);
+                if (entry.Metadata.RobotId == "FAIRINO_FR5")
+                {
+                    fr5Count++;
+                }
+            }
+
+            Assert.AreEqual(1, fr5Count, "FAIRINO_FR5 should appear exactly once in RobotCatalog.");
+            Assert.IsFalse(RobotCatalog.TryGet("GENERIC_6DOF", out _), "GENERIC_6DOF should no longer be registered.");
+        }
     }
 }

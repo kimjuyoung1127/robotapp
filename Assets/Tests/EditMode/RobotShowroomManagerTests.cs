@@ -30,7 +30,7 @@ namespace KineTutor3D.Tests.EditMode
         public void Configure_UsesCenteredDefaultHero_AndCreatesVisiblePods()
         {
             var context = new RobotShowroomContext(
-                robotIds: new[] { "2DOF_RR", "SCARA_RV", "GENERIC_6DOF" },
+                robotIds: new[] { "2DOF_RR", "SCARA_RV", "FAIRINO_FR5" },
                 maxVisiblePods: 3,
                 showLabels: true,
                 showCtaButtons: false,
@@ -41,7 +41,7 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(_manager.GetCurrentHeroId(), Is.EqualTo("SCARA_RV"));
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_2DOF_RR"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_SCARA_RV"), Is.Not.Null);
-            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_GENERIC_6DOF"), Is.Not.Null);
+            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_FAIRINO_FR5"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_SCARA_RV").localPosition.x, Is.EqualTo(0f).Within(0.001f));
         }
 
@@ -49,18 +49,18 @@ namespace KineTutor3D.Tests.EditMode
         public void SelectRobot_RaisesSelectionEvent_ForAnotherRobot()
         {
             var context = new RobotShowroomContext(
-                robotIds: new[] { "2DOF_RR", "SCARA_RV", "GENERIC_6DOF", "FANUC_CRX10" },
+                robotIds: new[] { "2DOF_RR", "SCARA_RV", "FAIRINO_FR5", "FANUC_CRX10" },
                 maxVisiblePods: 3,
                 heroRobotId: "2DOF_RR");
             string selectedRobotId = null;
             _manager.OnRobotSelected += id => selectedRobotId = id;
 
             _manager.Configure(context);
-            _manager.SelectRobot("GENERIC_6DOF");
+            _manager.SelectRobot("FAIRINO_FR5");
 
-            Assert.That(selectedRobotId, Is.EqualTo("GENERIC_6DOF"));
-            Assert.That(_manager.GetCurrentHeroId(), Is.EqualTo("GENERIC_6DOF"));
-            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_GENERIC_6DOF"), Is.Not.Null);
+            Assert.That(selectedRobotId, Is.EqualTo("FAIRINO_FR5"));
+            Assert.That(_manager.GetCurrentHeroId(), Is.EqualTo("FAIRINO_FR5"));
+            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_FAIRINO_FR5"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_SCARA_RV"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_2DOF_RR"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_FANUC_CRX10"), Is.Null);
@@ -70,7 +70,7 @@ namespace KineTutor3D.Tests.EditMode
         public void PreviousPage_ReturnsToCenteredHeroOnFirstPage()
         {
             var context = new RobotShowroomContext(
-                robotIds: new[] { "2DOF_RR", "SCARA_RV", "GENERIC_6DOF", "FANUC_CRX10", "IGUS_REBEL" },
+                robotIds: new[] { "2DOF_RR", "SCARA_RV", "FAIRINO_FR5", "FANUC_CRX10", "IGUS_REBEL" },
                 maxVisiblePods: 3,
                 showLabels: false,
                 showCtaButtons: false,
@@ -86,7 +86,7 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(_manager.GetCurrentHeroId(), Is.EqualTo("SCARA_RV"));
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_2DOF_RR"), Is.Not.Null);
             Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_SCARA_RV"), Is.Not.Null);
-            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_GENERIC_6DOF"), Is.Not.Null);
+            Assert.That(_host.transform.Find("ShowroomPodContainer/Pod_FAIRINO_FR5"), Is.Not.Null);
         }
     }
 }

@@ -25,9 +25,9 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void CreatePod_Generic6Dof_CreatesArticulatedPreview()
+        public void CreatePod_FairinoFr5_CreatesArticulatedPreview()
         {
-            const string robotId = "GENERIC_6DOF";
+            const string robotId = "FAIRINO_FR5";
             Assert.That(RobotCatalog.TryGet(robotId, out var entry), Is.True, $"Robot '{robotId}' should exist in catalog.");
 
             var pod = RobotPreviewFactory.CreatePod(_host.transform, entry, showLabel: true);
