@@ -13,7 +13,7 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 
 ---
 
-## 도구 카탈로그 (15개)
+## 도구 카탈로그 (26개)
 
 ### Tier 1: CI/QA 필수
 
@@ -54,6 +54,7 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 | SceneDiffTool | `unity-cli scene-diff --scene_a Boot --scene_b Home` | 씬 간 루트 GameObject 비교 |
 | PoseCompareTool | `unity-cli pose-compare --template FR5 --joints_a "..." --joints_b "..."` | 두 포즈 EE 거리 비교 |
 | LearningTabsTool | `unity-cli learning-tabs --robot_id all` | LearningTabs JSON 검증/요약 |
+| CameraCaptureTool | `unity-cli camera-capture --action capture` | 카메라 위치 캡처/저장/적용 |
 
 ---
 
@@ -289,6 +290,25 @@ unity-cli learning-tabs --robot_id all
 
 LearningTabs JSON 파일의 구조 검증 (robotId, displayTitle, tabs 배열) + 탭별 카드 수 요약.
 
+### CameraCaptureTool
+
+```bash
+unity-cli camera-capture --action capture --name "my-angle"
+unity-cli camera-capture --action current
+unity-cli camera-capture --action list
+unity-cli camera-capture --action apply --name "my-angle" --scene RobotControl
+unity-cli camera-capture --action delete --name "my-angle"
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| action | N | capture | 동작: capture, current, list, apply, delete |
+| name | 조건부 | 자동생성 | 스냅샷 이름 (capture/apply/delete 시 필요) |
+| scene | N | 캡처 당시 씬 | apply 시 대상 씬 ID 오버라이드 |
+
+Play Mode에서 카메라 위치를 캡처 → EditorPrefs에 저장 → Play Mode 종료 후 apply로 SceneCameraDirector 오버라이드 등록.
+`SceneCameraDirector`는 씬 로드 시 오버라이드가 있으면 하드코딩 프로필 대신 적용.
+
 ---
 
 ## 스크립트
@@ -439,6 +459,7 @@ Assets/Editor/KineTutor3D/CliTools/
 ├── AsmdefValidateTool.cs       (Tier 3)
 ├── AssetSizeTool.cs            (Tier 3)
 ├── BuildSettingsTool.cs        (Tier 3)
+├── CameraCaptureTool.cs       (Tier 3)
 ├── CanvasValidateTool.cs       (Tier 3)
 ├── CompileCheckTool.cs         (Tier 1)
 ├── ComponentInspectTool.cs     (Tier 2)

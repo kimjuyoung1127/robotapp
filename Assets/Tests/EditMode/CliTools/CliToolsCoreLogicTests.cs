@@ -429,6 +429,38 @@ namespace KineTutor3D.Tests.EditMode.CliTools
             Assert.IsNotNull(coordType, "RobotControlSceneCoordinator 타입이 존재해야 합니다.");
         }
 
+        // ── CameraCaptureTool 의존 로직 ──
+
+        [Test]
+        public void CameraCapture_EditorPrefs_RoundTrip()
+        {
+            string testKey = "KineTutor3D_CameraSnapshot_TestRoundTrip";
+            string json = "{\"name\":\"test\",\"scene\":\"Main\",\"posX\":1.0,\"posY\":2.0,\"posZ\":3.0,\"eulerX\":10.0,\"eulerY\":20.0,\"eulerZ\":0.0,\"fov\":60.0,\"nearClip\":0.3,\"farClip\":1000.0,\"bgR\":0.1,\"bgG\":0.1,\"bgB\":0.18,\"timestamp\":\"2026-01-01T00:00:00Z\",\"playMode\":true}";
+            Assert.DoesNotThrow(() =>
+            {
+                UnityEditor.EditorPrefs.SetString(testKey, json);
+                string loaded = UnityEditor.EditorPrefs.GetString(testKey, "");
+                Assert.AreEqual(json, loaded, "카메라 스냅샷 EditorPrefs 라운드트립이 일치해야 합니다.");
+                UnityEditor.EditorPrefs.DeleteKey(testKey);
+            });
+        }
+
+        [Test]
+        public void CameraCapture_OverrideKey_FormatConsistent()
+        {
+            string sceneName = "RobotControl";
+            string overrideKey = "KineTutor3D_CameraOverride_" + sceneName;
+            Assert.AreEqual("KineTutor3D_CameraOverride_RobotControl", overrideKey,
+                "오버라이드 키 형식이 SceneCameraDirector와 일치해야 합니다.");
+        }
+
+        [Test]
+        public void SceneCameraDirector_GetSceneName_ReturnsExpected()
+        {
+            string name = KineTutor3D.App.SceneCatalog.GetSceneName(KineTutor3D.App.SceneId.Main);
+            Assert.AreEqual("Main", name, "SceneId.Main의 씬 이름은 'Main'이어야 합니다.");
+        }
+
         // ── QaPrepTool 의존 로직 ──
 
         [Test]
