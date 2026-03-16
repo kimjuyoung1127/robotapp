@@ -61,3 +61,5 @@
   - `HeadlineText` hidden text 참조를 명시적으로 만들고 `TryBindExisting(...)` 경로를 추가했다.
 - `Play -> Onboarding` 기본 진입은 재검증 완료했다.
 - `OnboardingViewBuilderTests`와 `FairinoRobotControlUxTests`를 함께 재실행하려 했지만, PlayMode와 겹친 EditMode runner가 Unity 쪽에서 `Test tree is not available` 상태로 꼬여 후반부 자동 재실행은 신뢰할 수 없었다.
+- 이후 `Onboarding`은 전역 네비게이션만 코드 소유로 두고, 본문은 `bind only` authored-first로 전환했다.
+- `OnboardingViewBuilderTests.TryBindExisting_PreservesAuthoredLayoutChanges`를 추가해 플레이 전 수정값이 Play 때 유지되는지 자동 검증했다.

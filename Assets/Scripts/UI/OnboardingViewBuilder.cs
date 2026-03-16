@@ -63,12 +63,10 @@ namespace KineTutor3D.UI
             var beginnerButton = surface?.Find("CardRow/BtnBeginner")?.GetComponent<Button>();
             var startLearningButton = surface?.Find("CardRow/BtnStartLearning")?.GetComponent<Button>();
             var skipButton = surface?.Find("BtnOnboardingSkip")?.GetComponent<Button>();
-            var cardRow = surface?.Find("CardRow") as RectTransform;
 
             if (screenBg == null
                 || modalRoot == null
                 || surface == null
-                || cardRow == null
                 || headline == null
                 || body == null
                 || beginnerButton == null
@@ -78,170 +76,8 @@ namespace KineTutor3D.UI
                 return false;
             }
 
-            NormalizeExistingShell(canvasRoot, screenBg, modalRoot, surface, cardRow, body, beginnerButton, startLearningButton, skipButton);
-
-            var bodyLabel = body;
-            bodyLabel.text = "어떤 수준에서 시작할까요?";
-
-            headline.text = "KineTutor3D";
-            headline.gameObject.SetActive(false);
-
-            var skipLabel = skipButton.transform.Find("Label")?.GetComponent<Text>();
-            if (skipLabel != null)
-            {
-                skipLabel.color = UIDesignTokens.Colors.TextMuted;
-            }
-
-            screenBg.SetAsFirstSibling();
-            modalRoot.SetAsLastSibling();
-
             refs = new OnboardingViewRefs(canvasRoot, modalRoot, headline, body, beginnerButton, startLearningButton, skipButton);
             return true;
-        }
-
-        private static void NormalizeExistingShell(
-            RectTransform canvasRoot,
-            RectTransform screenBg,
-            RectTransform modalRoot,
-            RectTransform surface,
-            RectTransform cardRow,
-            Text body,
-            Button beginnerButton,
-            Button startLearningButton,
-            Button skipButton)
-        {
-            UiRuntimeStyle.Stretch(screenBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            UiRuntimeStyle.Anchor(modalRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), ModalSize, Vector2.zero);
-            UiRuntimeStyle.Stretch(surface, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-            var surfaceBg = surface.Find("Bg");
-            if (surfaceBg != null)
-            {
-                ((RectTransform)surfaceBg).SetAsFirstSibling();
-                UiRuntimeStyle.Stretch((RectTransform)surfaceBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            }
-
-            UiRuntimeStyle.Anchor(body.rectTransform,
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(540f, 40f), new Vector2(0f, -56f));
-
-            var hstack = cardRow.GetComponent<HorizontalLayoutGroup>() ?? cardRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-            hstack.spacing = CardSpacing;
-            hstack.childAlignment = TextAnchor.MiddleCenter;
-            hstack.childControlWidth = false;
-            hstack.childControlHeight = false;
-            hstack.childForceExpandWidth = false;
-            hstack.childForceExpandHeight = false;
-
-            UiRuntimeStyle.Anchor(cardRow,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(620f, 240f), new Vector2(0f, -10f));
-
-            NormalizeExistingCard(beginnerButton.transform as RectTransform, UIDesignTokens.Colors.AccentSecondary);
-            NormalizeExistingCard(startLearningButton.transform as RectTransform, UIDesignTokens.Colors.AccentPrimary);
-
-            var skipRect = skipButton.transform as RectTransform;
-            if (skipRect != null)
-            {
-                UiRuntimeStyle.Anchor(skipRect,
-                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                    new Vector2(140f, 36f), new Vector2(0f, 16f));
-            }
-
-            screenBg.SetAsFirstSibling();
-            modalRoot.SetAsLastSibling();
-        }
-
-        private static void NormalizeExistingCard(RectTransform cardRect, Color accent)
-        {
-            if (cardRect == null)
-            {
-                return;
-            }
-
-            cardRect.sizeDelta = CardSize;
-            var layout = cardRect.GetComponent<LayoutElement>() ?? cardRect.gameObject.AddComponent<LayoutElement>();
-            layout.minWidth = CardSize.x;
-            layout.minHeight = CardSize.y;
-            layout.preferredWidth = CardSize.x;
-            layout.preferredHeight = CardSize.y;
-            layout.flexibleWidth = 0f;
-            layout.flexibleHeight = 0f;
-
-            var hitArea = cardRect.GetComponent<Image>() ?? cardRect.gameObject.AddComponent<Image>();
-            hitArea.color = Color.clear;
-            hitArea.raycastTarget = true;
-
-            var button = cardRect.GetComponent<Button>();
-            if (button != null)
-            {
-                button.targetGraphic = hitArea;
-                button.colors = UIDesignTokens.ButtonColors(UIDesignTokens.Colors.SurfaceCard);
-            }
-
-            var bg = cardRect.Find("CardBg") as RectTransform;
-            if (bg != null)
-            {
-                UiRuntimeStyle.Stretch(bg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-                var bgImage = bg.Find("Bg") as RectTransform;
-                if (bgImage != null)
-                {
-                    UiRuntimeStyle.Stretch(bgImage, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-                }
-            }
-
-            var stripe = cardRect.Find("AccentStripe") as RectTransform;
-            if (stripe != null)
-            {
-                UiRuntimeStyle.Anchor(stripe,
-                    new Vector2(0f, 1f), new Vector2(1f, 1f),
-                    new Vector2(0f, 4f), Vector2.zero);
-            }
-
-            var stripeBg = stripe?.Find("Stripe") as RectTransform;
-            if (stripeBg != null)
-            {
-                UiRuntimeStyle.Stretch(stripeBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-                var stripeImage = stripeBg.GetComponent<Image>();
-                if (stripeImage != null)
-                {
-                    stripeImage.color = accent;
-                }
-            }
-
-            var icon = cardRect.Find("CardIcon")?.GetComponent<Image>();
-            if (icon != null)
-            {
-                UiRuntimeStyle.Anchor(icon.rectTransform,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    new Vector2(40f, 40f), new Vector2(0f, -UIDesignTokens.Space.Lg));
-                icon.color = accent;
-            }
-
-            var title = cardRect.Find("CardTitle")?.GetComponent<Text>();
-            if (title != null)
-            {
-                UiRuntimeStyle.Anchor(title.rectTransform,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    new Vector2(250f, 30f), new Vector2(0f, -78f));
-            }
-
-            var desc = cardRect.Find("CardDesc")?.GetComponent<Text>();
-            if (desc != null)
-            {
-                UiRuntimeStyle.Anchor(desc.rectTransform,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    new Vector2(240f, 70f), new Vector2(0f, -116f));
-            }
-
-            var hover = cardRect.Find("HoverLabel")?.GetComponent<Text>();
-            if (hover != null)
-            {
-                UiRuntimeStyle.Anchor(hover.rectTransform,
-                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                    new Vector2(200f, 24f), new Vector2(0f, UIDesignTokens.Space.Sm));
-                hover.color = accent;
-            }
         }
 
         public static OnboardingViewRefs Build(RectTransform canvasRoot, Font font)

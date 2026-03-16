@@ -32,6 +32,8 @@ namespace KineTutor3D.Editor
         private const string FairinoPrefabAssetPath = "Assets/Runtime/Resources/Robots/FAIRINO_FR5.prefab";
         private const string FairinoControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab";
         private const string FairinoMaterialAssetPath = "Assets/Runtime/Resources/Robots/FAIRINO_FR5_Preview.mat";
+        private const string SharedUiPrefabFolder = "Assets/Runtime/UI/Prefabs";
+        private const string SceneNavigationBarPrefabPath = "Assets/Runtime/UI/Prefabs/SceneNavigationBar.prefab";
 
         [MenuItem("KineTutor3D/QA: Reset to First-Time User", priority = 100)]
         private static void ResetToFirstTimeUser()
@@ -224,6 +226,130 @@ namespace KineTutor3D.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[QA] RobotControl scene-authored UI를 씬에 생성하고 저장했습니다.");
+        }
+
+        [MenuItem("KineTutor3D/Onboarding/Author Scene UI", priority = 146)]
+        public static void AuthorOnboardingSceneUi()
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.path.EndsWith("Onboarding.unity", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError("[QA] 먼저 Assets/Scenes/Onboarding.unity 씬을 열어주세요.");
+                return;
+            }
+
+            var onboardingManager = Object.FindFirstObjectByType<KineTutor3D.UI.OnboardingManager>(FindObjectsInactive.Include);
+            if (onboardingManager == null)
+            {
+                Debug.LogError("[QA] OnboardingManager를 찾지 못했습니다.");
+                return;
+            }
+
+            var builderType = typeof(KineTutor3D.UI.OnboardingManager).Assembly.GetType("KineTutor3D.UI.OnboardingViewBuilder");
+            if (builderType == null)
+            {
+                Debug.LogError("[QA] OnboardingViewBuilder 타입을 찾지 못했습니다.");
+                return;
+            }
+
+            var build = builderType.GetMethod("Build", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (build == null)
+            {
+                Debug.LogError("[QA] OnboardingViewBuilder.Build 메서드를 찾지 못했습니다.");
+                return;
+            }
+
+            build.Invoke(null, new object[] { onboardingManager.transform as RectTransform, null });
+            EditorUtility.SetDirty(onboardingManager);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[QA] Onboarding scene-authored UI를 씬에 정리하고 저장했습니다.");
+        }
+
+        [MenuItem("KineTutor3D/Home/Author Scene UI", priority = 147)]
+        public static void AuthorHomeSceneUi()
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.path.EndsWith("Home.unity", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError("[QA] 먼저 Assets/Scenes/Home.unity 씬을 열어주세요.");
+                return;
+            }
+
+            var controller = Object.FindFirstObjectByType<KineTutor3D.UI.HomeContinueHubController>(FindObjectsInactive.Include);
+            if (controller == null)
+            {
+                Debug.LogError("[QA] HomeContinueHubController를 찾지 못했습니다.");
+                return;
+            }
+
+            var builderType = typeof(KineTutor3D.UI.HomeContinueHubController).Assembly.GetType("KineTutor3D.UI.HomeContinueHubViewBuilder");
+            if (builderType == null)
+            {
+                Debug.LogError("[QA] HomeContinueHubViewBuilder 타입을 찾지 못했습니다.");
+                return;
+            }
+
+            var ensureCanvas = builderType.GetMethod("EnsureCanvas", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var ensureEventSystem = builderType.GetMethod("EnsureEventSystem", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var build = builderType.GetMethod("Build", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (ensureCanvas == null || ensureEventSystem == null || build == null)
+            {
+                Debug.LogError("[QA] HomeContinueHubViewBuilder 메서드를 찾지 못했습니다.");
+                return;
+            }
+
+            var canvas = ensureCanvas.Invoke(null, new object[] { null }) as Canvas;
+            ensureEventSystem.Invoke(null, null);
+            build.Invoke(null, new object[] { canvas, null, null, null, null, null, null });
+
+            var sceneNavigationBar = Object.FindFirstObjectByType<KineTutor3D.UI.SceneNavigationBar>(FindObjectsInactive.Include);
+            if (sceneNavigationBar != null)
+            {
+                InvokePrivate(sceneNavigationBar, "EnsurePresentation");
+                EditorUtility.SetDirty(sceneNavigationBar);
+            }
+
+            EditorUtility.SetDirty(controller);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[QA] Home scene-authored UI를 씬에 정리하고 저장했습니다.");
+        }
+
+        [MenuItem("KineTutor3D/UI/Author Shared SceneNavigationBar Prefab", priority = 148)]
+        public static void AuthorSharedSceneNavigationBarPrefab()
+        {
+            EnsureFolder("Assets/Runtime");
+            EnsureFolder("Assets/Runtime/UI");
+            EnsureFolder(SharedUiPrefabFolder);
+
+            var tempRoot = new GameObject("SceneNavigationBar", typeof(RectTransform));
+            try
+            {
+                var navBar = tempRoot.AddComponent<KineTutor3D.UI.SceneNavigationBar>();
+                InvokePrivate(navBar, "EnsurePresentation");
+
+                var prefab = PrefabUtility.SaveAsPrefabAsset(tempRoot, SceneNavigationBarPrefabPath, out var success);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                if (!success || prefab == null)
+                {
+                    Debug.LogError($"[QA] SceneNavigationBar prefab save failed at '{SceneNavigationBarPrefabPath}'.");
+                    return;
+                }
+
+                Debug.Log($"[QA] Shared SceneNavigationBar prefab authored at '{SceneNavigationBarPrefabPath}'.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(tempRoot);
+            }
         }
 
         private static void ClearQaState()

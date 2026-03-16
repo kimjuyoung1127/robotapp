@@ -54,12 +54,12 @@ namespace KineTutor3D.UI
                 return false;
             }
 
-            var contextText = FindText(root, "ContextSummary");
-            var continueButton = FindButton(root, "BtnContinueLatestContext");
-            var startGuidedLessonButton = FindButton(root, "BtnStartGuidedLesson");
-            var startMathReadinessButton = FindButton(root, "BtnStartMathReadiness");
-            var openRobotLibraryButton = FindButton(root, "BtnOpenRobotLibrary");
-            var openSandboxButton = FindButton(root, "BtnOpenSandbox");
+            var contextText = FindTextDeep(root, "ContextSummary");
+            var continueButton = FindButtonDeep(root, "BtnContinueLatestContext");
+            var startGuidedLessonButton = FindButtonDeep(root, "BtnStartGuidedLesson");
+            var startMathReadinessButton = FindButtonDeep(root, "BtnStartMathReadiness");
+            var openRobotLibraryButton = FindButtonDeep(root, "BtnOpenRobotLibrary");
+            var openSandboxButton = FindButtonDeep(root, "BtnOpenSandbox");
 
             if (contextText == null || continueButton == null || startGuidedLessonButton == null ||
                 startMathReadinessButton == null || openRobotLibraryButton == null || openSandboxButton == null)
@@ -160,22 +160,47 @@ namespace KineTutor3D.UI
                 root,
                 contextText,
                 continueButton,
-                FindButton(root, "BtnStartGuidedLesson"),
-                FindButton(root, "BtnStartMathReadiness"),
-                FindButton(root, "BtnOpenRobotLibrary"),
-                FindButton(root, "BtnOpenSandbox"));
+                FindButtonDeep(root, "BtnStartGuidedLesson"),
+                FindButtonDeep(root, "BtnStartMathReadiness"),
+                FindButtonDeep(root, "BtnOpenRobotLibrary"),
+                FindButtonDeep(root, "BtnOpenSandbox"));
         }
 
-        private static Button FindButton(Transform parent, string name)
+        private static Button FindButtonDeep(Transform parent, string name)
         {
-            var target = parent.Find(name);
+            var target = FindDeepChild(parent, name);
             return target != null ? target.GetComponent<Button>() : null;
         }
 
-        private static Text FindText(Transform parent, string name)
+        private static Text FindTextDeep(Transform parent, string name)
         {
-            var target = parent.Find(name);
+            var target = FindDeepChild(parent, name);
             return target != null ? target.GetComponent<Text>() : null;
+        }
+
+        private static Transform FindDeepChild(Transform parent, string name)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            var direct = parent.Find(name);
+            if (direct != null)
+            {
+                return direct;
+            }
+
+            for (var i = 0; i < parent.childCount; i++)
+            {
+                var found = FindDeepChild(parent.GetChild(i), name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
 
         private static Button CreateButton(

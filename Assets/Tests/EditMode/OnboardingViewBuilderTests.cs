@@ -97,5 +97,22 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(reboundRefs.StartLearningButton, Is.SameAs(builtRefs.StartLearningButton));
             Assert.That(reboundRefs.SkipButton, Is.SameAs(builtRefs.SkipButton));
         }
+
+        [Test]
+        public void TryBindExisting_PreservesAuthoredLayoutChanges()
+        {
+            var refs = OnboardingViewBuilder.Build(canvasRoot, null);
+
+            refs.ModalRoot.anchoredPosition = new Vector2(123f, -45f);
+            refs.BodyText.rectTransform.anchoredPosition = new Vector2(77f, -88f);
+            refs.BodyText.text = "커스텀 문구";
+
+            var bound = OnboardingViewBuilder.TryBindExisting(canvasRoot, null, out var reboundRefs);
+
+            Assert.That(bound, Is.True);
+            Assert.That(reboundRefs.ModalRoot.anchoredPosition, Is.EqualTo(new Vector2(123f, -45f)));
+            Assert.That(reboundRefs.BodyText.rectTransform.anchoredPosition, Is.EqualTo(new Vector2(77f, -88f)));
+            Assert.That(reboundRefs.BodyText.text, Is.EqualTo("커스텀 문구"));
+        }
     }
 }
