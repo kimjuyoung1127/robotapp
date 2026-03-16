@@ -325,6 +325,64 @@ LearningTabs JSON 파일의 구조 검증 (robotId, displayTitle, tabs 배열) +
 
 ---
 
+## MCP → CLI 자동 전환 파이프라인
+
+MCP 도구 사용 패턴을 자동 수집하고, 반복 패턴을 CLI 도구로 전환하는 3단계 파이프라인:
+
+```
+MCP 호출 → Hook 로깅 → Gap 분석 → Scaffold 생성 → 구현 → CLI 도구
+```
+
+### 구성 요소
+
+| 컴포넌트 | 파일 | 역할 |
+|---------|------|------|
+| MCP Fallback Logger | `.claude/hooks/mcp-fallback-logger.sh` | PreToolUse/PostToolUse 훅으로 MCP 호출을 `logs/mcp-usage.jsonl`에 기록 |
+| Known CLI Tools | `.claude/known-cli-tools.txt` | 기존 CLI 도구 목록 (Hook이 중복 사용 감지에 활용) |
+| CLI Gap Analyzer | `scripts/cli-gap-analyzer.sh` | MCP 로그를 분석해 빈도, 파라미터 패턴, 대체 후보 리포트 생성 |
+| CLI Tool Scaffold | `scripts/cli-tool-scaffold.sh` | Gap 후보를 `[UnityCliTool]` 보일러플레이트로 자동 생성 |
+
+### 워크플로우
+
+```bash
+# 1. MCP 사용 후 gap 확인
+./scripts/cli-gap-analyzer.sh              # 마크다운 리포트
+./scripts/cli-gap-analyzer.sh --json       # JSON (자동화용)
+./scripts/cli-gap-analyzer.sh --top 3      # 상위 3개만
+
+# 2. 후보 목록 확인
+./scripts/cli-tool-scaffold.sh --list-gaps
+
+# 3. 일괄 스캐폴드 생성
+./scripts/cli-tool-scaffold.sh --from-gap
+
+# 4. 단일 도구 생성
+./scripts/cli-tool-scaffold.sh mesh-inspect --desc "메시 버텍스/폴리곤 수 검사"
+
+# 5. 미리보기 (파일 미생성)
+./scripts/cli-tool-scaffold.sh --dry-run mesh-inspect --desc "메시 버텍스/폴리곤 수 검사"
+```
+
+### 로그 형식 (mcp-usage.jsonl)
+
+```json
+{
+  "timestamp": "2026-03-16T10:00:00Z",
+  "event": "PreToolUse",
+  "tool": "mcp__unity__get_component",
+  "server": "unity",
+  "operation": "get_component",
+  "param_keys": ["gameObject", "component"],
+  "session_id": "abc123",
+  "cli_substitute": "none"
+}
+```
+
+- `cli_substitute: "none"` → Gap (CLI 대체 도구 없음)
+- `cli_substitute: "scene-hierarchy"` → 중복 사용 (CLI 존재하나 MCP 사용)
+
+---
+
 ## 새 도구 추가 가이드
 
 ### 1. 파일 생성
