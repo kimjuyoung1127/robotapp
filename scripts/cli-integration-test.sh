@@ -59,6 +59,11 @@ run_test "joint-limit 2DOF"     unity-cli joint-limit --template 2DOF_RR
 run_test "build-settings"       unity-cli build-settings
 run_test "canvas-validate"      unity-cli canvas-validate
 run_test "asmdef-validate"      unity-cli asmdef-validate
+run_test "playerprefs-inspect" unity-cli playerprefs-inspect
+run_test "resource-validate"   unity-cli resource-validate
+run_test "session-context"     unity-cli session-context
+run_test "tutorstep-validate"  unity-cli tutorstep-validate
+run_test "glossary-validate"   unity-cli glossary-validate
 
 echo ""
 echo "═══════════════════════════════════════════"

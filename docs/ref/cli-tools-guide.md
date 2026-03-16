@@ -44,6 +44,11 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 | BuildSettingsTool | `unity-cli build-settings` | Build Settings 씬 목록 검증 |
 | CanvasValidateTool | `unity-cli canvas-validate` | Canvas UI 무결성 검사 |
 | AsmdefValidateTool | `unity-cli asmdef-validate` | Assembly Definition 참조 검증 |
+| PlayerPrefsInspectTool | `unity-cli playerprefs-inspect` | PlayerPrefs 키/값 조회 |
+| ResourceValidateTool | `unity-cli resource-validate` | Resources 폴더 무결성 검증 |
+| SessionContextTool | `unity-cli session-context` | 세션 컨텍스트/진행 상태 조회 |
+| TutorStepValidateTool | `unity-cli tutorstep-validate` | TutorStep 에셋(S01~S08) 검증 |
+| GlossaryValidateTool | `unity-cli glossary-validate` | Glossary 데이터베이스 검증 |
 
 ---
 
@@ -165,6 +170,58 @@ unity-cli asmdef-validate
 - 존재하지 않는 참조 이름 탐지
 - 순환 참조 탐지 (DFS)
 
+### PlayerPrefsInspectTool
+
+```bash
+unity-cli playerprefs-inspect
+```
+
+파라미터 없음. KineTutor3D 관련 9개 PlayerPrefs 키를 조회:
+- `HasVisited`, `CurrentTrack`, `SelectedRobotId`, `SelectedMode`
+- `SessionContextJson` (JSON 파싱 포함)
+- 3개 트랙별 `LastCompletedStep`, `ReducedMotion`
+
+### ResourceValidateTool
+
+```bash
+unity-cli resource-validate
+```
+
+파라미터 없음. `Assets/Runtime/Resources/` 하위 5개 섹션 검증:
+- TutorSteps (S01~S08)
+- LearningTabs (6개 로봇 JSON)
+- Robot Prefabs (5개)
+- Glossary (DB + 용어 에셋)
+- Onboarding 설정
+
+### SessionContextTool
+
+```bash
+unity-cli session-context
+```
+
+파라미터 없음. 현재 세션 상태 종합 조회:
+- 사용자 상태 (visited, track, robot, mode)
+- 트랙별 진행도 (math/pre-kin/core step)
+- 세션 JSON 파싱 결과
+- 예상 다음 씬 추론
+
+### TutorStepValidateTool
+
+```bash
+unity-cli tutorstep-validate
+```
+
+파라미터 없음. TutorStep 에셋 S01~S08의 존재 + 필드 무결성 검증 (title, description 리플렉션).
+
+### GlossaryValidateTool
+
+```bash
+unity-cli glossary-validate
+```
+
+파라미터 없음. GlossaryDatabase + 용어 에셋 검증 (term/definition 리플렉션, DB 내부 참조 카운트).
+
 ---
 
 ## 스크립트
@@ -177,7 +234,7 @@ unity-cli asmdef-validate
 ```
 
 ### `scripts/cli-integration-test.sh`
-17개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 10). Unity Editor 실행 상태 필요.
+22개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 15). Unity Editor 실행 상태 필요.
 
 ```bash
 ./scripts/cli-integration-test.sh
@@ -254,20 +311,25 @@ namespace KineTutor3D.Editor.CliTools
 
 ```
 Assets/Editor/KineTutor3D/CliTools/
-├── AsmdefValidateTool.cs      (Tier 3)
-├── BuildSettingsTool.cs       (Tier 3)
-├── CanvasValidateTool.cs      (Tier 3)
-├── CompileCheckTool.cs        (Tier 1)
-├── ComponentInspectTool.cs    (Tier 2)
-├── ConsoleCheckTool.cs        (Tier 1)
-├── DhTableTool.cs             (Tier 3)
-├── FkComputeTool.cs           (Tier 3)
-├── JointLimitTool.cs          (Tier 3)
-├── PrefabValidateTool.cs      (Tier 2)
-├── QaPrepTool.cs              (Tier 3)
-├── RobotCatalogTool.cs        (Tier 3)
-├── RunTestsTool.cs            (Tier 1)
-├── SceneHierarchyTool.cs      (Tier 2)
-├── SceneValidateTool.cs       (Tier 1)
-└── TemplateResolver.cs        (공용 헬퍼)
+├── AsmdefValidateTool.cs       (Tier 3)
+├── BuildSettingsTool.cs        (Tier 3)
+├── CanvasValidateTool.cs       (Tier 3)
+├── CompileCheckTool.cs         (Tier 1)
+├── ComponentInspectTool.cs     (Tier 2)
+├── ConsoleCheckTool.cs         (Tier 1)
+├── DhTableTool.cs              (Tier 3)
+├── FkComputeTool.cs            (Tier 3)
+├── GlossaryValidateTool.cs     (Tier 3)
+├── JointLimitTool.cs           (Tier 3)
+├── PlayerPrefsInspectTool.cs   (Tier 3)
+├── PrefabValidateTool.cs       (Tier 2)
+├── QaPrepTool.cs               (Tier 3)
+├── ResourceValidateTool.cs     (Tier 3)
+├── RobotCatalogTool.cs         (Tier 3)
+├── RunTestsTool.cs             (Tier 1)
+├── SceneHierarchyTool.cs       (Tier 2)
+├── SceneValidateTool.cs        (Tier 1)
+├── SessionContextTool.cs       (Tier 3)
+├── TemplateResolver.cs         (공용 헬퍼)
+└── TutorStepValidateTool.cs    (Tier 3)
 ```

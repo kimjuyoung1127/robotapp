@@ -237,6 +237,101 @@ namespace KineTutor3D.Tests.EditMode.CliTools
             Assert.IsNull(template, "존재하지 않는 템플릿은 null을 반환해야 합니다.");
         }
 
+        // ── PlayerPrefsInspectTool 의존 로직 ──
+
+        [Test]
+        public void PlayerPrefs_KnownKeys_AreAccessible()
+        {
+            string[] knownKeys =
+            {
+                "KineTutor3D.HasVisited",
+                "KineTutor3D.CurrentTrack",
+                "KineTutor3D.SelectedRobotId",
+                "KineTutor3D.SelectedMode",
+                "KineTutor3D.SessionContextJson",
+                "KineTutor3D.MathReadiness.LastCompletedStep",
+                "KineTutor3D.PreKinematics.LastCompletedStep",
+                "KineTutor3D.CoreKinematics.LastCompletedStep",
+                "KineTutor3D.ReducedMotion"
+            };
+            Assert.AreEqual(9, knownKeys.Length, "알려진 PlayerPrefs 키는 9개여야 합니다.");
+            Assert.DoesNotThrow(() =>
+            {
+                foreach (string key in knownKeys)
+                    UnityEngine.PlayerPrefs.HasKey(key);
+            });
+        }
+
+        // ── ResourceValidateTool 의존 로직 ──
+
+        [Test]
+        public void Resources_TutorSteps_AllExist()
+        {
+            string[] steps = { "S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08" };
+            foreach (string step in steps)
+            {
+                string path = $"Assets/Runtime/Resources/TutorSteps/{step}.asset";
+                bool exists = System.IO.File.Exists(
+                    System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", path));
+                Assert.IsTrue(exists, $"TutorStep 에셋이 존재해야 합니다: {path}");
+            }
+        }
+
+        [Test]
+        public void Resources_LearningTabs_AllExist()
+        {
+            string[] tabs = { "2DOF_RR", "SCARA_RV", "FAIRINO_FR5", "FANUC_CRX10", "IGUS_REBEL", "GENERIC_6DOF" };
+            foreach (string tab in tabs)
+            {
+                string path = $"Assets/Runtime/Resources/LearningTabs/{tab}.json";
+                bool exists = System.IO.File.Exists(
+                    System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", path));
+                Assert.IsTrue(exists, $"LearningTabs JSON이 존재해야 합니다: {path}");
+            }
+        }
+
+        [Test]
+        public void Resources_GlossaryDatabase_Exists()
+        {
+            string path = "Assets/Runtime/Resources/Glossary/GlossaryDatabase.asset";
+            bool exists = System.IO.File.Exists(
+                System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", path));
+            Assert.IsTrue(exists, "GlossaryDatabase.asset가 존재해야 합니다.");
+        }
+
+        [Test]
+        public void Resources_Glossary_HasMinimumTerms()
+        {
+            string dir = System.IO.Path.Combine(UnityEngine.Application.dataPath, "Runtime", "Resources", "Glossary");
+            int termCount = 0;
+            if (System.IO.Directory.Exists(dir))
+            {
+                foreach (string file in System.IO.Directory.GetFiles(dir, "*.asset"))
+                {
+                    if (!System.IO.Path.GetFileName(file).StartsWith("GlossaryDatabase"))
+                        termCount++;
+                }
+            }
+            Assert.GreaterOrEqual(termCount, 10, "Glossary 용어는 최소 10개 이상이어야 합니다.");
+        }
+
+        // ── SessionContextTool 의존 로직 ──
+
+        [Test]
+        public void SessionContext_WriteAndRead_RoundTrips()
+        {
+            string testKey = "KineTutor3D.Test.SessionContextRoundTrip";
+            string json = "{\"RobotId\":\"2DOF_RR\",\"EntryMode\":\"sandbox\",\"Track\":\"core_kinematics\",\"Step\":3}";
+            Assert.DoesNotThrow(() =>
+            {
+                UnityEngine.PlayerPrefs.SetString(testKey, json);
+                string loaded = UnityEngine.PlayerPrefs.GetString(testKey, "");
+                Assert.AreEqual(json, loaded, "세션 컨텍스트 JSON 라운드트립이 일치해야 합니다.");
+                UnityEngine.PlayerPrefs.DeleteKey(testKey);
+                UnityEngine.PlayerPrefs.Save();
+            });
+        }
+
         // ── QaPrepTool 의존 로직 ──
 
         [Test]
