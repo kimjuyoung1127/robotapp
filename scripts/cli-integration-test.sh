@@ -1,0 +1,65 @@
+#!/bin/bash
+# ──────────────────────────────────────────────────────────────
+# unity-cli 커스텀 도구 통합 테스트
+# 전제: Unity Editor가 열려있고 unity-cli connector가 활성화된 상태
+# 사용법: ./scripts/cli-integration-test.sh
+# ──────────────────────────────────────────────────────────────
+set -euo pipefail
+
+PASS=0
+FAIL=0
+TOTAL=0
+
+run_test() {
+    local name="$1"
+    shift
+    TOTAL=$((TOTAL + 1))
+    echo -n "  [$TOTAL] $name ... "
+    if output=$("$@" 2>&1); then
+        echo "PASS"
+        PASS=$((PASS + 1))
+    else
+        echo "FAIL"
+        echo "    Output: $output"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+echo "═══════════════════════════════════════════"
+echo "  unity-cli Custom Tool Integration Tests"
+echo "═══════════════════════════════════════════"
+echo ""
+
+# Tier 1: CI/QA Essentials
+echo "── Tier 1: CI/QA Essentials ──"
+run_test "compile-check"        unity-cli compile-check
+run_test "console-check error"  unity-cli console-check --type error
+run_test "console-check all"    unity-cli console-check --type all
+run_test "scene-validate Boot"  unity-cli scene-validate --name Boot
+run_test "scene-validate all"   unity-cli scene-validate --name all
+
+echo ""
+
+# Tier 2: MCP Replacement
+echo "── Tier 2: MCP Replacement ──"
+run_test "scene-hierarchy"      unity-cli scene-hierarchy --depth 2
+run_test "prefab-validate FR5"  unity-cli prefab-validate --path "Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab"
+
+echo ""
+
+# Tier 3: KineTutor3D Specific
+echo "── Tier 3: KineTutor3D Specific ──"
+run_test "robot-catalog"        unity-cli robot-catalog
+run_test "fk-compute 2DOF"      unity-cli fk-compute --template 2DOF_RR --joints "45,30"
+run_test "fk-compute FR5"       unity-cli fk-compute --template FR5 --joints "0,-45,0,-59,-92,-42"
+run_test "qa-prep first-time"   unity-cli qa-prep --scenario first-time
+run_test "qa-prep returning"    unity-cli qa-prep --scenario returning
+
+echo ""
+echo "═══════════════════════════════════════════"
+echo "  Results: $PASS passed, $FAIL failed, $TOTAL total"
+echo "═══════════════════════════════════════════"
+
+if [ "$FAIL" -gt 0 ]; then
+    exit 1
+fi
