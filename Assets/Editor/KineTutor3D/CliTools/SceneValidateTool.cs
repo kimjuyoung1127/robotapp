@@ -32,6 +32,7 @@ namespace KineTutor3D.Editor.CliTools
         {
             var p = new ToolParams(@params);
             string name = p.Get("name", "all");
+            bool verbose = p.GetBool("verbose", false);
 
             string currentScene = SceneManager.GetActiveScene().path;
             var results = new List<object>();
@@ -60,10 +61,11 @@ namespace KineTutor3D.Editor.CliTools
                 {
                     var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
                     int missing = 0;
+                    var missingPaths = verbose ? new List<string>() : null;
 
                     foreach (var go in scene.GetRootGameObjects())
                     {
-                        missing += CountMissingScriptsRecursive(go);
+                        missing += CountMissingScriptsRecursive(go, missingPaths);
                     }
 
                     totalMissing += missing;
@@ -71,7 +73,8 @@ namespace KineTutor3D.Editor.CliTools
                     {
                         name = sceneName,
                         valid = missing == 0,
-                        missing_scripts = missing
+                        missing_scripts = missing,
+                        missing_script_paths = verbose && missingPaths.Count > 0 ? missingPaths : null
                     });
                 }
                 catch (Exception ex)
@@ -92,14 +95,29 @@ namespace KineTutor3D.Editor.CliTools
                 new { all_valid = allValid, total_missing = totalMissing, scenes = results });
         }
 
-        private static int CountMissingScriptsRecursive(GameObject go)
+        private static int CountMissingScriptsRecursive(GameObject go, List<string> missingPaths = null)
         {
             int count = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go);
+            if (count > 0 && missingPaths != null)
+                missingPaths.Add(GetFullPath(go));
+
             for (int i = 0; i < go.transform.childCount; i++)
             {
-                count += CountMissingScriptsRecursive(go.transform.GetChild(i).gameObject);
+                count += CountMissingScriptsRecursive(go.transform.GetChild(i).gameObject, missingPaths);
             }
             return count;
+        }
+
+        private static string GetFullPath(GameObject go)
+        {
+            string path = go.name;
+            Transform parent = go.transform.parent;
+            while (parent != null)
+            {
+                path = parent.name + "/" + path;
+                parent = parent.parent;
+            }
+            return path;
         }
     }
 }

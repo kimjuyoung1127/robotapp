@@ -54,6 +54,11 @@ run_test "fk-compute 2DOF"      unity-cli fk-compute --template 2DOF_RR --joints
 run_test "fk-compute FR5"       unity-cli fk-compute --template FR5 --joints "0,-45,0,-59,-92,-42"
 run_test "qa-prep first-time"   unity-cli qa-prep --scenario first-time
 run_test "qa-prep returning"    unity-cli qa-prep --scenario returning
+run_test "dh-table FR5"         unity-cli dh-table --template FR5
+run_test "joint-limit 2DOF"     unity-cli joint-limit --template 2DOF_RR
+run_test "build-settings"       unity-cli build-settings
+run_test "canvas-validate"      unity-cli canvas-validate
+run_test "asmdef-validate"      unity-cli asmdef-validate
 
 echo ""
 echo "═══════════════════════════════════════════"

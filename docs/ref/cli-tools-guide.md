@@ -1,0 +1,273 @@
+# unity-cli 커스텀 도구 가이드
+
+KineTutor3D 프로젝트의 unity-cli 커스텀 도구 카탈로그, 사용법, 개발 가이드.
+
+## 개요
+
+unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해 컴파일 확인, 씬 검증, 로봇 기구학 계산 등을 자동화합니다. MCP 디버깅 기능의 약 80%를 대체할 수 있습니다.
+
+**전제조건:**
+- Unity Editor 실행 중
+- `com.youngwoocho02.unity-cli-connector` 패키지 활성화
+- `unity-cli` Go 바이너리 PATH에 설치
+
+---
+
+## 도구 카탈로그 (15개)
+
+### Tier 1: CI/QA 필수
+
+| 도구 | 명령어 | 설명 |
+|------|--------|------|
+| CompileCheckTool | `unity-cli compile-check` | 컴파일 에러/경고 카운트 |
+| ConsoleCheckTool | `unity-cli console-check --type error` | 콘솔 로그 조회 (error/warn/all) |
+| SceneValidateTool | `unity-cli scene-validate --name all` | 씬 missing script 검사 |
+| RunTestsTool | `unity-cli run-tests --mode edit` | EditMode/PlayMode 테스트 실행 |
+
+### Tier 2: MCP 대체
+
+| 도구 | 명령어 | 설명 |
+|------|--------|------|
+| SceneHierarchyTool | `unity-cli scene-hierarchy --depth 3` | 씬 GameObject 트리 |
+| ComponentInspectTool | `unity-cli component-inspect --path "Canvas"` | 컴포넌트 속성 조회 |
+| PrefabValidateTool | `unity-cli prefab-validate --path "Assets/..."` | 프리팹 무결성 검증 |
+
+### Tier 3: KineTutor3D 전용
+
+| 도구 | 명령어 | 설명 |
+|------|--------|------|
+| RobotCatalogTool | `unity-cli robot-catalog` | 로봇 카탈로그 전체 목록 |
+| FkComputeTool | `unity-cli fk-compute --template FR5 --joints "0,-45,0,-59,-92,-42"` | FK 계산 |
+| QaPrepTool | `unity-cli qa-prep --scenario first-time` | QA 시나리오 PlayerPrefs 설정 |
+| DhTableTool | `unity-cli dh-table --template FR5` | DH 파라미터 테이블 덤프 |
+| JointLimitTool | `unity-cli joint-limit --template 2DOF_RR` | 관절 제한 범위 조회 |
+| BuildSettingsTool | `unity-cli build-settings` | Build Settings 씬 목록 검증 |
+| CanvasValidateTool | `unity-cli canvas-validate` | Canvas UI 무결성 검사 |
+| AsmdefValidateTool | `unity-cli asmdef-validate` | Assembly Definition 참조 검증 |
+
+---
+
+## 파라미터 레퍼런스
+
+### 공통 파라미터
+
+| 파라미터 | 타입 | 설명 |
+|----------|------|------|
+| `--verbose` | bool | 상세 출력 모드 (CompileCheck, ConsoleCheck, SceneValidate, RunTests) |
+
+### CompileCheckTool
+
+```bash
+unity-cli compile-check
+unity-cli compile-check --verbose true
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| verbose | N | false | true 시 경고 메시지 상세 포함 |
+
+### ConsoleCheckTool
+
+```bash
+unity-cli console-check --type error
+unity-cli console-check --type all --lines 100 --verbose true
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| type | N | error | 필터: error, warn, all |
+| lines | N | 50 | 최대 반환 항목 수 |
+| verbose | N | false | true 시 stackTrace 포함 |
+
+### SceneValidateTool
+
+```bash
+unity-cli scene-validate --name all
+unity-cli scene-validate --name RobotControl --verbose true
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| name | N | all | 씬 이름 또는 'all' |
+| verbose | N | false | true 시 missing script GameObject 경로 상세 |
+
+### RunTestsTool
+
+```bash
+unity-cli run-tests --mode edit
+unity-cli run-tests --results true --verbose true
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| mode | N | edit | edit 또는 play |
+| filter | N | - | 테스트 이름 필터 |
+| results | N | false | 이전 실행 결과 조회 |
+| verbose | N | false | true 시 전체 테스트 이름 포함 |
+
+### FkComputeTool
+
+```bash
+unity-cli fk-compute --template FR5 --joints "0,-45,0,-59,-92,-42"
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| template | N | 2DOF_RR | 로봇 템플릿 이름 |
+| joints | **Y** | - | 쉼표 구분 관절 각도 (도) |
+
+### DhTableTool
+
+```bash
+unity-cli dh-table --template SCARA_RV
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| template | N | 2DOF_RR | 로봇 템플릿 이름 |
+
+### JointLimitTool
+
+```bash
+unity-cli joint-limit --template FR5
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| template | N | 2DOF_RR | 로봇 템플릿 이름 |
+
+### BuildSettingsTool
+
+```bash
+unity-cli build-settings
+```
+
+파라미터 없음. 8개 known scene(Boot, Onboarding, Home, Main, MathReadiness, RobotLibrary, Sandbox, RobotControl) 대비 검증.
+
+### CanvasValidateTool
+
+```bash
+unity-cli canvas-validate
+```
+
+파라미터 없음. 현재 씬의 Canvas 검사:
+- EventSystem 존재 여부
+- GraphicRaycaster 부착 여부
+- sortingOrder 중복
+
+### AsmdefValidateTool
+
+```bash
+unity-cli asmdef-validate
+```
+
+파라미터 없음. 프로젝트 전체 asmdef 검증:
+- 존재하지 않는 참조 이름 탐지
+- 순환 참조 탐지 (DFS)
+
+---
+
+## 스크립트
+
+### `scripts/validate.sh`
+전체 검증 파이프라인: dotnet build → compile-check → pre-commit-check → EditMode tests
+
+```bash
+./scripts/validate.sh
+```
+
+### `scripts/cli-integration-test.sh`
+17개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 10). Unity Editor 실행 상태 필요.
+
+```bash
+./scripts/cli-integration-test.sh
+```
+
+---
+
+## MCP → CLI 대체 매핑
+
+| MCP 기능 | CLI 대체 도구 | Tier |
+|----------|-------------|------|
+| `read_console` | console-check | 1 |
+| `run_tests` | run-tests | 1 |
+| `find_gameobjects` | scene-hierarchy | 2 |
+| 컴포넌트 상태 조회 | component-inspect | 2 |
+| `manage_prefabs` (읽기) | prefab-validate | 2 |
+| `manage_scene` (읽기) | scene-validate | 1 |
+| `refresh_unity` | 내장 `refresh` | 기존 |
+| `execute_menu_item` | 내장 `menu` | 기존 |
+| `manage_editor` | 내장 `play/pause` | 기존 |
+
+---
+
+## 새 도구 추가 가이드
+
+### 1. 파일 생성
+
+위치: `Assets/Editor/KineTutor3D/CliTools/{ToolName}Tool.cs`
+
+```csharp
+// Folder: Editor/CliTools - unity-cli 커스텀 도구: {설명}
+using Newtonsoft.Json.Linq;
+using UnityCliConnector;
+
+namespace KineTutor3D.Editor.CliTools
+{
+    /// <summary>
+    /// {한국어 설명}
+    /// </summary>
+    [UnityCliTool(Description = "{영문 설명}")]
+    public static class {ToolName}Tool
+    {
+        public static object HandleCommand(JObject @params)
+        {
+            var p = new ToolParams(@params);
+            // 구현
+            return new SuccessResponse("메시지", new { data });
+        }
+    }
+}
+```
+
+### 2. 코딩 규칙 (code-patterns.md §8-9)
+
+- UTF-8 with BOM 인코딩
+- 1행: `// Folder: Editor/CliTools - unity-cli 커스텀 도구: {설명}`
+- XML doc summary 한국어
+- private 필드 camelCase (접두사 없음)
+- 수치 입력: NaN/Infinity 가드 필수
+
+### 3. 테스트 추가
+
+- EditMode: `Assets/Tests/EditMode/CliTools/CliToolsCoreLogicTests.cs`에 코어 로직 테스트
+- 통합: `scripts/cli-integration-test.sh`에 CLI 호출 테스트 항목 추가
+
+### 4. 문서 업데이트
+
+- 이 파일(`docs/ref/cli-tools-guide.md`)에 새 도구 등록
+- `CLAUDE.md` Skill 인덱스에 관련 정보 반영
+
+---
+
+## 파일 구조
+
+```
+Assets/Editor/KineTutor3D/CliTools/
+├── AsmdefValidateTool.cs      (Tier 3)
+├── BuildSettingsTool.cs       (Tier 3)
+├── CanvasValidateTool.cs      (Tier 3)
+├── CompileCheckTool.cs        (Tier 1)
+├── ComponentInspectTool.cs    (Tier 2)
+├── ConsoleCheckTool.cs        (Tier 1)
+├── DhTableTool.cs             (Tier 3)
+├── FkComputeTool.cs           (Tier 3)
+├── JointLimitTool.cs          (Tier 3)
+├── PrefabValidateTool.cs      (Tier 2)
+├── QaPrepTool.cs              (Tier 3)
+├── RobotCatalogTool.cs        (Tier 3)
+├── RunTestsTool.cs            (Tier 1)
+├── SceneHierarchyTool.cs      (Tier 2)
+├── SceneValidateTool.cs       (Tier 1)
+└── TemplateResolver.cs        (공용 헬퍼)
+```

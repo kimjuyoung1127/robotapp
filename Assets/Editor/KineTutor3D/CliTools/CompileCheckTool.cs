@@ -49,6 +49,10 @@ namespace KineTutor3D.Editor.CliTools
             int warnings = 0;
             var errorDetails = new List<string>();
 
+            var p = new ToolParams(@params);
+            bool verbose = p.GetBool("verbose", false);
+            var warningDetails = new List<string>();
+
             foreach (var msg in collectedMessages)
             {
                 if (msg.type == CompilerMessageType.Error)
@@ -59,6 +63,8 @@ namespace KineTutor3D.Editor.CliTools
                 else if (msg.type == CompilerMessageType.Warning)
                 {
                     warnings++;
+                    if (verbose)
+                        warningDetails.Add(msg.message);
                 }
             }
 
@@ -77,7 +83,8 @@ namespace KineTutor3D.Editor.CliTools
                 errors,
                 warnings,
                 assembly_count = assemblies.Length,
-                error_details = errors > 0 ? errorDetails : null
+                error_details = errors > 0 ? errorDetails : null,
+                warning_details = verbose && warningDetails.Count > 0 ? warningDetails : null
             });
         }
     }

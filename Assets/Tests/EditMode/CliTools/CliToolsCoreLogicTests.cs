@@ -115,6 +115,128 @@ namespace KineTutor3D.Tests.EditMode.CliTools
             }
         }
 
+        // ── DhTableTool 의존 로직 ──
+
+        [Test]
+        public void DhTable_2DOF_ReturnsCorrectLinkCount()
+        {
+            var template = Template2DOF_RR.Create();
+            var links = template.GetLinks();
+            Assert.AreEqual(2, links.Length, "2DOF 템플릿은 2개 링크를 가져야 합니다.");
+        }
+
+        [Test]
+        public void DhTable_FR5_AllLinksHaveFiniteValues()
+        {
+            var template = TemplateFAIRINO_FR5.Create();
+            var links = template.GetLinks();
+            foreach (var link in links)
+            {
+                Assert.IsFalse(double.IsNaN(link.Theta), "Theta가 NaN이면 안 됩니다.");
+                Assert.IsFalse(double.IsNaN(link.D), "D가 NaN이면 안 됩니다.");
+                Assert.IsFalse(double.IsNaN(link.A), "A가 NaN이면 안 됩니다.");
+                Assert.IsFalse(double.IsNaN(link.Alpha), "Alpha가 NaN이면 안 됩니다.");
+                Assert.IsFalse(double.IsInfinity(link.Theta), "Theta가 Infinity이면 안 됩니다.");
+                Assert.IsFalse(double.IsInfinity(link.D), "D가 Infinity이면 안 됩니다.");
+                Assert.IsFalse(double.IsInfinity(link.A), "A가 Infinity이면 안 됩니다.");
+                Assert.IsFalse(double.IsInfinity(link.Alpha), "Alpha가 Infinity이면 안 됩니다.");
+            }
+        }
+
+        [Test]
+        public void DhTable_SCARA_ContainsPrismaticJoint()
+        {
+            var template = TemplateSCARA_RV.Create();
+            var links = template.GetLinks();
+            bool hasPrismatic = false;
+            foreach (var link in links)
+            {
+                if (link.JointType == JointType.Prismatic)
+                    hasPrismatic = true;
+            }
+            Assert.IsTrue(hasPrismatic, "SCARA 템플릿에는 Prismatic 관절이 포함되어야 합니다.");
+        }
+
+        // ── JointLimitTool 의존 로직 ──
+
+        [Test]
+        public void JointLimits_2DOF_ReturnsCorrectCount()
+        {
+            var template = Template2DOF_RR.Create();
+            var limits = template.GetJointLimits();
+            Assert.AreEqual(template.Dof, limits.Length, "관절 제한 수는 DOF와 같아야 합니다.");
+        }
+
+        [Test]
+        public void JointLimits_FR5_AllRangesPositive()
+        {
+            var template = TemplateFAIRINO_FR5.Create();
+            var limits = template.GetJointLimits();
+            for (int i = 0; i < limits.Length; i++)
+            {
+                double range = limits[i].Max - limits[i].Min;
+                Assert.Greater(range, 0, $"Joint {i}: 범위가 양수여야 합니다.");
+            }
+        }
+
+        [Test]
+        public void JointLimits_AllTemplates_MinLessThanMax()
+        {
+            var ids = RobotCatalog.GetAvailableRobotIds();
+            foreach (string id in ids)
+            {
+                var template = RobotCatalog.CreateTemplate(id);
+                if (template == null) continue;
+
+                var limits = template.GetJointLimits();
+                for (int i = 0; i < limits.Length; i++)
+                {
+                    Assert.LessOrEqual(limits[i].Min, limits[i].Max,
+                        $"{id} Joint {i}: Min({limits[i].Min})이 Max({limits[i].Max})보다 클 수 없습니다.");
+                }
+            }
+        }
+
+        // ── BuildSettingsTool 의존 로직 ──
+
+        [Test]
+        public void BuildSettings_KnownScenes_ExistInBuildSettings()
+        {
+            var buildScenes = UnityEditor.EditorBuildSettings.scenes;
+            Assert.Greater(buildScenes.Length, 0, "Build Settings에 씬이 등록되어 있어야 합니다.");
+        }
+
+        // ── AsmdefValidateTool 의존 로직 ──
+
+        [Test]
+        public void Asmdef_ProjectHasMinimumAssemblies()
+        {
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:AssemblyDefinitionAsset");
+            Assert.GreaterOrEqual(guids.Length, 5, "프로젝트에 최소 5개의 asmdef가 있어야 합니다.");
+        }
+
+        // ── TemplateResolver 로직 ──
+
+        [Test]
+        public void TemplateResolver_KnownNames_ReturnNonNull()
+        {
+            string[] validNames = { "2DOF_RR", "2DOF", "SCARA_RV", "SCARA", "FR5", "FAIRINO_FR5" };
+            foreach (string name in validNames)
+            {
+                var template = RobotCatalog.CreateTemplate(
+                    name.Contains("2DOF") ? "2DOF_RR" :
+                    name.Contains("SCARA") ? "SCARA_RV" : "FAIRINO_FR5");
+                Assert.IsNotNull(template, $"'{name}' 해석이 null이면 안 됩니다.");
+            }
+        }
+
+        [Test]
+        public void TemplateResolver_UnknownName_CatalogReturnsNull()
+        {
+            var template = RobotCatalog.CreateTemplate("NONEXISTENT_ROBOT_XYZ");
+            Assert.IsNull(template, "존재하지 않는 템플릿은 null을 반환해야 합니다.");
+        }
+
         // ── QaPrepTool 의존 로직 ──
 
         [Test]

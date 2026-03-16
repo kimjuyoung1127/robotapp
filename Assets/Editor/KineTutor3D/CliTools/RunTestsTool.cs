@@ -36,6 +36,7 @@ namespace KineTutor3D.Editor.CliTools
             public int skipped;
             public bool finished;
             public readonly List<string> failures = new List<string>();
+            public readonly List<string> allTestNames = new List<string>();
             public DateTime startTime = DateTime.Now;
 
             public void RunStarted(ITestAdaptor testsToRun) { }
@@ -52,6 +53,7 @@ namespace KineTutor3D.Editor.CliTools
                 if (!result.HasChildren)
                 {
                     total++;
+                    allTestNames.Add(result.FullName);
                     switch (result.TestStatus)
                     {
                         case TestStatus.Passed:
@@ -74,8 +76,9 @@ namespace KineTutor3D.Editor.CliTools
             var p = new ToolParams(@params);
             bool checkResults = p.GetBool("results", false);
 
+            bool verbose = p.GetBool("verbose", false);
             if (checkResults)
-                return GetLastResults();
+                return GetLastResults(verbose);
 
             string mode = p.Get("mode", "edit");
 
@@ -129,7 +132,7 @@ namespace KineTutor3D.Editor.CliTools
             }
         }
 
-        private static object GetLastResults()
+        private static object GetLastResults(bool verbose = false)
         {
             if (lastCollector == null)
                 return new ErrorResponse("No test run has been launched yet. Use run-tests --mode edit first.");
@@ -148,7 +151,8 @@ namespace KineTutor3D.Editor.CliTools
                     failed = lastCollector.failed,
                     skipped = lastCollector.skipped,
                     elapsed_seconds = System.Math.Round(elapsed, 1),
-                    failures = lastCollector.failures.Count > 0 ? lastCollector.failures : null
+                    failures = lastCollector.failures.Count > 0 ? lastCollector.failures : null,
+                    all_test_names = verbose ? lastCollector.allTestNames : null
                 });
         }
     }

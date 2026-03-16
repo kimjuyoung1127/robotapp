@@ -4,7 +4,6 @@ using System.Globalization;
 using Newtonsoft.Json.Linq;
 using UnityCliConnector;
 using KineTutor3D.Kinematics;
-using KineTutor3D.Templates;
 using KineTutor3D.Math;
 using KineTutor3D.Types;
 
@@ -47,9 +46,9 @@ namespace KineTutor3D.Editor.CliTools
 
             try
             {
-                RobotTemplate template = ResolveTemplate(templateName);
+                RobotTemplate template = TemplateResolver.Resolve(templateName);
                 if (template == null)
-                    return new ErrorResponse($"Unknown template: {templateName}. Available: 2DOF_RR, SCARA_RV, FR5");
+                    return new ErrorResponse($"Unknown template: {templateName}. Available: {TemplateResolver.AvailableNames}");
 
                 DHLink[] links = template.GetLinks();
                 if (angles.Length != links.Length)
@@ -84,22 +83,5 @@ namespace KineTutor3D.Editor.CliTools
             }
         }
 
-        private static RobotTemplate ResolveTemplate(string name)
-        {
-            switch (name.ToUpperInvariant())
-            {
-                case "2DOF_RR":
-                case "2DOF":
-                    return Template2DOF_RR.Create();
-                case "SCARA_RV":
-                case "SCARA":
-                    return TemplateSCARA_RV.Create();
-                case "FR5":
-                case "FAIRINO_FR5":
-                    return TemplateFAIRINO_FR5.Create();
-                default:
-                    return null;
-            }
-        }
     }
 }

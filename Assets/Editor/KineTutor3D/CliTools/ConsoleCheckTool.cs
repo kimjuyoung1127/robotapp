@@ -69,6 +69,7 @@ namespace KineTutor3D.Editor.CliTools
             var p = new ToolParams(@params);
             string filter = p.Get("type", "error");
             int maxLines = p.GetInt("lines", 50);
+            bool verbose = p.GetBool("verbose", false);
 
             var errors = new List<object>();
             var warnings = new List<object>();
@@ -82,12 +83,20 @@ namespace KineTutor3D.Editor.CliTools
 
             foreach (var entry in snapshot)
             {
-                var item = new
-                {
-                    message = entry.message,
-                    type = entry.type.ToString(),
-                    timestamp = entry.timestamp.ToString("HH:mm:ss")
-                };
+                object item = verbose
+                    ? (object)new
+                    {
+                        message = entry.message,
+                        stack_trace = entry.stackTrace,
+                        type = entry.type.ToString(),
+                        timestamp = entry.timestamp.ToString("HH:mm:ss")
+                    }
+                    : new
+                    {
+                        message = entry.message,
+                        type = entry.type.ToString(),
+                        timestamp = entry.timestamp.ToString("HH:mm:ss")
+                    };
 
                 switch (entry.type)
                 {
