@@ -77,7 +77,12 @@ namespace KineTutor3D.UI
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             var root = transform as RectTransform;
-            if (root == null || messageLabel != null)
+            if (root == null)
+            {
+                return;
+            }
+
+            if (TryBindExistingPresentation(root))
             {
                 return;
             }
@@ -106,6 +111,42 @@ namespace KineTutor3D.UI
 
             cancelButton ??= UIComponentFactory.CreateSecondaryButton(card, "BtnCancel", "취소", fallbackFont, 120f);
             UiRuntimeStyle.Anchor((RectTransform)cancelButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(120f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(70f, 20f));
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            backdrop = root.GetComponent<Image>();
+            var card = root.Find("DialogCard") as RectTransform;
+            messageLabel = card?.Find("Message")?.GetComponent<Text>();
+            confirmButton = card?.Find("BtnConfirm")?.GetComponent<Button>();
+            cancelButton = card?.Find("BtnCancel")?.GetComponent<Button>();
+
+            if (backdrop == null || card == null || messageLabel == null || confirmButton == null || cancelButton == null)
+            {
+                return false;
+            }
+
+            backdrop.color = new Color(0f, 0f, 0f, 0.5f);
+
+            var title = card.Find("Title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "실제 로봇 이동 확인";
+            }
+
+            var confirmLabel = confirmButton.GetComponentInChildren<Text>();
+            if (confirmLabel != null)
+            {
+                confirmLabel.color = Color.white;
+            }
+
+            var confirmImg = confirmButton.GetComponent<Image>();
+            if (confirmImg != null)
+            {
+                confirmImg.color = UIDesignTokens.Colors.AccentDanger;
+            }
+
+            return true;
         }
 
         private void BindListeners()

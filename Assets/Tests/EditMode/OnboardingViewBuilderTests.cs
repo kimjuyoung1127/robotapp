@@ -80,5 +80,22 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(screenBg, Is.Not.Null);
             Assert.That(screenBg.GetSiblingIndex(), Is.EqualTo(0));
         }
+
+        [Test]
+        public void TryBindExisting_ReusesSceneAuthoredOnboardingShell()
+        {
+            var builtRefs = OnboardingViewBuilder.Build(canvasRoot, null);
+
+            var bound = OnboardingViewBuilder.TryBindExisting(canvasRoot, null, out var reboundRefs);
+
+            Assert.That(bound, Is.True);
+            Assert.That(reboundRefs.Root, Is.SameAs(builtRefs.Root));
+            Assert.That(reboundRefs.ModalRoot, Is.SameAs(builtRefs.ModalRoot));
+            Assert.That(reboundRefs.HeadlineText, Is.SameAs(builtRefs.HeadlineText));
+            Assert.That(reboundRefs.BodyText, Is.SameAs(builtRefs.BodyText));
+            Assert.That(reboundRefs.BeginnerButton, Is.SameAs(builtRefs.BeginnerButton));
+            Assert.That(reboundRefs.StartLearningButton, Is.SameAs(builtRefs.StartLearningButton));
+            Assert.That(reboundRefs.SkipButton, Is.SameAs(builtRefs.SkipButton));
+        }
     }
 }

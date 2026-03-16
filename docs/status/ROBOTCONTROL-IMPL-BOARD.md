@@ -1,6 +1,6 @@
 # RobotControl 구현 보드
 
-> 최종 갱신: 2026-03-15
+> 최종 갱신: 2026-03-16
 
 ## 재활용 컴포넌트 매트릭스
 
@@ -73,6 +73,7 @@
 - [x] **P3 Sync UI**: `FairinoJointControlPanel.cs` — Sync 버튼 + Mock 비활성화
 - [x] **P4 변위 화살표**: `Visualization/Shared/DisplacementArrow.cs` 신규 — EE 변위 벡터 화살표
 - [x] **P5 TopBar**: `FairinoRobotControlViewBuilder.cs` — 기즈모 토글 + 트레일 Clear 버튼
+- [x] **UX 보강**: 좌측 패널 compact summary + `Diagnostics Drawer` 추가 — 우측 정보 과밀화 없이 연결/진단 정보 분리
 - [x] **공용화**: `Visualization/Shared/SharedLineMaterial.cs` 신규 — Material 캐시 통합
 - [x] **공용화**: `FairinoRobotConfig.cs` — `GetMediumSpeedAcc()` + `GetSpeedAcc(preset)` 속도/가속 헬퍼
 - [ ] Play Mode 검증: 전체 회전 핸들 + TCP 제어 + 변위 화살표 시각 검증
@@ -93,6 +94,15 @@
 - [ ] 전체 Mock 루프: 슬라이더→핸들→3D + TCP 탭 검증
 - [ ] 스크린샷 캡처
 
+### Phase 10: Scene-Authored UI 파일럿
+- [x] `RobotControl` shell authored 저장: `Canvas`, `TopBar`, `ConnectionPanel`, `JointControlPanel`, `TcpControlPanel`, `StatePanel`, `WhyItMovedLabel`, `DiagnosticsDrawer`, `MoveConfirmDialog`
+- [x] `QaToolsMenu.AuthorRobotControlSceneUi()` 추가
+- [x] `TryBindExistingLayout(...)` 경로로 씬 authored shell 우선 바인딩
+- [x] `ConnectionPanel`, `JointControlPanel`, `TcpControlPanel`, `DiagnosticsDrawer`를 authored-first bind 경로로 축소
+- [ ] `WhyItMovedLabel`, `StatePanel`, `MoveConfirmDialog`도 같은 authored-first 패턴으로 축소
+- [ ] `BtnDiagnostics` / `DrawerPanel` 등 authored 위치 조정은 `RobotControl.unity` 중심으로 운영 규칙 확정
+- [ ] 부분 authoring 시 fallback 중복 생성을 막는 guard 보강
+
 ---
 
 ## UI 계층 트리
@@ -110,16 +120,19 @@ RobotControl.unity
 │
 ├── Canvas (Screen Space - Overlay)
 │   ├── TopBar
+│   │   ├── BtnDiagnostics (Details)
 │   │   ├── GizmoToggle (Frame Gizmo On/Off)
 │   │   └── ClearTrailButton
-│   ├── TabBar (Joint Control / TCP Control / State)
+│   ├── TabBar (Joint Control / TCP Control)
 │   ├── ConnectionPanel (FairinoConnectionPanel)
 │   │   ├── IP Input + Connect/Disconnect
 │   │   ├── Enable/Disable + Mock Toggle
+│   │   ├── Details 버튼 (Diagnostics Drawer 열기)
 │   │   ├── StatusLabel (AccentSuccess/AccentDanger)
 │   │   └── VersionLabel
 │   ├── JointControlPanel (FairinoJointControlPanel)
 │   │   ├── JointRow_1..6 (Slider + Label, 관절 색상 코딩)
+│   │   ├── ControlSummaryCard (현재 포즈/속도/DryRun 요약)
 │   │   ├── SpeedButtons [Slow 10%] [Medium 30%] [Fast 60%]
 │   │   ├── MoveJ / ServoJ / Stop / Sync
 │   │   ├── DryRun Toggle
@@ -133,7 +146,8 @@ RobotControl.unity
 │   │   ├── CurrentTcpLabel (FK 결과 읽기 전용)
 │   │   └── FeedbackLabel
 │   ├── StatePanel (FairinoStatePanel — EE XYZ RGB)
-│   ├── WhyItMovedLabel (관절→TCP 이동 설명)
+│   ├── WhyItMovedLabel (compact card)
+│   ├── DiagnosticsDrawer (연결/버전/최근 오류/재시도 힌트)
 │   └── MoveConfirmDialog (Live 모드 확인)
 │
 ├── Main Camera (OrbitCameraController)
@@ -244,6 +258,16 @@ Disconnect ──► OnConnectionStateChanged              ReadState() 폴링
 | R4 | 공유 Material 색상 오염 | `sharedMaterial.color` 직접 수정 | `SharedLineMaterial.CreateInstance(color)` |
 | R5 | TCP 패널 재진입 가드 없음 | `EnsurePresentation` 재실행 | `currentTcpLabel != null` 가드 |
 | R6 | 핸들 이벤트 중복 바인딩 | `UnbindListeners`에서 핸들 해제 누락 | `UnbindHandleListeners()` 추가 |
+
+### 자기리뷰 메모 (2026-03-16)
+
+| # | 문제 | 원인 | 상태 |
+|---|---|---|---|
+| SR1 | `BtnDiagnostics` 위치가 코드 수정 후에도 안 바뀌어 보임 | `scene-authored UI` 파일럿 이후 `RobotControl.unity`의 authored `RectTransform` 값이 source of truth가 됨 | 원인 확인, 문서화 완료 |
+| SR2 | `DrawerPanel` 위치가 코드 숫자와 달라 보임 | drawer는 authored 닫힘 위치 `(380, -86.7)`와 runtime slide 계산을 함께 사용 | 원인 확인, 씬 기준 운영 필요 |
+| SR3 | 전체 EditMode green 아님 | 기존 baseline 실패 6개 존재 | 이번 작업과 분리해 추적 필요 |
+| SR4 | 완전 scene-authored 전환은 아직 아님 | 각 패널 `EnsurePresentation()`이 내부 위젯 레이아웃을 재적용함 | 다음 단계 대상 |
+| SR5 | `DiagnosticsDrawer` 닫기 listener 누락 가능성 | backdrop listener 해제 코드 누락 | 같은 패스에서 수정 완료 |
 
 ### 핵심 교훈: ArticulationBody vs Transform
 

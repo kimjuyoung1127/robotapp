@@ -115,11 +115,6 @@ namespace KineTutor3D.UI
 
         private void EnsurePresentation()
         {
-            if (explanationLabel != null)
-            {
-                return;
-            }
-
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             var root = transform as RectTransform;
             if (root == null)
@@ -127,9 +122,43 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
+            background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
+
+            if (TryBindExistingPresentation(root))
+            {
+                return;
+            }
+
+            var title = UiRuntimeStyle.EnsureText(root, "WhyTitle", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentSecondary);
+            UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 14f), new Vector2(10f, -8f));
+            title.text = "Why It Moved";
+
             explanationLabel = UiRuntimeStyle.EnsureText(root, "WhyLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Stretch(explanationLabel.rectTransform, Vector2.zero, Vector2.one, new Vector2(8f, 4f), new Vector2(-8f, -4f));
+            UiRuntimeStyle.Anchor(explanationLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(340f, 84f), new Vector2(10f, -26f));
             explanationLabel.text = "관절을 이동하면 변화 설명이 표시됩니다.";
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            explanationLabel = root.Find("WhyLabel")?.GetComponent<Text>();
+            if (explanationLabel == null)
+            {
+                return false;
+            }
+
+            var title = root.Find("WhyTitle")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "Why It Moved";
+            }
+
+            if (string.IsNullOrWhiteSpace(explanationLabel.text))
+            {
+                explanationLabel.text = "관절을 이동하면 변화 설명이 표시됩니다.";
+            }
+
+            return true;
         }
 
         private static string FormatJointDelta(int index, double[] prev, double[] curr)

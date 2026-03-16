@@ -2,6 +2,7 @@
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 namespace KineTutor3D.UI
 {
@@ -14,6 +15,7 @@ namespace KineTutor3D.UI
         [SerializeField] private InputField ipInput;
         [SerializeField] private Button connectButton;
         [SerializeField] private Button enableButton;
+        [SerializeField] private Button diagnosticsButton;
         [SerializeField] private Toggle mockToggle;
         [SerializeField] private Text statusLabel;
         [SerializeField] private Text versionLabel;
@@ -22,6 +24,26 @@ namespace KineTutor3D.UI
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
         private bool listenersBound;
+
+        /// <summary>
+        /// 진단 서랍 열기 요청 이벤트입니다.
+        /// </summary>
+        public event Action OnDiagnosticsRequested;
+
+        /// <summary>
+        /// 현재 표시 중인 상태 텍스트입니다.
+        /// </summary>
+        public string CurrentStatusText => statusLabel != null ? statusLabel.text : string.Empty;
+
+        /// <summary>
+        /// 현재 표시 중인 버전 텍스트입니다.
+        /// </summary>
+        public string CurrentVersionText => versionLabel != null ? versionLabel.text : string.Empty;
+
+        /// <summary>
+        /// 현재 IP 입력값입니다.
+        /// </summary>
+        public string CurrentIp => ipInput != null ? ipInput.text : string.Empty;
 
         /// <summary>
         /// 연결 서비스를 주입합니다.
@@ -74,9 +96,14 @@ namespace KineTutor3D.UI
             var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
 
+            if (TryBindExistingPresentation(root))
+            {
+                return;
+            }
+
             // 이전 레이아웃에서 남은 IpLabel 제거
             var staleIpLabel = root.Find("IpLabel");
-            if (staleIpLabel != null) Object.Destroy(staleIpLabel.gameObject);
+            if (staleIpLabel != null) UnityEngine.Object.Destroy(staleIpLabel.gameObject);
 
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(200f, 20f), new Vector2(16f, -10f));
@@ -88,6 +115,12 @@ namespace KineTutor3D.UI
 
             connectButton ??= UIComponentFactory.CreatePrimaryButton(root, "BtnConnect", "Connect", fallbackFont, 100f);
             UiRuntimeStyle.Anchor((RectTransform)connectButton.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(100f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(216f, -34f));
+
+            diagnosticsButton = root.Find("BtnDiagnostics")?.GetComponent<Button>();
+            if (diagnosticsButton != null)
+            {
+                diagnosticsButton.gameObject.SetActive(false);
+            }
 
             // Row 2: Mock toggle + Enable
             mockToggle ??= UIComponentFactory.CreateToggle(root, "MockToggle", "Mock Mode", fallbackFont);
@@ -105,6 +138,46 @@ namespace KineTutor3D.UI
             versionLabel = UiRuntimeStyle.EnsureText(root, "VersionLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
             UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 14f), new Vector2(16f, 4f));
             versionLabel.text = string.Empty;
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            ipInput = root.Find("IpInput")?.GetComponent<InputField>();
+            connectButton = root.Find("BtnConnect")?.GetComponent<Button>();
+            enableButton = root.Find("BtnEnable")?.GetComponent<Button>();
+            mockToggle = root.Find("MockToggle")?.GetComponent<Toggle>();
+            statusLabel = root.Find("StatusLabel")?.GetComponent<Text>();
+            versionLabel = root.Find("VersionLabel")?.GetComponent<Text>();
+            diagnosticsButton = root.Find("BtnDiagnostics")?.GetComponent<Button>();
+
+            if (ipInput == null
+                || connectButton == null
+                || enableButton == null
+                || mockToggle == null
+                || statusLabel == null
+                || versionLabel == null)
+            {
+                return false;
+            }
+
+            var title = root.Find("Title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "FR5 Connection";
+            }
+
+            var mockLabel = mockToggle.transform.Find("Label")?.GetComponent<Text>();
+            if (mockLabel != null)
+            {
+                mockLabel.text = "Mock Mode";
+            }
+
+            if (diagnosticsButton != null)
+            {
+                diagnosticsButton.gameObject.SetActive(false);
+            }
+
+            return true;
         }
 
         private void BindListeners()
@@ -209,6 +282,8 @@ namespace KineTutor3D.UI
             connectionService?.SetMockMode(isMock);
             ClearVersionLabel();
         }
+
+        private void OnDiagnosticsClicked() => OnDiagnosticsRequested?.Invoke();
 
         private void HandleServiceStateChanged(bool _)
         {

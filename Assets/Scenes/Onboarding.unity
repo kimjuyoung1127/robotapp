@@ -250,8 +250,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -407,7 +407,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Home
+  m_Text: Main
 --- !u!222 &68044647
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1004,8 +1004,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -1146,8 +1146,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -1461,7 +1461,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Math Readiness
+  m_Text: Robot Library
 --- !u!222 &268430813
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1781,8 +1781,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -76}
-  m_SizeDelta: {x: 540, y: 32}
+  m_AnchoredPosition: {x: 0, y: -56}
+  m_SizeDelta: {x: 540, y: 40}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &551905769
 GameObject:
@@ -1996,7 +1996,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Sandbox
+  m_Text: Robot Control
 --- !u!222 &667187709
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2046,7 +2046,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: -26, y: 0}
-  m_SizeDelta: {x: 872, y: 36}
+  m_SizeDelta: {x: 626, y: 36}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &760209242
 MonoBehaviour:
@@ -2811,7 +2811,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 26, y: 0}
-  m_SizeDelta: {x: 220, y: 40}
+  m_SizeDelta: {x: 150, y: 40}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1337232661
 MonoBehaviour:
@@ -2867,6 +2867,7 @@ GameObject:
   - component: {fileID: 1353573646}
   - component: {fileID: 1353573648}
   - component: {fileID: 1353573647}
+  - component: {fileID: 1353573649}
   m_Layer: 0
   m_Name: BtnStartLearning
   m_TagString: Untagged
@@ -2897,7 +2898,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 290, y: 230}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1353573646
 MonoBehaviour:
@@ -2981,6 +2982,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1353573644}
   m_CullTransparentMesh: 1
+--- !u!114 &1353573649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353573644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: 290
+  m_MinHeight: 230
+  m_PreferredWidth: 290
+  m_PreferredHeight: 230
+  m_FlexibleWidth: 0
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
 --- !u!1 &1378055980
 GameObject:
   m_ObjectHideFlags: 0
@@ -3205,7 +3226,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Main
+  m_Text: Math Readiness
 --- !u!222 &1480033446
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3345,8 +3366,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -3371,11 +3392,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.23, g: 0.27, b: 0.4, a: 0.95}
-    m_HighlightedColor: {r: 0.245, g: 0.3425, b: 0.5125, a: 0.9625}
-    m_PressedColor: {r: 0.257, g: 0.4005, b: 0.6025, a: 0.97249997}
-    m_SelectedColor: {r: 0.245, g: 0.3425, b: 0.5125, a: 0.9625}
-    m_DisabledColor: {r: 0.23, g: 0.27, b: 0.4, a: 0.35}
+    m_NormalColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+    m_HighlightedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+    m_PressedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+    m_SelectedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+    m_DisabledColor: {r: 0.29, g: 0.56, b: 0.85, a: 0.35}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -3407,7 +3428,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.23, g: 0.27, b: 0.4, a: 0.95}
+  m_Color: {r: 0.29, g: 0.56, b: 0.85, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3502,7 +3523,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Onboarding
+  m_Text: Home
 --- !u!222 &1544140278
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3523,6 +3544,7 @@ GameObject:
   - component: {fileID: 1572584773}
   - component: {fileID: 1572584775}
   - component: {fileID: 1572584774}
+  - component: {fileID: 1572584776}
   m_Layer: 0
   m_Name: BtnBeginner
   m_TagString: Untagged
@@ -3553,7 +3575,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 290, y: 230}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1572584773
 MonoBehaviour:
@@ -3637,6 +3659,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1572584771}
   m_CullTransparentMesh: 1
+--- !u!114 &1572584776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1572584771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: 290
+  m_MinHeight: 230
+  m_PreferredWidth: 290
+  m_PreferredHeight: 230
+  m_FlexibleWidth: 0
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
 --- !u!1 &1575351042
 GameObject:
   m_ObjectHideFlags: 0
@@ -4156,10 +4198,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3420090}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 4}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1698047329
 MonoBehaviour:
@@ -4480,8 +4522,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -4599,10 +4641,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1709705927}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 4}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1793123380
 MonoBehaviour:
@@ -5030,7 +5072,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1943696642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5111,7 +5153,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1972370581
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5304,7 +5346,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Robot Library
+  m_Text: Sandbox
 --- !u!222 &1985238493
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5368,8 +5410,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 104
   m_MinHeight: -1
-  m_PreferredWidth: 116
-  m_PreferredHeight: -1
+  m_PreferredWidth: 96
+  m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -5394,11 +5436,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
-    m_HighlightedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
-    m_PressedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
-    m_SelectedColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
-    m_DisabledColor: {r: 0.29, g: 0.56, b: 0.85, a: 0.35}
+    m_NormalColor: {r: 0.23, g: 0.27, b: 0.4, a: 0.95}
+    m_HighlightedColor: {r: 0.245, g: 0.3425, b: 0.5125, a: 0.9625}
+    m_PressedColor: {r: 0.257, g: 0.4005, b: 0.6025, a: 0.97249997}
+    m_SelectedColor: {r: 0.245, g: 0.3425, b: 0.5125, a: 0.9625}
+    m_DisabledColor: {r: 0.23, g: 0.27, b: 0.4, a: 0.35}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -5430,7 +5472,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+  m_Color: {r: 0.23, g: 0.27, b: 0.4, a: 0.95}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5593,8 +5635,8 @@ MonoBehaviour:
   m_Spacing: 24
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
@@ -5628,11 +5670,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1610731515}
   - {fileID: 1943696644}
   - {fileID: 519242872}
   - {fileID: 1165109948}
   - {fileID: 2070623585}
-  - {fileID: 1610731515}
   m_Father: {fileID: 986166358}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

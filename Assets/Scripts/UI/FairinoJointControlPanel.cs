@@ -24,6 +24,8 @@ namespace KineTutor3D.UI
         [SerializeField] private Text feedbackLabel;
         [SerializeField] private Image modeBannerBg;
         [SerializeField] private Text modeBannerText;
+        [SerializeField] private Text summaryTitleLabel;
+        [SerializeField] private Text summaryBodyLabel;
 
         // Teaching 섹션
         [SerializeField] private Button savePointButton;
@@ -49,6 +51,7 @@ namespace KineTutor3D.UI
         private Button[] presetButtons;
         private Button[] speedButtons;
         private string selectedSpeedPreset = "medium";
+        private string currentPoseSummary = "Ready";
         private bool listenersBound;
         private bool serviceSubscribed;
         private bool dryRun = true;
@@ -110,6 +113,11 @@ namespace KineTutor3D.UI
         public event Action OnClearAllRequested;
 
         /// <summary>
+        /// 현재 패널 피드백 텍스트입니다.
+        /// </summary>
+        public string CurrentFeedbackText => feedbackLabel != null ? feedbackLabel.text : string.Empty;
+
+        /// <summary>
         /// 연결 서비스와 설정을 주입합니다.
         /// </summary>
         public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig)
@@ -149,6 +157,8 @@ namespace KineTutor3D.UI
                     UpdateJointLabel(i);
                 }
             }
+
+            RefreshCompactSummary();
         }
 
         /// <summary>
@@ -237,6 +247,13 @@ namespace KineTutor3D.UI
             var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
 
+            if (TryBindExistingPresentation(root))
+            {
+                RefreshModeIndicator();
+                RefreshCompactSummary();
+                return;
+            }
+
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -12f));
             title.text = "Joint Control";
@@ -270,6 +287,18 @@ namespace KineTutor3D.UI
                 UiRuntimeStyle.Anchor((RectTransform)jointSliders[i].transform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(210f, UIDesignTokens.Size.SliderHeight), new Vector2(102f, 0f));
                 UpdateJointLabel(i);
             }
+
+            var summaryCard = UiRuntimeStyle.EnsureRectChild(root, "ControlSummaryCard");
+            UiRuntimeStyle.Anchor(summaryCard, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 60f), new Vector2(16f, 376f));
+            var summaryBg = summaryCard.GetComponent<Image>() ?? summaryCard.gameObject.AddComponent<Image>();
+            summaryBg.color = UIDesignTokens.Colors.SurfaceCard;
+
+            summaryTitleLabel = UiRuntimeStyle.EnsureText(summaryCard, "SummaryTitle", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentSecondary);
+            UiRuntimeStyle.Anchor(summaryTitleLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(360f, 14f), new Vector2(10f, -8f));
+            summaryTitleLabel.text = "Control Summary";
+
+            summaryBodyLabel = UiRuntimeStyle.EnsureText(summaryCard, "SummaryBody", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
+            UiRuntimeStyle.Anchor(summaryBodyLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(370f, 34f), new Vector2(10f, -24f));
 
             // ═══ 하단 섹션 (bottom-anchored, 패딩 8px 간격) ═══
 
@@ -314,6 +343,116 @@ namespace KineTutor3D.UI
             }
 
             RefreshModeIndicator();
+            RefreshCompactSummary();
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            modeBannerBg = root.Find("ModeBanner")?.GetComponent<Image>();
+            modeBannerText = root.Find("ModeBanner/BannerText")?.GetComponent<Text>();
+            summaryTitleLabel = root.Find("ControlSummaryCard/SummaryTitle")?.GetComponent<Text>();
+            summaryBodyLabel = root.Find("ControlSummaryCard/SummaryBody")?.GetComponent<Text>();
+            moveJButton = root.Find("BtnMoveJ")?.GetComponent<Button>();
+            servoJButton = root.Find("BtnServoJ")?.GetComponent<Button>();
+            stopButton = root.Find("BtnStop")?.GetComponent<Button>();
+            syncButton = root.Find("BtnSync")?.GetComponent<Button>();
+            dryRunToggle = root.Find("DryRunToggle")?.GetComponent<Toggle>();
+            feedbackLabel = root.Find("FeedbackLabel")?.GetComponent<Text>();
+            savePointButton = root.Find("BtnSavePoint")?.GetComponent<Button>();
+            playButton = root.Find("BtnTeachPlay")?.GetComponent<Button>();
+            loopButton = root.Find("BtnTeachLoop")?.GetComponent<Button>();
+            teachStopButton = root.Find("BtnTeachStop")?.GetComponent<Button>();
+            exportButton = root.Find("BtnExport")?.GetComponent<Button>();
+            importButton = root.Find("BtnImport")?.GetComponent<Button>();
+            undoLastButton = root.Find("BtnUndoLast")?.GetComponent<Button>();
+            clearAllButton = root.Find("BtnClearAll")?.GetComponent<Button>();
+            waypointListLabel = root.Find("WaypointListLabel")?.GetComponent<Text>();
+            teachFeedbackLabel = root.Find("TeachFeedbackLabel")?.GetComponent<Text>();
+
+            for (var i = 0; i < 6; i++)
+            {
+                jointLabels[i] = root.Find($"JointRow_{i + 1}/Label")?.GetComponent<Text>();
+                jointSliders[i] = root.Find($"JointRow_{i + 1}/Slider")?.GetComponent<Slider>();
+            }
+
+            var presets = FR5PosePresets.All;
+            presetButtons = new Button[presets.Length];
+            for (var i = 0; i < presets.Length; i++)
+            {
+                presetButtons[i] = root.Find($"BtnPreset_{presets[i].Name}")?.GetComponent<Button>();
+            }
+
+            speedButtons = new Button[SpeedPresetNames.Length];
+            for (var i = 0; i < SpeedPresetNames.Length; i++)
+            {
+                speedButtons[i] = root.Find($"BtnSpeed_{SpeedPresetNames[i]}")?.GetComponent<Button>();
+            }
+
+            if (modeBannerBg == null
+                || modeBannerText == null
+                || summaryBodyLabel == null
+                || moveJButton == null
+                || servoJButton == null
+                || stopButton == null
+                || syncButton == null
+                || dryRunToggle == null
+                || feedbackLabel == null
+                || waypointListLabel == null
+                || teachFeedbackLabel == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < 6; i++)
+            {
+                if (jointLabels[i] == null || jointSliders[i] == null)
+                {
+                    return false;
+                }
+
+                UpdateJointLabel(i);
+            }
+
+            for (var i = 0; i < presetButtons.Length; i++)
+            {
+                if (presetButtons[i] == null)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < speedButtons.Length; i++)
+            {
+                if (speedButtons[i] == null)
+                {
+                    return false;
+                }
+            }
+
+            var title = root.Find("Title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "Joint Control";
+            }
+
+            var dryRunLabel = dryRunToggle.transform.Find("Label")?.GetComponent<Text>();
+            if (dryRunLabel != null)
+            {
+                dryRunLabel.text = "DryRun";
+            }
+
+            if (summaryTitleLabel != null)
+            {
+                summaryTitleLabel.text = "Control Summary";
+            }
+
+            if (dryRunToggle != null)
+            {
+                dryRunToggle.SetIsOnWithoutNotify(dryRun);
+            }
+
+            RefreshSpeedButtonColors();
+            return true;
         }
 
         private void EnsureTeachingSection(RectTransform root)
@@ -424,6 +563,7 @@ namespace KineTutor3D.UI
             selectedSpeedPreset = SpeedPresetNames[index];
             RefreshSpeedButtonColors();
             ShowFeedback($"속도: {SpeedPresetLabels[index]}");
+            RefreshCompactSummary();
         }
 
         private void RefreshSpeedButtonColors()
@@ -613,6 +753,8 @@ namespace KineTutor3D.UI
                 modeBannerBg.color = UIDesignTokens.Colors.AccentDanger;
                 modeBannerText.text = "LIVE — 실제 로봇 동작";
             }
+
+            RefreshCompactSummary();
         }
 
         private void InitSliders()
@@ -642,6 +784,8 @@ namespace KineTutor3D.UI
         private void OnSliderChanged(int index, float value)
         {
             UpdateJointLabel(index);
+            currentPoseSummary = "Custom";
+            RefreshCompactSummary();
             OnJointSliderPreview?.Invoke(GetSliderValues());
         }
 
@@ -758,10 +902,13 @@ namespace KineTutor3D.UI
             dryRun = value;
             ShowFeedback(dryRun ? "DryRun 모드 활성" : "DryRun 모드 해제 \u2014 실제 명령이 전송됩니다!");
             RefreshModeIndicator();
+            RefreshCompactSummary();
         }
 
         private void OnPresetClicked(FR5PosePresets.Preset preset)
         {
+            currentPoseSummary = preset.Name;
+            RefreshCompactSummary();
             OnPresetApplied?.Invoke(preset.JointAnglesDeg);
             ShowFeedback($"프리셋 '{preset.Name}' 적용: {preset.Description}");
         }
@@ -772,6 +919,33 @@ namespace KineTutor3D.UI
             {
                 feedbackLabel.text = text;
             }
+        }
+
+        private void RefreshCompactSummary()
+        {
+            if (summaryBodyLabel == null)
+            {
+                return;
+            }
+
+            var modeText = dryRun ? "DryRun ON" : "DryRun OFF";
+            var syncText = connectionService != null && !connectionService.IsMockMode ? "Sync Ready" : "Sync Mock";
+            summaryBodyLabel.text =
+                $"Pose: {currentPoseSummary}  |  Speed: {GetSelectedSpeedPresetLabel()}\n" +
+                $"Mode: {modeText}  |  {syncText}";
+        }
+
+        private string GetSelectedSpeedPresetLabel()
+        {
+            for (var i = 0; i < SpeedPresetNames.Length; i++)
+            {
+                if (SpeedPresetNames[i] == selectedSpeedPreset)
+                {
+                    return SpeedPresetLabels[i];
+                }
+            }
+
+            return selectedSpeedPreset;
         }
 
         private static Color ResolveJointColor(int jointIndex)

@@ -17,6 +17,67 @@ namespace KineTutor3D.UI
         private const float TabBarHeight = 40f;
 
         /// <summary>
+        /// 씬에 이미 authored된 RobotControl UI를 찾아 바인딩합니다.
+        /// </summary>
+        public static bool TryBindExistingLayout(
+            Canvas canvas,
+            out FairinoConnectionPanel connectionPanel,
+            out FairinoJointControlPanel jointControlPanel,
+            out FairinoStatePanel statePanel,
+            out FairinoTcpControlPanel tcpPanel,
+            out RobotControlDiagnosticsDrawer diagnosticsDrawer,
+            out FairinoWhyItMovedLabel whyItMovedLabel,
+            out FairinoMoveConfirmDialog moveConfirmDialog,
+            out Button diagnosticsButton,
+            out Toggle gizmoToggle,
+            out Button clearTrailButton)
+        {
+            connectionPanel = null;
+            jointControlPanel = null;
+            statePanel = null;
+            tcpPanel = null;
+            diagnosticsDrawer = null;
+            whyItMovedLabel = null;
+            moveConfirmDialog = null;
+            diagnosticsButton = null;
+            gizmoToggle = null;
+            clearTrailButton = null;
+
+            if (canvas == null)
+            {
+                return false;
+            }
+
+            var shellRoot = canvas.transform.Find("RobotControlShell");
+            if (shellRoot == null)
+            {
+                return false;
+            }
+
+            connectionPanel = shellRoot.Find("ConnectionPanel")?.GetComponent<FairinoConnectionPanel>();
+            jointControlPanel = shellRoot.Find("JointControlPanel")?.GetComponent<FairinoJointControlPanel>();
+            statePanel = shellRoot.Find("StatePanel")?.GetComponent<FairinoStatePanel>();
+            tcpPanel = shellRoot.Find("TcpControlPanel")?.GetComponent<FairinoTcpControlPanel>();
+            diagnosticsDrawer = shellRoot.Find("DiagnosticsDrawer")?.GetComponent<RobotControlDiagnosticsDrawer>();
+            whyItMovedLabel = shellRoot.Find("WhyItMovedLabel")?.GetComponent<FairinoWhyItMovedLabel>();
+            moveConfirmDialog = shellRoot.Find("MoveConfirmDialog")?.GetComponent<FairinoMoveConfirmDialog>();
+            diagnosticsButton = shellRoot.Find("TopBar/BtnDiagnostics")?.GetComponent<Button>();
+            gizmoToggle = shellRoot.Find("TopBar/GizmoToggle")?.GetComponent<Toggle>();
+            clearTrailButton = shellRoot.Find("TopBar/BtnClearTrail")?.GetComponent<Button>();
+
+            return connectionPanel != null
+                && jointControlPanel != null
+                && statePanel != null
+                && tcpPanel != null
+                && diagnosticsDrawer != null
+                && whyItMovedLabel != null
+                && moveConfirmDialog != null
+                && diagnosticsButton != null
+                && gizmoToggle != null
+                && clearTrailButton != null;
+        }
+
+        /// <summary>
         /// Canvas를 확인하거나 생성합니다.
         /// </summary>
         public static Canvas EnsureCanvas(Canvas canvas, Font fallbackFont)
@@ -114,8 +175,10 @@ namespace KineTutor3D.UI
             out FairinoJointControlPanel jointControlPanel,
             out FairinoStatePanel statePanel,
             out FairinoTcpControlPanel tcpPanel,
+            out RobotControlDiagnosticsDrawer diagnosticsDrawer,
             out FairinoWhyItMovedLabel whyItMovedLabel,
             out FairinoMoveConfirmDialog moveConfirmDialog,
+            out Button diagnosticsButton,
             out Toggle gizmoToggle,
             out Button clearTrailButton)
         {
@@ -127,7 +190,7 @@ namespace KineTutor3D.UI
             overlay.raycastTarget = false;
             UiRuntimeStyle.Stretch((RectTransform)overlay.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            BuildTopBar(shellRoot, fallbackFont, out gizmoToggle, out clearTrailButton);
+            BuildTopBar(shellRoot, fallbackFont, out diagnosticsButton, out gizmoToggle, out clearTrailButton);
 
             // Connection panel — compact horizontal layout below TopBar
             var connectionRoot = BuildPanelHost(shellRoot, "ConnectionPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 140f), new Vector2(16f, -78f));
@@ -136,18 +199,23 @@ namespace KineTutor3D.UI
             var tabBar = BuildTabBar(shellRoot, fallbackFont);
 
             // Left content panels — below tab bar, top-anchored
-            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 720f), new Vector2(16f, -270f));
-            var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 580f), new Vector2(16f, -270f));
+            var jointRoot = BuildPanelHost(shellRoot, "JointControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 804f), new Vector2(16f, -270f));
+            var tcpRoot = BuildPanelHost(shellRoot, "TcpControlPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 664f), new Vector2(16f, -270f));
 
             // Right panels — state (always visible) + why it moved
             var stateRoot = BuildPanelHost(shellRoot, "StatePanel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 280f), new Vector2(-16f, 80f));
-            var whyRoot = BuildPanelHost(shellRoot, "WhyItMovedLabel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 80f), new Vector2(-16f, 16f));
+            var whyRoot = BuildPanelHost(shellRoot, "WhyItMovedLabel", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(360f, 116f), new Vector2(-16f, 16f));
 
             connectionPanel = connectionRoot.GetComponent<FairinoConnectionPanel>() ?? connectionRoot.gameObject.AddComponent<FairinoConnectionPanel>();
             jointControlPanel = jointRoot.GetComponent<FairinoJointControlPanel>() ?? jointRoot.gameObject.AddComponent<FairinoJointControlPanel>();
             statePanel = stateRoot.GetComponent<FairinoStatePanel>() ?? stateRoot.gameObject.AddComponent<FairinoStatePanel>();
             tcpPanel = tcpRoot.GetComponent<FairinoTcpControlPanel>() ?? tcpRoot.gameObject.AddComponent<FairinoTcpControlPanel>();
             whyItMovedLabel = whyRoot.GetComponent<FairinoWhyItMovedLabel>() ?? whyRoot.gameObject.AddComponent<FairinoWhyItMovedLabel>();
+
+            var diagnosticsRoot = UiRuntimeStyle.EnsureRectChild(shellRoot, "DiagnosticsDrawer");
+            UiRuntimeStyle.Stretch(diagnosticsRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            diagnosticsDrawer = diagnosticsRoot.GetComponent<RobotControlDiagnosticsDrawer>() ?? diagnosticsRoot.gameObject.AddComponent<RobotControlDiagnosticsDrawer>();
+            diagnosticsRoot.gameObject.SetActive(false);
 
             // TCP panel starts hidden (Joint Control is default tab)
             tcpRoot.gameObject.SetActive(false);
@@ -226,7 +294,7 @@ namespace KineTutor3D.UI
             return panelRoot;
         }
 
-        private static void BuildTopBar(RectTransform parent, Font fallbackFont, out Toggle gizmoToggle, out Button clearTrailButton)
+        private static void BuildTopBar(RectTransform parent, Font fallbackFont, out Button diagnosticsButton, out Toggle gizmoToggle, out Button clearTrailButton)
         {
             var topBar = UiRuntimeStyle.EnsureRectChild(parent, "TopBar");
             UiRuntimeStyle.Stretch(topBar, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -72f), new Vector2(-16f, -16f));
@@ -259,6 +327,14 @@ namespace KineTutor3D.UI
             }
 
             UiRuntimeStyle.Anchor((RectTransform)clearTrailButton.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(92f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-180f, 0f));
+
+            diagnosticsButton = topBar.Find("BtnDiagnostics")?.GetComponent<Button>();
+            if (diagnosticsButton == null)
+            {
+                diagnosticsButton = UIComponentFactory.CreateSecondaryButton(topBar, "BtnDiagnostics", "Details", fallbackFont, 84f);
+            }
+
+            UiRuntimeStyle.Anchor((RectTransform)diagnosticsButton.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(84f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-392f, 0f));
 
             // Back 버튼
             var backButton = topBar.Find("BtnBackToLibrary")?.GetComponent<Button>();

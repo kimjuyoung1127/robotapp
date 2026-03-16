@@ -26,6 +26,7 @@ namespace KineTutor3D.App.Fairino
         [SerializeField] private FairinoJointControlPanel jointControlPanel;
         [SerializeField] private FairinoStatePanel statePanel;
         [SerializeField] private FairinoTcpControlPanel tcpPanel;
+        [SerializeField] private RobotControlDiagnosticsDrawer diagnosticsDrawer;
         [SerializeField] private Canvas canvas;
         [SerializeField] private Font fallbackFont;
         [SerializeField] private Transform runtimeRoot;
@@ -46,6 +47,7 @@ namespace KineTutor3D.App.Fairino
         private OrbitCameraController orbitCamera;
         private WaypointCycleRunner waypointRunner;
         private WaypointSequence currentSequence;
+        private Button diagnosticsButton;
         private Toggle gizmoToggle;
         private Button clearTrailButton;
         private bool listenersBound;
@@ -57,10 +59,25 @@ namespace KineTutor3D.App.Fairino
             canvas = FairinoRobotControlViewBuilder.EnsureCanvas(canvas, fallbackFont);
             FairinoRobotControlViewBuilder.EnsureCamera();
             FairinoRobotControlViewBuilder.EnsureLight();
-            FairinoRobotControlViewBuilder.EnsureLayout(canvas, fallbackFont,
-                out connectionPanel, out jointControlPanel, out statePanel,
-                out tcpPanel, out whyItMovedLabel, out moveConfirmDialog,
-                out gizmoToggle, out clearTrailButton);
+            if (!FairinoRobotControlViewBuilder.TryBindExistingLayout(
+                    canvas,
+                    out connectionPanel,
+                    out jointControlPanel,
+                    out statePanel,
+                    out tcpPanel,
+                    out diagnosticsDrawer,
+                    out whyItMovedLabel,
+                    out moveConfirmDialog,
+                    out diagnosticsButton,
+                    out gizmoToggle,
+                    out clearTrailButton))
+            {
+                FairinoRobotControlViewBuilder.EnsureLayout(canvas, fallbackFont,
+                    out connectionPanel, out jointControlPanel, out statePanel,
+                    out tcpPanel, out diagnosticsDrawer, out whyItMovedLabel, out moveConfirmDialog,
+                    out diagnosticsButton,
+                    out gizmoToggle, out clearTrailButton);
+            }
 
             errorTranslator = new FairinoErrorTranslator();
             connectionService = new FairinoConnectionService(errorTranslator);
@@ -104,6 +121,7 @@ namespace KineTutor3D.App.Fairino
             jointControlPanel?.Inject(connectionService, config);
             statePanel?.Inject(connectionService, errorTranslator, kinematicsFacade);
             tcpPanel?.Inject(connectionService, config, kinematicsFacade);
+            diagnosticsDrawer?.Inject(connectionService, connectionPanel, jointControlPanel, tcpPanel);
             whyItMovedLabel?.Inject(kinematicsFacade);
             jointControlPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
             tcpPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
@@ -145,6 +163,11 @@ namespace KineTutor3D.App.Fairino
             if (tcpPanel != null)
             {
                 tcpPanel.OnTcpMoveRequested += OnTcpMoveRequested;
+            }
+
+            if (diagnosticsButton != null)
+            {
+                diagnosticsButton.onClick.AddListener(OnDiagnosticsRequested);
             }
 
             if (gizmoToggle != null)
@@ -199,6 +222,11 @@ namespace KineTutor3D.App.Fairino
             if (tcpPanel != null)
             {
                 tcpPanel.OnTcpMoveRequested -= OnTcpMoveRequested;
+            }
+
+            if (diagnosticsButton != null)
+            {
+                diagnosticsButton.onClick.RemoveListener(OnDiagnosticsRequested);
             }
 
             if (gizmoToggle != null)
@@ -381,6 +409,11 @@ namespace KineTutor3D.App.Fairino
         {
             eeTrailRenderer?.Clear();
             displacementArrow?.Clear();
+        }
+
+        private void OnDiagnosticsRequested()
+        {
+            diagnosticsDrawer?.Toggle();
         }
 
         private void OnHandleDragged(int jointIndex, float angleDeg)

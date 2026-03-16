@@ -104,7 +104,9 @@ namespace KineTutor3D.UI
 
             if (!viewBuilt)
             {
-                var refs = OnboardingViewBuilder.Build(canvasRoot, fallbackFont);
+                var refs = OnboardingViewBuilder.TryBindExisting(canvasRoot, fallbackFont, out var existingRefs)
+                    ? existingRefs
+                    : OnboardingViewBuilder.Build(canvasRoot, fallbackFont);
                 beginnerButton = refs.BeginnerButton;
                 startLearningButton = refs.StartLearningButton;
                 skipButton = refs.SkipButton;

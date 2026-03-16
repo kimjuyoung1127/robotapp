@@ -178,9 +178,12 @@ namespace KineTutor3D.Visualization
 
             if (distance > 0.01f)
             {
-                var dir = toCamera.normalized;
-                yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
-                pitch = -Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+                // The orbit offset is computed from a rotated Vector3.back,
+                // so we need the camera's look direction here, not the raw
+                // target->camera offset, otherwise the first orbit frame flips.
+                var lookDirection = (-toCamera).normalized;
+                yaw = Mathf.Atan2(lookDirection.x, lookDirection.z) * Mathf.Rad2Deg;
+                pitch = -Mathf.Asin(Mathf.Clamp(lookDirection.y, -1f, 1f)) * Mathf.Rad2Deg;
             }
 
             pivotOffset = Vector3.zero;

@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace KineTutor3D.UI
@@ -25,6 +26,8 @@ namespace KineTutor3D.UI
         [SerializeField] private Button fillCurrentButton;
         [SerializeField] private Toggle dryRunToggle;
         [SerializeField] private Text feedbackLabel;
+        [SerializeField] private Text validationSummaryLabel;
+        [SerializeField] private Text deltaSummaryLabel;
         [SerializeField] private Font fallbackFont;
 
         private static readonly string[] SpeedPresetNames = { "slow", "medium", "fast" };
@@ -36,8 +39,19 @@ namespace KineTutor3D.UI
         private FairinoMoveConfirmDialog moveConfirmDialog;
         private Button[] speedButtons;
         private string selectedSpeedPreset = "medium";
+        private readonly UnityAction<string>[] inputChangedListeners = new UnityAction<string>[6];
         private bool listenersBound;
         private bool dryRun = true;
+
+        /// <summary>
+        /// 현재 패널 피드백 텍스트입니다.
+        /// </summary>
+        public string CurrentFeedbackText => feedbackLabel != null ? feedbackLabel.text : string.Empty;
+
+        /// <summary>
+        /// 현재 TCP 요약 텍스트입니다.
+        /// </summary>
+        public string CurrentTcpSummaryText => currentTcpLabel != null ? currentTcpLabel.text : string.Empty;
 
         /// <summary>
         /// TCP 이동 요청 이벤트입니다. (tcpPose[6])를 전달합니다.
@@ -107,13 +121,24 @@ namespace KineTutor3D.UI
         {
             fallbackFont = UiRuntimeStyle.ResolveFont(fallbackFont);
             var root = transform as RectTransform;
-            if (root == null || currentTcpLabel != null)
+            if (root == null)
             {
                 return;
             }
 
             var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
+
+            if (TryBindExistingPresentation(root))
+            {
+                if (dryRunToggle != null)
+                {
+                    dryRunToggle.SetIsOnWithoutNotify(dryRun);
+                }
+
+                RefreshPredictionSummary();
+                return;
+            }
 
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, 22f), new Vector2(16f, -14f));
@@ -148,6 +173,12 @@ namespace KineTutor3D.UI
             fillCurrentButton ??= UIComponentFactory.CreateSecondaryButton(root, "BtnFillCurrent", "Fill Current", fallbackFont, 96f);
             UiRuntimeStyle.Anchor((RectTransform)fillCurrentButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(96f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(306f, 156f));
 
+            validationSummaryLabel = UiRuntimeStyle.EnsureText(root, "ValidationSummary", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
+            UiRuntimeStyle.Anchor(validationSummaryLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 18f), new Vector2(16f, 128f));
+
+            deltaSummaryLabel = UiRuntimeStyle.EnsureText(root, "DeltaSummary", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
+            UiRuntimeStyle.Anchor(deltaSummaryLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 18f), new Vector2(16f, 110f));
+
             // Speed 버튼
             EnsureSpeedButtons(root);
 
@@ -171,6 +202,72 @@ namespace KineTutor3D.UI
             {
                 dryRunToggle.SetIsOnWithoutNotify(dryRun);
             }
+
+            RefreshPredictionSummary();
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            currentTcpLabel = root.Find("CurrentTcpLabel")?.GetComponent<Text>();
+            fillCurrentButton = root.Find("BtnFillCurrent")?.GetComponent<Button>();
+            validationSummaryLabel = root.Find("ValidationSummary")?.GetComponent<Text>();
+            deltaSummaryLabel = root.Find("DeltaSummary")?.GetComponent<Text>();
+            moveLButton = root.Find("BtnMoveL")?.GetComponent<Button>();
+            servoCartButton = root.Find("BtnServoCart")?.GetComponent<Button>();
+            stopButton = root.Find("BtnStop")?.GetComponent<Button>();
+            dryRunToggle = root.Find("TcpDryRunToggle")?.GetComponent<Toggle>();
+            feedbackLabel = root.Find("TcpFeedbackLabel")?.GetComponent<Text>();
+
+            for (var i = 0; i < 6; i++)
+            {
+                tcpInputs[i] = root.Find($"TcpRow_{i}/TcpInput")?.GetComponent<InputField>();
+            }
+
+            speedButtons = new Button[SpeedPresetNames.Length];
+            for (var i = 0; i < SpeedPresetNames.Length; i++)
+            {
+                speedButtons[i] = root.Find($"BtnTcpSpeed_{SpeedPresetNames[i]}")?.GetComponent<Button>();
+            }
+
+            if (currentTcpLabel == null
+                || fillCurrentButton == null
+                || validationSummaryLabel == null
+                || deltaSummaryLabel == null
+                || moveLButton == null
+                || servoCartButton == null
+                || stopButton == null
+                || dryRunToggle == null
+                || feedbackLabel == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < tcpInputs.Length; i++)
+            {
+                if (tcpInputs[i] == null)
+                {
+                    return false;
+                }
+
+                tcpInputs[i].contentType = InputField.ContentType.DecimalNumber;
+            }
+
+            for (var i = 0; i < speedButtons.Length; i++)
+            {
+                if (speedButtons[i] == null)
+                {
+                    return false;
+                }
+            }
+
+            var title = root.Find("Title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "TCP Control";
+            }
+
+            RefreshSpeedButtonColors();
+            return true;
         }
 
         private void EnsureSpeedButtons(RectTransform root)
@@ -257,6 +354,17 @@ namespace KineTutor3D.UI
                 }
             }
 
+            for (var i = 0; i < tcpInputs.Length; i++)
+            {
+                if (tcpInputs[i] == null)
+                {
+                    continue;
+                }
+
+                inputChangedListeners[i] = _ => RefreshPredictionSummary();
+                tcpInputs[i].onValueChanged.AddListener(inputChangedListeners[i]);
+            }
+
             listenersBound = true;
         }
 
@@ -281,6 +389,16 @@ namespace KineTutor3D.UI
                 }
             }
 
+            for (var i = 0; i < tcpInputs.Length; i++)
+            {
+                if (tcpInputs[i] != null && inputChangedListeners[i] != null)
+                {
+                    tcpInputs[i].onValueChanged.RemoveListener(inputChangedListeners[i]);
+                }
+
+                inputChangedListeners[i] = null;
+            }
+
             listenersBound = false;
         }
 
@@ -298,6 +416,39 @@ namespace KineTutor3D.UI
             return values;
         }
 
+        private bool TryGetValidatedInputValues(out double[] values, out string validationMessage)
+        {
+            values = new double[6];
+            validationMessage = "입력 검증 통과";
+
+            for (var i = 0; i < 6; i++)
+            {
+                if (tcpInputs[i] == null || string.IsNullOrWhiteSpace(tcpInputs[i].text))
+                {
+                    validationMessage = $"{Labels[i]} 값을 입력하세요.";
+                    return false;
+                }
+
+                if (!double.TryParse(tcpInputs[i].text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                    || double.IsNaN(parsed)
+                    || double.IsInfinity(parsed))
+                {
+                    validationMessage = $"{Labels[i]} 값 형식을 확인하세요.";
+                    return false;
+                }
+
+                if (i >= 3 && System.Math.Abs(parsed) > 360.0)
+                {
+                    validationMessage = $"{Labels[i]} 는 -360°~360° 범위를 권장합니다.";
+                    return false;
+                }
+
+                values[i] = parsed;
+            }
+
+            return true;
+        }
+
         private void OnMoveLClicked()
         {
             if (connectionService == null)
@@ -305,12 +456,19 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            var target = GetInputValues();
+            if (!TryGetValidatedInputValues(out var target, out var validationMessage))
+            {
+                ShowFeedback(validationMessage);
+                RefreshPredictionSummary(validationMessage);
+                return;
+            }
+
             var (speed, acc) = GetSelectedSpeedAcc();
 
             if (dryRun)
             {
                 ShowFeedback($"[DryRun] MoveL ({selectedSpeedPreset}) \u2192 X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}");
+                RefreshPredictionSummary();
                 OnTcpMoveRequested?.Invoke(target);
                 return;
             }
@@ -331,15 +489,23 @@ namespace KineTutor3D.UI
 
             var moveResult = connectionService.Client.MoveL(target, speed, acc);
             ShowFeedback(moveResult.Message);
+            RefreshPredictionSummary();
             OnTcpMoveRequested?.Invoke(target);
         }
 
         private void OnServoCartClicked()
         {
-            var target = GetInputValues();
+            if (!TryGetValidatedInputValues(out var target, out var validationMessage))
+            {
+                ShowFeedback(validationMessage);
+                RefreshPredictionSummary(validationMessage);
+                return;
+            }
+
             if (dryRun)
             {
                 ShowFeedback($"[DryRun] ServoCart \u2192 X:{target[0]:F1} Y:{target[1]:F1} Z:{target[2]:F1}");
+                RefreshPredictionSummary();
                 return;
             }
 
@@ -381,6 +547,7 @@ namespace KineTutor3D.UI
             SetInputValue(5, rz * (180.0 / System.Math.PI));
 
             ShowFeedback("현재 FK 위치로 채움 완료");
+            RefreshPredictionSummary();
         }
 
         private void SetInputValue(int index, double value)
@@ -416,11 +583,13 @@ namespace KineTutor3D.UI
         {
             dryRun = value;
             ShowFeedback(dryRun ? "DryRun 모드 활성" : "DryRun 모드 해제");
+            RefreshPredictionSummary();
         }
 
         private void OnKinematicsUpdated(KineTutor3D.Math.Mat4D[] transforms, KineTutor3D.Math.Mat4D ee)
         {
             RefreshCurrentTcp();
+            RefreshPredictionSummary();
         }
 
         private void RefreshCurrentTcp()
@@ -434,6 +603,42 @@ namespace KineTutor3D.UI
             currentTcpLabel.text = $"현재 TCP (FK): X:{pos.X.ToString("F3", CultureInfo.InvariantCulture)}m "
                 + $"Y:{pos.Y.ToString("F3", CultureInfo.InvariantCulture)}m "
                 + $"Z:{pos.Z.ToString("F3", CultureInfo.InvariantCulture)}m";
+        }
+
+        private void RefreshPredictionSummary(string overrideValidation = null)
+        {
+            if (validationSummaryLabel == null || deltaSummaryLabel == null)
+            {
+                return;
+            }
+
+            if (kinematicsFacade == null)
+            {
+                validationSummaryLabel.text = "검증: FK 데이터 대기 중";
+                validationSummaryLabel.color = UIDesignTokens.Colors.TextMuted;
+                deltaSummaryLabel.text = "예측 Δ: 계산 불가";
+                return;
+            }
+
+            if (!TryGetValidatedInputValues(out var values, out var validationMessage))
+            {
+                validationSummaryLabel.text = $"검증: {overrideValidation ?? validationMessage}";
+                validationSummaryLabel.color = UIDesignTokens.Colors.AccentWarning;
+                deltaSummaryLabel.text = "예측 Δ: 입력 보정 후 계산";
+                return;
+            }
+
+            validationSummaryLabel.text = $"검증: {overrideValidation ?? validationMessage}";
+            validationSummaryLabel.color = UIDesignTokens.Colors.AccentSuccess;
+
+            var currentPos = kinematicsFacade.EndEffectorTransform.ExtractPosition();
+            var dx = values[0] / 1000.0 - currentPos.X;
+            var dy = values[1] / 1000.0 - currentPos.Y;
+            var dz = values[2] / 1000.0 - currentPos.Z;
+            deltaSummaryLabel.text =
+                $"예측 ΔTCP: X {dx.ToString("+0.000;-0.000", CultureInfo.InvariantCulture)}m  " +
+                $"Y {dy.ToString("+0.000;-0.000", CultureInfo.InvariantCulture)}m  " +
+                $"Z {dz.ToString("+0.000;-0.000", CultureInfo.InvariantCulture)}m";
         }
 
         /// <summary>

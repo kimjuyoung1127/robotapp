@@ -1,7 +1,10 @@
 // Editor-only: QA helper tools for testing the full user flow.
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Unity.Robotics.UrdfImporter;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -138,6 +141,8 @@ namespace KineTutor3D.Editor
                 return;
             }
 
+            var unpackedPrefabRoots = UnpackFairinoControlPrefabInstances(importedRobot);
+            var reboundMeshCount = RebindFairinoControlMeshes(importedRobot.transform);
             var controlPrefab = PrefabUtility.SaveAsPrefabAsset(importedRobot, FairinoControlPrefabAssetPath, out var controlSuccess);
             var previewRoot = BuildFairinoPreviewHierarchy(importedRobot.transform);
             previewRoot.name = "FAIRINO_FR5";
@@ -153,14 +158,72 @@ namespace KineTutor3D.Editor
                 return;
             }
 
+            if (!ValidateFairinoControlPrefab(controlPrefab, out var controlDiagnostic))
+            {
+                Debug.LogError($"[QA] FAIRINO FR5 control prefab validation failed: {controlDiagnostic}");
+                return;
+            }
+
             if (!success || prefab == null)
             {
                 Debug.LogError($"[QA] FAIRINO FR5 prefab save failed at '{FairinoPrefabAssetPath}'.");
                 return;
             }
 
-            Debug.Log($"[QA] FAIRINO FR5 control prefab imported successfully: {FairinoControlPrefabAssetPath}");
+            Debug.Log($"[QA] FAIRINO FR5 control prefab imported successfully: {FairinoControlPrefabAssetPath} (unpacked {unpackedPrefabRoots} prefab roots, rebound {reboundMeshCount} meshes)");
             Debug.Log($"[QA] FAIRINO FR5 preview prefab imported successfully: {FairinoPrefabAssetPath}");
+        }
+
+        [MenuItem("KineTutor3D/RobotControl/Author Scene UI", priority = 145)]
+        public static void AuthorRobotControlSceneUi()
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.path.EndsWith("RobotControl.unity", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError("[QA] 먼저 Assets/Scenes/RobotControl.unity 씬을 열어주세요.");
+                return;
+            }
+
+            var canvas = KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureCanvas(null, null);
+            KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureEventSystem();
+            KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureCamera();
+            KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureLight();
+            KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureLayout(
+                canvas,
+                null,
+                out var connectionPanel,
+                out var jointControlPanel,
+                out var statePanel,
+                out var tcpPanel,
+                out var diagnosticsDrawer,
+                out var whyItMovedLabel,
+                out var moveConfirmDialog,
+                out _,
+                out _,
+                out _);
+
+            InvokePrivate(connectionPanel, "EnsurePresentation");
+            InvokePrivate(jointControlPanel, "EnsurePresentation");
+            InvokePrivate(statePanel, "EnsurePresentation");
+            InvokePrivate(tcpPanel, "EnsurePresentation");
+            InvokePrivate(diagnosticsDrawer, "EnsurePresentation");
+            InvokePrivate(whyItMovedLabel, "EnsurePresentation");
+            InvokePrivate(moveConfirmDialog, "EnsurePresentation");
+
+            diagnosticsDrawer.SetVisible(false);
+            moveConfirmDialog.SetVisible(false);
+
+            var coordinator = Object.FindFirstObjectByType<KineTutor3D.App.Fairino.RobotControlSceneCoordinator>(FindObjectsInactive.Include);
+            if (coordinator != null)
+            {
+                EditorUtility.SetDirty(coordinator);
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[QA] RobotControl scene-authored UI를 씬에 생성하고 저장했습니다.");
         }
 
         private static void ClearQaState()
@@ -241,6 +304,99 @@ namespace KineTutor3D.Editor
             return previewRoot;
         }
 
+        private static int UnpackFairinoControlPrefabInstances(GameObject root)
+        {
+            if (root == null)
+            {
+                return 0;
+            }
+
+            var unpackedCount = 0;
+            var pendingRoots = new HashSet<GameObject>();
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                var instanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(transforms[i].gameObject);
+                if (instanceRoot == null)
+                {
+                    continue;
+                }
+
+                if (instanceRoot != root && !instanceRoot.transform.IsChildOf(root.transform))
+                {
+                    continue;
+                }
+
+                pendingRoots.Add(instanceRoot);
+            }
+
+            foreach (var pendingRoot in pendingRoots)
+            {
+                if (pendingRoot == null || !PrefabUtility.IsPartOfPrefabInstance(pendingRoot))
+                {
+                    continue;
+                }
+
+                PrefabUtility.UnpackPrefabInstance(
+                    pendingRoot,
+                    PrefabUnpackMode.Completely,
+                    InteractionMode.AutomatedAction);
+                unpackedCount++;
+            }
+
+            return unpackedCount;
+        }
+
+        private static int RebindFairinoControlMeshes(Transform root)
+        {
+            if (root == null)
+            {
+                return 0;
+            }
+
+            var reboundCount = 0;
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                var meshAsset = LoadFairinoMeshAsset(transforms[i].name);
+                if (meshAsset == null)
+                {
+                    continue;
+                }
+
+                var meshFilter = transforms[i].GetComponent<MeshFilter>();
+                if (meshFilter == null)
+                {
+                    continue;
+                }
+
+                if (meshFilter.sharedMesh != meshAsset)
+                {
+                    meshFilter.sharedMesh = meshAsset;
+                    reboundCount++;
+                }
+
+                var meshCollider = transforms[i].GetComponent<MeshCollider>();
+                if (meshCollider != null && meshCollider.sharedMesh != meshAsset)
+                {
+                    meshCollider.sharedMesh = meshAsset;
+                }
+            }
+
+            return reboundCount;
+        }
+
+        private static void InvokePrivate(object target, string methodName)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            method?.Invoke(target, null);
+        }
+
         private static void CopyFairinoPreviewNode(Transform source, Transform targetParent, Material material)
         {
             for (var i = 0; i < source.childCount; i++)
@@ -267,6 +423,52 @@ namespace KineTutor3D.Editor
 
                 CopyFairinoPreviewNode(child, target, material);
             }
+        }
+
+        private static Mesh LoadFairinoMeshAsset(string nodeName)
+        {
+            if (string.IsNullOrEmpty(nodeName))
+            {
+                return null;
+            }
+
+            var meshAssetPath = $"{FairinoMeshesFolder}/{nodeName}.asset";
+            return AssetDatabase.LoadAssetAtPath<Mesh>(meshAssetPath);
+        }
+
+        private static bool ValidateFairinoControlPrefab(GameObject controlPrefab, out string diagnostic)
+        {
+            diagnostic = "Control prefab is null.";
+            if (controlPrefab == null)
+            {
+                return false;
+            }
+
+            var meshFilters = controlPrefab.GetComponentsInChildren<MeshFilter>(true);
+            if (meshFilters.Length == 0)
+            {
+                diagnostic = "Control prefab has no MeshFilter components.";
+                return false;
+            }
+
+            var validMeshCount = 0;
+            for (var i = 0; i < meshFilters.Length; i++)
+            {
+                var mesh = meshFilters[i] != null ? meshFilters[i].sharedMesh : null;
+                if (mesh != null && mesh.vertexCount > 0)
+                {
+                    validMeshCount++;
+                }
+            }
+
+            if (validMeshCount != meshFilters.Length)
+            {
+                diagnostic = $"Only {validMeshCount}/{meshFilters.Length} MeshFilter components have valid sharedMesh references.";
+                return false;
+            }
+
+            diagnostic = $"All {validMeshCount} MeshFilter components have valid sharedMesh references.";
+            return true;
         }
 
         private static Material LoadOrCreateFairinoPreviewMaterial()

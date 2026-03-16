@@ -61,9 +61,9 @@ namespace KineTutor3D.Tests.EditMode
 
             SceneCameraDirector.ConfigureForScene(SceneId.RobotControl, camera);
 
-            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(2.95f, 2.15f, -6.9f)));
-            Assert.That(camera.fieldOfView, Is.EqualTo(64f));
-            Assert.That(camera.nearClipPlane, Is.EqualTo(0.05f));
+            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(-1.39f, 0.55f, -2.35f)));
+            Assert.That(camera.fieldOfView, Is.EqualTo(40f));
+            Assert.That(camera.nearClipPlane, Is.EqualTo(0.01f));
             Assert.That(camera.farClipPlane, Is.EqualTo(30f));
 
             Object.DestroyImmediate(go);

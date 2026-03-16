@@ -69,6 +69,18 @@ namespace KineTutor3D.UI
             var background = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             background.color = UIDesignTokens.Colors.SurfaceRaisedAlt;
 
+            if (TryBindExistingPresentation(root))
+            {
+                if (!listenersBound)
+                {
+                    jointStateLabel.text = "관절: 대기 중...";
+                    tcpPoseLabel.text = "TCP: 대기 중...";
+                    errorLabel.text = string.Empty;
+                }
+
+                return;
+            }
+
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 22f), new Vector2(16f, -14f));
             title.text = "Robot State";
@@ -93,6 +105,33 @@ namespace KineTutor3D.UI
                 tcpPoseLabel.text = "TCP: 대기 중...";
                 errorLabel.text = string.Empty;
             }
+        }
+
+        private bool TryBindExistingPresentation(RectTransform root)
+        {
+            jointStateLabel = root.Find("JointStateLabel")?.GetComponent<Text>();
+            tcpPoseLabel = root.Find("TcpPoseLabel")?.GetComponent<Text>();
+            errorLabel = root.Find("ErrorLabel")?.GetComponent<Text>();
+
+            if (jointStateLabel == null || tcpPoseLabel == null || errorLabel == null)
+            {
+                return false;
+            }
+
+            var title = root.Find("Title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                title.text = "Robot State";
+            }
+
+            var subtitle = root.Find("Subtitle")?.GetComponent<Text>();
+            if (subtitle != null)
+            {
+                subtitle.text = "실시간 관절/TCP 상태";
+            }
+
+            tcpPoseLabel.supportRichText = true;
+            return true;
         }
 
         private void SubscribeService()
