@@ -64,6 +64,11 @@ run_test "resource-validate"   unity-cli resource-validate
 run_test "session-context"     unity-cli session-context
 run_test "tutorstep-validate"  unity-cli tutorstep-validate
 run_test "glossary-validate"   unity-cli glossary-validate
+run_test "fr5-diagnostic"      unity-cli fr5-diagnostic
+run_test "asset-size"          unity-cli asset-size --top 5
+run_test "scene-diff"          unity-cli scene-diff --scene_a Boot --scene_b Home
+run_test "pose-compare"        unity-cli pose-compare --template 2DOF_RR --joints_a "0,0" --joints_b "45,30"
+run_test "learning-tabs"       unity-cli learning-tabs --robot_id 2DOF_RR
 
 echo ""
 echo "═══════════════════════════════════════════"

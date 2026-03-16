@@ -49,6 +49,11 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 | SessionContextTool | `unity-cli session-context` | 세션 컨텍스트/진행 상태 조회 |
 | TutorStepValidateTool | `unity-cli tutorstep-validate` | TutorStep 에셋(S01~S08) 검증 |
 | GlossaryValidateTool | `unity-cli glossary-validate` | Glossary 데이터베이스 검증 |
+| FR5DiagnosticTool | `unity-cli fr5-diagnostic` | FR5 연결 상태/기구학 진단 (Play Mode) |
+| AssetSizeTool | `unity-cli asset-size --top 10` | Resources 에셋 크기 분석 |
+| SceneDiffTool | `unity-cli scene-diff --scene_a Boot --scene_b Home` | 씬 간 루트 GameObject 비교 |
+| PoseCompareTool | `unity-cli pose-compare --template FR5 --joints_a "..." --joints_b "..."` | 두 포즈 EE 거리 비교 |
+| LearningTabsTool | `unity-cli learning-tabs --robot_id all` | LearningTabs JSON 검증/요약 |
 
 ---
 
@@ -222,6 +227,68 @@ unity-cli glossary-validate
 
 파라미터 없음. GlossaryDatabase + 용어 에셋 검증 (term/definition 리플렉션, DB 내부 참조 카운트).
 
+### FR5DiagnosticTool
+
+```bash
+unity-cli fr5-diagnostic
+```
+
+파라미터 없음. Play Mode + RobotControl 씬에서만 동작:
+- Mock/Live 모드 확인
+- 마지막 로봇 상태 (JointPosDeg, TcpPose)
+- 기구학 상태 (JointValuesRad, EE 위치)
+
+### AssetSizeTool
+
+```bash
+unity-cli asset-size --top 5
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| top | N | 10 | 가장 큰 파일 상위 N개 표시 |
+
+Resources/ 하위 폴더별 파일 수, 크기(KB), 총합 분석.
+
+### SceneDiffTool
+
+```bash
+unity-cli scene-diff --scene_a Boot --scene_b Home
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| scene_a | **Y** | - | 비교할 첫 번째 씬 |
+| scene_b | **Y** | - | 비교할 두 번째 씬 |
+
+두 씬의 루트 GameObject 이름 비교 → added/removed/common 분류.
+
+### PoseCompareTool
+
+```bash
+unity-cli pose-compare --template FR5 --joints_a "0,-45,0,-59,-92,-42" --joints_b "10,-30,15,-45,-80,-30"
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| template | N | 2DOF_RR | 로봇 템플릿 이름 |
+| joints_a | **Y** | - | 첫 번째 관절 각도 (도, 쉼표 구분) |
+| joints_b | **Y** | - | 두 번째 관절 각도 (도, 쉼표 구분) |
+
+FK 계산 후 EE 위치 유클리드 거리 + XYZ delta 반환.
+
+### LearningTabsTool
+
+```bash
+unity-cli learning-tabs --robot_id all
+```
+
+| 파라미터 | 필수 | 기본값 | 설명 |
+|----------|------|--------|------|
+| robot_id | N | all | 로봇 ID 또는 'all' |
+
+LearningTabs JSON 파일의 구조 검증 (robotId, displayTitle, tabs 배열) + 탭별 카드 수 요약.
+
 ---
 
 ## 스크립트
@@ -234,7 +301,7 @@ unity-cli glossary-validate
 ```
 
 ### `scripts/cli-integration-test.sh`
-22개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 15). Unity Editor 실행 상태 필요.
+27개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 20). Unity Editor 실행 상태 필요.
 
 ```bash
 ./scripts/cli-integration-test.sh
@@ -312,6 +379,7 @@ namespace KineTutor3D.Editor.CliTools
 ```
 Assets/Editor/KineTutor3D/CliTools/
 ├── AsmdefValidateTool.cs       (Tier 3)
+├── AssetSizeTool.cs            (Tier 3)
 ├── BuildSettingsTool.cs        (Tier 3)
 ├── CanvasValidateTool.cs       (Tier 3)
 ├── CompileCheckTool.cs         (Tier 1)
@@ -319,14 +387,18 @@ Assets/Editor/KineTutor3D/CliTools/
 ├── ConsoleCheckTool.cs         (Tier 1)
 ├── DhTableTool.cs              (Tier 3)
 ├── FkComputeTool.cs            (Tier 3)
+├── FR5DiagnosticTool.cs        (Tier 3)
 ├── GlossaryValidateTool.cs     (Tier 3)
 ├── JointLimitTool.cs           (Tier 3)
+├── LearningTabsTool.cs         (Tier 3)
 ├── PlayerPrefsInspectTool.cs   (Tier 3)
+├── PoseCompareTool.cs          (Tier 3)
 ├── PrefabValidateTool.cs       (Tier 2)
 ├── QaPrepTool.cs               (Tier 3)
 ├── ResourceValidateTool.cs     (Tier 3)
 ├── RobotCatalogTool.cs         (Tier 3)
 ├── RunTestsTool.cs             (Tier 1)
+├── SceneDiffTool.cs            (Tier 3)
 ├── SceneHierarchyTool.cs       (Tier 2)
 ├── SceneValidateTool.cs        (Tier 1)
 ├── SessionContextTool.cs       (Tier 3)

@@ -332,6 +332,103 @@ namespace KineTutor3D.Tests.EditMode.CliTools
             });
         }
 
+        // ── PoseCompareTool 의존 로직 ──
+
+        [Test]
+        public void PoseCompare_2DOF_SameAngles_ZeroDistance()
+        {
+            var template = Template2DOF_RR.Create();
+            var links = template.GetLinks();
+            var joints = new double[links.Length];
+            var matA = ForwardKinematics.ComputeEndEffectorTransform(links, joints);
+            var matB = ForwardKinematics.ComputeEndEffectorTransform(links, joints);
+            Vec3D posA = matA.ExtractPosition();
+            Vec3D posB = matB.ExtractPosition();
+            double distance = (posA - posB).Magnitude();
+            Assert.AreEqual(0.0, distance, Delta, "동일 각도의 EE 거리는 0이어야 합니다.");
+        }
+
+        [Test]
+        public void PoseCompare_2DOF_DifferentAngles_PositiveDistance()
+        {
+            var template = Template2DOF_RR.Create();
+            var links = template.GetLinks();
+            var jointsA = new double[links.Length];
+            var jointsB = new double[links.Length];
+            jointsB[0] = System.Math.PI / 4; // 45도
+            var matA = ForwardKinematics.ComputeEndEffectorTransform(links, jointsA);
+            var matB = ForwardKinematics.ComputeEndEffectorTransform(links, jointsB);
+            Vec3D posA = matA.ExtractPosition();
+            Vec3D posB = matB.ExtractPosition();
+            double distance = (posA - posB).Magnitude();
+            Assert.Greater(distance, 0.0, "다른 각도의 EE 거리는 양수여야 합니다.");
+        }
+
+        // ── LearningTabsTool 의존 로직 ──
+
+        [Test]
+        public void LearningTabs_AllRobots_JsonFilesExist()
+        {
+            string[] robotIds = { "2DOF_RR", "SCARA_RV", "FAIRINO_FR5", "FANUC_CRX10", "IGUS_REBEL", "GENERIC_6DOF" };
+            foreach (string id in robotIds)
+            {
+                string path = $"Assets/Runtime/Resources/LearningTabs/{id}.json";
+                bool exists = System.IO.File.Exists(
+                    System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", path));
+                Assert.IsTrue(exists, $"LearningTabs JSON이 존재해야 합니다: {id}");
+            }
+        }
+
+        [Test]
+        public void LearningTabs_2DOF_JsonNotEmpty()
+        {
+            string path = System.IO.Path.Combine(
+                UnityEngine.Application.dataPath, "Runtime", "Resources", "LearningTabs", "2DOF_RR.json");
+            Assert.IsTrue(System.IO.File.Exists(path), "2DOF_RR.json이 존재해야 합니다.");
+            string json = System.IO.File.ReadAllText(path);
+            Assert.IsTrue(json.Length > 10, "2DOF_RR.json은 비어있지 않아야 합니다.");
+            Assert.IsTrue(json.Contains("\"robotId\"") || json.Contains("\"displayTitle\""),
+                "2DOF_RR.json에 robotId 또는 displayTitle 필드가 있어야 합니다.");
+        }
+
+        // ── AssetSizeTool 의존 로직 ──
+
+        [Test]
+        public void AssetSize_ResourcesFolder_Exists()
+        {
+            string dir = System.IO.Path.Combine(UnityEngine.Application.dataPath, "Runtime", "Resources");
+            Assert.IsTrue(System.IO.Directory.Exists(dir), "Resources 폴더가 존재해야 합니다.");
+        }
+
+        // ── SceneDiffTool 의존 로직 ──
+
+        [Test]
+        public void SceneDiff_AllKnownScenes_FilesExist()
+        {
+            string[] scenes = { "Boot", "Home" };
+            foreach (string name in scenes)
+            {
+                string path = $"Assets/Scenes/{name}.unity";
+                bool exists = System.IO.File.Exists(
+                    System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", path));
+                Assert.IsTrue(exists, $"SceneDiff 대상 씬이 존재해야 합니다: {name}");
+            }
+        }
+
+        // ── FR5DiagnosticTool 의존 로직 ──
+
+        [Test]
+        public void FR5Diagnostic_CoordinatorType_Exists()
+        {
+            System.Type coordType = null;
+            foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                coordType = asm.GetType("KineTutor3D.App.Fairino.RobotControlSceneCoordinator");
+                if (coordType != null) break;
+            }
+            Assert.IsNotNull(coordType, "RobotControlSceneCoordinator 타입이 존재해야 합니다.");
+        }
+
         // ── QaPrepTool 의존 로직 ──
 
         [Test]
