@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UnityCliConnector;
 using KineTutor3D.Templates;
+using KineTutor3D.Types;
 
 namespace KineTutor3D.Editor.CliTools
 {

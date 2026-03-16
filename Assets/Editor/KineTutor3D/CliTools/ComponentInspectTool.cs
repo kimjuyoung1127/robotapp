@@ -100,7 +100,7 @@ namespace KineTutor3D.Editor.CliTools
             {
                 dict["mesh_name"] = mf.sharedMesh.name;
                 dict["vertex_count"] = mf.sharedMesh.vertexCount;
-                dict["triangle_count"] = mf.sharedMesh.triangles.Length / 3;
+                dict["triangle_count"] = (int)(mf.sharedMesh.GetIndexCount(0) / 3);
                 return dict;
             }
 

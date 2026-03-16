@@ -21,7 +21,12 @@ namespace KineTutor3D.Editor.CliTools
 
             [ToolParameter("Test name filter (optional)", Required = false)]
             public string Filter { get; set; }
+
+            [ToolParameter("Return last run results instead of launching (optional)", Required = false)]
+            public bool Results { get; set; }
         }
+
+        private static ResultCollector lastCollector;
 
         private class ResultCollector : ICallbacks
         {
@@ -31,6 +36,7 @@ namespace KineTutor3D.Editor.CliTools
             public int skipped;
             public bool finished;
             public readonly List<string> failures = new List<string>();
+            public DateTime startTime = DateTime.Now;
 
             public void RunStarted(ITestAdaptor testsToRun) { }
 
@@ -66,6 +72,11 @@ namespace KineTutor3D.Editor.CliTools
         public static object HandleCommand(JObject @params)
         {
             var p = new ToolParams(@params);
+            bool checkResults = p.GetBool("results", false);
+
+            if (checkResults)
+                return GetLastResults();
+
             string mode = p.Get("mode", "edit");
 
             TestMode testMode;
@@ -81,11 +92,11 @@ namespace KineTutor3D.Editor.CliTools
             }
 
             var api = ScriptableObject.CreateInstance<TestRunnerApi>();
-            var collector = new ResultCollector();
 
             try
             {
-                api.RegisterCallbacks(collector);
+                lastCollector = new ResultCollector();
+                api.RegisterCallbacks(lastCollector);
 
                 var filter = new Filter
                 {
@@ -101,18 +112,44 @@ namespace KineTutor3D.Editor.CliTools
                 api.Execute(new ExecutionSettings(filter));
 
                 return new SuccessResponse(
-                    $"Tests launched ({testMode}). Results arrive asynchronously via callbacks.",
+                    $"Tests launched ({testMode}). Use run-tests --results to check completion.",
                     new
                     {
                         mode = testMode.ToString(),
-                        status = "launched",
-                        note = "Use console-check to monitor progress. Results are collected asynchronously."
+                        status = "launched"
                     });
             }
             catch (Exception ex)
             {
                 return new ErrorResponse($"Failed to launch tests: {ex.Message}");
             }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(api);
+            }
+        }
+
+        private static object GetLastResults()
+        {
+            if (lastCollector == null)
+                return new ErrorResponse("No test run has been launched yet. Use run-tests --mode edit first.");
+
+            double elapsed = (DateTime.Now - lastCollector.startTime).TotalSeconds;
+
+            return new SuccessResponse(
+                lastCollector.finished
+                    ? $"Tests finished: {lastCollector.passed}/{lastCollector.total} passed."
+                    : $"Tests in progress ({lastCollector.total} completed so far, {elapsed:F1}s elapsed).",
+                new
+                {
+                    finished = lastCollector.finished,
+                    total = lastCollector.total,
+                    passed = lastCollector.passed,
+                    failed = lastCollector.failed,
+                    skipped = lastCollector.skipped,
+                    elapsed_seconds = System.Math.Round(elapsed, 1),
+                    failures = lastCollector.failures.Count > 0 ? lastCollector.failures : null
+                });
         }
     }
 }

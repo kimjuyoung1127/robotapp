@@ -22,6 +22,7 @@ namespace KineTutor3D.Editor.CliTools
             public int Lines { get; set; }
         }
 
+        private static readonly object bufferLock = new object();
         private static readonly List<LogEntry> logBuffer = new List<LogEntry>();
         private static bool registered;
 
@@ -47,16 +48,19 @@ namespace KineTutor3D.Editor.CliTools
 
         private static void OnLogMessage(string condition, string stackTrace, LogType type)
         {
-            logBuffer.Add(new LogEntry
+            lock (bufferLock)
             {
-                message = condition,
-                stackTrace = stackTrace,
-                type = type,
-                timestamp = DateTime.Now
-            });
+                logBuffer.Add(new LogEntry
+                {
+                    message = condition,
+                    stackTrace = stackTrace,
+                    type = type,
+                    timestamp = DateTime.Now
+                });
 
-            if (logBuffer.Count > 1000)
-                logBuffer.RemoveAt(0);
+                if (logBuffer.Count > 1000)
+                    logBuffer.RemoveAt(0);
+            }
         }
 
         public static object HandleCommand(JObject @params)
@@ -70,7 +74,13 @@ namespace KineTutor3D.Editor.CliTools
             var warnings = new List<object>();
             var logs = new List<object>();
 
-            foreach (var entry in logBuffer)
+            List<LogEntry> snapshot;
+            lock (bufferLock)
+            {
+                snapshot = new List<LogEntry>(logBuffer);
+            }
+
+            foreach (var entry in snapshot)
             {
                 var item = new
                 {

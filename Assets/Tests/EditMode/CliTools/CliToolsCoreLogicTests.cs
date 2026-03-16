@@ -12,6 +12,7 @@ namespace KineTutor3D.Tests.EditMode.CliTools
     /// HandleCommand(JObject)는 Unity Editor + connector 런타임에서만 테스트 가능하므로,
     /// 여기서는 도구가 호출하는 핵심 API의 정합성을 확인합니다.
     /// </summary>
+    [TestFixture]
     public class CliToolsCoreLogicTests
     {
         private const double Delta = 1e-4;

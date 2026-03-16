@@ -15,16 +15,25 @@ namespace KineTutor3D.Editor.CliTools
     {
         private static readonly List<CompilerMessage> collectedMessages = new List<CompilerMessage>();
         private static bool hookRegistered;
+        private static bool compilationInProgress;
 
         private static void EnsureHook()
         {
             if (hookRegistered) return;
+            CompilationPipeline.compilationStarted += OnCompilationStarted;
             CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompiled;
             hookRegistered = true;
         }
 
+        private static void OnCompilationStarted(object context)
+        {
+            compilationInProgress = true;
+            collectedMessages.Clear();
+        }
+
         private static void OnAssemblyCompiled(string assemblyPath, CompilerMessage[] messages)
         {
+            compilationInProgress = false;
             if (messages != null)
             {
                 collectedMessages.AddRange(messages);
@@ -35,7 +44,7 @@ namespace KineTutor3D.Editor.CliTools
         {
             EnsureHook();
 
-            bool isCompiling = EditorApplication.isCompiling;
+            bool isCompiling = EditorApplication.isCompiling || compilationInProgress;
             int errors = 0;
             int warnings = 0;
             var errorDetails = new List<string>();
