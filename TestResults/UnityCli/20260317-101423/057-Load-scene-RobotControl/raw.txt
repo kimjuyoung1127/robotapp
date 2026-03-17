@@ -1,0 +1,9 @@
+﻿unity-cli.cmd : Error: execute_csharp failed: Error running C:\Program Files\Unity\Hub\Editor\6000.0.64f1\Editor\Data\M
+onoBleedingEdge\bin\mono.exe: 파일 이름이나 확장명이 너무 깁니다.
+At C:\Users\ezen601\Desktop\Jason\robotapp2\scripts\cli-integration-test.ps1:246 char:23
++         $rawOutput = (& unity-cli @Args 2>&1 | ForEach-Object { $_.To ...
++                       ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: execute_...이나 확장명이 너무 깁니다.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

@@ -1,0 +1,533 @@
+﻿[
+  {
+    "description": "Validate assembly definition references: missing refs, circular deps",
+    "group": "",
+    "name": "asmdef_validate_tool",
+    "parameters": []
+  },
+  {
+    "description": "Analyze asset sizes in Resources folder by subfolder and file",
+    "group": "",
+    "name": "asset_size_tool",
+    "parameters": [
+      {
+        "description": "Number of largest files to show",
+        "name": "top",
+        "required": false,
+        "type": "Int32"
+      }
+    ]
+  },
+  {
+    "description": "Validate Build Settings scene list against known project scenes",
+    "group": "",
+    "name": "build_settings_tool",
+    "parameters": []
+  },
+  {
+    "description": "Capture, save, list, apply, and delete camera position snapshots",
+    "group": "",
+    "name": "camera_capture_tool",
+    "parameters": []
+  },
+  {
+    "description": "Validate Canvas setup: EventSystem, GraphicRaycaster, sorting order",
+    "group": "",
+    "name": "canvas_validate_tool",
+    "parameters": []
+  },
+  {
+    "description": "Check compilation status: errors and warnings count",
+    "group": "",
+    "name": "compile_check_tool",
+    "parameters": []
+  },
+  {
+    "description": "Inspect component properties on a GameObject by path",
+    "group": "",
+    "name": "component_inspect_tool",
+    "parameters": [
+      {
+        "description": "GameObject path (e.g. 'Canvas/TopBar')",
+        "name": "path",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Component type name (e.g. 'Transform', 'MeshRenderer')",
+        "name": "component",
+        "required": false,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Read Unity console logs filtered by type (error, warn, all)",
+    "group": "",
+    "name": "console_check_tool",
+    "parameters": [
+      {
+        "description": "Filter type: error, warn, all",
+        "name": "type",
+        "required": false,
+        "type": "String"
+      },
+      {
+        "description": "Maximum number of entries to return",
+        "name": "lines",
+        "required": false,
+        "type": "Int32"
+      }
+    ]
+  },
+  {
+    "description": "Dump DH parameter table for a robot template",
+    "group": "",
+    "name": "dh_table_tool",
+    "parameters": [
+      {
+        "description": "Robot template: 2DOF_RR, SCARA_RV, FR5",
+        "name": "template",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Compute forward kinematics for a robot template",
+    "group": "",
+    "name": "fk_compute_tool",
+    "parameters": [
+      {
+        "description": "Robot template: 2DOF_RR, SCARA_RV, FR5",
+        "name": "template",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Comma-separated joint angles in degrees (e.g. '0,-45,0,-59,-92,-42')",
+        "name": "joints",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Diagnose FR5 robot connection and kinematics state (Play Mode only)",
+    "group": "",
+    "name": "fr5_diagnostic_tool",
+    "parameters": []
+  },
+  {
+    "description": "Validate Glossary database and term assets",
+    "group": "",
+    "name": "glossary_validate_tool",
+    "parameters": []
+  },
+  {
+    "description": "Query joint limits for a robot template",
+    "group": "",
+    "name": "joint_limit_tool",
+    "parameters": [
+      {
+        "description": "Robot template: 2DOF_RR, SCARA_RV, FR5",
+        "name": "template",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Validate and summarize LearningTabs JSON files",
+    "group": "",
+    "name": "learning_tabs_tool",
+    "parameters": [
+      {
+        "description": "Robot ID (e.g. FAIRINO_FR5) or 'all'",
+        "name": "robot_id",
+        "required": false,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Inspect KineTutor3D PlayerPrefs keys and values",
+    "group": "",
+    "name": "player_prefs_inspect_tool",
+    "parameters": []
+  },
+  {
+    "description": "Compare two joint poses and compute EE position difference",
+    "group": "",
+    "name": "pose_compare_tool",
+    "parameters": [
+      {
+        "description": "Robot template: 2DOF_RR, SCARA_RV, FR5",
+        "name": "template",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "First joint angles in degrees (comma-separated)",
+        "name": "joints_a",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Second joint angles in degrees (comma-separated)",
+        "name": "joints_b",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Validate prefab integrity: missing scripts, zero-vertex meshes",
+    "group": "",
+    "name": "prefab_validate_tool",
+    "parameters": [
+      {
+        "description": "Prefab asset path (e.g. 'Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab')",
+        "name": "path",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Prepare QA test scenarios by setting PlayerPrefs",
+    "group": "",
+    "name": "qa_prep_tool",
+    "parameters": [
+      {
+        "description": "Scenario: first-time, returning, sandbox, robot-control, math-readiness",
+        "name": "scenario",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Validate Resources folder: required assets, LearningTabs, TutorSteps",
+    "group": "",
+    "name": "resource_validate_tool",
+    "parameters": []
+  },
+  {
+    "description": "List all registered robots from the RobotCatalog",
+    "group": "",
+    "name": "robot_catalog_tool",
+    "parameters": []
+  },
+  {
+    "description": "Run EditMode or PlayMode tests and return results summary",
+    "group": "",
+    "name": "run_tests_tool",
+    "parameters": [
+      {
+        "description": "Test mode: edit or play",
+        "name": "mode",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Test name filter (optional)",
+        "name": "filter",
+        "required": false,
+        "type": "String"
+      },
+      {
+        "description": "Return last run results instead of launching (optional)",
+        "name": "results",
+        "required": false,
+        "type": "Boolean"
+      }
+    ]
+  },
+  {
+    "description": "Compare root GameObjects between two scenes",
+    "group": "",
+    "name": "scene_diff_tool",
+    "parameters": [
+      {
+        "description": "First scene name (e.g. Boot)",
+        "name": "scene_a",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Second scene name (e.g. Home)",
+        "name": "scene_b",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Dump scene GameObject hierarchy as a JSON tree",
+    "group": "",
+    "name": "scene_hierarchy_tool",
+    "parameters": [
+      {
+        "description": "Root path to start from (optional, e.g. 'Canvas/TopBar')",
+        "name": "path",
+        "required": false,
+        "type": "String"
+      },
+      {
+        "description": "Maximum depth to traverse (default 3)",
+        "name": "depth",
+        "required": false,
+        "type": "Int32"
+      }
+    ]
+  },
+  {
+    "description": "Validate scenes for missing scripts and broken references",
+    "group": "",
+    "name": "scene_validate_tool",
+    "parameters": [
+      {
+        "description": "Scene name or 'all' for all scenes",
+        "name": "name",
+        "required": false,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Inspect session context and learning progress state",
+    "group": "",
+    "name": "session_context_tool",
+    "parameters": []
+  },
+  {
+    "description": "Validate TutorStep assets (S01-S08) for completeness",
+    "group": "",
+    "name": "tutor_step_validate_tool",
+    "parameters": []
+  },
+  {
+    "description": "Execute arbitrary C# code at runtime. Full access to Unity and all loaded assemblies.",
+    "group": "",
+    "name": "execute_csharp",
+    "parameters": [
+      {
+        "description": "C# code to execute. Single expressions auto-return their result",
+        "name": "code",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Additional using directives (e.g. Unity.Entities, Unity.Mathematics)",
+        "name": "usings",
+        "required": true,
+        "type": "String[]"
+      }
+    ]
+  },
+  {
+    "description": "Execute a Unity menu item by path.",
+    "group": "",
+    "name": "execute_menu_item",
+    "parameters": [
+      {
+        "description": "Unity menu item path to execute (e.g. File/Save Project)",
+        "name": "menu_path",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Controls Unity editor state. Actions: play, stop, pause, refresh, set_active_tool, add_tag, remove_tag, add_layer, remove_layer.",
+    "group": "",
+    "name": "manage_editor",
+    "parameters": [
+      {
+        "description": "Action to perform: play, stop, pause, refresh, set_active_tool, add_tag, remove_tag, add_layer, remove_layer",
+        "name": "action",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Wait for action to complete before responding",
+        "name": "wait_for_completion",
+        "required": true,
+        "type": "Boolean"
+      },
+      {
+        "description": "Tool name (required for set_active_tool action)",
+        "name": "tool_name",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Tag name (required for add_tag/remove_tag actions)",
+        "name": "tag_name",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Layer name (required for add_layer/remove_layer actions)",
+        "name": "layer_name",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Control Unity Profiler. Actions: hierarchy, enable, disable, status, clear.",
+    "group": "",
+    "name": "manage_profiler",
+    "parameters": [
+      {
+        "description": "Action: hierarchy, enable, disable, status, or clear",
+        "name": "action",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Frame index. -1 or omit = last captured frame.",
+        "name": "frame",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Start frame index for range average.",
+        "name": "from",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "End frame index for range average.",
+        "name": "to",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Number of recent frames to average (shortcut for range).",
+        "name": "frames",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Thread index. 0 = main thread.",
+        "name": "thread_index",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Parent item ID to drill into. Omit for root level.",
+        "name": "parent_id",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Find item by name and use as root. Substring match.",
+        "name": "root",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Minimum total time (ms) filter.",
+        "name": "min_time",
+        "required": true,
+        "type": "Single"
+      },
+      {
+        "description": "Sort column: 'total', 'self', or 'calls'. Default 'total'.",
+        "name": "sort_by",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Max children per level. Default 30.",
+        "name": "max_items",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Recursive depth. 1 = one level (default), 0 = unlimited.",
+        "name": "depth",
+        "required": true,
+        "type": "Int32"
+      }
+    ]
+  },
+  {
+    "description": "Read or clear Unity console logs.",
+    "group": "",
+    "name": "read_console",
+    "parameters": [
+      {
+        "description": "Action: get (default) or clear",
+        "name": "action",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Log types to include: error, warning, log, all",
+        "name": "types",
+        "required": true,
+        "type": "String[]"
+      },
+      {
+        "description": "Maximum number of log entries to return",
+        "name": "count",
+        "required": true,
+        "type": "Int32"
+      },
+      {
+        "description": "Filter log messages containing this text",
+        "name": "filter_text",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Refresh Unity assets and optionally request script compilation.",
+    "group": "",
+    "name": "refresh_unity",
+    "parameters": [
+      {
+        "description": "Refresh mode: if_dirty (default) or force",
+        "name": "mode",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Scope: all (default) or specific path",
+        "name": "scope",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Compile mode: none (default) or request",
+        "name": "compile",
+        "required": true,
+        "type": "String"
+      }
+    ]
+  },
+  {
+    "description": "Force reserialize Unity assets. No params = entire project.",
+    "group": "",
+    "name": "reserialize_assets",
+    "parameters": [
+      {
+        "description": "Single asset path to reserialize",
+        "name": "path",
+        "required": true,
+        "type": "String"
+      },
+      {
+        "description": "Multiple asset paths to reserialize",
+        "name": "paths",
+        "required": true,
+        "type": "String[]"
+      }
+    ]
+  }
+]

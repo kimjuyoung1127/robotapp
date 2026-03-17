@@ -1,0 +1,8 @@
+﻿unity-cli.cmd : Waiting for Unity...
+At C:\Users\ezen601\Desktop\Jason\robotapp2\scripts\cli-integration-test.ps1:246 char:23
++         $rawOutput = (& unity-cli @Args 2>&1 | ForEach-Object { $_.To ...
++                       ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Waiting for Unity...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

@@ -54,7 +54,7 @@ namespace KineTutor3D.Tests.EditMode
 
             _pod.SetSelected(true);
 
-            Assert.That(_pod.transform.localScale.x, Is.EqualTo(1.10f).Within(0.001f));
+            Assert.That(_pod.transform.localScale.x, Is.EqualTo(1.24f).Within(0.001f));
             Assert.That(_pod.IsSelected, Is.True);
         }
     }

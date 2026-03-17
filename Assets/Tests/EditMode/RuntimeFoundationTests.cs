@@ -99,12 +99,26 @@ namespace KineTutor3D.Tests.EditMode
 
         private static T GetField<T>(object target, string name)
         {
-            return (T)target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public)?.GetValue(target);
+            var type = target.GetType();
+            var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null)
+            {
+                return (T)field.GetValue(target);
+            }
+
+            var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property != null)
+            {
+                return (T)property.GetValue(target);
+            }
+
+            throw new MissingMemberException(type.FullName, name);
         }
 
         private static object Invoke(object target, string methodName, params object[] args)
         {
-            return target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public)?.Invoke(target, args);
+            var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            return method?.Invoke(target, args);
         }
 
         private static double DegreesToRadians(double degrees)

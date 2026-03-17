@@ -61,10 +61,10 @@ namespace KineTutor3D.Tests.EditMode
         {
             InvokeEnsurePresentation();
 
-            var debugNav = _canvasRoot.transform.Find("OnboardingDebugNav");
-            Assert.That(debugNav, Is.Not.Null);
-            Assert.That(debugNav.gameObject.activeSelf, Is.True);
-            Assert.That(debugNav.Find("DebugNavSandbox"), Is.Not.Null);
+            var topBarRect = _canvasRoot.transform.Find("TopBarRect");
+            Assert.That(topBarRect, Is.Not.Null);
+            Assert.That(topBarRect.gameObject.activeSelf, Is.True);
+            Assert.That(_sceneNavigationBar.enabled, Is.True);
         }
 
         private void InvokeEnsurePresentation()

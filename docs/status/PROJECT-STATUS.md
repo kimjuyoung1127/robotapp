@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-15 (KST)
+최종 업데이트: 2026-03-17 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -13,6 +13,16 @@
 - **Phase 6: CI/CD (Unity tests workflow)** (Hold — 로컬 테스트 전용, runner 미등록)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
+
+## 이번 턴 반영 내용 (FAIRINO live SDK staging)
+1. 공식 `fairino-csharp-sdk` ZIP을 다시 확인해 실제 DLL 이름이 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`임을 검증했다.
+2. 로컬 `Assets/Plugins/Fairino/`에 두 DLL을 staging 해 Live 연동 준비 상태를 만들었다.
+3. `Assets/Plugins/Fairino/README.md`를 실제 배포 파일명 기준으로 수정했다.
+4. SDK 추가 후 드러난 compile blocker 4건을 정리했다.
+   - `SceneCameraDirector`의 `Object` 모호성 1건
+   - `Editor/CliTools`의 `int? -> int` 변환 3건
+5. 현재 남은 blocker는 SDK 부재가 아니라 `실기 컨트롤러 IP 미확정`이다.
+6. 현장 검증 순서는 `Connect -> GetVersion/ReadState -> Enable -> small MoveJ`로 고정했다.
 
 ## 현재 사이클 반영 내용 (SCARA + Sandbox baseline + asset subset)
 1. 복구된 vendor source(`HQP Studios`, `_Heathen Engineering`, `Glowing Rifts`)를 확인하고 curated runtime subset 경로를 추가했다.

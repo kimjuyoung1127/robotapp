@@ -321,7 +321,33 @@ namespace KineTutor3D.Editor
             Debug.Log("[QA] Home scene-authored UI를 씬에 정리하고 저장했습니다.");
         }
 
-        [MenuItem("KineTutor3D/UI/Author Shared SceneNavigationBar Prefab", priority = 148)]
+        [MenuItem("KineTutor3D/RobotLibrary/Author Scene UI", priority = 148)]
+        public static void AuthorRobotLibrarySceneUi()
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.path.EndsWith("RobotLibrary.unity", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError("[QA] 먼저 Assets/Scenes/RobotLibrary.unity 씬을 열어주세요.");
+                return;
+            }
+
+            var manager = Object.FindFirstObjectByType<KineTutor3D.UI.RobotLibraryManager>(FindObjectsInactive.Include);
+            if (manager == null)
+            {
+                Debug.LogError("[QA] RobotLibraryManager를 찾지 못했습니다.");
+                return;
+            }
+
+            InvokePrivate(manager, "EnsurePresentation");
+            EditorUtility.SetDirty(manager);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[QA] RobotLibrary scene-authored UI를 씬에 생성하고 저장했습니다.");
+        }
+
+        [MenuItem("KineTutor3D/UI/Author Shared SceneNavigationBar Prefab", priority = 149)]
         public static void AuthorSharedSceneNavigationBarPrefab()
         {
             EnsureFolder("Assets/Runtime");

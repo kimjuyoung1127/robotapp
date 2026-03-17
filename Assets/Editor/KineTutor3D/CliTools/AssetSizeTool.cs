@@ -23,7 +23,7 @@ namespace KineTutor3D.Editor.CliTools
         public static object HandleCommand(JObject @params)
         {
             var p = new ToolParams(@params);
-            int top = p.GetInt("top", 10);
+            int top = p.GetInt("top", 10) ?? 10;
 
             string resourcesRoot = Path.Combine(Application.dataPath, "Runtime", "Resources");
             if (!Directory.Exists(resourcesRoot))

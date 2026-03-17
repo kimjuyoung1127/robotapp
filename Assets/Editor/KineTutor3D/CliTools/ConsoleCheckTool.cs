@@ -68,7 +68,7 @@ namespace KineTutor3D.Editor.CliTools
             EnsureRegistered();
             var p = new ToolParams(@params);
             string filter = p.Get("type", "error");
-            int maxLines = p.GetInt("lines", 50);
+            int maxLines = p.GetInt("lines", 50) ?? 50;
             bool verbose = p.GetBool("verbose", false);
 
             var errors = new List<object>();

@@ -4,10 +4,10 @@ run-tests
 scene-validate
 prefab-validate
 scene-hierarchy
+component-inspect
 robot-catalog
 fk-compute
 qa-prep
-scene-stats
 dh-table
 joint-limit
 build-settings

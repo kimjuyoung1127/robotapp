@@ -7,9 +7,9 @@
 1. GitHub에서 SDK를 다운로드합니다:
    - Repository: `FAIR-INNOVATION/fairino-csharp-sdk`
    - Branch: `main`
-2. ZIP 파일에서 다음 DLL을 이 폴더에 복사합니다:
-   - `fairino.dll`
-   - `xmlrpcnet.dll`
+2. 공식 ZIP에서 다음 DLL을 이 폴더에 복사합니다:
+   - `libfairino.dll`
+   - `CookComputing.XmlRpcV2.dll`
 3. Unity Editor를 재시작합니다.
 
 ## 참고

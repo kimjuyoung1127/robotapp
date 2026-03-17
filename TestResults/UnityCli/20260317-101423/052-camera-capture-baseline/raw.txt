@@ -1,0 +1,8 @@
+﻿unity-cli.cmd : Error: Unknown command: camera-capture
+At C:\Users\ezen601\Desktop\Jason\robotapp2\scripts\cli-integration-test.ps1:246 char:23
++         $rawOutput = (& unity-cli @Args 2>&1 | ForEach-Object { $_.To ...
++                       ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: Unknown command: camera-capture:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UnityCliConnector;
+using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
@@ -14,6 +15,13 @@ namespace KineTutor3D.Editor.CliTools
     [UnityCliTool(Description = "Run EditMode or PlayMode tests and return results summary")]
     public static class RunTestsTool
     {
+        private const string StateKey = "KineTutor3D.RunTestsTool.State";
+        private const string ActiveKey = "KineTutor3D.RunTestsTool.Active";
+
+        private static TestRunnerApi activeApi;
+        private static bool callbacksRegistered;
+        private static readonly PersistentResultCollector persistentCollector = new PersistentResultCollector();
+
         public class Parameters
         {
             [ToolParameter("Test mode: edit or play")]
@@ -26,24 +34,48 @@ namespace KineTutor3D.Editor.CliTools
             public bool Results { get; set; }
         }
 
-        private static ResultCollector lastCollector;
-
-        private class ResultCollector : ICallbacks
+        [Serializable]
+        private sealed class StoredResults
         {
             public int total;
             public int passed;
             public int failed;
             public int skipped;
             public bool finished;
-            public readonly List<string> failures = new List<string>();
-            public readonly List<string> allTestNames = new List<string>();
-            public DateTime startTime = DateTime.Now;
+            public bool launched;
+            public string mode = string.Empty;
+            public long startedAtUtcTicks;
+            public List<string> failures = new List<string>();
+            public List<string> allTestNames = new List<string>();
+        }
 
-            public void RunStarted(ITestAdaptor testsToRun) { }
+        private sealed class PersistentResultCollector : ICallbacks, IErrorCallbacks
+        {
+            public void RunStarted(ITestAdaptor testsToRun)
+            {
+                var state = LoadState() ?? new StoredResults();
+                state.launched = true;
+                state.finished = false;
+                state.total = 0;
+                state.passed = 0;
+                state.failed = 0;
+                state.skipped = 0;
+                state.failures = new List<string>();
+                state.allTestNames = new List<string>();
+                if (state.startedAtUtcTicks == 0)
+                {
+                    state.startedAtUtcTicks = DateTime.UtcNow.Ticks;
+                }
+
+                SaveState(state);
+            }
 
             public void RunFinished(ITestResultAdaptor result)
             {
-                finished = true;
+                var state = LoadState() ?? new StoredResults();
+                state.finished = true;
+                SaveState(state);
+                SessionState.SetBool(ActiveKey, false);
             }
 
             public void TestStarted(ITestAdaptor test) { }
@@ -52,22 +84,48 @@ namespace KineTutor3D.Editor.CliTools
             {
                 if (!result.HasChildren)
                 {
-                    total++;
-                    allTestNames.Add(result.FullName);
+                    var state = LoadState() ?? new StoredResults();
+                    state.total++;
+                    state.allTestNames ??= new List<string>();
+                    state.failures ??= new List<string>();
+                    state.allTestNames.Add(result.FullName);
+
                     switch (result.TestStatus)
                     {
                         case TestStatus.Passed:
-                            passed++;
+                            state.passed++;
                             break;
                         case TestStatus.Failed:
-                            failed++;
-                            failures.Add($"{result.FullName}: {result.Message}");
+                            state.failed++;
+                            state.failures.Add($"{result.FullName}: {result.Message}");
                             break;
                         case TestStatus.Skipped:
-                            skipped++;
+                            state.skipped++;
                             break;
                     }
+
+                    SaveState(state);
                 }
+            }
+
+            public void OnError(string message)
+            {
+                var state = LoadState() ?? new StoredResults();
+                state.finished = true;
+                state.failures ??= new List<string>();
+                state.failed = System.Math.Max(state.failed, 1);
+                state.failures.Add($"RUN_ERROR: {message}");
+                SaveState(state);
+                SessionState.SetBool(ActiveKey, false);
+            }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void InitializeOnLoad()
+        {
+            if (SessionState.GetBool(ActiveKey, false))
+            {
+                EnsurePersistentRegistration();
             }
         }
 
@@ -94,12 +152,17 @@ namespace KineTutor3D.Editor.CliTools
                     break;
             }
 
-            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
-
             try
             {
-                lastCollector = new ResultCollector();
-                api.RegisterCallbacks(lastCollector);
+                ResetState(testMode.ToString());
+                SessionState.SetBool(ActiveKey, true);
+                if (activeApi != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(activeApi);
+                    activeApi = null;
+                }
+
+                EnsurePersistentRegistration();
 
                 var filter = new Filter
                 {
@@ -112,7 +175,7 @@ namespace KineTutor3D.Editor.CliTools
                     filter.testNames = new[] { nameFilter };
                 }
 
-                api.Execute(new ExecutionSettings(filter));
+                activeApi.Execute(new ExecutionSettings(filter));
 
                 return new SuccessResponse(
                     $"Tests launched ({testMode}). Use run-tests --results to check completion.",
@@ -126,34 +189,94 @@ namespace KineTutor3D.Editor.CliTools
             {
                 return new ErrorResponse($"Failed to launch tests: {ex.Message}");
             }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(api);
-            }
         }
 
         private static object GetLastResults(bool verbose = false)
         {
-            if (lastCollector == null)
+            var state = LoadState();
+            if (state == null || !state.launched)
                 return new ErrorResponse("No test run has been launched yet. Use run-tests --mode edit first.");
 
-            double elapsed = (DateTime.Now - lastCollector.startTime).TotalSeconds;
+            double elapsed = state.startedAtUtcTicks > 0
+                ? (DateTime.UtcNow - new DateTime(state.startedAtUtcTicks, DateTimeKind.Utc)).TotalSeconds
+                : 0d;
+
+            if (state.finished && activeApi != null)
+            {
+                UnityEngine.Object.DestroyImmediate(activeApi);
+                activeApi = null;
+                callbacksRegistered = false;
+            }
 
             return new SuccessResponse(
-                lastCollector.finished
-                    ? $"Tests finished: {lastCollector.passed}/{lastCollector.total} passed."
-                    : $"Tests in progress ({lastCollector.total} completed so far, {elapsed:F1}s elapsed).",
+                state.finished
+                    ? $"Tests finished: {state.passed}/{state.total} passed."
+                    : $"Tests in progress ({state.total} completed so far, {elapsed:F1}s elapsed).",
                 new
                 {
-                    finished = lastCollector.finished,
-                    total = lastCollector.total,
-                    passed = lastCollector.passed,
-                    failed = lastCollector.failed,
-                    skipped = lastCollector.skipped,
+                    finished = state.finished,
+                    total = state.total,
+                    passed = state.passed,
+                    failed = state.failed,
+                    skipped = state.skipped,
                     elapsed_seconds = System.Math.Round(elapsed, 1),
-                    failures = lastCollector.failures.Count > 0 ? lastCollector.failures : null,
-                    all_test_names = verbose ? lastCollector.allTestNames : null
+                    failures = state.failures != null && state.failures.Count > 0 ? state.failures : null,
+                    all_test_names = verbose ? state.allTestNames : null
                 });
+        }
+
+        private static void EnsurePersistentRegistration()
+        {
+            if (callbacksRegistered && activeApi != null)
+            {
+                return;
+            }
+
+            if (activeApi == null)
+            {
+                activeApi = ScriptableObject.CreateInstance<TestRunnerApi>();
+            }
+
+            activeApi.RegisterCallbacks(persistentCollector);
+            callbacksRegistered = true;
+        }
+
+        private static void ResetState(string mode)
+        {
+            var state = new StoredResults
+            {
+                mode = mode,
+                launched = true,
+                finished = false,
+                startedAtUtcTicks = DateTime.UtcNow.Ticks,
+                failures = new List<string>(),
+                allTestNames = new List<string>()
+            };
+
+            SaveState(state);
+        }
+
+        private static StoredResults LoadState()
+        {
+            var json = SessionState.GetString(StateKey, string.Empty);
+            if (string.IsNullOrEmpty(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonUtility.FromJson<StoredResults>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void SaveState(StoredResults state)
+        {
+            SessionState.SetString(StateKey, JsonUtility.ToJson(state));
         }
     }
 }

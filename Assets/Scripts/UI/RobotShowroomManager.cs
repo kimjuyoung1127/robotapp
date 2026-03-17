@@ -116,6 +116,17 @@ namespace KineTutor3D.UI
             return currentVisibleRobotIds.ToArray();
         }
 
+        public bool TryGetPod(string robotId, out RobotPreviewPod pod)
+        {
+            if (string.IsNullOrWhiteSpace(robotId))
+            {
+                pod = null;
+                return false;
+            }
+
+            return activePods.TryGetValue(robotId, out pod) && pod != null;
+        }
+
         private void OnDestroy()
         {
             DisposeAllPods();

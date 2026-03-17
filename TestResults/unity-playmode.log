@@ -1,0 +1,25 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.0/respin/6000.0.64f1-d4299b69b02d' branch; Version is '6000.0.64f1 (5360b7cd7953) revision 5464247'; Using compiler version '193933523'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) 64bit Professional' Language: 'ko' Physical Memory: 16197 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+Date: 2026-03-16T06:48:42Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.0.64f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\ezen601\Desktop\Jason\robotapp2
+-runTests
+-testPlatform
+PlayMode
+-testResults
+C:\Users\ezen601\Desktop\Jason\robotapp2\TestResults\unity-playmode.xml
+-logFile
+C:\Users\ezen601\Desktop\Jason\robotapp2\TestResults\unity-playmode.log
+Successfully changed project path to: C:\Users\ezen601\Desktop\Jason\robotapp2
+C:/Users/ezen601/Desktop/Jason/robotapp2
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-CodeLab3" at "2026-03-16T06:48:42.7928252Z"
+Cancelling DisplayDialog: Project folder or disk is read only Please move the project folder somewhere readable and writable.
+This should not be called in batch mode.
+Exiting without the bug reporter. Application will terminate with return code 1

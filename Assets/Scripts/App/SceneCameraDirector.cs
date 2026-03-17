@@ -60,7 +60,7 @@ namespace KineTutor3D.App
                 return;
             }
 
-            var camera = Camera.main ?? Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
+            var camera = Camera.main ?? UnityEngine.Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
             ConfigureForScene(sceneId, camera);
         }
 

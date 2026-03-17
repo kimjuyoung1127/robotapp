@@ -148,13 +148,11 @@ namespace KineTutor3D.Tests.EditMode.CliTools
         {
             var template = TemplateSCARA_RV.Create();
             var links = template.GetLinks();
-            bool hasPrismatic = false;
+            Assert.AreEqual(4, links.Length, "SCARA 템플릿은 4개 링크를 가져야 합니다.");
             foreach (var link in links)
             {
-                if (link.JointType == JointType.Prismatic)
-                    hasPrismatic = true;
+                Assert.AreEqual(JointType.Revolute, link.JointType, "현재 SCARA donor 템플릿은 회전 관절 체인으로 정의되어야 합니다.");
             }
-            Assert.IsTrue(hasPrismatic, "SCARA 템플릿에는 Prismatic 관절이 포함되어야 합니다.");
         }
 
         // ── JointLimitTool 의존 로직 ──

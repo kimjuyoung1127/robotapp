@@ -34,8 +34,11 @@ namespace KineTutor3D.Tests.EditMode
         {
             var joints = FR5PosePresets.Ready.JointAnglesDeg;
             Assert.AreEqual(0.0, joints[0], 1e-10);
-            Assert.AreEqual(-90.0, joints[1], 1e-10);
-            Assert.AreEqual(90.0, joints[2], 1e-10);
+            Assert.AreEqual(-45.0, joints[1], 1e-10);
+            Assert.AreEqual(0.0, joints[2], 1e-10);
+            Assert.AreEqual(-59.0, joints[3], 1e-10);
+            Assert.AreEqual(-92.0, joints[4], 1e-10);
+            Assert.AreEqual(-42.0, joints[5], 1e-10);
         }
 
         [Test]

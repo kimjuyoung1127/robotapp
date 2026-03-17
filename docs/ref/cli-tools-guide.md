@@ -11,6 +11,28 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 - `com.youngwoocho02.unity-cli-connector` 패키지 활성화
 - `unity-cli` Go 바이너리 PATH에 설치
 
+## Windows / Codex 사용 메모
+
+- Codex 앱에서는 `unity-cli`가 PATH에 있어야 합니다.
+- 현재 워크스테이션 기준 설치 경로: `C:\Users\ezen601\AppData\Local\unity-cli\unity-cli.exe`
+- Codex shim 경로: `C:\Users\ezen601\AppData\Local\OpenAI\Codex\bin\unity-cli.cmd`
+- 확인 명령:
+
+```powershell
+Get-Command unity-cli
+unity-cli --version
+unity-cli status
+```
+
+- PowerShell에서는 아래 설정을 먼저 두는 편이 안전합니다.
+
+```powershell
+$PSNativeCommandArgumentPassing = "Standard"
+```
+
+- custom tool 호출은 `compile-check` 형태가 아니라 실제 등록명인 `compile_check_tool` 형태를 사용합니다.
+- 문자열/쉼표가 들어가는 인자는 PowerShell에서 `--params '{"key":"value"}'` 형태가 가장 안정적입니다.
+
 ---
 
 ## 도구 카탈로그 (26개)
@@ -19,42 +41,42 @@ unity-cli 커스텀 도구는 Unity Editor 내에서 실행되며, CLI를 통해
 
 | 도구 | 명령어 | 설명 |
 |------|--------|------|
-| CompileCheckTool | `unity-cli compile-check` | 컴파일 에러/경고 카운트 |
-| ConsoleCheckTool | `unity-cli console-check --type error` | 콘솔 로그 조회 (error/warn/all) |
-| SceneValidateTool | `unity-cli scene-validate --name all` | 씬 missing script 검사 |
-| RunTestsTool | `unity-cli run-tests --mode edit` | EditMode/PlayMode 테스트 실행 |
+| CompileCheckTool | `unity-cli compile_check_tool` | 컴파일 에러/경고 카운트 |
+| ConsoleCheckTool | `unity-cli console_check_tool --params '{"type":"error"}'` | 콘솔 로그 조회 (error/warn/all) |
+| SceneValidateTool | `unity-cli scene_validate_tool --params '{"name":"all"}'` | 씬 missing script 검사 |
+| RunTestsTool | `unity-cli run_tests_tool --params '{"mode":"edit"}'` | EditMode/PlayMode 테스트 실행 |
 
 ### Tier 2: MCP 대체
 
 | 도구 | 명령어 | 설명 |
 |------|--------|------|
-| SceneHierarchyTool | `unity-cli scene-hierarchy --depth 3` | 씬 GameObject 트리 |
-| ComponentInspectTool | `unity-cli component-inspect --path "Canvas"` | 컴포넌트 속성 조회 |
-| PrefabValidateTool | `unity-cli prefab-validate --path "Assets/..."` | 프리팹 무결성 검증 |
+| SceneHierarchyTool | `unity-cli scene_hierarchy_tool --params '{"depth":3}'` | 씬 GameObject 트리 |
+| ComponentInspectTool | `unity-cli component_inspect_tool --params '{"path":"Canvas"}'` | 컴포넌트 속성 조회 |
+| PrefabValidateTool | `unity-cli prefab_validate_tool --params '{"path":"Assets/..."}'` | 프리팹 무결성 검증 |
 
 ### Tier 3: KineTutor3D 전용
 
 | 도구 | 명령어 | 설명 |
 |------|--------|------|
-| RobotCatalogTool | `unity-cli robot-catalog` | 로봇 카탈로그 전체 목록 |
-| FkComputeTool | `unity-cli fk-compute --template FR5 --joints "0,-45,0,-59,-92,-42"` | FK 계산 |
-| QaPrepTool | `unity-cli qa-prep --scenario first-time` | QA 시나리오 PlayerPrefs 설정 |
-| DhTableTool | `unity-cli dh-table --template FR5` | DH 파라미터 테이블 덤프 |
-| JointLimitTool | `unity-cli joint-limit --template 2DOF_RR` | 관절 제한 범위 조회 |
-| BuildSettingsTool | `unity-cli build-settings` | Build Settings 씬 목록 검증 |
-| CanvasValidateTool | `unity-cli canvas-validate` | Canvas UI 무결성 검사 |
-| AsmdefValidateTool | `unity-cli asmdef-validate` | Assembly Definition 참조 검증 |
-| PlayerPrefsInspectTool | `unity-cli playerprefs-inspect` | PlayerPrefs 키/값 조회 |
-| ResourceValidateTool | `unity-cli resource-validate` | Resources 폴더 무결성 검증 |
-| SessionContextTool | `unity-cli session-context` | 세션 컨텍스트/진행 상태 조회 |
-| TutorStepValidateTool | `unity-cli tutorstep-validate` | TutorStep 에셋(S01~S08) 검증 |
-| GlossaryValidateTool | `unity-cli glossary-validate` | Glossary 데이터베이스 검증 |
-| FR5DiagnosticTool | `unity-cli fr5-diagnostic` | FR5 연결 상태/기구학 진단 (Play Mode) |
-| AssetSizeTool | `unity-cli asset-size --top 10` | Resources 에셋 크기 분석 |
-| SceneDiffTool | `unity-cli scene-diff --scene_a Boot --scene_b Home` | 씬 간 루트 GameObject 비교 |
-| PoseCompareTool | `unity-cli pose-compare --template FR5 --joints_a "..." --joints_b "..."` | 두 포즈 EE 거리 비교 |
-| LearningTabsTool | `unity-cli learning-tabs --robot_id all` | LearningTabs JSON 검증/요약 |
-| CameraCaptureTool | `unity-cli camera-capture --action capture` | 카메라 위치 캡처/저장/적용 |
+| RobotCatalogTool | `unity-cli robot_catalog_tool` | 로봇 카탈로그 전체 목록 |
+| FkComputeTool | `unity-cli fk_compute_tool --params '{"template":"FR5","joints":"0,-45,0,-59,-92,-42"}'` | FK 계산 |
+| QaPrepTool | `unity-cli qa_prep_tool --params '{"scenario":"first-time"}'` | QA 시나리오 PlayerPrefs 설정 |
+| DhTableTool | `unity-cli dh_table_tool --params '{"template":"FR5"}'` | DH 파라미터 테이블 덤프 |
+| JointLimitTool | `unity-cli joint_limit_tool --params '{"template":"2DOF_RR"}'` | 관절 제한 범위 조회 |
+| BuildSettingsTool | `unity-cli build_settings_tool` | Build Settings 씬 목록 검증 |
+| CanvasValidateTool | `unity-cli canvas_validate_tool` | Canvas UI 무결성 검사 |
+| AsmdefValidateTool | `unity-cli asmdef_validate_tool` | Assembly Definition 참조 검증 |
+| PlayerPrefsInspectTool | `unity-cli player_prefs_inspect_tool` | PlayerPrefs 키/값 조회 |
+| ResourceValidateTool | `unity-cli resource_validate_tool` | Resources 폴더 무결성 검증 |
+| SessionContextTool | `unity-cli session_context_tool` | 세션 컨텍스트/진행 상태 조회 |
+| TutorStepValidateTool | `unity-cli tutor_step_validate_tool` | TutorStep 에셋(S01~S08) 검증 |
+| GlossaryValidateTool | `unity-cli glossary_validate_tool` | Glossary 데이터베이스 검증 |
+| FR5DiagnosticTool | `unity-cli fr5_diagnostic_tool` | FR5 연결 상태/기구학 진단 (Play Mode) |
+| AssetSizeTool | `unity-cli asset_size_tool --params '{"top":10}'` | Resources 에셋 크기 분석 |
+| SceneDiffTool | `unity-cli scene_diff_tool --params '{"scene_a":"Boot","scene_b":"Home"}'` | 씬 간 루트 GameObject 비교 |
+| PoseCompareTool | `unity-cli pose_compare_tool --params '{"template":"FR5","joints_a":"...","joints_b":"..."}'` | 두 포즈 EE 거리 비교 |
+| LearningTabsTool | `unity-cli learning_tabs_tool --params '{"robot_id":"all"}'` | LearningTabs JSON 검증/요약 |
+| CameraCaptureTool | `unity-cli camera_capture_tool --params '{"action":"capture"}'` | 카메라 위치 캡처/저장/적용 |
 
 ---
 
@@ -320,12 +342,48 @@ Play Mode에서 카메라 위치를 캡처 → EditorPrefs에 저장 → Play Mo
 ./scripts/validate.sh
 ```
 
+### `scripts/cli-integration-test.ps1`
+Windows 기준 authoritative 통합 테스트 러너입니다. 26개 커스텀 도구 전체를 검증하고,
+각 명령의 raw output/parsed JSON/요약 리포트를 `TestResults/UnityCli/<timestamp>/`에 저장합니다.
+`component-inspect`, 상태 시나리오 검증, `run-tests --results` 폴링, `camera-capture` apply/delete 검증까지 포함합니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\cli-integration-test.ps1
+```
+
+주요 기본값:
+- `-OutputRoot "TestResults/UnityCli"`
+- `-PollIntervalSeconds 3`
+- `-RunTestsTimeoutSeconds 900`
+- `-SnapshotName "robotcontrol_baseline"`
+
 ### `scripts/cli-integration-test.sh`
-27개 통합 테스트 (Tier 1: 5 + Tier 2: 2 + Tier 3: 20). Unity Editor 실행 상태 필요.
+기존 bash 기반 스모크 스크립트입니다. 빠른 수동 확인용이며, Windows 기본 검증 러너로는 사용하지 않습니다.
+`component-inspect`, 상태 필드 assertion, `run-tests` 완료 폴링, evidence 저장은 PowerShell 러너가 담당합니다.
 
 ```bash
 ./scripts/cli-integration-test.sh
 ```
+
+## 현재 검증 상태 (2026-03-17)
+
+- Codex 앱에서 `unity-cli` 사용 가능:
+  - `Get-Command unity-cli`
+  - `unity-cli status`
+  - `compile_check_tool`, `console_check_tool`, `fk_compute_tool`, `fr5_diagnostic_tool` 직접 실행 확인
+- EditMode:
+  - `run_tests_tool --params '{"mode":"edit"}'`
+  - `run_tests_tool --params '{"results":true,"verbose":true}'`
+  - 현재 기준 `401/401` passed
+- PlayMode:
+  - `run_tests_tool --params '{"mode":"play"}'` 는 `launched` 반환
+  - 하지만 결과 조회 시 `finished=false`, `total=0` 상태로 멈출 수 있음
+  - 콘솔에는 `InvalidOperationException: This cannot be used during play mode.` 와 `An unexpected error happened while running tests.` 가 관찰됨
+  - 따라서 현재 PlayMode 자동 검증은 **완전 신뢰 상태가 아님**
+
+권장 운영:
+- CI/로컬 품질 게이트는 우선 EditMode + 개별 CLI 도구 검증으로 사용
+- PlayMode는 `run_tests_tool` 안정화 전까지 콘솔/수동 smoke와 병행
 
 ---
 
@@ -443,7 +501,7 @@ namespace KineTutor3D.Editor.CliTools
 ### 3. 테스트 추가
 
 - EditMode: `Assets/Tests/EditMode/CliTools/CliToolsCoreLogicTests.cs`에 코어 로직 테스트
-- 통합: `scripts/cli-integration-test.sh`에 CLI 호출 테스트 항목 추가
+- 통합: `scripts/cli-integration-test.ps1`(Windows authoritative) 또는 `scripts/cli-integration-test.sh`(bash smoke)에 CLI 호출 테스트 항목 추가
 
 ### 4. 문서 업데이트
 

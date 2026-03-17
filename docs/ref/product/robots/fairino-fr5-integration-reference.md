@@ -18,6 +18,8 @@
 - 문서화와 skillization 완료
 - `RobotControl.unity`, `FairinoConnectionService`, FR5 config/template, preview/control prefab split까지는 코드 반영됨
 - 남은 핵심 이슈는 `RobotControl`에서 URDF control prefab의 최종 visible state와 FR5 state -> 3D joint mirror 경로다
+- 2026-03-17 기준 공식 C# SDK ZIP에서 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`을 로컬 `Assets/Plugins/Fairino/`에 staging 완료
+- 현재는 실기 컨트롤러 IP 미확정 상태라 `Live Connect -> GetVersion -> ReadState -> Enable -> small MoveJ` 순의 현장 검증만 남아 있다
 
 ## Last Updated
 - 2026-03-13 (KST)
@@ -141,15 +143,26 @@
 ## Current Repo Reality Check
 - `RobotLibrary` / showroom은 `RobotPreviewFactory`가 `Resources/Robots/FAIRINO_FR5.prefab` donor preview를 mesh-only clone으로 띄우는 경로가 이미 안정적이다.
 - `RobotControl`은 `Resources/Robots/FAIRINO_FR5_Control.prefab` URDF control prefab을 사용한다.
+- `Assets/Plugins/Fairino/`에는 공식 SDK ZIP에서 확인한 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`이 로컬 staging 되었다.
 - 현재 `RobotControl`에서는 다음이 확인되었다.
   - control prefab 로드 성공
   - runtime gravity 낙하 방지 적용
   - URDF 기본 `Controller` 비활성화로 Input System 예외 제거
+- SDK 추가 후 드러난 Unity compile blocker 4건(`SceneCameraDirector` 1건, `Editor/CliTools` 3건)은 수정 완료했다.
 - 하지만 `FairinoConnectionService` 상태를 3D joint pose로 반영하는 전용 visual adapter는 아직 없다.
 - 따라서 단기적으로는:
   - `visual-only`는 showroom donor preview 경로 재사용
   - `live-control-ready 3D mirror`는 FR5 전용 adapter 신규 구현
   로 나누어 보는 것이 안전하다.
+
+## Current Live-Test Blocker
+- 현재 남은 blocker는 SDK 부재가 아니라 `실기 컨트롤러 IP 미확정`이다.
+- 즉 로컬 프로젝트는 Live SDK 로드 준비가 되었지만, 아직 실제 `Connect(...)` 호출 대상으로 쓸 컨트롤러 주소를 모른다.
+- 다음 현장 검증 순서는 아래 순서를 권장한다.
+  1. Live 모드에서 `Connect`만 확인
+  2. `GetVersion`, `ReadState` 같은 읽기 API 확인
+  3. `Enable`
+  4. 아주 작은 범위의 `MoveJ`
 
 ## Plain-Language Explanation
 ### `FR5 연결 패널`

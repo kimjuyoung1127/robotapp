@@ -26,7 +26,7 @@ namespace KineTutor3D.Editor.CliTools
         {
             var p = new ToolParams(@params);
             string path = p.Get("path", null);
-            int maxDepth = p.GetInt("depth", 3);
+            int maxDepth = p.GetInt("depth", 3) ?? 3;
 
             if (!string.IsNullOrEmpty(path))
             {
