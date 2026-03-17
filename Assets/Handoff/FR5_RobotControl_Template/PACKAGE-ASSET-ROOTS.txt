@@ -1,0 +1,17 @@
+Assets/Scenes/RobotControl.unity
+Assets/Scripts/App/Fairino
+Assets/Scripts/App/SceneId.cs
+Assets/Scripts/App/SceneCatalog.cs
+Assets/Scripts/App/SceneNavigator.cs
+Assets/Scripts/App/RobotSelectionBridge.cs
+Assets/Scripts/App/SceneCameraDirector.cs
+Assets/Scripts/UI
+Assets/Scripts/Visualization/FairinoUrdfJointDriver.cs
+Assets/Scripts/Visualization/Shared
+Assets/Scripts/Types
+Assets/Scripts/Templates
+Assets/Runtime/Resources/Robots/FAIRINO_FR5.prefab
+Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control.prefab
+Assets/Runtime/Resources/LearningTabs/FAIRINO_FR5.json
+Assets/Runtime/Resources/UI
+Assets/Runtime/Robots/FAIRINO_FR5
