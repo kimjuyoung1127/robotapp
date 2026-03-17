@@ -41,6 +41,21 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(podRoot.GetComponentsInChildren<Transform>(true), Has.Some.Matches<Transform>(t => t.name == "JointPivot2"));
         }
 
+        [Test]
+        public void CreatePod_TemplateFr5_ReusesFr5PreviewShape()
+        {
+            const string robotId = "FAIRINO_FR5_TEMPLATE";
+            Assert.That(RobotCatalog.TryGet(robotId, out var entry), Is.True, $"Robot '{robotId}' should exist in catalog.");
+
+            var pod = RobotPreviewFactory.CreatePod(_host.transform, entry, showLabel: true);
+
+            Assert.That(pod, Is.Not.Null);
+            var podRoot = _host.transform.Find($"Pod_{robotId}");
+            Assert.That(podRoot, Is.Not.Null);
+            Assert.That(podRoot.GetComponentsInChildren<Transform>(true), Has.Some.Matches<Transform>(t => t.name == "JointPivot0"));
+            Assert.That(podRoot.GetComponentsInChildren<Transform>(true), Has.Some.Matches<Transform>(t => t.name == "JointPivot1"));
+        }
+
         [TestCase("FANUC_CRX10")]
         [TestCase("IGUS_REBEL")]
         public void CreatePod_RealDonorRobots_CreateVisiblePreview(string robotId)

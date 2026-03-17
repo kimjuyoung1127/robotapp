@@ -249,7 +249,7 @@ namespace KineTutor3D.Visualization
             }
 
             var fairinoBaseLink = FindChildRecursive(meshRoot.transform, "base_link");
-            if (fairinoBaseLink != null && metadata.RobotId == "FAIRINO_FR5")
+            if (fairinoBaseLink != null && metadata.EffectivePreviewRobotId == "FAIRINO_FR5")
             {
                 fairinoPoseDriver = meshRoot.GetComponent<FairinoUrdfJointDriver>() ?? meshRoot.AddComponent<FairinoUrdfJointDriver>();
                 fairinoPoseDriver.Inject(fairinoBaseLink);
@@ -328,7 +328,7 @@ namespace KineTutor3D.Visualization
                 }
                 else
                 {
-                    axes[i] = ResolveFallbackAxis(metadata.RobotId, i);
+                    axes[i] = ResolveFallbackAxis(metadata.EffectivePreviewRobotId, i);
                     specs[i] = i < templateSpecs.Length
                         ? templateSpecs[i]
                         : new JointControlSpec(-180f, 180f, true);
@@ -389,13 +389,14 @@ namespace KineTutor3D.Visualization
 
         private string[] BuildTargetPaths()
         {
-            if (metadata.RobotId == "SCARA_RV")
+            var previewRobotId = metadata.EffectivePreviewRobotId;
+            if (previewRobotId == "SCARA_RV")
             {
                 return new[] { "Axis1", "Axis1/Axis2", "Axis1/Axis2/Axis3", "Axis1/Axis2/Axis3/Gripper" };
             }
 
             var dof = Mathf.Max(1, metadata.Dof);
-            var prefix = metadata.RobotId == "FANUC_CRX10" ? "A" : "Axis";
+            var prefix = previewRobotId == "FANUC_CRX10" ? "A" : "Axis";
             var paths = new string[dof];
             for (var i = 0; i < dof; i++)
             {
@@ -418,7 +419,8 @@ namespace KineTutor3D.Visualization
 
         private static JointControlSpec[] BuildTemplateSpecs(RobotMetadataInfo metadata)
         {
-            var template = RobotCatalog.CreateTemplate(metadata.RobotId);
+            var template = RobotCatalog.CreateTemplate(metadata.RobotId)
+                ?? RobotCatalog.CreateTemplate(metadata.EffectivePreviewRobotId);
             if (template == null)
             {
                 var fallback = new JointControlSpec[Mathf.Max(1, metadata.Dof)];

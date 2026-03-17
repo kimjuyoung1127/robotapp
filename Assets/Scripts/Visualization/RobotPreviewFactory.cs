@@ -76,6 +76,7 @@ namespace KineTutor3D.Visualization
 
         private static GameObject BuildMeshForLevel(RobotMetadataInfo meta)
         {
+            var previewRobotId = meta.EffectivePreviewRobotId;
             if (string.IsNullOrWhiteSpace(meta.RobotId))
             {
                 return BuildUnknownPreview();
@@ -86,7 +87,7 @@ namespace KineTutor3D.Visualization
                 return BuildDonorMeshPreview(meta);
             }
 
-            if (meta.RobotId == "2DOF_RR")
+            if (previewRobotId == "2DOF_RR")
             {
                 return BuildProcedural2DofArm(meta);
             }
@@ -123,12 +124,13 @@ namespace KineTutor3D.Visualization
 
         private static GameObject BuildEditorSafePreview(RobotMetadataInfo meta)
         {
-            if (meta.RobotId == "SCARA_RV")
+            var previewRobotId = meta.EffectivePreviewRobotId;
+            if (previewRobotId == "SCARA_RV")
             {
                 return BuildProcedural2DofArm(meta);
             }
 
-            if (meta.Dof >= 6 || meta.RobotId == "FAIRINO_FR5")
+            if (meta.Dof >= 6 || previewRobotId == "FAIRINO_FR5")
             {
                 return BuildProceduralArticulatedArm(meta);
             }
@@ -138,7 +140,8 @@ namespace KineTutor3D.Visualization
 
         private static GameObject LoadDonorPrefab(RobotMetadataInfo meta)
         {
-            if (meta.RobotId == "SCARA_RV")
+            var previewRobotId = meta.EffectivePreviewRobotId;
+            if (previewRobotId == "SCARA_RV")
             {
                 if (cachedScaraDonor == null)
                 {
@@ -148,17 +151,17 @@ namespace KineTutor3D.Visualization
                 return cachedScaraDonor;
             }
 
-            if (meta.RobotId == "FANUC_CRX10")
+            if (previewRobotId == "FANUC_CRX10")
             {
                 return Resources.Load<GameObject>("Robots/FanucCRX-10iA_L");
             }
 
-            if (meta.RobotId == "IGUS_REBEL")
+            if (previewRobotId == "IGUS_REBEL")
             {
                 return Resources.Load<GameObject>("Robots/igusRebel");
             }
 
-            if (meta.RobotId == "FAIRINO_FR5")
+            if (previewRobotId == "FAIRINO_FR5")
             {
                 return Resources.Load<GameObject>("Robots/FAIRINO_FR5");
             }
@@ -274,7 +277,7 @@ namespace KineTutor3D.Visualization
 
         private static DonorPreviewPose GetDonorPreviewPose(RobotMetadataInfo meta)
         {
-            if (meta.RobotId == "FAIRINO_FR5")
+            if (meta.EffectivePreviewRobotId == "FAIRINO_FR5")
             {
                 return new DonorPreviewPose
                 {

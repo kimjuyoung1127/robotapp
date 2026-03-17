@@ -43,6 +43,12 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            if (entry == null || entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+            {
+                Hide();
+                return;
+            }
+
             var m = entry.Metadata;
             titleText.text = m.DisplayName;
             descriptionText.text = m.Description;

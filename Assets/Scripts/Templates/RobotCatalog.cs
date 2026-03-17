@@ -10,6 +10,16 @@ namespace KineTutor3D.Templates
     /// </summary>
     public static class RobotCatalog
     {
+        private static readonly string[] RobotLibraryOrder =
+        {
+            "2DOF_RR",
+            "SCARA_RV",
+            "FAIRINO_FR5_TEMPLATE",
+            "FAIRINO_FR5",
+            "FANUC_CRX10",
+            "IGUS_REBEL"
+        };
+
         private static readonly Dictionary<string, RobotCatalogEntry> Entries =
             new Dictionary<string, RobotCatalogEntry>(StringComparer.Ordinal);
 
@@ -60,6 +70,23 @@ namespace KineTutor3D.Templates
                     demoPoseDeg: new[] { 30d, -45d, 60d, -30d, 45d, 0d },
                     importSource: "Assets/Runtime/Robots/FAIRINO_FR5/fairino5_v6.urdf"),
                 TemplateFAIRINO_FR5.Create));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
+                    "FAIRINO_FR5_TEMPLATE", "템플릿 FR5", 6, "Articulated", "Medium",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: false,
+                    description: "RobotControl 템플릿 구조를 보여주는 선택 전용 항목입니다.",
+                    supportedLessons: Array.Empty<string>(),
+                    inputModes: new[] { "select" },
+                    visualizationLevel: "DonorMesh",
+                    previewSourceRobotId: "FAIRINO_FR5",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, -90d, 0d, -90d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -45d, 60d, -30d, 45d, 0d },
+                    importSource: "Assets/Runtime/Robots/FAIRINO_FR5/fairino5_v6.urdf"),
+                libraryInteractionMode: LibraryInteractionMode.SelectOnly));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
@@ -116,6 +143,51 @@ namespace KineTutor3D.Templates
         {
             var ids = new string[Entries.Count];
             Entries.Keys.CopyTo(ids, 0);
+            return ids;
+        }
+
+        /// <summary>
+        /// Robot Library 화면에서 사용되는 순서 고정 카탈로그 항목을 반환합니다.
+        /// </summary>
+        public static RobotCatalogEntry[] GetRobotLibraryEntries()
+        {
+            var ordered = new List<RobotCatalogEntry>(Entries.Count);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+
+            for (var i = 0; i < RobotLibraryOrder.Length; i++)
+            {
+                if (!Entries.TryGetValue(RobotLibraryOrder[i], out var entry))
+                {
+                    continue;
+                }
+
+                ordered.Add(entry);
+                seen.Add(entry.Metadata.RobotId);
+            }
+
+            foreach (var entry in Entries.Values)
+            {
+                if (seen.Add(entry.Metadata.RobotId))
+                {
+                    ordered.Add(entry);
+                }
+            }
+
+            return ordered.ToArray();
+        }
+
+        /// <summary>
+        /// Robot Library 화면에서 사용되는 순서 고정 로봇 ID를 반환합니다.
+        /// </summary>
+        public static string[] GetRobotLibraryIds()
+        {
+            var entries = GetRobotLibraryEntries();
+            var ids = new string[entries.Length];
+            for (var i = 0; i < entries.Length; i++)
+            {
+                ids[i] = entries[i].Metadata.RobotId;
+            }
+
             return ids;
         }
 

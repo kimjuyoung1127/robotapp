@@ -90,5 +90,25 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(selectCount, Is.EqualTo(2), "Select listeners should be rebound exactly once.");
             Assert.That(detailCount, Is.EqualTo(1), "Detail listeners should be rebound exactly once.");
         }
+
+        [Test]
+        public void BuildCard_SelectOnlyEntry_HidesDetailButton()
+        {
+            Assert.That(RobotCatalog.TryGet("FAIRINO_FR5_TEMPLATE", out var entry), Is.True);
+
+            var card = RobotCardBuilder.BuildCard(
+                parent,
+                entry,
+                font,
+                false,
+                () => { },
+                () => { },
+                280f,
+                220f);
+
+            var detailButton = card.Find("BtnDetail");
+            Assert.That(detailButton, Is.Not.Null);
+            Assert.That(detailButton.gameObject.activeSelf, Is.False);
+        }
     }
 }

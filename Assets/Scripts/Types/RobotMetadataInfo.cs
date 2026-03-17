@@ -22,10 +22,12 @@ namespace KineTutor3D.Types
         public string[] SupportedLessons { get; }
         public string[] InputModes { get; }
         public string VisualizationLevel { get; }
+        public string PreviewSourceRobotId { get; }
         public double[] ZeroPoseDeg { get; }
         public double[] HomePoseDeg { get; }
         public double[] DemoPoseDeg { get; }
         public string ImportSource { get; }
+        public string EffectivePreviewRobotId => string.IsNullOrWhiteSpace(PreviewSourceRobotId) ? RobotId : PreviewSourceRobotId;
 
         public RobotMetadataInfo(
             string robotId,
@@ -41,6 +43,7 @@ namespace KineTutor3D.Types
             string[] supportedLessons = null,
             string[] inputModes = null,
             string visualizationLevel = "Lesson",
+            string previewSourceRobotId = "",
             double[] zeroPoseDeg = null,
             double[] homePoseDeg = null,
             double[] demoPoseDeg = null,
@@ -69,6 +72,7 @@ namespace KineTutor3D.Types
             SupportedLessons = CloneOrEmpty(supportedLessons);
             InputModes = CloneOrEmpty(inputModes);
             VisualizationLevel = string.IsNullOrWhiteSpace(visualizationLevel) ? "Lesson" : visualizationLevel;
+            PreviewSourceRobotId = string.IsNullOrWhiteSpace(previewSourceRobotId) ? RobotId : previewSourceRobotId;
             ZeroPoseDeg = CloneOrEmpty(zeroPoseDeg, dof);
             HomePoseDeg = CloneOrEmpty(homePoseDeg, dof);
             DemoPoseDeg = CloneOrEmpty(demoPoseDeg, dof);

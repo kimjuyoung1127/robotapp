@@ -18,10 +18,19 @@ namespace KineTutor3D.Types
         /// </summary>
         public Func<RobotTemplate> TemplateFactory { get; }
 
-        public RobotCatalogEntry(RobotMetadataInfo metadata, Func<RobotTemplate> templateFactory = null)
+        /// <summary>
+        /// Robot Library에서 허용되는 상호작용 수준입니다.
+        /// </summary>
+        public LibraryInteractionMode LibraryInteractionMode { get; }
+
+        public RobotCatalogEntry(
+            RobotMetadataInfo metadata,
+            Func<RobotTemplate> templateFactory = null,
+            LibraryInteractionMode libraryInteractionMode = LibraryInteractionMode.Normal)
         {
             Metadata = metadata;
             TemplateFactory = templateFactory;
+            LibraryInteractionMode = libraryInteractionMode;
         }
     }
 }

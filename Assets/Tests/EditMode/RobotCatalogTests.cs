@@ -126,6 +126,7 @@ namespace KineTutor3D.Tests.EditMode
         {
             var entries = RobotCatalog.GetAll();
             var fr5Count = 0;
+            var templateFr5Count = 0;
             foreach (var entry in entries)
             {
                 Assert.AreNotEqual("GENERIC_6DOF", entry.Metadata.RobotId);
@@ -133,10 +134,29 @@ namespace KineTutor3D.Tests.EditMode
                 {
                     fr5Count++;
                 }
+
+                if (entry.Metadata.RobotId == "FAIRINO_FR5_TEMPLATE")
+                {
+                    templateFr5Count++;
+                }
             }
 
             Assert.AreEqual(1, fr5Count, "FAIRINO_FR5 should appear exactly once in RobotCatalog.");
+            Assert.AreEqual(1, templateFr5Count, "FAIRINO_FR5_TEMPLATE should appear exactly once in RobotCatalog.");
             Assert.IsFalse(RobotCatalog.TryGet("GENERIC_6DOF", out _), "GENERIC_6DOF should no longer be registered.");
+        }
+
+        [Test]
+        public void GetRobotLibraryEntries_PlacesTemplateFr5_BetweenScaraAndFr5()
+        {
+            var entries = RobotCatalog.GetRobotLibraryEntries();
+            var scaraIndex = Array.FindIndex(entries, entry => entry.Metadata.RobotId == "SCARA_RV");
+            var templateIndex = Array.FindIndex(entries, entry => entry.Metadata.RobotId == "FAIRINO_FR5_TEMPLATE");
+            var fr5Index = Array.FindIndex(entries, entry => entry.Metadata.RobotId == "FAIRINO_FR5");
+
+            Assert.That(scaraIndex, Is.GreaterThanOrEqualTo(0));
+            Assert.That(templateIndex, Is.GreaterThan(scaraIndex));
+            Assert.That(fr5Index, Is.GreaterThan(templateIndex));
         }
     }
 }

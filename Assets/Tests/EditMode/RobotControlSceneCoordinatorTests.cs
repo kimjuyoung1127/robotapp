@@ -46,23 +46,32 @@ namespace KineTutor3D.Tests.EditMode
         [Test]
         public void TryLoadControlPrefab_ReturnsSuccessAndMeshCounts()
         {
+            var host = new GameObject("RobotControlCoordinatorHost");
             var method = typeof(RobotControlSceneCoordinator).GetMethod(
                 "TryLoadControlPrefab",
-                BindingFlags.NonPublic | BindingFlags.Static);
+                BindingFlags.NonPublic | BindingFlags.Instance);
 
-            Assert.That(method, Is.Not.Null);
+            try
+            {
+                var coordinator = host.AddComponent<RobotControlSceneCoordinator>();
+                Assert.That(method, Is.Not.Null);
 
-            var args = new object[] { null, null, 0, 0 };
-            var success = (bool)method.Invoke(null, args);
-            var prefab = args[0] as GameObject;
-            var diagnostic = args[1] as string;
-            var meshFilterCount = (int)args[2];
-            var meshRendererCount = (int)args[3];
+                var args = new object[] { null, null, 0, 0 };
+                var success = (bool)method.Invoke(coordinator, args);
+                var prefab = args[0] as GameObject;
+                var diagnostic = args[1] as string;
+                var meshFilterCount = (int)args[2];
+                var meshRendererCount = (int)args[3];
 
-            Assert.That(success, Is.True, diagnostic);
-            Assert.That(prefab, Is.Not.Null);
-            Assert.That(meshFilterCount, Is.GreaterThanOrEqualTo(7));
-            Assert.That(meshRendererCount, Is.GreaterThanOrEqualTo(7));
+                Assert.That(success, Is.True, diagnostic);
+                Assert.That(prefab, Is.Not.Null);
+                Assert.That(meshFilterCount, Is.GreaterThanOrEqualTo(7));
+                Assert.That(meshRendererCount, Is.GreaterThanOrEqualTo(7));
+            }
+            finally
+            {
+                Object.DestroyImmediate(host);
+            }
         }
     }
 }

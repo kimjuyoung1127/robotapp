@@ -14,13 +14,9 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     public class RobotControlSceneCoordinator : MonoBehaviour
     {
-        private const string FairinoRobotId = "FAIRINO_FR5";
         private const string RuntimeRootName = "FR5_RuntimeRoot";
         private const string ControlRobotInstanceName = "FR5_UrdfInstance";
-        private const string ControlPrefabResourcePath = "Robots/FAIRINO_FR5_Control";
-        private const string ShowroomPrefabResourcePath = "Robots/FAIRINO_FR5";
         private const float TargetRobotHeight = 1.5f;
-        private const int JointCount = 6;
 
         [SerializeField] private FairinoConnectionPanel connectionPanel;
         [SerializeField] private FairinoJointControlPanel jointControlPanel;
@@ -32,6 +28,7 @@ namespace KineTutor3D.App.Fairino
         [SerializeField] private Transform runtimeRoot;
         [SerializeField] private GameObject controlRobotInstance;
 
+        private readonly RobotControlTemplateDefinition templateDefinition = FR5RobotControlTemplateDefinition.Create();
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
         private FairinoRobotConfig config;
@@ -80,11 +77,11 @@ namespace KineTutor3D.App.Fairino
             }
 
             errorTranslator = new FairinoErrorTranslator();
-            connectionService = new FairinoConnectionService(errorTranslator);
+            connectionService = templateDefinition.ConnectionServiceFactory(errorTranslator);
             connectionService.SetMockMode(true);
-            config = FairinoRobotConfig.Load() ?? BuildFallbackConfig();
+            config = FairinoRobotConfig.Load(templateDefinition.ConfigResourceName) ?? templateDefinition.FallbackConfigFactory();
 
-            kinematicsFacade = new FR5KinematicsFacade();
+            kinematicsFacade = templateDefinition.KinematicsFactory();
 
             EnsureRobotSelection();
             EnsureRuntimeRoot();
@@ -97,7 +94,7 @@ namespace KineTutor3D.App.Fairino
             EnsureWaypointRunner();
             InjectDependencies();
             BindListeners();
-            ApplyJointSnapshot(FR5PosePresets.Ready.JointAnglesDeg);
+            ApplyJointSnapshot(templateDefinition.PosePresetProvider.GetReadyJointAnglesDeg());
         }
 
         private void OnEnable()
@@ -368,7 +365,7 @@ namespace KineTutor3D.App.Fairino
             var result = connectionService.SyncCurrentState();
             if (result.IsSuccess)
             {
-                FR5PosePresets.UpdateCurrent(result.Value.JointPosDeg);
+                templateDefinition.PosePresetProvider.UpdateCurrent(result.Value.JointPosDeg);
             }
         }
 
@@ -430,8 +427,8 @@ namespace KineTutor3D.App.Fairino
 
             // 현재 FK의 관절값을 기준으로 해당 관절만 업데이트
             var currentRad = kinematicsFacade.JointValuesRad;
-            var values = new double[JointCount];
-            for (var i = 0; i < JointCount && i < currentRad.Length; i++)
+            var values = new double[templateDefinition.JointCount];
+            for (var i = 0; i < templateDefinition.JointCount && i < currentRad.Length; i++)
             {
                 values[i] = currentRad[i] * (180.0 / System.Math.PI);
             }
@@ -482,7 +479,7 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
-            for (var i = 0; i < JointCount && i < jointAnglesDeg.Length && i < jointHandles.Length; i++)
+            for (var i = 0; i < templateDefinition.JointCount && i < jointAnglesDeg.Length && i < jointHandles.Length; i++)
             {
                 if (jointHandles[i] != null)
                 {
@@ -583,7 +580,7 @@ namespace KineTutor3D.App.Fairino
                 handleHost = go.transform;
             }
 
-            jointHandles = new JointRotationHandle[JointCount];
+            jointHandles = new JointRotationHandle[templateDefinition.JointCount];
             var jointColors = new[]
             {
                 UIDesignTokens.Colors.DiagramLink1,
@@ -594,7 +591,7 @@ namespace KineTutor3D.App.Fairino
                 UIDesignTokens.Colors.DiagramLink6
             };
 
-            for (var i = 0; i < JointCount; i++)
+            for (var i = 0; i < templateDefinition.JointCount; i++)
             {
                 var jointTransform = jointDriver.GetJointTransform(i);
                 if (jointTransform == null)
@@ -631,12 +628,12 @@ namespace KineTutor3D.App.Fairino
         {
             var selectedRobotId = RobotSelectionBridge.GetSelectedRobotId();
             var selectedMode = RobotSelectionBridge.GetSelectedMode();
-            if (selectedRobotId == FairinoRobotId && selectedMode == RobotSelectionBridge.RobotControlMode)
+            if (selectedRobotId == templateDefinition.RobotId && selectedMode == RobotSelectionBridge.RobotControlMode)
             {
                 return;
             }
 
-            RobotSelectionBridge.SetSelection(FairinoRobotId, RobotSelectionBridge.RobotControlMode);
+            RobotSelectionBridge.SetSelection(templateDefinition.RobotId, RobotSelectionBridge.RobotControlMode);
         }
 
         private void EnsureRuntimeRoot()
@@ -763,15 +760,15 @@ namespace KineTutor3D.App.Fairino
             return null;
         }
 
-        private static bool TryLoadControlPrefab(out GameObject prefab, out string diagnostic, out int meshFilterCount, out int meshRendererCount)
+        private bool TryLoadControlPrefab(out GameObject prefab, out string diagnostic, out int meshFilterCount, out int meshRendererCount)
         {
-            prefab = Resources.Load<GameObject>(ControlPrefabResourcePath);
+            prefab = Resources.Load<GameObject>(templateDefinition.ControlPrefabResourcePath);
             meshFilterCount = 0;
             meshRendererCount = 0;
 
             if (prefab == null)
             {
-                diagnostic = $"Control prefab missing at Resources/{ControlPrefabResourcePath}. Run QA import first.";
+                diagnostic = $"Control prefab missing at Resources/{templateDefinition.ControlPrefabResourcePath}. Run QA import first.";
                 return false;
             }
 
@@ -780,7 +777,7 @@ namespace KineTutor3D.App.Fairino
             meshRendererCount = prefab.GetComponentsInChildren<MeshRenderer>(true).Length;
             if (meshFilterCount <= 0 || meshRendererCount <= 0)
             {
-                diagnostic = $"Control prefab at Resources/{ControlPrefabResourcePath} has no visible meshes. Re-run FR5 import/repair.";
+                diagnostic = $"Control prefab at Resources/{templateDefinition.ControlPrefabResourcePath} has no visible meshes. Re-run FR5 import/repair.";
                 return false;
             }
 
@@ -796,7 +793,7 @@ namespace KineTutor3D.App.Fairino
 
             if (totalVertices <= 0)
             {
-                diagnostic = $"Control prefab at Resources/{ControlPrefabResourcePath} has {meshFilterCount} MeshFilter(s) but 0 vertices. Re-run FR5 import/repair.";
+                diagnostic = $"Control prefab at Resources/{templateDefinition.ControlPrefabResourcePath} has {meshFilterCount} MeshFilter(s) but 0 vertices. Re-run FR5 import/repair.";
                 return false;
             }
 
@@ -859,9 +856,9 @@ namespace KineTutor3D.App.Fairino
             return false;
         }
 
-        private static bool TryLoadShowroomFallback(out GameObject prefab, out int meshFilterCount, out int meshRendererCount)
+        private bool TryLoadShowroomFallback(out GameObject prefab, out int meshFilterCount, out int meshRendererCount)
         {
-            prefab = Resources.Load<GameObject>(ShowroomPrefabResourcePath);
+            prefab = Resources.Load<GameObject>(templateDefinition.ShowroomPrefabResourcePath);
             meshFilterCount = 0;
             meshRendererCount = 0;
             if (prefab == null)
@@ -1176,12 +1173,12 @@ namespace KineTutor3D.App.Fairino
         {
             if (kinematicsFacade == null)
             {
-                return new double[JointCount];
+                return new double[templateDefinition.JointCount];
             }
 
             var currentRad = kinematicsFacade.JointValuesRad;
-            var values = new double[JointCount];
-            for (var i = 0; i < JointCount && i < currentRad.Length; i++)
+            var values = new double[templateDefinition.JointCount];
+            for (var i = 0; i < templateDefinition.JointCount && i < currentRad.Length; i++)
             {
                 values[i] = currentRad[i] * (180.0 / System.Math.PI);
             }
@@ -1239,36 +1236,10 @@ namespace KineTutor3D.App.Fairino
         {
             if (whyItMovedLabel != null)
             {
-                var syntheticState = new FairinoRobotState(jointAnglesDeg, new double[6]);
+                var syntheticState = new FairinoRobotState(jointAnglesDeg, new double[templateDefinition.JointCount]);
                 whyItMovedLabel.HandleStateUpdated(syntheticState);
             }
         }
 
-        private static FairinoRobotConfig BuildFallbackConfig()
-        {
-            return new FairinoRobotConfig
-            {
-                robotId = FairinoRobotId,
-                displayName = "FAIRINO FR5",
-                defaultIp = "192.168.58.2",
-                defaultPort = 8080,
-                dof = 6,
-                jointLimits = new[]
-                {
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -175d, maxDeg = 175d },
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -265d, maxDeg = 85d },
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -162d, maxDeg = 162d },
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -265d, maxDeg = 85d },
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -175d, maxDeg = 175d },
-                    new FairinoRobotConfig.JointLimitEntry { minDeg = -360d, maxDeg = 360d }
-                },
-                speedPresets = new FairinoRobotConfig.SpeedPresetsBlock
-                {
-                    slow = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 10, accPercent = 20 },
-                    medium = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 30, accPercent = 50 },
-                    fast = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 60, accPercent = 80 }
-                }
-            };
-        }
     }
 }

@@ -145,7 +145,7 @@ namespace KineTutor3D.UI
                 }
 
                 ConfigureGridContainer(gridContainer);
-                ConfigureGridLayout(gridContainer, RobotCatalog.GetAll().Length);
+                ConfigureGridLayout(gridContainer, RobotCatalog.GetRobotLibraryEntries().Length);
                 useSceneAuthoredGridLayout = false;
                 if (libraryScrollRect != null)
                 {
@@ -452,7 +452,7 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            var allIds = RobotCatalog.GetAllRobotIds();
+            var allIds = RobotCatalog.GetRobotLibraryIds();
             var ctx = new RobotShowroomContext(
                 robotIds: allIds,
                 maxVisiblePods: 3,
@@ -489,7 +489,14 @@ namespace KineTutor3D.UI
             RebuildGrid();
             if (detailDrawer != null && detailDrawer.IsVisible)
             {
-                detailDrawer.Show(entry);
+                if (entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+                {
+                    detailDrawer.Hide();
+                }
+                else
+                {
+                    detailDrawer.Show(entry);
+                }
             }
         }
 
@@ -755,7 +762,7 @@ namespace KineTutor3D.UI
             }
 
             var validNames = new HashSet<string>(StringComparer.Ordinal);
-            var entries = RobotCatalog.GetAll();
+            var entries = RobotCatalog.GetRobotLibraryEntries();
             Vector2 cardSize = useSceneAuthoredGridLayout ? ReadCurrentCardSize(gridContainer) : ConfigureGridLayout(gridContainer, entries.Length);
             foreach (var entry in entries)
             {
@@ -1016,7 +1023,10 @@ namespace KineTutor3D.UI
 
         private void OnOpenRobotControl(RobotCatalogEntry entry)
         {
-            if (entry == null || !RobotCatalog.HasTemplate(entry.Metadata.RobotId) || !SupportsRobotControl(entry))
+            if (entry == null
+                || entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly
+                || !RobotCatalog.HasTemplate(entry.Metadata.RobotId)
+                || !SupportsRobotControl(entry))
             {
                 return;
             }
@@ -1027,7 +1037,7 @@ namespace KineTutor3D.UI
 
         private void LaunchPrimaryExperience(RobotCatalogEntry entry)
         {
-            if (entry == null)
+            if (entry == null || entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
             {
                 return;
             }
@@ -1052,6 +1062,12 @@ namespace KineTutor3D.UI
 
         private void OnViewDetails(RobotCatalogEntry entry)
         {
+            if (entry == null || entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+            {
+                detailDrawer?.Hide();
+                return;
+            }
+
             if (detailDrawer != null)
             {
                 detailDrawer.Show(entry);

@@ -73,9 +73,9 @@ namespace KineTutor3D.UI
             UiRuntimeStyle.Anchor(descText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(cardWidth - Padding * 2f, descriptionHeight), new Vector2(Padding, -descriptionTop));
             descText.text = TruncateDescription(metadata.Description, widthScale >= 1.45f ? 90 : 60);
 
-            BuildModeSummary(cardRoot, metadata, font, cardWidth, modeBottom, modeHeight, bodyFontSize);
+            BuildModeSummary(cardRoot, entry, font, cardWidth, modeBottom, modeHeight, bodyFontSize);
             BuildSelectButton(cardRoot, font, isSelected, onSelect, buttonHeight, selectButtonWidth, bodyFontSize);
-            BuildDetailButton(cardRoot, font, onViewDetails, buttonHeight, detailButtonWidth, bodyFontSize);
+            BuildDetailButton(cardRoot, entry, font, onViewDetails, buttonHeight, detailButtonWidth, bodyFontSize);
 
             return cardRoot;
         }
@@ -136,11 +136,11 @@ namespace KineTutor3D.UI
             badgeText.text = label;
         }
 
-        private static void BuildModeSummary(RectTransform parent, RobotMetadataInfo metadata, Font font, float cardWidth, float bottomOffset, float modeHeight, int fontSize)
+        private static void BuildModeSummary(RectTransform parent, RobotCatalogEntry entry, Font font, float cardWidth, float bottomOffset, float modeHeight, int fontSize)
         {
             var modeText = UiRuntimeStyle.EnsureText(parent, "ModeSummary", font, fontSize, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
             UiRuntimeStyle.Anchor(modeText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(-Padding * 2f, modeHeight), new Vector2(Padding, bottomOffset));
-            modeText.text = BuildModeLabel(metadata);
+            modeText.text = BuildModeLabel(entry);
         }
 
         private static void BuildSelectButton(RectTransform parent, Font font, bool isSelected, Action onSelect, float buttonHeight, float buttonWidth, int fontSize)
@@ -171,10 +171,16 @@ namespace KineTutor3D.UI
             }
         }
 
-        private static void BuildDetailButton(RectTransform parent, Font font, Action onViewDetails, float buttonHeight, float buttonWidth, int fontSize)
+        private static void BuildDetailButton(RectTransform parent, RobotCatalogEntry entry, Font font, Action onViewDetails, float buttonHeight, float buttonWidth, int fontSize)
         {
             var btnRect = UiRuntimeStyle.EnsureRectChild(parent, "BtnDetail");
             UiRuntimeStyle.Anchor(btnRect, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(buttonWidth, buttonHeight), new Vector2(-Padding, Padding));
+            bool allowDetails = entry != null && entry.LibraryInteractionMode != LibraryInteractionMode.SelectOnly;
+            btnRect.gameObject.SetActive(allowDetails);
+            if (!allowDetails)
+            {
+                return;
+            }
 
             var image = btnRect.GetComponent<Image>();
             if (image == null)
@@ -239,8 +245,14 @@ namespace KineTutor3D.UI
             return text.Substring(0, maxLength - 3) + "...";
         }
 
-        private static string BuildModeLabel(RobotMetadataInfo metadata)
+        private static string BuildModeLabel(RobotCatalogEntry entry)
         {
+            if (entry == null)
+            {
+                return string.Empty;
+            }
+
+            var metadata = entry.Metadata;
             var modes = string.Empty;
             modes += metadata.GuidedLessonSupported ? "Lesson" : "Observe";
             if (metadata.SandboxSupported)
@@ -256,6 +268,11 @@ namespace KineTutor3D.UI
             if (metadata.InstructorRecommended)
             {
                 modes += " · Instructor";
+            }
+
+            if (entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+            {
+                modes += " · Select";
             }
 
             return modes;

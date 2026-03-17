@@ -76,6 +76,10 @@ namespace KineTutor3D.UI
             helperText.text = controlCount > 0
                 ? "조인트를 움직여 충분히 관찰한 뒤 학습, 샌드박스, Robot Control 중 원하는 화면으로 이동하세요."
                 : "이 로봇은 현재 라이브러리에서 관찰 중심으로 보여집니다. 지원되는 화면으로 직접 이동할 수 있습니다.";
+            if (entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+            {
+                helperText.text = "이 항목은 RobotControl 템플릿 구조를 보여주는 선택 전용 카드입니다.";
+            }
             controlStateText.text = controlCount > 0
                 ? $"Library Control Active · {controlCount} joints"
                 : "Observation Only";
@@ -358,6 +362,14 @@ namespace KineTutor3D.UI
             }
 
             var data = metadata.Value;
+            if (RobotCatalog.TryGet(data.RobotId, out var entry) && entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
+            {
+                guidedLessonButton.interactable = false;
+                sandboxButton.interactable = false;
+                robotControlButton.interactable = false;
+                return;
+            }
+
             var hasTemplate = RobotCatalog.HasTemplate(data.RobotId);
             guidedLessonButton.interactable = hasTemplate && data.GuidedLessonSupported;
             sandboxButton.interactable = hasTemplate && data.SandboxSupported;
