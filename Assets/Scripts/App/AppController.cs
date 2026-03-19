@@ -70,6 +70,8 @@ namespace KineTutor3D.App
         public int CurrentDof => CurrentTemplate != null ? CurrentTemplate.Dof : 0;
         public string CurrentTrack => currentTrack;
         public bool IsSandboxMode => sandboxMode;
+        public bool IsCurrentGateSatisfied => gateController == null || gateController.IsGateSatisfied;
+        public string CurrentGateProgressText => gateController?.GetProgressText() ?? string.Empty;
         public TutorStepConfig CurrentStepConfig => stepConfigs != null && currentStepIndex >= 0 && currentStepIndex < stepConfigs.Length
             ? stepConfigs[currentStepIndex]
             : null;
@@ -89,7 +91,9 @@ namespace KineTutor3D.App
 
         private void Awake()
         {
+            EnsureDedicatedMathReadinessTrack();
             AutoWireReferences();
+            currentTrack = StepProgressSaver.GetCurrentTrack();
             LoadStepConfigsIfNeeded();
 
             if (gateController != null)
@@ -303,7 +307,31 @@ namespace KineTutor3D.App
 
         private void AutoWireReferences()
         {
+            if (IsDedicatedMathReadinessScene())
+            {
+                ClearSharedLearningShellReferences();
+            }
+
             uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref sandboxActionPanel, ref snapshotLitePanel, ref mathVisualOrchestrator, ref fkDiagramPanel);
+        }
+
+        private void EnsureDedicatedMathReadinessTrack()
+        {
+#if UNITY_EDITOR
+            if (!IsDedicatedMathReadinessScene())
+            {
+                return;
+            }
+
+            var track = StepProgressSaver.GetCurrentTrack();
+            if (string.Equals(track, StepProgressSaver.MathReadinessTrack, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.MathReadinessTrack);
+            currentTrack = StepProgressSaver.MathReadinessTrack;
+#endif
         }
 
         private void LoadStepConfigsIfNeeded()
@@ -338,7 +366,10 @@ namespace KineTutor3D.App
 
         private void InitializeTemplateRuntime()
         {
-            BindSliderEvents();
+            if (!IsDedicatedMathReadinessScene())
+            {
+                BindSliderEvents();
+            }
 
             var selectedId = RobotSelectionBridge.GetSelectedRobotId();
             var template = !string.IsNullOrEmpty(selectedId)
@@ -355,11 +386,23 @@ namespace KineTutor3D.App
 
         private void BindSliderEvents()
         {
+            if (IsDedicatedMathReadinessScene())
+            {
+                sliderListenersBound = false;
+                return;
+            }
+
             uiBinder.BindSliderEvents(jointSlider1, jointSlider2, OnJointSlider1Changed, OnJointSlider2Changed, ref sliderListenersBound);
         }
 
         private void UnbindSliderEvents()
         {
+            if (IsDedicatedMathReadinessScene())
+            {
+                sliderListenersBound = false;
+                return;
+            }
+
             uiBinder.UnbindSliderEvents(jointSlider1, jointSlider2, OnJointSlider1Changed, OnJointSlider2Changed, ref sliderListenersBound);
         }
 
@@ -659,6 +702,26 @@ namespace KineTutor3D.App
             }
 
             return string.Equals(track, StepProgressSaver.CoreKinematicsTrack, StringComparison.Ordinal);
+        }
+
+        private bool IsDedicatedMathReadinessScene()
+        {
+            return SceneCatalog.GetCurrentSceneId() == SceneId.MathReadiness;
+        }
+
+        private void ClearSharedLearningShellReferences()
+        {
+            stepTutorPanel = null;
+            stepNavigator = null;
+            dhTableEditor = null;
+            templateSelector = null;
+            matrixDisplay = null;
+            jointInputRail = null;
+            whyItMovedPanel = null;
+            beginnerLeftPanel = null;
+            targetFeedbackPanel = null;
+            jointSlider1 = null;
+            jointSlider2 = null;
         }
     }
 }

@@ -40,15 +40,16 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void ConfigureForScene_MathReadiness_AppliesSameGameplayProfile()
+        public void ConfigureForScene_MathReadiness_AppliesCloserReadinessProfile()
         {
             var go = new GameObject("Main Camera", typeof(Camera));
             var camera = go.GetComponent<Camera>();
 
             SceneCameraDirector.ConfigureForScene(SceneId.MathReadiness, camera);
 
-            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 1.8f, -7.4f)));
-            Assert.That(camera.fieldOfView, Is.EqualTo(82f));
+            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 1.62f, -6.1f)));
+            Assert.That(camera.transform.eulerAngles, Is.EqualTo(new Vector3(6f, 0f, 0f)));
+            Assert.That(camera.fieldOfView, Is.EqualTo(74f));
 
             Object.DestroyImmediate(go);
         }

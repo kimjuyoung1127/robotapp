@@ -94,35 +94,36 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 7. 명시 요청 없이는 임의 Git 파괴 명령 금지
 8. **C# 파일 생성/수정 전에 `docs/ref/code-patterns.md`를 반드시 읽고 §8-9 패턴을 준수** (인코딩, 헤더, 네이밍, 수명주기)
 9. **Unity Editor 상태 조회/검증 시 `unity-cli` 도구를 MCP보다 우선 사용한다.** CLI 도구가 존재하는 작업은 MCP 없이 `Bash`로 `unity-cli <tool>` 호출. CLI로 불가능한 작업만 MCP 폴백. 전체 도구 목록: `.claude/known-cli-tools.txt`
+10. **PowerShell에서 `unity-cli`를 호출할 때는 `$PSNativeCommandArgumentPassing = "Standard"`를 우선 설정한다.** 커스텀 툴은 `compile_check_tool` 같은 등록명과 `--params '{"key":"value"}'` 형식을 우선 사용한다.
 
 ## CLI 도구 라우팅 (자연어 → unity-cli)
 | 키워드 | CLI 명령어 | 설명 |
 |--------|-----------|------|
-| 컴파일, 빌드 에러 | `unity-cli compile-check` | 컴파일 에러/경고 카운트 |
-| 콘솔, 로그, 에러 로그 | `unity-cli console-check --type error` | 콘솔 로그 조회 |
-| 테스트, 테스트 실행 | `unity-cli run-tests --mode edit` | EditMode/PlayMode 테스트 |
-| 씬 검증, missing script | `unity-cli scene-validate --name all` | 씬 무결성 검사 |
-| 프리팹 검증 | `unity-cli prefab-validate` | 프리팹 무결성 검사 |
-| 씬 구조, 오브젝트 목록 | `unity-cli scene-hierarchy` | 씬 GameObject 계층 |
-| 로봇 목록, 카탈로그 | `unity-cli robot-catalog` | 등록된 로봇 목록 |
-| FK, 순기구학 | `unity-cli fk-compute --template 2DOF_RR` | FK 계산 |
-| DH 파라미터, DH 테이블 | `unity-cli dh-table --template 2DOF_RR` | DH 파라미터 조회 |
-| 관절 한계, 제한 | `unity-cli joint-limit --template FR5` | 관절 제한 범위 |
-| 카메라, 카메라 위치, 카메라 설정 | `unity-cli camera-capture --action current` | 카메라 캡처/저장/적용 |
-| 포즈 비교, EE 거리 | `unity-cli pose-compare --template FR5` | 두 포즈 EE 거리 |
-| 에셋 크기, 리소스 크기 | `unity-cli asset-size --top 10` | Resources 크기 분석 |
-| 씬 비교, 씬 차이 | `unity-cli scene-diff --scene_a A --scene_b B` | 씬 간 비교 |
-| QA, 검수 준비 | `unity-cli qa-prep` | QA 사전 점검 |
-| 빌드 세팅 | `unity-cli build-settings` | Build Settings 검증 |
-| PlayerPrefs, 설정값 | `unity-cli playerprefs-inspect` | PlayerPrefs 조회 |
-| 리소스 검증 | `unity-cli resource-validate` | Resources 폴더 검증 |
-| 세션, 진행 상태 | `unity-cli session-context` | 세션 상태 조회 |
-| 튜터 스텝 | `unity-cli tutorstep-validate` | 튜터 스텝 에셋 검증 |
-| 용어집, 글로서리 | `unity-cli glossary-validate` | 용어집 검증 |
-| FR5, 로봇 연결, 진단 | `unity-cli fr5-diagnostic` | FR5 연결/상태 진단 |
-| Canvas, UI 검증 | `unity-cli canvas-validate` | Canvas 설정 검증 |
-| asmdef, 어셈블리 | `unity-cli asmdef-validate` | asmdef 참조 검증 |
-| LearningTabs, 탭 | `unity-cli learning-tabs --robot_id all` | LearningTabs JSON 검증 |
+| 컴파일, 빌드 에러 | `unity-cli compile_check_tool` | 컴파일 에러/경고 카운트 |
+| 콘솔, 로그, 에러 로그 | `unity-cli console_check_tool --params '{"type":"error"}'` | 콘솔 로그 조회 |
+| 테스트, 테스트 실행 | `unity-cli run_tests_tool --params '{"mode":"edit"}'` | EditMode/PlayMode 테스트 |
+| 씬 검증, missing script | `unity-cli scene_validate_tool --params '{"name":"all"}'` | 씬 무결성 검사 |
+| 프리팹 검증 | `unity-cli prefab_validate_tool --params '{"path":"Assets/..."}'` | 프리팹 무결성 검사 |
+| 씬 구조, 오브젝트 목록 | `unity-cli scene_hierarchy_tool --params '{"depth":2}'` | 씬 GameObject 계층 |
+| 로봇 목록, 카탈로그 | `unity-cli robot_catalog_tool` | 등록된 로봇 목록 |
+| FK, 순기구학 | `unity-cli fk_compute_tool --params '{"template":"2DOF_RR","joints":"45,30"}'` | FK 계산 |
+| DH 파라미터, DH 테이블 | `unity-cli dh_table_tool --params '{"template":"2DOF_RR"}'` | DH 파라미터 조회 |
+| 관절 한계, 제한 | `unity-cli joint_limit_tool --params '{"template":"FR5"}'` | 관절 제한 범위 |
+| 카메라, 카메라 위치, 카메라 설정 | `unity-cli camera_capture_tool --params '{"action":"current"}'` | 카메라 캡처/저장/적용 |
+| 포즈 비교, EE 거리 | `unity-cli pose_compare_tool --params '{"template":"FR5","joints_a":"...","joints_b":"..."}'` | 두 포즈 EE 거리 |
+| 에셋 크기, 리소스 크기 | `unity-cli asset_size_tool --params '{"top":10}'` | Resources 크기 분석 |
+| 씬 비교, 씬 차이 | `unity-cli scene_diff_tool --params '{"scene_a":"A","scene_b":"B"}'` | 씬 간 비교 |
+| QA, 검수 준비 | `unity-cli qa_prep_tool --params '{"scenario":"first-time"}'` | QA 사전 점검 |
+| 빌드 세팅 | `unity-cli build_settings_tool` | Build Settings 검증 |
+| PlayerPrefs, 설정값 | `unity-cli player_prefs_inspect_tool` | PlayerPrefs 조회 |
+| 리소스 검증 | `unity-cli resource_validate_tool` | Resources 폴더 검증 |
+| 세션, 진행 상태 | `unity-cli session_context_tool` | 세션 상태 조회 |
+| 튜터 스텝 | `unity-cli tutor_step_validate_tool` | 튜터 스텝 에셋 검증 |
+| 용어집, 글로서리 | `unity-cli glossary_validate_tool` | 용어집 검증 |
+| FR5, 로봇 연결, 진단 | `unity-cli fr5_diagnostic_tool` | FR5 연결/상태 진단 |
+| Canvas, UI 검증 | `unity-cli canvas_validate_tool` | Canvas 설정 검증 |
+| asmdef, 어셈블리 | `unity-cli asmdef_validate_tool` | asmdef 참조 검증 |
+| LearningTabs, 탭 | `unity-cli learning_tabs_tool --params '{"robot_id":"all"}'` | LearningTabs JSON 검증 |
 
 ## Skill 인덱스 (.claude/skills)
 | # | Skill | Trigger 키워드 | 경로 |

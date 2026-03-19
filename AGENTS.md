@@ -70,3 +70,10 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Mobile release planning: `docs/ref/product/roadmap/mobile-release-checklist.md`
 - Asset sourcing / curation / validation: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
 - Plan-change procedure: `docs/ref/PRODUCT-ROADMAP.md` -> `docs/ref/product/roadmap/release-gates.md`
+
+## Unity CLI Usage
+- For current `unity-cli` usage, read `docs/ref/cli-tools-guide.md`.
+- In PowerShell, prefer `$PSNativeCommandArgumentPassing = "Standard"` before calling `unity-cli`.
+- Custom tool names use the registered `snake_case` form such as `compile_check_tool`, `scene_validate_tool`, and `run_tests_tool`.
+- When parameters include strings, commas, or booleans, prefer `--params '{"key":"value"}'` over positional flags.
+- Current baseline: EditMode automation is reliable; PlayMode automation is still under investigation and should be treated as unstable until the CLI guide says otherwise.

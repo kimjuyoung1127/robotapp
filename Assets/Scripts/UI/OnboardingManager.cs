@@ -24,8 +24,15 @@ namespace KineTutor3D.UI
         private bool listenersBound;
         private bool viewBuilt;
 
+        private static bool IsBatchEditTime => Application.isBatchMode && !Application.isPlaying;
+
         private void Awake()
         {
+            if (IsBatchEditTime)
+            {
+                return;
+            }
+
             EnsurePresentation();
             if (Application.isPlaying)
             {
@@ -43,6 +50,11 @@ namespace KineTutor3D.UI
 
         private void OnEnable()
         {
+            if (IsBatchEditTime)
+            {
+                return;
+            }
+
             EnsurePresentation();
             if (Application.isPlaying)
             {
@@ -58,6 +70,11 @@ namespace KineTutor3D.UI
 
         private void OnValidate()
         {
+            if (Application.isBatchMode)
+            {
+                return;
+            }
+
             if (!Application.isPlaying)
             {
                 viewBuilt = false;

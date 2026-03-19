@@ -152,12 +152,20 @@ namespace KineTutor3D.App
             switch (sceneId)
             {
                 case SceneId.Main:
-                case SceneId.MathReadiness:
                 case SceneId.Sandbox:
                     profile = new CameraProfile(
                         new Vector3(0f, 1.8f, -7.4f),
                         new Vector3(7f, 0f, 0f),
                         82f,
+                        0.3f,
+                        1000f,
+                        new Color(0.10f, 0.10f, 0.18f, 1f));
+                    return true;
+                case SceneId.MathReadiness:
+                    profile = new CameraProfile(
+                        new Vector3(0f, 1.62f, -6.1f),
+                        new Vector3(6f, 0f, 0f),
+                        74f,
                         0.3f,
                         1000f,
                         new Color(0.10f, 0.10f, 0.18f, 1f));

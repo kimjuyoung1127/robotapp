@@ -2,6 +2,7 @@
 // regardless of which scene is currently open in the editor.
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
 namespace KineTutor3D.Editor
 {
@@ -39,6 +40,12 @@ namespace KineTutor3D.Editor
 
         private static void ApplyIfEnabled()
         {
+            if (Application.isBatchMode)
+            {
+                EditorSceneManager.playModeStartScene = null;
+                return;
+            }
+
             if (!IsEnabled)
             {
                 EditorSceneManager.playModeStartScene = null;

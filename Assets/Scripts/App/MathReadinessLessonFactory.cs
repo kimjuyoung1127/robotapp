@@ -210,9 +210,9 @@ namespace KineTutor3D.App
             config.mathReadinessMode = true;
             config.beginnerMode = false;
             config.showMathReadinessPanel = true;
-            config.showLeftPanel = true;
+            config.showLeftPanel = false;
             config.showRightPanel = false;
-            config.showBottomBar = true;
+            config.showBottomBar = false;
             config.leftContent = LeftPanelContent.Hidden;
             config.rightContent = RightPanelContent.Hidden;
             config.focusTarget = FocusTarget.Viewport3D;

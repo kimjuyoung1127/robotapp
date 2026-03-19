@@ -11,6 +11,24 @@ namespace KineTutor3D.App
     {
         public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref MathReadinessPanel mathReadinessPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual, ref SandboxActionPanel sandboxActionPanel, ref SnapshotLitePanel snapshotLitePanel, ref MathVisualOrchestrator mathVisualOrchestrator, ref FKDiagramPanel fkDiagramPanel)
         {
+            if (SceneCatalog.GetCurrentSceneId() == SceneId.MathReadiness)
+            {
+                AutoWireDedicatedMathReadiness(
+                    ref disclosureController,
+                    ref gateController,
+                    ref toastController,
+                    ref focusHighlighter,
+                    ref jointSlider1,
+                    ref jointSlider2,
+                    ref mathReadinessPanel,
+                    ref robotRenderer,
+                    ref endEffectorTrail,
+                    ref targetMarkerVisual,
+                    ref mathVisualOrchestrator,
+                    ref fkDiagramPanel);
+                return;
+            }
+
             disclosureController ??= Object.FindFirstObjectByType<ProgressiveDisclosureController>(FindObjectsInactive.Include);
             gateController ??= Object.FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
             stepTutorPanel ??= Object.FindFirstObjectByType<StepTutorPanel>(FindObjectsInactive.Include);
@@ -107,10 +125,18 @@ namespace KineTutor3D.App
 
             if (mathReadinessPanel == null)
             {
-                var leftPanel = GameObject.Find("LeftPanel");
-                if (leftPanel != null)
+                var mathReadinessRoot = GameObject.Find("MathReadinessRect");
+                if (mathReadinessRoot != null)
                 {
-                    mathReadinessPanel = leftPanel.GetComponent<MathReadinessPanel>() ?? leftPanel.AddComponent<MathReadinessPanel>();
+                    mathReadinessPanel = mathReadinessRoot.GetComponent<MathReadinessPanel>() ?? mathReadinessRoot.AddComponent<MathReadinessPanel>();
+                }
+                else
+                {
+                    var leftPanel = GameObject.Find("LeftPanel");
+                    if (leftPanel != null)
+                    {
+                        mathReadinessPanel = leftPanel.GetComponent<MathReadinessPanel>() ?? leftPanel.AddComponent<MathReadinessPanel>();
+                    }
                 }
             }
 
@@ -147,6 +173,68 @@ namespace KineTutor3D.App
                 if (robotRoot != null)
                 {
                     mathVisualOrchestrator = robotRoot.GetComponent<MathVisualOrchestrator>() ?? robotRoot.AddComponent<MathVisualOrchestrator>();
+                }
+            }
+        }
+
+        private static Slider FindFooterSlider(Transform jointCard, string primaryName, string legacyName = null)
+        {
+            if (jointCard == null)
+            {
+                return null;
+            }
+
+            var slider = jointCard.Find(primaryName)?.GetComponent<Slider>();
+            if (slider != null || string.IsNullOrWhiteSpace(legacyName))
+            {
+                return slider;
+            }
+
+            return jointCard.Find(legacyName)?.GetComponent<Slider>();
+        }
+
+        private static void AutoWireDedicatedMathReadiness(
+            ref ProgressiveDisclosureController disclosureController,
+            ref InteractionGateController gateController,
+            ref ToastNotificationController toastController,
+            ref FocusZoneHighlighter focusHighlighter,
+            ref Slider jointSlider1,
+            ref Slider jointSlider2,
+            ref MathReadinessPanel mathReadinessPanel,
+            ref RobotRenderer robotRenderer,
+            ref EndEffectorTrail endEffectorTrail,
+            ref TargetMarkerVisual targetMarkerVisual,
+            ref MathVisualOrchestrator mathVisualOrchestrator,
+            ref FKDiagramPanel fkDiagramPanel)
+        {
+            disclosureController ??= Object.FindFirstObjectByType<ProgressiveDisclosureController>(FindObjectsInactive.Include);
+            gateController ??= Object.FindFirstObjectByType<InteractionGateController>(FindObjectsInactive.Include);
+            toastController ??= Object.FindFirstObjectByType<ToastNotificationController>(FindObjectsInactive.Include);
+            focusHighlighter ??= Object.FindFirstObjectByType<FocusZoneHighlighter>(FindObjectsInactive.Include);
+            robotRenderer ??= Object.FindFirstObjectByType<RobotRenderer>(FindObjectsInactive.Include);
+            endEffectorTrail ??= Object.FindFirstObjectByType<EndEffectorTrail>(FindObjectsInactive.Include);
+            targetMarkerVisual ??= Object.FindFirstObjectByType<TargetMarkerVisual>(FindObjectsInactive.Include);
+            mathVisualOrchestrator ??= Object.FindFirstObjectByType<MathVisualOrchestrator>(FindObjectsInactive.Include);
+            fkDiagramPanel ??= Object.FindFirstObjectByType<FKDiagramPanel>(FindObjectsInactive.Include);
+
+            var pageRoot = GameObject.Find("MathReadinessRect");
+            if (pageRoot == null)
+            {
+                pageRoot = GameObject.Find("MathReadinessPageRoot");
+            }
+            if (pageRoot != null)
+            {
+                mathReadinessPanel ??= pageRoot.GetComponent<MathReadinessPanel>() ?? pageRoot.AddComponent<MathReadinessPanel>();
+
+                var footer = pageRoot.transform.Find("PageFooter");
+                if (footer != null)
+                {
+                    var jointCard = footer.Find("JointControlCard");
+                    if (jointCard != null)
+                    {
+                        jointSlider1 ??= FindFooterSlider(jointCard, "joint_slider_1");
+                        jointSlider2 ??= FindFooterSlider(jointCard, "joint_slider_2", "legacy_joint_slider_2");
+                    }
                 }
             }
         }
