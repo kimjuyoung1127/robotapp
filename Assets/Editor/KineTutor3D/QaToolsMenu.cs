@@ -35,6 +35,14 @@ namespace KineTutor3D.Editor
         private const string SharedUiPrefabFolder = "Assets/Runtime/UI/Prefabs";
         private const string SceneNavigationBarPrefabPath = "Assets/Runtime/UI/Prefabs/SceneNavigationBar.prefab";
 
+        private const string Ur5eUrdfAssetPath = "Assets/Runtime/Robots/UR5e/ur5e.urdf";
+        private const string Ur5ePrefabAssetPath = "Assets/Runtime/Resources/Robots/UR5e/UR5e.prefab";
+        private const string Ur5eControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/UR5e/UR5e_Control.prefab";
+
+        private const string DoosanUrdfAssetPath = "Assets/Runtime/Robots/DOOSAN_M1013/m1013.urdf";
+        private const string DoosanPrefabAssetPath = "Assets/Runtime/Resources/Robots/DoosanM1013/DoosanM1013.prefab";
+        private const string DoosanControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/DoosanM1013/DoosanM1013_Control.prefab";
+
         [MenuItem("KineTutor3D/QA: Reset to First-Time User", priority = 100)]
         private static void ResetToFirstTimeUser()
         {
@@ -167,6 +175,30 @@ namespace KineTutor3D.Editor
 
             Debug.Log($"[QA] FAIRINO FR5 control prefab imported successfully: {FairinoControlPrefabAssetPath} (unpacked {unpackedPrefabRoots} prefab roots, rebound {reboundMeshCount} meshes)");
             Debug.Log($"[QA] FAIRINO FR5 preview prefab imported successfully: {FairinoPrefabAssetPath}");
+        }
+
+        [MenuItem("KineTutor3D/Robots/Import UR5e URDF", priority = 141)]
+        public static void ImportUr5eUrdf()
+        {
+            EnsureFolder("Assets/Runtime/Resources/Robots");
+            EnsureFolder("Assets/Runtime/Resources/Robots/UR5e");
+            ImportGenericRobotUrdf(
+                urdfAssetPath: Ur5eUrdfAssetPath,
+                robotId: "UR5e",
+                controlPrefabPath: Ur5eControlPrefabAssetPath,
+                previewPrefabPath: Ur5ePrefabAssetPath);
+        }
+
+        [MenuItem("KineTutor3D/Robots/Import Doosan M1013 URDF", priority = 142)]
+        public static void ImportDoosanM1013Urdf()
+        {
+            EnsureFolder("Assets/Runtime/Resources/Robots");
+            EnsureFolder("Assets/Runtime/Resources/Robots/DoosanM1013");
+            ImportGenericRobotUrdf(
+                urdfAssetPath: DoosanUrdfAssetPath,
+                robotId: "DoosanM1013",
+                controlPrefabPath: DoosanControlPrefabAssetPath,
+                previewPrefabPath: DoosanPrefabAssetPath);
         }
 
         [MenuItem("KineTutor3D/RobotControl/Author Scene UI", priority = 145)]
@@ -317,6 +349,90 @@ namespace KineTutor3D.Editor
             {
                 Object.DestroyImmediate(tempRoot);
             }
+        }
+
+        // Generic URDF import helper for robots that do not need FR5-specific post-processing.
+        // The URDF Importer creates the joint hierarchy automatically from the URDF.
+        // Both control and preview prefabs are saved from the same imported root.
+        private static void ImportGenericRobotUrdf(
+            string urdfAssetPath,
+            string robotId,
+            string controlPrefabPath,
+            string previewPrefabPath)
+        {
+            var fullUrdfPath = Path.GetFullPath(urdfAssetPath);
+            if (!File.Exists(fullUrdfPath))
+            {
+                Debug.LogError($"[QA] {robotId} URDF not found at '{fullUrdfPath}'.");
+                return;
+            }
+
+            AssetDatabase.Refresh();
+
+            var settings = ImportSettings.DefaultSettings();
+            settings.OverwriteExistingPrefabs = true;
+            settings.chosenAxis = ImportSettings.axisType.yAxis;
+            settings.convexMethod = ImportSettings.convexDecomposer.unity;
+
+            var importRoutine = UrdfRobotExtensions.Create(fullUrdfPath, settings, loadStatus: false, forceRuntimeMode: false);
+            GameObject importedRobot = null;
+            while (importRoutine.MoveNext())
+            {
+                importedRobot = importRoutine.Current;
+            }
+
+            if (importedRobot == null)
+            {
+                Debug.LogError($"[QA] {robotId} import failed. UrdfRobotExtensions.Create returned null.");
+                return;
+            }
+
+            // Unpack any nested prefab instances before saving
+            var unpackedPrefabRoots = new HashSet<GameObject>();
+            var transforms = importedRobot.GetComponentsInChildren<Transform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                var instanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(transforms[i].gameObject);
+                if (instanceRoot != null && instanceRoot != importedRobot && instanceRoot.transform.IsChildOf(importedRobot.transform))
+                {
+                    unpackedPrefabRoots.Add(instanceRoot);
+                }
+            }
+
+            foreach (var root in unpackedPrefabRoots)
+            {
+                if (root != null && PrefabUtility.IsPartOfPrefabInstance(root))
+                {
+                    PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                }
+            }
+
+            // Save control prefab (full ArticulationBody hierarchy for runtime control)
+            importedRobot.name = robotId + "_Control";
+            var controlPrefab = PrefabUtility.SaveAsPrefabAsset(importedRobot, controlPrefabPath, out var controlSuccess);
+
+            // Save preview prefab (same hierarchy, renamed for showroom use)
+            importedRobot.name = robotId;
+            var previewPrefab = PrefabUtility.SaveAsPrefabAsset(importedRobot, previewPrefabPath, out var previewSuccess);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Object.DestroyImmediate(importedRobot);
+
+            if (!controlSuccess || controlPrefab == null)
+            {
+                Debug.LogError($"[QA] {robotId} control prefab save failed at '{controlPrefabPath}'.");
+                return;
+            }
+
+            if (!previewSuccess || previewPrefab == null)
+            {
+                Debug.LogError($"[QA] {robotId} preview prefab save failed at '{previewPrefabPath}'.");
+                return;
+            }
+
+            Debug.Log($"[QA] {robotId} control prefab imported successfully: {controlPrefabPath}");
+            Debug.Log($"[QA] {robotId} preview prefab imported successfully: {previewPrefabPath}");
         }
 
         private static void ClearQaState()
