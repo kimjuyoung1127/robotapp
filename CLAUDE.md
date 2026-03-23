@@ -25,9 +25,11 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Phase 6 (CI/CD): Hold (로컬 테스트 전용, runner 미등록)
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
-- Current Cycle: InProgress (FR5 RobotControl Console QA + Page QA Hardening + Sandbox polish)
+- Navigation Refactor: InProgress (Home/Main 제거, RobotLibrary 메인 진입점, 멀티로봇 RobotControl 확장)
+- Current Cycle: InProgress (멀티로봇 RobotControl 확장 + Sandbox polish)
 
 최근 확정 사항:
+- Navigation 리팩터링 (2026-03-23): Home/Main 씬 제거. RobotLibrary가 메인 진입점. Boot→Onboarding(첫방문)→RobotLibrary, Boot→RobotLibrary(재방문). Build Settings: Boot(0), Onboarding(1), RobotLibrary(2), Sandbox(3), RobotControl(4), MathReadiness(5). HomeContinueHub*, MainLearningShell*, MainLearningTabs* 코드 삭제. RobotControl을 각 로봇의 전용 샌드박스로 확장 예정
 - RobotControl Phase 8 구현 완료 (2026-03-15): 프리셋 애니메이션 전환(PresetTransitionAnimator, 1.5초 EaseInOutCubic), Speed Selector UI(Slow 10%/Medium 30%/Fast 60% 3단 버튼, JointControlPanel+TcpControlPanel), 연결 끊김 안전 처리(3회 연속 에러→OnConnectionLost+패널 비활성화+빨간 재연결 안내), 연결 초기화 보간(0.8초), 자기리뷰 2건 수정(ShowConnectionLost 컴파일 에러, duration<=0 가드). EditMode 345/351 passed (6 failed=기존)
 - Ready 프리셋 기본 포즈 조정 (2026-03-15): EE 하향 자세 `{0, -45, 0, -59, -92, -42}` 확정. Mock 초기값 + Coordinator 시작 포즈 동기화. Live 연결 시 0.8초 보간으로 실제 로봇 포즈 자동 전환되므로 영향 없음
 - RobotControl P0~P5 전체 구현 완료: 카메라 프로파일 고정, 관절 회전 핸들(JointRotationHandle ×6), TCP 직교 제어(FairinoTcpControlPanel + MoveL), 프리셋→Sync 동기화(SyncCurrentState + Current 동적 프리셋), EE 변위 화살표(DisplacementArrow), TopBar 기즈모 토글/트레일 Clear, EE XYZ RGB 색상 코딩, WhyItMoved 다관절 요약+XYZ 성분
@@ -64,7 +66,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - 내부 패키지 자산을 `Assets/KineTutor_AssetCuration_BACKUP/`로 큐레이션하고 hierarchy validation report를 추가
 - Phase 3 확장 완료: `TemplateSelector`, `DHTableEditor`, `MatrixDisplay` 실동작 연결
 - Scene split 완료: `Boot.unity` -> `Onboarding.unity` / `Main.unity` 분기 구조 도입
-- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `Home`(2), `Main`(3), `RobotLibrary`(4), `Sandbox`(5), `RobotControl`(6), `MathReadiness`(7)
+- Build Settings 재구성: `Boot`(0), `Onboarding`(1), `RobotLibrary`(2), `Sandbox`(3), `RobotControl`(4), `MathReadiness`(5) — Home/Main 제거됨
 - Phase 4 확장: `frame_0`/`frame_1`을 canonical frame object로 통합, `Frame_EE` 유지
 - Phase 4B 디버그: `ScaraRobot.prefab` donor path를 `Base -> Axis1 -> Axis2 -> Axis3 -> Gripper`로 명시 고정하고 `Pick`은 helper point로 제외
 - Phase 4B 디버그: `Canvas`를 `Screen Space - Overlay` HUD로 전환하고 Scene/Game에서 동일한 학습 UI 구성을 사용

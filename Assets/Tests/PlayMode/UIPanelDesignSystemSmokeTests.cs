@@ -10,11 +10,10 @@ namespace KineTutor3D.Tests.PlayMode
     public class UIPanelDesignSystemSmokeTests
     {
         [UnityTest]
-        public IEnumerator HomeScene_ShowsContinueAndMathWarmupButtons()
+        public IEnumerator RobotLibraryScene_ShowsMathWarmupButton()
         {
-            yield return LoadScene("Home");
+            yield return LoadScene("RobotLibrary");
 
-            Assert.That(GameObject.Find("BtnContinueLatestContext")?.GetComponent<Button>(), Is.Not.Null);
             Assert.That(GameObject.Find("BtnStartMathReadiness")?.GetComponent<Button>(), Is.Not.Null);
         }
 

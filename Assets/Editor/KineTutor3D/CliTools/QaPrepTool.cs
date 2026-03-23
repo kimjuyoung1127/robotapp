@@ -41,7 +41,7 @@ namespace KineTutor3D.Editor.CliTools
                     PlayerPrefs.SetInt(HasVisitedKey, 1);
                     PlayerPrefs.Save();
                     return new SuccessResponse("QA: Reset to returning user.",
-                        new { scenario, next_scene = "Home" });
+                        new { scenario, next_scene = "RobotLibrary" });
 
                 case "sandbox":
                     ClearAllQaKeys();

@@ -25,7 +25,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator MainScene_StartsAtStep1_WithoutOnboardingManager()
+        public IEnumerator SandboxScene_StartsAtStep1_WithoutOnboardingManager()
         {
             Component app = null;
             for (var i = 0; i < 60 && app == null; i++)
@@ -38,10 +38,10 @@ namespace KineTutor3D.Tests.PlayMode
 
             var canvas = Find("Canvas");
             Assert.That(canvas, Is.Not.Null, "Canvas 오브젝트를 찾지 못했습니다.");
-            Assert.That(canvas.GetComponent("OnboardingManager"), Is.Null, "Main 씬은 OnboardingManager를 가지면 안 됩니다.");
+            Assert.That(canvas.GetComponent("OnboardingManager"), Is.Null, "Sandbox 씬은 OnboardingManager를 가지면 안 됩니다.");
             yield return null;
 
-            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "Main 씬은 즉시 Step 1로 진입해야 합니다.");
+            Assert.That(GetCurrentStep(app), Is.EqualTo(1), "Sandbox 씬은 즉시 Step 1로 진입해야 합니다.");
         }
 
         [UnityTest]
@@ -362,8 +362,8 @@ namespace KineTutor3D.Tests.PlayMode
 
         private static IEnumerator LoadMainScene()
         {
-            var op = SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
-            Assert.That(op, Is.Not.Null, "Main 씬 로드를 시작하지 못했습니다.");
+            var op = SceneManager.LoadSceneAsync("Sandbox", LoadSceneMode.Single);
+            Assert.That(op, Is.Not.Null, "Sandbox 씬 로드를 시작하지 못했습니다.");
             while (!op.isDone)
             {
                 yield return null;

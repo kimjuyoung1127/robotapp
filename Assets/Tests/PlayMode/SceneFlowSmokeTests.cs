@@ -31,18 +31,18 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Boot_Visited_RoutesToHome()
+        public IEnumerator Boot_Visited_RoutesToRobotLibrary()
         {
             StepProgressSaver.MarkVisited();
 
             yield return LoadScene("Boot");
-            yield return WaitForActiveScene("Home");
+            yield return WaitForActiveScene("RobotLibrary");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RobotLibrary"));
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_StartLearning_LoadsHome_AndMarksVisited()
+        public IEnumerator Onboarding_StartLearning_LoadsRobotLibrary_AndMarksVisited()
         {
             yield return LoadScene("Onboarding");
 
@@ -50,14 +50,14 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(button, Is.Not.Null, "BtnStartLearning을 찾지 못했습니다.");
 
             button.onClick.Invoke();
-            yield return WaitForActiveScene("Home");
+            yield return WaitForActiveScene("RobotLibrary");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RobotLibrary"));
             Assert.That(StepProgressSaver.HasVisited(), Is.True, "학습 시작 후 방문 기록이 저장되어야 합니다.");
         }
 
         [UnityTest]
-        public IEnumerator Onboarding_Skip_LoadsHome()
+        public IEnumerator Onboarding_Skip_LoadsRobotLibrary()
         {
             yield return LoadScene("Onboarding");
 
@@ -65,9 +65,9 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(button, Is.Not.Null, "BtnOnboardingSkip을 찾지 못했습니다.");
 
             button.onClick.Invoke();
-            yield return WaitForActiveScene("Home");
+            yield return WaitForActiveScene("RobotLibrary");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RobotLibrary"));
         }
 
         [UnityTest]
@@ -108,20 +108,18 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator HomeScene_ContainsContinueHubController()
+        public IEnumerator RobotLibraryScene_ContainsCamera()
         {
             StepProgressSaver.MarkVisited();
-            yield return LoadScene("Home");
+            yield return LoadScene("RobotLibrary");
 
-            var controller = Object.FindFirstObjectByType<HomeContinueHubController>();
-            Assert.That(controller, Is.Not.Null, "HomeContinueHubController가 필요합니다.");
-            Assert.That(Object.FindFirstObjectByType<Camera>(), Is.Not.Null, "Home 씬은 최소 1개의 카메라를 가져야 합니다.");
+            Assert.That(Object.FindFirstObjectByType<Camera>(), Is.Not.Null, "RobotLibrary 씬은 최소 1개의 카메라를 가져야 합니다.");
         }
 
         [UnityTest]
         public IEnumerator SceneNavigator_CanLoadSandboxScene()
         {
-            yield return LoadScene("Main");
+            yield return LoadScene("RobotLibrary");
 
             SceneNavigator.Load(SceneId.Sandbox);
             yield return WaitForActiveScene("Sandbox");
@@ -130,16 +128,16 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator MainScene_DoesNotContainActiveOnboardingPlaceholder()
+        public IEnumerator SandboxScene_DoesNotContainActiveOnboardingPlaceholder()
         {
-            yield return LoadScene("Main");
+            yield return LoadScene("Sandbox");
 
             var canvas = Find("Canvas");
             var modal = Find("WelcomeModal");
 
             Assert.That(canvas, Is.Not.Null, "Canvas를 찾지 못했습니다.");
-            Assert.That(canvas.GetComponent("OnboardingManager"), Is.Null, "Main 씬은 OnboardingManager를 포함하면 안 됩니다.");
-            Assert.That(modal == null || !modal.activeInHierarchy, Is.True, "Main 씬에 활성 온보딩 placeholder가 있으면 안 됩니다.");
+            Assert.That(canvas.GetComponent("OnboardingManager"), Is.Null, "Sandbox 씬은 OnboardingManager를 포함하면 안 됩니다.");
+            Assert.That(modal == null || !modal.activeInHierarchy, Is.True, "Sandbox 씬에 활성 온보딩 placeholder가 있으면 안 됩니다.");
         }
 
         private static IEnumerator LoadScene(string sceneName)

@@ -11,9 +11,9 @@
 ## Core Checks
 - [ ] `BtnStartLearning`, `BtnBeginner`, `BtnOnboardingSkip` 3개 버튼이 보인다.
 - [ ] 3개 버튼이 모두 `ModalSurface` 카드 안에 들어가 있다.
-- [ ] `학습 시작` 클릭 시 `Home`으로 이동한다.
+- [ ] `학습 시작` 클릭 시 `RobotLibrary`로 이동한다.
 - [ ] `초보자 시작` 클릭 시 `MathReadiness`로 이동하고 `MathReadinessPanel`이 바로 열린다.
-- [ ] `건너뛰기` 클릭 시 `Home`으로 이동한다.
+- [ ] `건너뛰기` 클릭 시 `Sandbox`로 이동한다.
 - [ ] 상단 전역 네비게이션은 보이지 않는다.
 
 ## Layout / UI Checks
@@ -26,7 +26,7 @@
 ## UX Checks
 - [ ] `처음이에요`, `알고 있어요`, `둘러보기 →`의 의미가 명확하다.
 - [ ] 초보자/기본/건너뛰기 선택지가 헷갈리지 않는다.
-- [ ] 다음 페이지(Home)로 이동한 뒤 dead-end가 없다.
+- [ ] 다음 페이지(RobotLibrary/Sandbox/MathReadiness)로 이동한 뒤 dead-end가 없다.
 
 ## Quick Inspect Targets
 - scene: `Onboarding.unity`

@@ -22,7 +22,7 @@ namespace KineTutor3D.UI
             UnityEngine.Events.UnityAction onDemoPose,
             UnityEngine.Events.UnityAction onResetPose,
             UnityEngine.Events.UnityAction onChangeRobot,
-            UnityEngine.Events.UnityAction onBackHome,
+            UnityEngine.Events.UnityAction onBackToLibrary,
             UnityEngine.Events.UnityAction onOpenRobotLibrary)
         {
             panelRoot ??= UiRuntimeStyle.EnsureHostedRoot(host, "SandboxActionRect");
@@ -74,7 +74,7 @@ namespace KineTutor3D.UI
                 new Vector2(0f, 0f),
                 new Vector2(width, 96f),
                 new Vector2(UIDesignTokens.Space.Md, UIDesignTokens.Space.Md));
-            CreateWideButton(navGroup.transform, fallbackFont, "BtnBackHome", "← Back to Home", onBackHome, BackIcon);
+            CreateWideButton(navGroup.transform, fallbackFont, "BtnBackToLibrary", "← 로봇 목록", onBackToLibrary, BackIcon);
             CreateWideButton(navGroup.transform, fallbackFont, "BtnOpenRobotLibrary", "Robot Library", onOpenRobotLibrary, LibraryIcon);
             return panelRoot;
         }

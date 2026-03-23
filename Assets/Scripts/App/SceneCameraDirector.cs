@@ -151,7 +151,6 @@ namespace KineTutor3D.App
         {
             switch (sceneId)
             {
-                case SceneId.Main:
                 case SceneId.Sandbox:
                     profile = new CameraProfile(
                         new Vector3(0f, 1.8f, -7.4f),
@@ -180,7 +179,6 @@ namespace KineTutor3D.App
                         new Color(0.08f, 0.10f, 0.16f, 1f));
                     return true;
                 case SceneId.Onboarding:
-                case SceneId.Home:
                     profile = new CameraProfile(
                         new Vector3(0f, 0f, -10f),
                         Vector3.zero,

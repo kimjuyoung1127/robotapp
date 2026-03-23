@@ -20,8 +20,6 @@ namespace KineTutor3D.Tests.PlayMode
         /// </summary>
         private static readonly string[] NavigableScenes =
         {
-            "Home",
-            "Main",
             "MathReadiness",
             "RobotLibrary",
             "Sandbox",

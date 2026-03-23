@@ -15,7 +15,7 @@ namespace KineTutor3D.App
 
         private void Start()
         {
-            var target = StepProgressSaver.HasVisited() ? SceneId.Home : SceneId.Onboarding;
+            var target = StepProgressSaver.HasVisited() ? SceneId.RobotLibrary : SceneId.Onboarding;
             SceneNavigator.Load(target);
         }
 

@@ -63,7 +63,7 @@ namespace KineTutor3D.Editor.CliTools
             else if (currentTrack == "math_readiness")
                 expectedNextScene = "MathReadiness";
             else
-                expectedNextScene = "Home";
+                expectedNextScene = "RobotLibrary";
 
             return new SuccessResponse(
                 $"Session: visited={hasVisited}, track={currentTrack}, robot={selectedRobotId}.",

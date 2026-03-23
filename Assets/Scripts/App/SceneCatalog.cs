@@ -14,8 +14,6 @@ namespace KineTutor3D.App
         {
             new(SceneId.Boot, "Boot", "Boot", false),
             new(SceneId.Onboarding, "Onboarding", "Onboarding", false),
-            new(SceneId.Home, "Home", "Home", true),
-            new(SceneId.Main, "Main", "Main", true),
             new(SceneId.MathReadiness, "MathReadiness", "Math Readiness", true),
             new(SceneId.RobotLibrary, "RobotLibrary", "Robot Library", true),
             new(SceneId.Sandbox, "Sandbox", "Sandbox", true),
@@ -76,7 +74,7 @@ namespace KineTutor3D.App
         public static SceneId GetCurrentSceneId()
         {
             var activeScene = SceneManager.GetActiveScene();
-            return TryGetSceneId(activeScene.name, out var sceneId) ? sceneId : SceneId.Main;
+            return TryGetSceneId(activeScene.name, out var sceneId) ? sceneId : SceneId.Sandbox;
         }
     }
 

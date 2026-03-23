@@ -699,12 +699,12 @@ namespace KineTutor3D.UI
 
         private void OnBackClicked()
         {
-            SceneNavigator.Load(StepProgressSaver.HasVisited() ? SceneId.Home : SceneId.Onboarding);
+            SceneNavigator.Load(StepProgressSaver.HasVisited() ? SceneId.RobotLibrary : SceneId.Onboarding);
         }
 
         private void OnHomeClicked()
         {
-            SceneNavigator.Load(SceneId.Home);
+            SceneNavigator.Load(SceneId.RobotLibrary);
         }
 
         private void OnLibraryClicked()

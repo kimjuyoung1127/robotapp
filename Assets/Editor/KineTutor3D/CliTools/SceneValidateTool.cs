@@ -24,8 +24,8 @@ namespace KineTutor3D.Editor.CliTools
 
         private static readonly string[] knownScenes =
         {
-            "Boot", "Onboarding", "Home", "Main",
-            "MathReadiness", "RobotLibrary", "Sandbox", "RobotControl"
+            "Boot", "Onboarding", "MathReadiness",
+            "RobotLibrary", "Sandbox", "RobotControl"
         };
 
         public static object HandleCommand(JObject @params)

@@ -2,12 +2,12 @@
 
 ## Prep
 - 메뉴: `KineTutor3D/QA: Prep Guided Lesson (Core Step 1)`
-- Play 시작 후 예상 active scene: `Home`
+- Play 시작 후 예상 active scene: `RobotLibrary`
 
 ## Entry Route
 1. `Play`
-2. `Home`에서 `학습 시작` 클릭
-3. `Main` 진입 확인
+2. `RobotLibrary`에서 로봇 선택 → `Sandbox` 클릭
+3. `Sandbox` 진입 확인 (Guided Lesson은 Sandbox 내 학습 모드로 제공)
 
 ## Core Checks
 - [ ] `TopBar`, `LeftPanel`, `RightPanel`, `BottomBar` 4영역이 보인다.
@@ -16,7 +16,7 @@
 - [ ] 슬라이더 이동 시 로봇 자세가 바뀐다.
 - [ ] `Why It Moved` 또는 step별 피드백 패널이 스텝 계약대로 나타난다.
 - [ ] 상단 바의 `BtnLessonOpenSandbox`가 보이고 Sandbox로 이동한다.
-- [ ] 상단 네비 또는 상위 흐름을 통해 Home으로 복귀 가능하다.
+- [ ] 상단 네비 또는 상위 흐름을 통해 RobotLibrary로 복귀 가능하다.
 
 ## Layout / UI Checks
 - [ ] 상단 바의 템플릿 드롭다운, glossary 버튼, Sandbox 버튼이 겹치지 않는다.
@@ -30,5 +30,5 @@
 - [ ] Sandbox 진입 CTA가 이제 전역 네비 외에도 lesson 안에서 명확히 보인다.
 
 ## Quick Inspect Targets
-- scene: `Main.unity`
+- scene: `Sandbox.unity` (Guided Lesson은 Sandbox 학습 모드)
 - objects: `TopBar`, `StepTitleText`, `BtnPrev`, `BtnNext`, `BtnSkip`, `joint_slider_1`, `joint_slider_2`, `BtnLessonOpenSandbox`

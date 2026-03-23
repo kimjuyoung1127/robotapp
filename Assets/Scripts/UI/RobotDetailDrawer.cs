@@ -227,7 +227,7 @@ namespace KineTutor3D.UI
             }
 
             RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.GuidedLessonMode);
-            SceneNavigator.Load(SceneId.Main);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         private void OnSandboxClicked()

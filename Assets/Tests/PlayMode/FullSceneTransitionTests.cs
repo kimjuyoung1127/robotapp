@@ -23,8 +23,6 @@ namespace KineTutor3D.Tests.PlayMode
         {
             "Boot",
             "Onboarding",
-            "Home",
-            "Main",
             "MathReadiness",
             "RobotLibrary",
             "Sandbox",
@@ -36,10 +34,8 @@ namespace KineTutor3D.Tests.PlayMode
         /// </summary>
         private static readonly (string sceneName, KineTutor3D.App.SceneId sceneId)[] NavTargets =
         {
-            ("Home", KineTutor3D.App.SceneId.Home),
-            ("Main", KineTutor3D.App.SceneId.Main),
-            ("MathReadiness", KineTutor3D.App.SceneId.MathReadiness),
             ("RobotLibrary", KineTutor3D.App.SceneId.RobotLibrary),
+            ("MathReadiness", KineTutor3D.App.SceneId.MathReadiness),
             ("Sandbox", KineTutor3D.App.SceneId.Sandbox),
             ("RobotControl", KineTutor3D.App.SceneId.RobotControl),
         };
@@ -172,15 +168,15 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator SceneNavigator_CanReachAllNavTargets_FromHome()
+        public IEnumerator SceneNavigator_CanReachAllNavTargets_FromRobotLibrary()
         {
             KineTutor3D.App.StepProgressSaver.MarkVisited();
 
-            yield return LoadScene("Home");
+            yield return LoadScene("RobotLibrary");
 
             foreach (var (sceneName, sceneId) in NavTargets)
             {
-                if (sceneName == "Home") continue;
+                if (sceneName == "RobotLibrary") continue;
 
                 KineTutor3D.App.SceneNavigator.Load(sceneId);
                 yield return WaitForActiveScene(sceneName);
@@ -188,11 +184,11 @@ namespace KineTutor3D.Tests.PlayMode
                 Assert.That(
                     SceneManager.GetActiveScene().name,
                     Is.EqualTo(sceneName),
-                    $"Home → {sceneName} 전환 실패");
+                    $"RobotLibrary → {sceneName} 전환 실패");
 
-                // Home으로 돌아가기
-                KineTutor3D.App.SceneNavigator.Load(KineTutor3D.App.SceneId.Home);
-                yield return WaitForActiveScene("Home");
+                // RobotLibrary로 돌아가기
+                KineTutor3D.App.SceneNavigator.Load(KineTutor3D.App.SceneId.RobotLibrary);
+                yield return WaitForActiveScene("RobotLibrary");
             }
         }
 
@@ -244,7 +240,7 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Boot_FirstVisit_ToOnboarding_ToHome_ToMain_FullFlow()
+        public IEnumerator Boot_FirstVisit_ToOnboarding_ToRobotLibrary_ToSandbox_FullFlow()
         {
             yield return LoadScene("Boot");
             yield return WaitForActiveScene("Onboarding");
@@ -255,14 +251,14 @@ namespace KineTutor3D.Tests.PlayMode
             Assert.That(startBtn, Is.Not.Null, "BtnStartLearning을 찾지 못했습니다.");
 
             startBtn.onClick.Invoke();
-            yield return WaitForActiveScene("Home");
+            yield return WaitForActiveScene("RobotLibrary");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Home"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RobotLibrary"));
 
-            KineTutor3D.App.SceneNavigator.Load(KineTutor3D.App.SceneId.Main);
-            yield return WaitForActiveScene("Main");
+            KineTutor3D.App.SceneNavigator.Load(KineTutor3D.App.SceneId.Sandbox);
+            yield return WaitForActiveScene("Sandbox");
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Main"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Sandbox"));
         }
 
         [UnityTest]

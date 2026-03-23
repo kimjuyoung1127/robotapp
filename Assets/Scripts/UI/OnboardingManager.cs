@@ -88,7 +88,7 @@ namespace KineTutor3D.UI
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
             StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
             SessionContextStore.Clear();
-            SceneNavigator.Load(SceneId.Home);
+            SceneNavigator.Load(SceneId.RobotLibrary);
         }
 
         public void BeginAsBeginner()
@@ -101,13 +101,13 @@ namespace KineTutor3D.UI
             SceneNavigator.Load(SceneId.MathReadiness);
         }
 
-        public void SkipToMain()
+        public void SkipToSandbox()
         {
             StepProgressSaver.MarkVisited();
             StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
             StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
             SessionContextStore.Clear();
-            SceneNavigator.Load(SceneId.Home);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         private void EnsurePresentation()
@@ -165,8 +165,8 @@ namespace KineTutor3D.UI
 
             if (skipButton != null)
             {
-                skipButton.onClick.RemoveListener(SkipToMain);
-                skipButton.onClick.AddListener(SkipToMain);
+                skipButton.onClick.RemoveListener(SkipToSandbox);
+                skipButton.onClick.AddListener(SkipToSandbox);
             }
 
             listenersBound = true;
@@ -178,7 +178,7 @@ namespace KineTutor3D.UI
 
             if (startLearningButton != null) startLearningButton.onClick.RemoveListener(BeginLearning);
             if (beginnerButton != null) beginnerButton.onClick.RemoveListener(BeginAsBeginner);
-            if (skipButton != null) skipButton.onClick.RemoveListener(SkipToMain);
+            if (skipButton != null) skipButton.onClick.RemoveListener(SkipToSandbox);
 
             listenersBound = false;
         }

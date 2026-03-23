@@ -693,11 +693,15 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            float leftWidth = UILayoutProfile.IsTablet ? 0.58f : 0.66f;
-            panelRect.anchorMin = new Vector2(leftWidth, 0f);
-            panelRect.anchorMax = new Vector2(1f, 1f - UIDesignTokens.Size.ShowroomViewportRatio);
-            panelRect.offsetMin = new Vector2(UIDesignTokens.Space.Xs, UIDesignTokens.Space.Md);
-            panelRect.offsetMax = new Vector2(-UIDesignTokens.Space.Md, -UIDesignTokens.Space.Xs);
+            float panelWidthRatio = UILayoutProfile.IsTablet ? 0.42f : 0.34f;
+            float halfWidth = panelWidthRatio * 0.5f;
+            float lowerBandTop = 1f - UIDesignTokens.Size.ShowroomViewportRatio;
+
+            panelRect.anchorMin = new Vector2(0.5f - halfWidth, 0f);
+            panelRect.anchorMax = new Vector2(0.5f + halfWidth, lowerBandTop);
+            panelRect.offsetMin = new Vector2(0f, UIDesignTokens.Space.Md);
+            panelRect.offsetMax = new Vector2(0f, -UIDesignTokens.Space.Xs);
+            panelRect.anchoredPosition = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0.5f);
         }
 
@@ -1007,7 +1011,7 @@ namespace KineTutor3D.UI
             }
 
             RobotSelectionBridge.SetSelection(entry.Metadata.RobotId, RobotSelectionBridge.GuidedLessonMode);
-            SceneNavigator.Load(SceneId.Main);
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         private void OnOpenSandbox(RobotCatalogEntry entry)
@@ -1076,7 +1080,7 @@ namespace KineTutor3D.UI
 
         private void OnBackClicked()
         {
-            SceneNavigator.Load(SceneId.Home);
+            SceneNavigator.Load(SceneId.Onboarding);
         }
 
         private void OnSelectionGuidedLessonRequested()

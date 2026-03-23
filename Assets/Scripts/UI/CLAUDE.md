@@ -14,7 +14,6 @@
 - `DHTableEditor.cs` — 편집 가능한 DH 파라미터 테이블
 - `JointInputRail.cs` — 관절 각도/변위 슬라이더
 - `StepTutorPanel.cs` — 단계별 튜토리얼 텍스트 패널
-- `HomeContinueHubViewBuilder.cs` — Home 화면 빌더
 - `RobotCardBuilder.cs` — Robot Library 카드 빌더
 - `MathReadinessPanel.cs` — 수학 기초 워밍업 패널
 

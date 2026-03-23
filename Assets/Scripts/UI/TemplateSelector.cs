@@ -236,21 +236,7 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            var shouldShowSandboxShortcut = SceneCatalog.GetCurrentSceneId() == SceneId.Main;
-
-            if (shouldShowSandboxShortcut)
-            {
-                openSandboxButton ??= ResolveOrCreateTopBarButton("BtnLessonOpenSandbox");
-                if (openSandboxButton != null)
-                {
-                    UiRuntimeStyle.Anchor(openSandboxButton.transform as RectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(112f, 36f), new Vector2(-290f, 0f));
-                    UiRuntimeStyle.EnsureButtonLabel(openSandboxButton, fallbackFont, "Sandbox", UIDesignTokens.Colors.SurfaceCard);
-                    openSandboxButton.onClick.RemoveAllListeners();
-                    openSandboxButton.onClick.AddListener(OpenSandbox);
-                    openSandboxButton.gameObject.SetActive(true);
-                }
-            }
-            else if (openSandboxButton != null)
+            if (openSandboxButton != null)
             {
                 openSandboxButton.gameObject.SetActive(false);
             }

@@ -10,23 +10,7 @@ namespace KineTutor3D.Tests.EditMode
     public class SceneCameraDirectorTests
     {
         [Test]
-        public void ConfigureForScene_Main_AppliesZoomedOutProfile()
-        {
-            var go = new GameObject("Main Camera", typeof(Camera));
-            var camera = go.GetComponent<Camera>();
-
-            SceneCameraDirector.ConfigureForScene(SceneId.Main, camera);
-
-            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 1.8f, -7.4f)));
-            Assert.That(camera.fieldOfView, Is.EqualTo(82f));
-            Assert.That(camera.nearClipPlane, Is.EqualTo(0.3f));
-            Assert.That(camera.farClipPlane, Is.EqualTo(1000f));
-
-            Object.DestroyImmediate(go);
-        }
-
-        [Test]
-        public void ConfigureForScene_Sandbox_AppliesSameGameplayProfile()
+        public void ConfigureForScene_Sandbox_AppliesZoomedOutProfile()
         {
             var go = new GameObject("Main Camera", typeof(Camera));
             var camera = go.GetComponent<Camera>();
@@ -35,6 +19,8 @@ namespace KineTutor3D.Tests.EditMode
 
             Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 1.8f, -7.4f)));
             Assert.That(camera.fieldOfView, Is.EqualTo(82f));
+            Assert.That(camera.nearClipPlane, Is.EqualTo(0.3f));
+            Assert.That(camera.farClipPlane, Is.EqualTo(1000f));
 
             Object.DestroyImmediate(go);
         }

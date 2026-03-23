@@ -86,7 +86,7 @@ namespace KineTutor3D.Tests.EditMode.CliTools
         [Test]
         public void SceneCatalog_AllKnownScenes_HaveSceneFiles()
         {
-            string[] knownScenes = { "Boot", "Onboarding", "Home", "Main",
+            string[] knownScenes = { "Boot", "Onboarding",
                 "MathReadiness", "RobotLibrary", "Sandbox", "RobotControl" };
 
             foreach (string sceneName in knownScenes)
@@ -403,7 +403,7 @@ namespace KineTutor3D.Tests.EditMode.CliTools
         [Test]
         public void SceneDiff_AllKnownScenes_FilesExist()
         {
-            string[] scenes = { "Boot", "Home" };
+            string[] scenes = { "Boot", "RobotLibrary" };
             foreach (string name in scenes)
             {
                 string path = $"Assets/Scenes/{name}.unity";
@@ -455,8 +455,8 @@ namespace KineTutor3D.Tests.EditMode.CliTools
         [Test]
         public void SceneCameraDirector_GetSceneName_ReturnsExpected()
         {
-            string name = KineTutor3D.App.SceneCatalog.GetSceneName(KineTutor3D.App.SceneId.Main);
-            Assert.AreEqual("Main", name, "SceneId.Main의 씬 이름은 'Main'이어야 합니다.");
+            string name = KineTutor3D.App.SceneCatalog.GetSceneName(KineTutor3D.App.SceneId.Sandbox);
+            Assert.AreEqual("Sandbox", name, "SceneId.Sandbox의 씬 이름은 'Sandbox'이어야 합니다.");
         }
 
         // ── QaPrepTool 의존 로직 ──

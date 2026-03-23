@@ -35,10 +35,10 @@ namespace KineTutor3D.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Home_HasMathWarmupButton()
+        public IEnumerator RobotLibrary_HasMathWarmupButton()
         {
             StepProgressSaver.MarkVisited();
-            yield return LoadScene("Home");
+            yield return LoadScene("RobotLibrary");
 
             var button = Find<Button>("BtnStartMathReadiness");
             Assert.That(button, Is.Not.Null);
@@ -227,7 +227,7 @@ namespace KineTutor3D.Tests.PlayMode
             app.SetCurrentStep(4);
             yield return null;
             app.NextStep();
-            yield return WaitForActiveScene("Main");
+            yield return WaitForActiveScene("Sandbox");
 
             var reloadedApp = Object.FindFirstObjectByType<AppController>();
             Assert.That(reloadedApp, Is.Not.Null);

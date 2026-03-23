@@ -53,14 +53,7 @@ namespace KineTutor3D.Editor
             PlayerPrefs.DeleteKey("KineTutor3D.CoreKinematics.LastCompletedStep");
             PlayerPrefs.DeleteKey("KineTutor3D.SessionContextJson");
             PlayerPrefs.Save();
-            Debug.Log("[QA] PlayerPrefs set to returning user — next Play will start from Home.");
-        }
-
-        [MenuItem("KineTutor3D/QA: Prep Home / Continue Hub", priority = 110)]
-        private static void PrepHomeContinueHub()
-        {
-            ResetToReturningUser();
-            Debug.Log("[QA] Home / Continue Hub 준비 완료 — Play 후 Home에서 시작합니다.");
+            Debug.Log("[QA] PlayerPrefs set to returning user — next Play will start from RobotLibrary.");
         }
 
         [MenuItem("KineTutor3D/QA: Prep Guided Lesson (Core Step 1)", priority = 111)]
@@ -267,58 +260,6 @@ namespace KineTutor3D.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[QA] Onboarding scene-authored UI를 씬에 정리하고 저장했습니다.");
-        }
-
-        [MenuItem("KineTutor3D/Home/Author Scene UI", priority = 147)]
-        public static void AuthorHomeSceneUi()
-        {
-            var scene = EditorSceneManager.GetActiveScene();
-            if (!scene.IsValid() || !scene.path.EndsWith("Home.unity", System.StringComparison.OrdinalIgnoreCase))
-            {
-                Debug.LogError("[QA] 먼저 Assets/Scenes/Home.unity 씬을 열어주세요.");
-                return;
-            }
-
-            var controller = Object.FindFirstObjectByType<KineTutor3D.UI.HomeContinueHubController>(FindObjectsInactive.Include);
-            if (controller == null)
-            {
-                Debug.LogError("[QA] HomeContinueHubController를 찾지 못했습니다.");
-                return;
-            }
-
-            var builderType = typeof(KineTutor3D.UI.HomeContinueHubController).Assembly.GetType("KineTutor3D.UI.HomeContinueHubViewBuilder");
-            if (builderType == null)
-            {
-                Debug.LogError("[QA] HomeContinueHubViewBuilder 타입을 찾지 못했습니다.");
-                return;
-            }
-
-            var ensureCanvas = builderType.GetMethod("EnsureCanvas", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            var ensureEventSystem = builderType.GetMethod("EnsureEventSystem", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            var build = builderType.GetMethod("Build", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (ensureCanvas == null || ensureEventSystem == null || build == null)
-            {
-                Debug.LogError("[QA] HomeContinueHubViewBuilder 메서드를 찾지 못했습니다.");
-                return;
-            }
-
-            var canvas = ensureCanvas.Invoke(null, new object[] { null }) as Canvas;
-            ensureEventSystem.Invoke(null, null);
-            build.Invoke(null, new object[] { canvas, null, null, null, null, null, null });
-
-            var sceneNavigationBar = Object.FindFirstObjectByType<KineTutor3D.UI.SceneNavigationBar>(FindObjectsInactive.Include);
-            if (sceneNavigationBar != null)
-            {
-                InvokePrivate(sceneNavigationBar, "EnsurePresentation");
-                EditorUtility.SetDirty(sceneNavigationBar);
-            }
-
-            EditorUtility.SetDirty(controller);
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[QA] Home scene-authored UI를 씬에 정리하고 저장했습니다.");
         }
 
         [MenuItem("KineTutor3D/RobotLibrary/Author Scene UI", priority = 148)]

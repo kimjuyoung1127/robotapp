@@ -126,8 +126,8 @@ namespace KineTutor3D.Tests.PlayMode
 
         private static IEnumerator LoadMainScene()
         {
-            var op = SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
-            Assert.That(op, Is.Not.Null, "Main 씬 로드를 시작하지 못했습니다.");
+            var op = SceneManager.LoadSceneAsync("Sandbox", LoadSceneMode.Single);
+            Assert.That(op, Is.Not.Null, "Sandbox 씬 로드를 시작하지 못했습니다.");
             while (!op.isDone)
             {
                 yield return null;

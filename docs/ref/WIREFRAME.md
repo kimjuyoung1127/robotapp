@@ -9,9 +9,9 @@ Last Updated: 2026-03-12 (KST)
 
 ## Locked Decisions
 
-1. 제품 정보 구조는 `Onboarding / Home / Guided Lesson / Robot Library / Sandbox / Instructor Mode / Progress / Settings`로 간다.
-2. `Guided Lesson`이 메인 경험이고, 나머지 화면은 준비/실습/운영을 보조한다.
-3. `Home / Continue Hub`를 차기 기본 재진입 허브로 두고, 사용자가 `이어하기 / 새로 시작 / 로봇 선택 / 샌드박스`를 선택할 수 있게 한다.
+1. 제품 정보 구조는 `Onboarding / Robot Library / RobotControl / Sandbox / MathReadiness / Instructor Mode / Progress / Settings`로 간다. (Home/Main 제거됨, 2026-03-23)
+2. `RobotLibrary`가 메인 진입점이며 로봇 카탈로그 + 3D showroom을 제공한다.
+3. `RobotLibrary`를 재방문 기본 진입점으로 두고, 사용자가 `로봇 제어(RobotControl) / 자유 조작(Sandbox) / 수학 기초(MathReadiness)`를 선택할 수 있게 한다.
 4. `Guided Lesson` 안에서는 `완전 초보 -> Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8` 흐름을 기본 학습 경로로 본다.
 5. `Robot Library -> Guided Lesson/Sandbox`, `Instructor Mode -> Guided Lesson` 흐름을 기본으로 본다.
 6. Desktop과 Tablet이 정식 UX 기준이며, Phone은 제한형 정책으로 다룬다.
@@ -19,20 +19,15 @@ Last Updated: 2026-03-12 (KST)
 ## Master Flow
 
 ```text
-Boot -> Onboarding -> Home / Continue Hub
-Home / Continue Hub -> Guided Lesson
-Home / Continue Hub -> Math Readiness (M0~M3)
-Math Readiness (M0~M3) -> Pre-Kinematics Lesson 0~3
-Guided Lesson -> Pre-Kinematics Lesson 0~3
-Pre-Kinematics Lesson 0~3 -> Core Track Step 1~8
-Home / Continue Hub -> Robot Library
-Robot Library -> Guided Lesson
-Robot Library -> Sandbox
-Home / Continue Hub -> Sandbox
-Guided Lesson -> Sandbox
-Home / Continue Hub -> Instructor Mode
-Home / Continue Hub -> Progress
-Home / Continue Hub -> Settings
+Boot -> Onboarding (첫 방문)
+Boot -> RobotLibrary (재방문)
+Onboarding -> RobotLibrary (학습 시작 / 건너뛰기)
+Onboarding -> MathReadiness (초보자 시작)
+RobotLibrary -> RobotControl (로봇 선택 → 전용 제어)
+RobotLibrary -> Sandbox (로봇 선택 → 자유 조작)
+RobotLibrary -> MathReadiness (수학 기초)
+MathReadiness -> RobotLibrary (M3 완료)
+Sandbox -> RobotLibrary (로봇 목록 복귀)
 ```
 
 ## Change Summary

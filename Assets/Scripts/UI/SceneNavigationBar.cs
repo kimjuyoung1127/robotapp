@@ -203,7 +203,7 @@ namespace KineTutor3D.UI
 
         private void ApplyCompactLearningMode(SceneId currentScene)
         {
-            var compactLearning = (currentScene == SceneId.Main || currentScene == SceneId.MathReadiness) &&
+            var compactLearning = currentScene == SceneId.MathReadiness &&
                 appController != null &&
                 appController.CurrentStepConfig != null;
             var stepDetailText = topBarRoot != null ? topBarRoot.Find("StepIndicatorText")?.GetComponent<Text>() : null;

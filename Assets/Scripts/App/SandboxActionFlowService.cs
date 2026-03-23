@@ -26,9 +26,9 @@ namespace KineTutor3D.App
             ApplyZeroPose(appController);
         }
 
-        public void BackHome()
+        public void BackToLibrary()
         {
-            SceneNavigator.Load(SceneId.Home);
+            SceneNavigator.Load(SceneId.RobotLibrary);
         }
 
         public void OpenRobotLibrary()

@@ -9,29 +9,22 @@ Read this after `AGENTS.md` and before drilling into individual runtime files.
 flowchart TD
     Boot["Boot.unity"] --> Router["BootSceneRouter"]
     Router -->|first visit| Onboarding["Onboarding.unity"]
-    Router -->|return visit| Home["Home.unity"]
+    Router -->|return visit| RobotLib["RobotLibrary.unity"]
 
-    Onboarding -->|시작/건너뛰기| Home
+    Onboarding -->|시작/건너뛰기| RobotLib
     Onboarding -->|초보자 시작| MathReady["MathReadiness.unity"]
 
-    Home --> Nav["SceneNavigationBar"]
-    Home -->|이어하기| Main["Main.unity"]
-    Home -->|수학 기초| MathReady
-    Home -->|로봇 선택| RobotLib["RobotLibrary.unity"]
-    Home -->|샌드박스| Sandbox["Sandbox.unity"]
-
-    Main --> Nav
+    RobotLib --> Nav["SceneNavigationBar"]
     MathReady --> Nav
-    RobotLib --> Nav
-    Sandbox --> Nav
+    Sandbox["Sandbox.unity"] --> Nav
 
-    RobotLib -->|FR5 제어| RobotCtrl["RobotControl.unity"]
-    RobotLib -->|학습 시작| Main
-    RobotLib -->|샌드박스| Sandbox
+    RobotLib -->|로봇 선택 → 제어| RobotCtrl["RobotControl.unity"]
+    RobotLib -->|로봇 선택 → 자유 조작| Sandbox
+    RobotLib -->|수학 기초| MathReady
 
-    Main --> App["AppController"]
-    MathReady --> App
+    MathReady --> App["AppController"]
     Sandbox --> SandboxCoord["SandboxSceneCoordinator"]
+    Sandbox --> App
     RobotCtrl --> RobotCtrlCoord["RobotControlSceneCoordinator"]
 
     App --> UI["HUD UI\nDHTableEditor / MatrixDisplay / StepNavigator\nWhyItMovedPanel / JointInputRail / BeginnerLeftPanel"]
@@ -41,9 +34,8 @@ flowchart TD
     Viz --> Trail["EndEffectorTrail / JointHighlightRing"]
     Viz --> Target["TargetMarkerVisual"]
 
-    Router -->|robot library| RobotLib["RobotLibrary.unity"]
     RobotLib --> RLM["RobotLibraryManager\nRobotCardBuilder / RobotDetailDrawer"]
-    RLM --> Catalog["RobotCatalog\n5 robots registered"]
+    RLM --> Catalog["RobotCatalog\n6 robots registered"]
 ```
 
 ## 2. RobotControl Scene Data Flow
@@ -202,23 +194,21 @@ flowchart TB
 |-------|-------|------|
 | 0 | Boot | 라우터 전용 (첫 방문 판단) |
 | 1 | Onboarding | 환영 모달, 초보자/기본 분기 |
-| 2 | Home | 재진입 허브 (Continue Hub) |
-| 3 | Main | Guided Lesson + 로봇/HUD |
-| 4 | RobotLibrary | 로봇 카탈로그 + 3D showroom |
-| 5 | Sandbox | 자유 실험 |
-| 6 | RobotControl | FR5 실기 제어 콘솔 |
-| 7 | MathReadiness | 수학 기초 워밍업 |
+| 2 | RobotLibrary | **메인 진입점** — 로봇 카탈로그 + 3D showroom |
+| 3 | Sandbox | 자유 조작 |
+| 4 | RobotControl | 로봇별 실기 제어 콘솔 |
+| 5 | MathReadiness | 수학 기초 워밍업 |
 
 ## 8. Stable Invariants
 - `frame_0`, `frame_1`, and `Frame_EE` are the canonical frame ownership points.
 - `ScaraRobot.prefab` is the donor source; visual donor path uses `Base`, `Axis1`, `Axis2`, and `Axis3/Gripper`.
 - `Pick` is a helper point, not a visual donor.
-- `AppController` is the public runtime state and event facade (Main/MathReadiness/Sandbox).
-- `RobotControlSceneCoordinator` is the RobotControl scene facade (FR5 전용).
+- `AppController` is the public runtime state and event facade (MathReadiness/Sandbox).
+- `RobotControlSceneCoordinator` is the RobotControl scene facade (로봇별 파라미터화 예정).
 - `RobotRenderer` is the public visualization facade (2DOF/SCARA).
 - `FairinoUrdfJointDriver` is the FR5 visualization driver (Transform-based).
 - `Math`, `Types`, and `Kinematics` stay pure C# `double`-based domain code.
-- Build Settings: `Boot`(0), `Onboarding`(1), `Home`(2), `Main`(3), `RobotLibrary`(4), `Sandbox`(5), `RobotControl`(6), `MathReadiness`(7).
+- Build Settings: `Boot`(0), `Onboarding`(1), `RobotLibrary`(2), `Sandbox`(3), `RobotControl`(4), `MathReadiness`(5).
 - `KinematicsRuntimeState` holds previous/current snapshots and `RuntimeUpdateCause`.
 - `RobotCatalog` (Templates) is the single registry for all robot metadata + template factories.
 - `RobotSelectionBridge` (App) passes robot selection between scenes via PlayerPrefs.

@@ -50,7 +50,7 @@ namespace KineTutor3D.UI
                 OnDemoPose,
                 OnResetPose,
                 OnChangeRobot,
-                OnBackHome,
+                OnBackToLibrary,
                 OnOpenRobotLibrary);
             viewBuilt = panelRoot != null;
         }
@@ -75,9 +75,9 @@ namespace KineTutor3D.UI
             flowService.ResetPose(appController);
         }
 
-        private void OnBackHome()
+        private void OnBackToLibrary()
         {
-            flowService.BackHome();
+            flowService.BackToLibrary();
         }
 
         private void OnChangeRobot()

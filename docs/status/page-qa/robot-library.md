@@ -2,12 +2,11 @@
 
 ## Prep
 - 메뉴: `KineTutor3D/QA: Prep Robot Library`
-- Play 시작 후 예상 active scene: `Home`
+- Play 시작 후 예상 active scene: `RobotLibrary` (재방문) 또는 `Onboarding -> RobotLibrary` (첫 방문)
 
 ## Entry Route
 1. `Play`
-2. `Home`에서 `로봇 선택` 클릭
-3. `RobotLibrary` 진입 확인
+2. `Boot -> RobotLibrary` 자동 전환 확인 (재방문 시)
 
 ## Core Checks
 - [ ] 카드 그리드가 보인다.
@@ -15,7 +14,7 @@
 - [ ] 템플릿 지원 로봇은 `학습 시작` 또는 `샌드박스`로 들어갈 수 있다.
 - [ ] `상세` 클릭 시 상세 패널이 열린다.
 - [ ] 상세 패널에서 `학습 시작`, `샌드박스 열기`, `닫기`가 동작한다.
-- [ ] `Back` 클릭 시 Home으로 복귀한다.
+- [ ] `Back` 클릭 시 Onboarding으로 복귀한다.
 
 ## Layout / UI Checks
 - [ ] 상세가 열려도 카드 그리드가 완전히 가려지지 않고, modal overlay 구조가 어색하지 않다.
