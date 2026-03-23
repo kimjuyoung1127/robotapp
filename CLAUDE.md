@@ -29,6 +29,7 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Current Cycle: InProgress (멀티로봇 RobotControl 확장 + Sandbox polish)
 
 최근 확정 사항:
+- Part B Phase B4 완료 (2026-03-23): Meca500 풀 스택. `TemplateMeca500` (DH 6축, d1=0.091 a2=0.135 a5=0.120 d6=0.070, 비대칭 관절 한계), `MockMecademicClient`, `Meca500PosePresets`, `Meca500RobotControlTemplateDefinition` (IP 192.168.0.100:10000). DAE 7개 `Assets/Runtime/Resources/Robots/Meca500/` (커뮤니티). URDF 임포트 + URP Material 자동 교체. 스킬 2개 추가 (#21 robot-urdf-import, #22 robot-control-add)
 - Part B Phase B3 완료 (2026-03-23): Doosan M1013 풀 스택. `TemplateDoosanM1013` (DH 6축, d1=0.1525 a2=0.62 d4=0.559 d6=0.121), `MockDoosanClient`, `DoosanM1013PosePresets`, `DoosanM1013RobotControlTemplateDefinition` (IP 192.168.137.100:12345). DAE 메시 10개 `Assets/Runtime/Resources/Robots/DoosanM1013/` (BSD-3). EditMode 426 total, 416 passed
 - Part B Phase B2 완료 (2026-03-23): UR5e 풀 스택 (Demo+Sandbox+RobotControl). `TemplateUR5e` (Standard DH 6축), `MockUR5eClient`, `UR5ePosePresets` (Home/Ready/Folded/Current), `UR5eRobotControlTemplateDefinition`, `RobotCatalog`에 UR5e 등록, `RobotControlFactory`에 case 추가, `RobotPreviewFactory`에 showroom 포즈 추가, `FairinoConnectionService`에 client 주입 생성자 추가. EditMode 테스트 9개 추가, 전부 통과. DAE 메시 7개 `Assets/Runtime/Resources/Robots/UR5e/` (BSD-3 라이선스)
 - Part B Phase B1 완료 (2026-03-23): RobotControl 멀티로봇 공통 인터페이스 + Coordinator 파라미터화. `RobotKinematicsFacade` (범용 FK facade, 임의 RobotTemplate 수용), `RobotControlFactory` (robotId→TemplateDefinition 매핑), `FR5KinematicsFacade`→static factory로 축소, `RobotControlTemplateDefinition`에 `RuntimeRootName`/`ControlRobotInstanceName` 추가, `RobotControlSceneCoordinator`가 `RobotSelectionBridge`+`RobotControlFactory`로 동적 로드. 새 로봇 추가 시 Factory case 1줄 + TemplateDefinition 1개만 필요
@@ -153,6 +154,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 | 18 | main-learning-tabs-json | Main 탭 JSON, LearningTabs, robot-specific tab content, JsonUtility fallback, MainLearningTabsLoader | `kinetutor-guide/ui/main-learning-tabs-json/` |
 | 19 | viewbuilder-extract | ViewBuilder, UI 분리, Refs struct, 패널 추출 | `kinetutor-guide/ui/viewbuilder-extract/` |
 | 20 | waypoint-teaching | waypoint, teaching, playback, sequence, loop, export | `kinetutor-guide/content/waypoint-teaching/` |
+| 21 | robot-urdf-import | URDF, 메시 임포트, DAE, prefab, URP Material | `kinetutor-guide/content/robot-urdf-import/` |
+| 22 | robot-control-add | 멀티로봇, RobotControl, Template, Mock, Factory, Catalog | `kinetutor-guide/content/robot-control-add/` |
 
 ## Skill 의존 규칙
 - `robot-template-add` -> `dh-algorithm-add` + `editmode-test-add`
@@ -169,6 +172,8 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - `pre-commit-validate` -> `editmode-test-add` + `unity-official-docs`
 - `debug-success-capture` -> `pre-commit-validate` + `student-friendly-ux`
 - `viewbuilder-extract` -> `ui-design-system` + `scene-ui-visibility`
+- `robot-control-add` -> `robot-template-add` + `editmode-test-add`
+- `robot-urdf-import` -> `robot-control-add`
 
 ## Source of Truth 문서
 - 탐색 인덱스: `AGENTS.md`

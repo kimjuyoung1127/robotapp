@@ -130,7 +130,7 @@ namespace KineTutor3D.Visualization
                 return BuildProcedural2DofArm(meta);
             }
 
-            if (meta.Dof >= 6 || previewRobotId == "FAIRINO_FR5" || previewRobotId == "UR5e" || previewRobotId == "DOOSAN_M1013")
+            if (meta.Dof >= 6 || previewRobotId == "FAIRINO_FR5" || previewRobotId == "UR5e" || previewRobotId == "DOOSAN_M1013" || previewRobotId == "MECA500")
             {
                 return BuildProceduralArticulatedArm(meta);
             }
@@ -174,6 +174,11 @@ namespace KineTutor3D.Visualization
             if (previewRobotId == "DOOSAN_M1013")
             {
                 return Resources.Load<GameObject>("Robots/DoosanM1013/DoosanM1013");
+            }
+
+            if (previewRobotId == "MECA500")
+            {
+                return Resources.Load<GameObject>("Robots/Meca500/Meca500");
             }
 
             return null;
@@ -329,6 +334,20 @@ namespace KineTutor3D.Visualization
                 };
             }
 
+            if (meta.EffectivePreviewRobotId == "MECA500")
+            {
+                return new DonorPreviewPose
+                {
+                    LocalEuler = Vector3.zero,
+                    LocalOffset = Vector3.zero,
+                    TargetMaxSize = 0.90f,
+                    RootEuler = new Vector3(0f, -20f, 0f),
+                    AnchorPath = string.Empty,
+                    AnchorEuler = Vector3.zero,
+                    AnchorOffset = Vector3.zero
+                };
+            }
+
             return new DonorPreviewPose
             {
                 LocalEuler = Vector3.zero,
@@ -446,6 +465,22 @@ namespace KineTutor3D.Visualization
                         ToolLength = 0.15f,
                         AccentColor = new Color(0.12f, 0.42f, 0.72f, 1f),
                         BodyColor = new Color(0.88f, 0.90f, 0.92f, 1f)
+                    };
+                case "MECA500":
+                    return new SixDofPreviewPreset
+                    {
+                        BaseWidth = 0.14f,
+                        BaseHeight = 0.08f,
+                        ShoulderOffset = 0.22f,
+                        UpperArmLength = 0.32f,
+                        UpperArmThickness = 0.055f,
+                        ForearmLength = 0.28f,
+                        ForearmThickness = 0.045f,
+                        WristLength = 0.12f,
+                        WristThickness = 0.035f,
+                        ToolLength = 0.09f,
+                        AccentColor = new Color(0.22f, 0.60f, 0.88f, 1f),
+                        BodyColor = new Color(0.86f, 0.88f, 0.90f, 1f)
                     };
                 default:
                     return new SixDofPreviewPreset

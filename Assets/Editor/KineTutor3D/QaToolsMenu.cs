@@ -43,6 +43,10 @@ namespace KineTutor3D.Editor
         private const string DoosanPrefabAssetPath = "Assets/Runtime/Resources/Robots/DoosanM1013/DoosanM1013.prefab";
         private const string DoosanControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/DoosanM1013/DoosanM1013_Control.prefab";
 
+        private const string Meca500UrdfAssetPath = "Assets/Runtime/Robots/MECA500/meca500.urdf";
+        private const string Meca500PrefabAssetPath = "Assets/Runtime/Resources/Robots/Meca500/Meca500.prefab";
+        private const string Meca500ControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/Meca500/Meca500_Control.prefab";
+
         [MenuItem("KineTutor3D/QA: Reset to First-Time User", priority = 100)]
         private static void ResetToFirstTimeUser()
         {
@@ -199,6 +203,18 @@ namespace KineTutor3D.Editor
                 robotId: "DoosanM1013",
                 controlPrefabPath: DoosanControlPrefabAssetPath,
                 previewPrefabPath: DoosanPrefabAssetPath);
+        }
+
+        [MenuItem("KineTutor3D/Robots/Import Meca500 URDF", priority = 143)]
+        public static void ImportMeca500Urdf()
+        {
+            EnsureFolder("Assets/Runtime/Resources/Robots");
+            EnsureFolder("Assets/Runtime/Resources/Robots/Meca500");
+            ImportGenericRobotUrdf(
+                urdfAssetPath: Meca500UrdfAssetPath,
+                robotId: "Meca500",
+                controlPrefabPath: Meca500ControlPrefabAssetPath,
+                previewPrefabPath: Meca500PrefabAssetPath);
         }
 
         [MenuItem("KineTutor3D/RobotControl/Author Scene UI", priority = 145)]
@@ -407,6 +423,14 @@ namespace KineTutor3D.Editor
                 }
             }
 
+            // Replace all materials with URP Lit to avoid pink (Standard shader) on URP projects
+            var matFolder = Path.GetDirectoryName(controlPrefabPath).Replace("\\", "/") + "/Materials_URP";
+            var urpLitCount = ReplaceWithUrpLitMaterials(importedRobot, matFolder);
+            if (urpLitCount > 0)
+            {
+                Debug.Log($"[QA] {robotId}: replaced {urpLitCount} materials with URP Lit assets in {matFolder}.");
+            }
+
             // Save control prefab (full ArticulationBody hierarchy for runtime control)
             importedRobot.name = robotId + "_Control";
             var controlPrefab = PrefabUtility.SaveAsPrefabAsset(importedRobot, controlPrefabPath, out var controlSuccess);
@@ -433,6 +457,58 @@ namespace KineTutor3D.Editor
 
             Debug.Log($"[QA] {robotId} control prefab imported successfully: {controlPrefabPath}");
             Debug.Log($"[QA] {robotId} preview prefab imported successfully: {previewPrefabPath}");
+        }
+
+        private static int ReplaceWithUrpLitMaterials(GameObject root, string materialFolderPath)
+        {
+            var urpLit = Shader.Find("Universal Render Pipeline/Lit");
+            if (urpLit == null)
+            {
+                Debug.LogWarning("[QA] URP Lit shader not found, skipping material replacement.");
+                return 0;
+            }
+
+            EnsureFolder(materialFolderPath);
+            var savedMats = new Dictionary<string, Material>();
+            var count = 0;
+            var renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+            foreach (var renderer in renderers)
+            {
+                var mats = renderer.sharedMaterials;
+                var changed = false;
+                for (var i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    if (mats[i].shader == urpLit) continue;
+
+                    var matName = mats[i].name;
+                    if (string.IsNullOrEmpty(matName)) matName = "Default";
+                    var key = matName;
+
+                    if (!savedMats.TryGetValue(key, out var urpMat))
+                    {
+                        var oldColor = mats[i].HasProperty("_Color") ? mats[i].color : Color.gray;
+                        urpMat = new Material(urpLit);
+                        urpMat.name = key + "_URP";
+                        urpMat.SetColor("_BaseColor", oldColor);
+                        var matPath = materialFolderPath + "/" + urpMat.name + ".mat";
+                        AssetDatabase.CreateAsset(urpMat, matPath);
+                        savedMats[key] = urpMat;
+                    }
+
+                    mats[i] = urpMat;
+                    changed = true;
+                    count++;
+                }
+
+                if (changed)
+                {
+                    renderer.sharedMaterials = mats;
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            return count;
         }
 
         private static void ClearQaState()

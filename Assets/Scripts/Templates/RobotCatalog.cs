@@ -18,6 +18,7 @@ namespace KineTutor3D.Templates
             "FAIRINO_FR5",
             "UR5e",
             "DOOSAN_M1013",
+            "MECA500",
             "FANUC_CRX10",
             "IGUS_REBEL"
         };
@@ -121,6 +122,22 @@ namespace KineTutor3D.Templates
                     demoPoseDeg: new[] { 30d, -30d, 90d, 0d, 60d, 0d },
                     importSource: "Assets/Runtime/Resources/Robots/DoosanM1013/"),
                 TemplateDoosanM1013.Create));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
+                    "MECA500", "Mecademic Meca500", 6, "Collaborative", "Easy",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: true,
+                    description: "6자유도 Mecademic Meca500 협동로봇. 세계에서 가장 작은 6축 산업용 로봇입니다.",
+                    supportedLessons: new[] { "Sandbox", "RobotControl" },
+                    inputModes: new[] { "slider", "numeric", "live" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -30d, 50d, 0d, -60d, 0d },
+                    importSource: "Assets/Runtime/Robots/MECA500/meca500.urdf"),
+                TemplateMeca500.Create));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(

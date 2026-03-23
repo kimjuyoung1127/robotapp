@@ -1,6 +1,7 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.App.Doosan;
 using KineTutor3D.App.Fairino;
+using KineTutor3D.App.Mecademic;
 using KineTutor3D.App.UniversalRobots;
 using UnityEngine;
 
@@ -26,6 +27,8 @@ namespace KineTutor3D.App
                     return UR5eRobotControlTemplateDefinition.Create();
                 case "DOOSAN_M1013":
                     return DoosanM1013RobotControlTemplateDefinition.Create();
+                case "MECA500":
+                    return Meca500RobotControlTemplateDefinition.Create();
                 default:
                     Debug.LogWarning($"[RobotControlFactory] Unknown robotId '{robotId}', falling back to FR5");
                     return FR5RobotControlTemplateDefinition.Create();
