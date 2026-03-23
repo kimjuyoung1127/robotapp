@@ -1,5 +1,6 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System.Globalization;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using KineTutor3D.Math;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Text explanationLabel;
         [SerializeField] private Font fallbackFont;
 
-        private FR5KinematicsFacade kinematicsFacade;
+        private RobotKinematicsFacade kinematicsFacade;
         private Vec3D previousEEPosition;
         private double[] previousJointsDeg;
         private bool hasPrevious;
@@ -24,7 +25,7 @@ namespace KineTutor3D.UI
         /// <summary>
         /// FK facade를 주입합니다.
         /// </summary>
-        public void Inject(FR5KinematicsFacade facade)
+        public void Inject(RobotKinematicsFacade facade)
         {
             kinematicsFacade = facade;
             hasPrevious = false;

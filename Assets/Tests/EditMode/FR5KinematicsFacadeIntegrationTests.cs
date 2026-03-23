@@ -1,12 +1,13 @@
 // Folder: Tests - EditMode unit tests; no scene required.
 using NUnit.Framework;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using KineTutor3D.Math;
 
 namespace KineTutor3D.Tests.EditMode
 {
     /// <summary>
-    /// FR5KinematicsFacade와 MockFairinoClient의 통합 시나리오 테스트입니다.
+    /// RobotKinematicsFacade(FR5)와 MockFairinoClient의 통합 시나리오 테스트입니다.
     /// Connect→Enable→MoveJ→FK→Delta 전체 흐름을 검증합니다.
     /// </summary>
     [TestFixture]
@@ -16,13 +17,13 @@ namespace KineTutor3D.Tests.EditMode
         private const double PositionDelta = 1e-4;
 
         private MockFairinoClient client;
-        private FR5KinematicsFacade facade;
+        private RobotKinematicsFacade facade;
 
         [SetUp]
         public void SetUp()
         {
             client = new MockFairinoClient();
-            facade = new FR5KinematicsFacade();
+            facade = FR5KinematicsFacade.Create();
         }
 
         [Test]
@@ -87,7 +88,7 @@ namespace KineTutor3D.Tests.EditMode
             facade.ResetToDefault();
             var eeReset = facade.EndEffectorTransform.ExtractPosition();
 
-            var eeZero = new FR5KinematicsFacade().EndEffectorTransform.ExtractPosition();
+            var eeZero = FR5KinematicsFacade.Create().EndEffectorTransform.ExtractPosition();
             Assert.AreEqual(eeZero.X, eeReset.X, PositionDelta);
             Assert.AreEqual(eeZero.Y, eeReset.Y, PositionDelta);
             Assert.AreEqual(eeZero.Z, eeReset.Z, PositionDelta);

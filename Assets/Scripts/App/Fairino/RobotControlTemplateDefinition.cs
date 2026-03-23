@@ -14,8 +14,10 @@ namespace KineTutor3D.App.Fairino
         public string ShowroomPrefabResourcePath { get; set; } = string.Empty;
         public int JointCount { get; set; }
         public string ConfigResourceName { get; set; } = string.Empty;
+        public string RuntimeRootName { get; set; } = string.Empty;
+        public string ControlRobotInstanceName { get; set; } = string.Empty;
         public RobotControlPosePresetProvider PosePresetProvider { get; set; }
-        public Func<FR5KinematicsFacade> KinematicsFactory { get; set; }
+        public Func<RobotKinematicsFacade> KinematicsFactory { get; set; }
         public Func<FairinoErrorTranslator, FairinoConnectionService> ConnectionServiceFactory { get; set; }
         public Func<FairinoRobotConfig> FallbackConfigFactory { get; set; }
     }

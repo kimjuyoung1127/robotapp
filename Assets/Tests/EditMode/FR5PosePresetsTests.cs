@@ -1,5 +1,6 @@
 // Folder: Tests - EditMode unit tests; no scene required.
 using NUnit.Framework;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.Tests.EditMode
@@ -91,7 +92,7 @@ namespace KineTutor3D.Tests.EditMode
         [Test]
         public void Ready_FKProducesValidPose()
         {
-            var facade = new FR5KinematicsFacade();
+            var facade = FR5KinematicsFacade.Create();
             facade.SetJointAnglesDegrees(FR5PosePresets.Ready.JointAnglesDeg);
 
             var ee = facade.EndEffectorTransform;

@@ -1,5 +1,6 @@
 // Folder: Tests - EditMode unit tests; no scene required.
 using NUnit.Framework;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using KineTutor3D.Math;
 
@@ -11,12 +12,12 @@ namespace KineTutor3D.Tests.EditMode
         private const double PositionDelta = 1e-4;
         private const double Deg2Rad = System.Math.PI / 180.0;
 
-        private FR5KinematicsFacade facade;
+        private RobotKinematicsFacade facade;
 
         [SetUp]
         public void SetUp()
         {
-            facade = new FR5KinematicsFacade();
+            facade = FR5KinematicsFacade.Create();
         }
 
         [Test]

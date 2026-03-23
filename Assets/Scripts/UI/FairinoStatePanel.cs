@@ -1,5 +1,6 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System.Globalization;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,13 +18,13 @@ namespace KineTutor3D.UI
         [SerializeField] private Text errorLabel;
         [SerializeField] private Font fallbackFont;
 
-        private static readonly Color ColorAxisX = new Color(0.90f, 0.30f, 0.25f, 1f);
-        private static readonly Color ColorAxisY = new Color(0.30f, 0.85f, 0.35f, 1f);
-        private static readonly Color ColorAxisZ = new Color(0.29f, 0.56f, 0.85f, 1f);
+        private static readonly Color ColorAxisX = UIDesignTokens.Colors.AxisX;
+        private static readonly Color ColorAxisY = UIDesignTokens.Colors.AxisY;
+        private static readonly Color ColorAxisZ = UIDesignTokens.Colors.AxisZ;
 
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
-        private FR5KinematicsFacade kinematicsFacade;
+        private RobotKinematicsFacade kinematicsFacade;
         private double[] previousJointsDeg;
         private bool hasPrevious;
         private bool listenersBound;
@@ -31,7 +32,7 @@ namespace KineTutor3D.UI
         /// <summary>
         /// 연결 서비스, 에러 번역기, FK facade를 주입합니다.
         /// </summary>
-        public void Inject(FairinoConnectionService service, FairinoErrorTranslator translator, FR5KinematicsFacade facade = null)
+        public void Inject(FairinoConnectionService service, FairinoErrorTranslator translator, RobotKinematicsFacade facade = null)
         {
             UnsubscribeService();
             connectionService = service;

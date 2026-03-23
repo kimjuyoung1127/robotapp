@@ -130,7 +130,7 @@ namespace KineTutor3D.Visualization
                 return BuildProcedural2DofArm(meta);
             }
 
-            if (meta.Dof >= 6 || previewRobotId == "FAIRINO_FR5")
+            if (meta.Dof >= 6 || previewRobotId == "FAIRINO_FR5" || previewRobotId == "UR5e" || previewRobotId == "DOOSAN_M1013")
             {
                 return BuildProceduralArticulatedArm(meta);
             }
@@ -164,6 +164,16 @@ namespace KineTutor3D.Visualization
             if (previewRobotId == "FAIRINO_FR5")
             {
                 return Resources.Load<GameObject>("Robots/FAIRINO_FR5");
+            }
+
+            if (previewRobotId == "UR5e")
+            {
+                return Resources.Load<GameObject>("Robots/UR5e/UR5e");
+            }
+
+            if (previewRobotId == "DOOSAN_M1013")
+            {
+                return Resources.Load<GameObject>("Robots/DoosanM1013/DoosanM1013");
             }
 
             return null;
@@ -291,6 +301,34 @@ namespace KineTutor3D.Visualization
                 };
             }
 
+            if (meta.EffectivePreviewRobotId == "UR5e")
+            {
+                return new DonorPreviewPose
+                {
+                    LocalEuler = Vector3.zero,
+                    LocalOffset = Vector3.zero,
+                    TargetMaxSize = 0.95f,
+                    RootEuler = new Vector3(0f, -20f, 0f),
+                    AnchorPath = string.Empty,
+                    AnchorEuler = Vector3.zero,
+                    AnchorOffset = Vector3.zero
+                };
+            }
+
+            if (meta.EffectivePreviewRobotId == "DOOSAN_M1013")
+            {
+                return new DonorPreviewPose
+                {
+                    LocalEuler = Vector3.zero,
+                    LocalOffset = Vector3.zero,
+                    TargetMaxSize = 0.95f,
+                    RootEuler = new Vector3(0f, -20f, 0f),
+                    AnchorPath = string.Empty,
+                    AnchorEuler = Vector3.zero,
+                    AnchorOffset = Vector3.zero
+                };
+            }
+
             return new DonorPreviewPose
             {
                 LocalEuler = Vector3.zero,
@@ -376,6 +414,38 @@ namespace KineTutor3D.Visualization
                         ToolLength = 0.14f,
                         AccentColor = new Color(0.20f, 0.55f, 0.85f, 1f),
                         BodyColor = new Color(0.90f, 0.92f, 0.93f, 1f)
+                    };
+                case "UR5e":
+                    return new SixDofPreviewPreset
+                    {
+                        BaseWidth = 0.20f,
+                        BaseHeight = 0.12f,
+                        ShoulderOffset = 0.35f,
+                        UpperArmLength = 0.52f,
+                        UpperArmThickness = 0.08f,
+                        ForearmLength = 0.44f,
+                        ForearmThickness = 0.07f,
+                        WristLength = 0.17f,
+                        WristThickness = 0.05f,
+                        ToolLength = 0.13f,
+                        AccentColor = new Color(0.18f, 0.48f, 0.78f, 1f),
+                        BodyColor = new Color(0.85f, 0.87f, 0.90f, 1f)
+                    };
+                case "DOOSAN_M1013":
+                    return new SixDofPreviewPreset
+                    {
+                        BaseWidth = 0.24f,
+                        BaseHeight = 0.14f,
+                        ShoulderOffset = 0.40f,
+                        UpperArmLength = 0.58f,
+                        UpperArmThickness = 0.10f,
+                        ForearmLength = 0.50f,
+                        ForearmThickness = 0.09f,
+                        WristLength = 0.20f,
+                        WristThickness = 0.06f,
+                        ToolLength = 0.15f,
+                        AccentColor = new Color(0.12f, 0.42f, 0.72f, 1f),
+                        BodyColor = new Color(0.88f, 0.90f, 0.92f, 1f)
                     };
                 default:
                     return new SixDofPreviewPreset

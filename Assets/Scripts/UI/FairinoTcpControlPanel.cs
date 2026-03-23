@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System;
 using System.Globalization;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.Events;
@@ -35,7 +36,7 @@ namespace KineTutor3D.UI
 
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
-        private FR5KinematicsFacade kinematicsFacade;
+        private RobotKinematicsFacade kinematicsFacade;
         private FairinoMoveConfirmDialog moveConfirmDialog;
         private Button[] speedButtons;
         private string selectedSpeedPreset = "medium";
@@ -61,7 +62,7 @@ namespace KineTutor3D.UI
         /// <summary>
         /// 연결 서비스, 설정, FK facade를 주입합니다.
         /// </summary>
-        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig, FR5KinematicsFacade facade)
+        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig, RobotKinematicsFacade facade)
         {
             connectionService = service;
             config = robotConfig;

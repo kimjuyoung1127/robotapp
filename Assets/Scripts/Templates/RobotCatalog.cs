@@ -16,6 +16,8 @@ namespace KineTutor3D.Templates
             "SCARA_RV",
             "FAIRINO_FR5_TEMPLATE",
             "FAIRINO_FR5",
+            "UR5e",
+            "DOOSAN_M1013",
             "FANUC_CRX10",
             "IGUS_REBEL"
         };
@@ -87,6 +89,38 @@ namespace KineTutor3D.Templates
                     demoPoseDeg: new[] { 30d, -45d, 60d, -30d, 45d, 0d },
                     importSource: "Assets/Runtime/Robots/FAIRINO_FR5/fairino5_v6.urdf"),
                 libraryInteractionMode: LibraryInteractionMode.SelectOnly));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
+                    "UR5e", "Universal Robots UR5e", 6, "Collaborative", "Medium",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: true,
+                    description: "6자유도 Universal Robots UR5e 협동로봇. 실기 연동을 지원합니다.",
+                    supportedLessons: new[] { "Sandbox", "RobotControl" },
+                    inputModes: new[] { "slider", "numeric", "live" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, -90d, 0d, -90d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -45d, -90d, -45d, 90d, 0d },
+                    importSource: "Assets/Runtime/Resources/Robots/UR5e/"),
+                TemplateUR5e.Create));
+
+            Register(new RobotCatalogEntry(
+                new RobotMetadataInfo(
+                    "DOOSAN_M1013", "Doosan M1013", 6, "Collaborative", "Medium",
+                    convention: "DH-Standard",
+                    guidedLessonSupported: false,
+                    sandboxSupported: true,
+                    description: "6자유도 Doosan Robotics M1013 협동로봇. 실기 연동을 지원합니다.",
+                    supportedLessons: new[] { "Sandbox", "RobotControl" },
+                    inputModes: new[] { "slider", "numeric", "live" },
+                    visualizationLevel: "DonorMesh",
+                    zeroPoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    homePoseDeg: new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                    demoPoseDeg: new[] { 30d, -30d, 90d, 0d, 60d, 0d },
+                    importSource: "Assets/Runtime/Resources/Robots/DoosanM1013/"),
+                TemplateDoosanM1013.Create));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(

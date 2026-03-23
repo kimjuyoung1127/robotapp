@@ -1,4 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
+using KineTutor3D.App;
+using KineTutor3D.Math;
 using KineTutor3D.UI;
 using KineTutor3D.Visualization;
 using UnityEngine;
@@ -14,9 +16,9 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     public class RobotControlSceneCoordinator : MonoBehaviour
     {
-        private const string RuntimeRootName = "FR5_RuntimeRoot";
-        private const string ControlRobotInstanceName = "FR5_UrdfInstance";
         private const float TargetRobotHeight = 1.5f;
+        private const string AxisOverlayTitle = "ΔTCP";
+        private const string AxisOverlayUnit = "mm";
 
         [SerializeField] private FairinoConnectionPanel connectionPanel;
         [SerializeField] private FairinoJointControlPanel jointControlPanel;
@@ -28,12 +30,12 @@ namespace KineTutor3D.App.Fairino
         [SerializeField] private Transform runtimeRoot;
         [SerializeField] private GameObject controlRobotInstance;
 
-        private readonly RobotControlTemplateDefinition templateDefinition = FR5RobotControlTemplateDefinition.Create();
+        private RobotControlTemplateDefinition templateDefinition;
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
         private FairinoRobotConfig config;
         private FairinoUrdfJointDriver jointDriver;
-        private FR5KinematicsFacade kinematicsFacade;
+        private RobotKinematicsFacade kinematicsFacade;
         private FrameGizmoFactory frameGizmoFactory;
         private EETrailRenderer eeTrailRenderer;
         private DisplacementArrow displacementArrow;
@@ -44,14 +46,21 @@ namespace KineTutor3D.App.Fairino
         private OrbitCameraController orbitCamera;
         private WaypointCycleRunner waypointRunner;
         private WaypointSequence currentSequence;
+        private AxisTripletOverlay axisTripletOverlay;
         private Button diagnosticsButton;
         private Toggle gizmoToggle;
         private Button clearTrailButton;
         private bool listenersBound;
         private bool isFirstStateAfterConnect;
+        private int activeOverlayJointIndex = -1;
+        private bool hasOverlayStartEePosition;
+        private Vec3D overlayStartEePosition = Vec3D.Zero;
 
         private void Awake()
         {
+            var robotId = RobotSelectionBridge.GetSelectedRobotId();
+            templateDefinition = RobotControlFactory.Create(robotId);
+
             FairinoRobotControlViewBuilder.EnsureEventSystem();
             canvas = FairinoRobotControlViewBuilder.EnsureCanvas(canvas, fallbackFont);
             FairinoRobotControlViewBuilder.EnsureCamera();
@@ -90,6 +99,7 @@ namespace KineTutor3D.App.Fairino
             EnsureVisualizationHelpers();
             EnsureOrbitCamera();
             EnsureJointHandles();
+            EnsureAxisTripletOverlay();
             EnsurePresetAnimator();
             EnsureWaypointRunner();
             InjectDependencies();
@@ -104,6 +114,7 @@ namespace KineTutor3D.App.Fairino
 
         private void OnDisable()
         {
+            axisTripletOverlay?.HideImmediate();
             UnbindListeners();
         }
 
@@ -256,6 +267,10 @@ namespace KineTutor3D.App.Fairino
 
         private void UnbindHandleListeners()
         {
+            axisTripletOverlay?.HideImmediate();
+            activeOverlayJointIndex = -1;
+            hasOverlayStartEePosition = false;
+
             if (jointHandles == null)
             {
                 return;
@@ -299,6 +314,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             SyncHandleAngles(state.JointPosDeg);
+            UpdateAxisOverlayFromCurrentPose();
         }
 
         private void OnJointSliderPreview(double[] jointAnglesDeg)
@@ -331,12 +347,16 @@ namespace KineTutor3D.App.Fairino
             }
 
             SyncHandleAngles(jointAnglesDeg);
+            UpdateAxisOverlayFromCurrentPose();
         }
 
         private void OnPresetApplied(double[] jointAnglesDeg)
         {
             eeTrailRenderer?.Clear();
             displacementArrow?.Clear();
+            axisTripletOverlay?.HideImmediate();
+            activeOverlayJointIndex = -1;
+            hasOverlayStartEePosition = false;
 
             if (presetAnimator != null && kinematicsFacade != null)
             {
@@ -377,6 +397,9 @@ namespace KineTutor3D.App.Fairino
         private void OnConnectionLost()
         {
             presetAnimator?.Cancel();
+            axisTripletOverlay?.HideImmediate();
+            activeOverlayJointIndex = -1;
+            hasOverlayStartEePosition = false;
             jointControlPanel?.SetControlsEnabled(false);
             tcpPanel?.SetControlsEnabled(false);
             connectionPanel?.ShowConnectionLost();
@@ -440,11 +463,25 @@ namespace KineTutor3D.App.Fairino
             OnJointSliderPreview(values);
         }
 
-        private void OnHandleDragStateChanged(bool isDragging)
+        private void OnHandleDragStateChanged(int jointIndex, bool isDragging)
         {
             if (orbitCamera != null)
             {
                 orbitCamera.OrbitEnabled = !isDragging;
+            }
+
+            if (isDragging)
+            {
+                activeOverlayJointIndex = jointIndex;
+                overlayStartEePosition = GetCurrentEndEffectorPosition();
+                hasOverlayStartEePosition = true;
+                axisTripletOverlay?.Show(GetAxisOverlayScreenPoint(jointIndex), AxisOverlayTitle, 0d, 0d, 0d, AxisOverlayUnit);
+                return;
+            }
+
+            if (activeOverlayJointIndex == jointIndex)
+            {
+                axisTripletOverlay?.BeginHoldAndFade();
             }
         }
 
@@ -624,6 +661,32 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
+        private void EnsureAxisTripletOverlay()
+        {
+            if (canvas == null)
+            {
+                return;
+            }
+
+            var existing = canvas.transform.Find("AxisTripletOverlay");
+            GameObject overlayGo;
+            if (existing != null)
+            {
+                overlayGo = existing.gameObject;
+            }
+            else
+            {
+                overlayGo = new GameObject("AxisTripletOverlay", typeof(RectTransform));
+                overlayGo.transform.SetParent(canvas.transform, false);
+            }
+
+            axisTripletOverlay = overlayGo.GetComponent<AxisTripletOverlay>()
+                ?? overlayGo.AddComponent<AxisTripletOverlay>();
+            axisTripletOverlay.Initialize(canvas, fallbackFont);
+            axisTripletOverlay.OnHidden -= HandleAxisOverlayHidden;
+            axisTripletOverlay.OnHidden += HandleAxisOverlayHidden;
+        }
+
         private void EnsureRobotSelection()
         {
             var selectedRobotId = RobotSelectionBridge.GetSelectedRobotId();
@@ -650,7 +713,7 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
-            runtimeRoot = new GameObject(RuntimeRootName).transform;
+            runtimeRoot = new GameObject(templateDefinition.RuntimeRootName).transform;
             runtimeRoot.localPosition = Vector3.zero;
             runtimeRoot.localRotation = Quaternion.identity;
         }
@@ -669,7 +732,7 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
-            var existing = runtimeRoot.Find(ControlRobotInstanceName);
+            var existing = runtimeRoot.Find(templateDefinition.ControlRobotInstanceName);
             if (existing != null)
             {
                 controlRobotInstance = existing.gameObject;
@@ -740,7 +803,7 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
-        private static Transform FindSceneRuntimeRoot()
+        private Transform FindSceneRuntimeRoot()
         {
             var scene = SceneManager.GetActiveScene();
             if (!scene.IsValid())
@@ -751,7 +814,7 @@ namespace KineTutor3D.App.Fairino
             var roots = scene.GetRootGameObjects();
             for (var i = 0; i < roots.Length; i++)
             {
-                if (roots[i] != null && roots[i].name == RuntimeRootName)
+                if (roots[i] != null && roots[i].name == templateDefinition.RuntimeRootName)
                 {
                     return roots[i].transform;
                 }
@@ -804,7 +867,7 @@ namespace KineTutor3D.App.Fairino
         private GameObject InstantiateAndSetup(GameObject prefab)
         {
             var instance = Instantiate(prefab, runtimeRoot);
-            instance.name = ControlRobotInstanceName;
+            instance.name = templateDefinition.ControlRobotInstanceName;
             instance.transform.localPosition = Vector3.zero;
             instance.transform.localRotation = Quaternion.identity;
             return instance;
@@ -871,10 +934,10 @@ namespace KineTutor3D.App.Fairino
             return meshFilterCount > 0 && meshRendererCount > 0;
         }
 
-        private static GameObject CreatePlaceholderControlRobot(Transform parent)
+        private GameObject CreatePlaceholderControlRobot(Transform parent)
         {
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            placeholder.name = ControlRobotInstanceName;
+            placeholder.name = templateDefinition.ControlRobotInstanceName;
             placeholder.transform.SetParent(parent, false);
             placeholder.transform.localScale = new Vector3(0.3f, 0.12f, 0.3f);
             placeholder.transform.localPosition = Vector3.zero;
@@ -1202,6 +1265,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             SyncHandleAngles(jointAnglesDeg);
+            UpdateAxisOverlayFromCurrentPose();
         }
 
         private void OnAnimationFrameUpdated(double[] jointAnglesDeg)
@@ -1230,6 +1294,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             SyncHandleAngles(jointAnglesDeg);
+            UpdateAxisOverlayFromCurrentPose();
         }
 
         private void OnAnimationComplete(double[] jointAnglesDeg)
@@ -1239,6 +1304,58 @@ namespace KineTutor3D.App.Fairino
                 var syntheticState = new FairinoRobotState(jointAnglesDeg, new double[templateDefinition.JointCount]);
                 whyItMovedLabel.HandleStateUpdated(syntheticState);
             }
+        }
+
+        private void UpdateAxisOverlayFromCurrentPose()
+        {
+            if (axisTripletOverlay == null
+                || activeOverlayJointIndex < 0
+                || !hasOverlayStartEePosition
+                || kinematicsFacade == null)
+            {
+                return;
+            }
+
+            var currentEe = GetCurrentEndEffectorPosition();
+            var deltaMm = (currentEe - overlayStartEePosition) * 1000.0;
+            axisTripletOverlay.UpdateValues(
+                GetAxisOverlayScreenPoint(activeOverlayJointIndex),
+                deltaMm.X,
+                deltaMm.Y,
+                deltaMm.Z,
+                AxisOverlayUnit);
+        }
+
+        private Vec3D GetCurrentEndEffectorPosition()
+        {
+            return kinematicsFacade != null
+                ? kinematicsFacade.EndEffectorTransform.ExtractPosition()
+                : Vec3D.Zero;
+        }
+
+        private Vector2 GetAxisOverlayScreenPoint(int jointIndex)
+        {
+            if (jointHandles != null
+                && jointIndex >= 0
+                && jointIndex < jointHandles.Length
+                && jointHandles[jointIndex] != null
+                && Camera.main != null)
+            {
+                var worldPoint = jointHandles[jointIndex].transform.position;
+                var screenPoint = Camera.main.WorldToScreenPoint(worldPoint);
+                if (screenPoint.z > 0f)
+                {
+                    return new Vector2(screenPoint.x, screenPoint.y);
+                }
+            }
+
+            return new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        }
+
+        private void HandleAxisOverlayHidden()
+        {
+            activeOverlayJointIndex = -1;
+            hasOverlayStartEePosition = false;
         }
 
     }

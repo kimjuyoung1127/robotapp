@@ -74,6 +74,16 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 초기 mock 클라이언트를 주입받아 서비스를 생성합니다.
+        /// 다른 로봇 벤더의 mock 클라이언트를 사용할 때 활용합니다.
+        /// </summary>
+        public FairinoConnectionService(IFairinoRobotClient initialMockClient, FairinoErrorTranslator translator = null)
+        {
+            errorTranslator = translator ?? new FairinoErrorTranslator();
+            client = initialMockClient ?? new MockFairinoClient();
+        }
+
+        /// <summary>
         /// Mock↔Live 모드를 전환합니다.
         /// </summary>
         public void SetMockMode(bool mock)

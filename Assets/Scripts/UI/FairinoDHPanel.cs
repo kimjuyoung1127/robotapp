@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System;
 using System.Globalization;
+using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
 using KineTutor3D.Math;
 using KineTutor3D.Types;
@@ -26,7 +27,7 @@ namespace KineTutor3D.UI
         private InputField[] alphaInputs;
         private Text matrixLabel;
         private Button resetButton;
-        private FR5KinematicsFacade kinematicsFacade;
+        private RobotKinematicsFacade kinematicsFacade;
         private bool listenersBound;
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace KineTutor3D.UI
         /// <summary>
         /// FK facade를 주입합니다.
         /// </summary>
-        public void Inject(FR5KinematicsFacade facade)
+        public void Inject(RobotKinematicsFacade facade)
         {
             kinematicsFacade = facade;
             if (kinematicsFacade != null)

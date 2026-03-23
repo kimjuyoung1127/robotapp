@@ -1,4 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
+using KineTutor3D.Templates;
+
 namespace KineTutor3D.App.Fairino
 {
     /// <summary>
@@ -16,10 +18,12 @@ namespace KineTutor3D.App.Fairino
                 ShowroomPrefabResourcePath = "Robots/FAIRINO_FR5",
                 JointCount = 6,
                 ConfigResourceName = "LearningTabs/FAIRINO_FR5",
+                RuntimeRootName = "FR5_RuntimeRoot",
+                ControlRobotInstanceName = "FR5_UrdfInstance",
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     () => FR5PosePresets.Ready.JointAnglesDeg,
                     FR5PosePresets.UpdateCurrent),
-                KinematicsFactory = () => new FR5KinematicsFacade(),
+                KinematicsFactory = () => new RobotKinematicsFacade(TemplateFAIRINO_FR5.Create()),
                 ConnectionServiceFactory = translator => new FairinoConnectionService(translator),
                 FallbackConfigFactory = () => new FairinoRobotConfig
                 {
