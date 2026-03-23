@@ -9,36 +9,34 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// Robot Library에서 선택된 로봇의 관찰/직접 조작/명시적 진입 CTA를 제공합니다.
+    /// Robot Library에서 선택된 로봇의 정보 표시와 진입 CTA를 제공합니다.
     /// </summary>
     public class RobotLibrarySelectionPanel : MonoBehaviour, IVisibilityControllable
     {
         [SerializeField] private Font fallbackFont;
 
+        private const float CompactWidthThreshold = 560f;
+        private const float CompactHeightThreshold = 520f;
+
         private RectTransform panelRoot;
+        private RectTransform contentRoot;
+        private RectTransform headerBlock;
+        private RectTransform primaryActionsStack;
+
         private Text titleText;
         private Text subtitleText;
         private Text descriptionText;
         private Text capabilityText;
         private Text helperText;
-        private Text controlStateText;
         private Button guidedLessonButton;
         private Button sandboxButton;
         private Button robotControlButton;
-        private Button resetPoseButton;
-        private Button demoPoseButton;
-        private readonly List<Slider> jointSliders = new List<Slider>();
-        private readonly List<InputField> jointInputs = new List<InputField>();
-        private readonly List<bool> jointIsRotational = new List<bool>();
+
         private RobotCatalogEntry currentEntry;
-        private bool suppressCallbacks;
 
         public event Action OnGuidedLessonRequested;
         public event Action OnSandboxRequested;
         public event Action OnRobotControlRequested;
-        public event Action<double[]> OnPosePreviewChanged;
-        public event Action OnResetPoseRequested;
-        public event Action OnDemoPoseRequested;
 
         public void Initialize(RectTransform parent, Font font)
         {
@@ -47,7 +45,7 @@ namespace KineTutor3D.UI
             SetVisible(true);
         }
 
-        public void ShowRobot(RobotCatalogEntry entry, double[] poseDeg, float[] minLimits, float[] maxLimits, bool[] isRotational)
+        public void ShowRobot(RobotCatalogEntry entry)
         {
             currentEntry = entry;
             EnsurePresentation(transform.parent as RectTransform);
@@ -58,48 +56,25 @@ namespace KineTutor3D.UI
                 subtitleText.text = "Select a robot";
                 descriptionText.text = "카드나 3D showroom에서 로봇을 선택하면 여기서 관찰과 직접 조작을 이어갈 수 있습니다.";
                 capabilityText.text = "지원 모드가 여기 표시됩니다.";
-                helperText.text = "먼저 고르고, 움직여 보고, 그 다음 원하는 화면으로 이동하세요.";
-                controlStateText.text = "선택 대기 중";
-                RebuildControls(Array.Empty<float>(), Array.Empty<float>(), Array.Empty<bool>());
+                helperText.text = "먼저 로봇을 고른 뒤 원하는 화면으로 이동하세요.";
                 RefreshActionButtons(null);
                 return;
             }
 
             var metadata = entry.Metadata;
-            var controlCount = Mathf.Min(
-                minLimits != null ? minLimits.Length : 0,
-                Mathf.Min(maxLimits != null ? maxLimits.Length : 0, isRotational != null ? isRotational.Length : 0));
+
             titleText.text = metadata.DisplayName;
             subtitleText.text = $"{metadata.Dof} DOF · {metadata.RobotType} · {metadata.Difficulty}";
             descriptionText.text = metadata.Description;
             capabilityText.text = BuildCapabilitySummary(metadata);
-            helperText.text = controlCount > 0
-                ? "조인트를 움직여 충분히 관찰한 뒤 학습, 샌드박스, Robot Control 중 원하는 화면으로 이동하세요."
-                : "이 로봇은 현재 라이브러리에서 관찰 중심으로 보여집니다. 지원되는 화면으로 직접 이동할 수 있습니다.";
+            helperText.text = "지원되는 화면으로 직접 이동할 수 있습니다.";
+
             if (entry.LibraryInteractionMode == LibraryInteractionMode.SelectOnly)
             {
                 helperText.text = "이 항목은 RobotControl 템플릿 구조를 보여주는 선택 전용 카드입니다.";
             }
-            controlStateText.text = controlCount > 0
-                ? $"Library Control Active · {controlCount} joints"
-                : "Observation Only";
 
-            RebuildControls(minLimits, maxLimits, isRotational);
-            SetPoseWithoutNotify(poseDeg);
             RefreshActionButtons(metadata);
-        }
-
-        public void SetPoseWithoutNotify(double[] poseDeg)
-        {
-            suppressCallbacks = true;
-            for (var i = 0; i < jointSliders.Count; i++)
-            {
-                var value = poseDeg != null && i < poseDeg.Length ? (float)poseDeg[i] : 0f;
-                jointSliders[i].SetValueWithoutNotify(value);
-                jointInputs[i].SetTextWithoutNotify(JointInputValidator.FormatDegrees(value));
-            }
-
-            suppressCallbacks = false;
         }
 
         public void SetVisible(bool visible)
@@ -109,12 +84,6 @@ namespace KineTutor3D.UI
 
         private void EnsurePresentation(RectTransform parent)
         {
-            if (panelRoot != null)
-            {
-                RemoveLegacyControlsRoot();
-                return;
-            }
-
             if (parent == null)
             {
                 return;
@@ -126,229 +95,192 @@ namespace KineTutor3D.UI
                 panelRoot = gameObject.AddComponent<RectTransform>();
             }
 
-            panelRoot.SetParent(parent, false);
-            var background = panelRoot.GetComponent<Image>() ?? panelRoot.gameObject.AddComponent<Image>();
-            background.color = UIDesignTokens.Colors.SurfaceRaised;
-            RemoveLegacyControlsRoot();
-
-            if (TryBindExistingPresentation())
+            if (panelRoot.parent != parent)
             {
-                return;
+                panelRoot.SetParent(parent, false);
             }
 
-            titleText = UiRuntimeStyle.EnsureText(panelRoot, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
-            UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 24f), new Vector2(16f, -16f));
+            var background = panelRoot.GetComponent<Image>() ?? panelRoot.gameObject.AddComponent<Image>();
+            background.color = UIDesignTokens.Colors.SurfaceRaised;
 
-            subtitleText = UiRuntimeStyle.EnsureText(panelRoot, "Subtitle", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentSecondary);
-            UiRuntimeStyle.Anchor(subtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 18f), new Vector2(16f, -42f));
+            if (NeedsRebuild())
+            {
+                ClearPanelChildren();
+                BuildPresentation();
+            }
 
-            descriptionText = UiRuntimeStyle.EnsureText(panelRoot, "Description", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(descriptionText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 42f), new Vector2(16f, -66f));
-
-            capabilityText = UiRuntimeStyle.EnsureText(panelRoot, "CapabilityText", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
-            UiRuntimeStyle.Anchor(capabilityText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 36f), new Vector2(16f, -112f));
-
-            helperText = UiRuntimeStyle.EnsureText(panelRoot, "HelperText", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Italic, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(helperText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 40f), new Vector2(16f, -148f));
-
-            var divider = UiRuntimeStyle.EnsureImage(panelRoot, "Divider", UIDesignTokens.Colors.BorderSoft);
-            UiRuntimeStyle.Anchor((RectTransform)divider.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 1f), new Vector2(16f, -192f));
-
-            controlStateText = UiRuntimeStyle.EnsureText(panelRoot, "ControlState", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentPrimary);
-            UiRuntimeStyle.Anchor(controlStateText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 18f), new Vector2(16f, -210f));
-
-            resetPoseButton = UIComponentFactory.CreateSecondaryButton(panelRoot, "BtnResetPose", "Reset", fallbackFont, 84f);
-            UiRuntimeStyle.Anchor((RectTransform)resetPoseButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(84f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f, 96f));
-            resetPoseButton.onClick.RemoveAllListeners();
-            resetPoseButton.onClick.AddListener(() => OnResetPoseRequested?.Invoke());
-
-            demoPoseButton = UIComponentFactory.CreateSecondaryButton(panelRoot, "BtnDemoPose", "Demo Pose", fallbackFont, 108f);
-            UiRuntimeStyle.Anchor((RectTransform)demoPoseButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(108f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(108f, 96f));
-            demoPoseButton.onClick.RemoveAllListeners();
-            demoPoseButton.onClick.AddListener(() => OnDemoPoseRequested?.Invoke());
-
-            guidedLessonButton = UIComponentFactory.CreatePrimaryButton(panelRoot, "BtnGuidedLesson", "Start Lesson", fallbackFont, 112f);
-            UiRuntimeStyle.Anchor((RectTransform)guidedLessonButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(112f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(16f, 48f));
-            guidedLessonButton.onClick.RemoveAllListeners();
-            guidedLessonButton.onClick.AddListener(() => OnGuidedLessonRequested?.Invoke());
-
-            sandboxButton = UIComponentFactory.CreateSecondaryButton(panelRoot, "BtnOpenSandbox", "Open Sandbox", fallbackFont, 112f);
-            UiRuntimeStyle.Anchor((RectTransform)sandboxButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(112f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(138f, 48f));
-            sandboxButton.onClick.RemoveAllListeners();
-            sandboxButton.onClick.AddListener(() => OnSandboxRequested?.Invoke());
-
-            robotControlButton = UIComponentFactory.CreateSecondaryButton(panelRoot, "BtnRobotControl", "Robot Control", fallbackFont, 112f);
-            UiRuntimeStyle.Anchor((RectTransform)robotControlButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(112f, UIDesignTokens.Size.ButtonHeightMd), new Vector2(260f, 48f));
-            robotControlButton.onClick.RemoveAllListeners();
-            robotControlButton.onClick.AddListener(() => OnRobotControlRequested?.Invoke());
+            ApplyResponsiveLayout();
         }
 
-        private bool TryBindExistingPresentation()
+        private bool NeedsRebuild()
         {
-            titleText = panelRoot.Find("Title")?.GetComponent<Text>();
-            subtitleText = panelRoot.Find("Subtitle")?.GetComponent<Text>();
-            descriptionText = panelRoot.Find("Description")?.GetComponent<Text>();
-            capabilityText = panelRoot.Find("CapabilityText")?.GetComponent<Text>();
-            helperText = panelRoot.Find("HelperText")?.GetComponent<Text>();
-            controlStateText = panelRoot.Find("ControlState")?.GetComponent<Text>();
-            guidedLessonButton = panelRoot.Find("BtnGuidedLesson")?.GetComponent<Button>();
-            sandboxButton = panelRoot.Find("BtnOpenSandbox")?.GetComponent<Button>();
-            robotControlButton = panelRoot.Find("BtnRobotControl")?.GetComponent<Button>();
-            resetPoseButton = panelRoot.Find("BtnResetPose")?.GetComponent<Button>();
-            demoPoseButton = panelRoot.Find("BtnDemoPose")?.GetComponent<Button>();
-
-            if (titleText == null
+            return panelRoot == null
+                || panelRoot.Find("Content") == null
+                || panelRoot.Find("Title") != null
+                || panelRoot.Find("Subtitle") != null
+                || panelRoot.Find("Description") != null
+                || panelRoot.Find("ScrollView") != null
+                || titleText == null
                 || subtitleText == null
                 || descriptionText == null
                 || capabilityText == null
                 || helperText == null
-                || controlStateText == null
                 || guidedLessonButton == null
                 || sandboxButton == null
-                || robotControlButton == null
-                || resetPoseButton == null
-                || demoPoseButton == null)
-            {
-                return false;
-            }
+                || robotControlButton == null;
+        }
 
-            resetPoseButton.onClick.RemoveAllListeners();
-            resetPoseButton.onClick.AddListener(() => OnResetPoseRequested?.Invoke());
-            demoPoseButton.onClick.RemoveAllListeners();
-            demoPoseButton.onClick.AddListener(() => OnDemoPoseRequested?.Invoke());
+        private void BuildPresentation()
+        {
+            contentRoot = UiRuntimeStyle.EnsureRectChild(panelRoot, "Content");
+            UiRuntimeStyle.Stretch(contentRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var contentLayout = UiRuntimeStyle.EnsureVerticalLayout(contentRoot.gameObject, UIDesignTokens.Space.Sm);
+            contentLayout.childAlignment = TextAnchor.UpperLeft;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandHeight = false;
+
+            headerBlock = UiRuntimeStyle.EnsureRectChild(contentRoot, "HeaderBlock");
+            var headerLayout = UiRuntimeStyle.EnsureVerticalLayout(headerBlock.gameObject, UIDesignTokens.Space.Xs);
+            headerLayout.childAlignment = TextAnchor.UpperLeft;
+            headerLayout.childControlWidth = true;
+            headerLayout.childControlHeight = true;
+            headerLayout.childForceExpandHeight = false;
+
+            titleText = CreateTextBlock(headerBlock, "Title", UIDesignTokens.Type.DisplaySm, FontStyle.Bold, UIDesignTokens.Colors.TextPrimary, 30f);
+            subtitleText = CreateTextBlock(headerBlock, "Subtitle", UIDesignTokens.Type.HeadingSm, FontStyle.Bold, UIDesignTokens.Colors.AccentSecondary, 22f);
+            descriptionText = CreateTextBlock(headerBlock, "Description", UIDesignTokens.Type.Body + 1, FontStyle.Normal, UIDesignTokens.Colors.TextSecondary, 52f);
+            capabilityText = CreateTextBlock(headerBlock, "CapabilityText", UIDesignTokens.Type.Body, FontStyle.Normal, UIDesignTokens.Colors.TextPrimary, 36f);
+            helperText = CreateTextBlock(headerBlock, "HelperText", UIDesignTokens.Type.Body, FontStyle.Italic, UIDesignTokens.Colors.TextMuted, 36f);
+
+            var divider = UIComponentFactory.CreateDivider(contentRoot, "Divider");
+            divider.raycastTarget = false;
+
+            primaryActionsStack = UiRuntimeStyle.EnsureRectChild(contentRoot, "PrimaryActionsStack");
+            var actionLayout = UiRuntimeStyle.EnsureVerticalLayout(primaryActionsStack.gameObject, UIDesignTokens.Space.Xs);
+            actionLayout.childAlignment = TextAnchor.UpperLeft;
+            actionLayout.childControlWidth = true;
+            actionLayout.childControlHeight = true;
+            actionLayout.childForceExpandHeight = false;
+
+            guidedLessonButton = UIComponentFactory.CreatePrimaryButton(primaryActionsStack, "BtnGuidedLesson", "Start Lesson", fallbackFont, 0f);
+            sandboxButton = UIComponentFactory.CreateSecondaryButton(primaryActionsStack, "BtnOpenSandbox", "Open Sandbox", fallbackFont, 0f);
+            robotControlButton = UIComponentFactory.CreateSecondaryButton(primaryActionsStack, "BtnRobotControl", "Robot Control", fallbackFont, 0f);
             guidedLessonButton.onClick.RemoveAllListeners();
             guidedLessonButton.onClick.AddListener(() => OnGuidedLessonRequested?.Invoke());
             sandboxButton.onClick.RemoveAllListeners();
             sandboxButton.onClick.AddListener(() => OnSandboxRequested?.Invoke());
             robotControlButton.onClick.RemoveAllListeners();
             robotControlButton.onClick.AddListener(() => OnRobotControlRequested?.Invoke());
-
-            return true;
         }
 
-        private void RebuildControls(float[] minLimits, float[] maxLimits, bool[] isRotational)
+        private void ApplyResponsiveLayout()
         {
-            ClearControlRows();
+            if (panelRoot == null || contentRoot == null)
+            {
+                return;
+            }
 
-            jointSliders.Clear();
-            jointInputs.Clear();
-            jointIsRotational.Clear();
+            var panelWidth = panelRoot.rect.width > 1f ? panelRoot.rect.width : 640f;
+            var panelHeight = panelRoot.rect.height > 1f ? panelRoot.rect.height : 320f;
+            var compact = panelWidth < CompactWidthThreshold || panelHeight < CompactHeightThreshold;
+            var padding = Mathf.RoundToInt(compact ? UIDesignTokens.Space.Sm : UIDesignTokens.Space.Md);
 
-            var controlCount = Mathf.Min(
-                minLimits != null ? minLimits.Length : 0,
-                Mathf.Min(maxLimits != null ? maxLimits.Length : 0, isRotational != null ? isRotational.Length : 0));
-            resetPoseButton.gameObject.SetActive(false);
-            demoPoseButton.gameObject.SetActive(false);
+            var contentLayout = contentRoot.GetComponent<VerticalLayoutGroup>();
+            if (contentLayout != null)
+            {
+                contentLayout.padding = new RectOffset(padding, padding, padding, padding);
+                contentLayout.spacing = compact ? UIDesignTokens.Space.Xs : UIDesignTokens.Space.Sm;
+            }
+
+            titleText.fontSize = compact ? UIDesignTokens.Type.HeadingLg : UIDesignTokens.Type.DisplaySm;
+            subtitleText.fontSize = compact ? UIDesignTokens.Type.Body : UIDesignTokens.Type.HeadingSm;
+            descriptionText.fontSize = compact ? UIDesignTokens.Type.Caption + 1 : UIDesignTokens.Type.Body + 1;
+            capabilityText.fontSize = compact ? UIDesignTokens.Type.Caption + 1 : UIDesignTokens.Type.Body;
+            helperText.fontSize = compact ? UIDesignTokens.Type.Caption + 1 : UIDesignTokens.Type.Body;
+
+            ApplyTextHeight(titleText, compact ? 24f : 30f);
+            ApplyTextHeight(subtitleText, compact ? 20f : 24f);
+            ApplyTextHeight(descriptionText, compact ? 42f : 52f);
+            ApplyTextHeight(capabilityText, compact ? 28f : 36f);
+            ApplyTextHeight(helperText, compact ? 28f : 36f);
+
+            ConfigureButton(guidedLessonButton, UILayoutProfile.TouchTarget, 0f, true);
+            ConfigureButton(sandboxButton, UILayoutProfile.TouchTarget, 0f, true);
+            ConfigureButton(robotControlButton, UILayoutProfile.TouchTarget, 0f, true);
         }
 
-        private void BuildControlRow(int jointIndex, float minLimit, float maxLimit, bool isRotational)
+        private Text CreateTextBlock(Transform parent, string name, int fontSize, FontStyle style, Color color, float minHeight)
         {
-            var row = UiRuntimeStyle.EnsureRectChild(panelRoot, $"JointRow_{jointIndex + 1}");
-            UiRuntimeStyle.Anchor(row, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(380f, 30f), new Vector2(16f, -(234f + jointIndex * 34f)));
-
-            var rowBackground = row.GetComponent<Image>() ?? row.gameObject.AddComponent<Image>();
-            rowBackground.color = UIDesignTokens.Colors.SurfaceCard;
-
-            var label = UiRuntimeStyle.EnsureText(row, "Label", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.TextPrimary);
-            UiRuntimeStyle.Anchor(label.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(32f, 16f), new Vector2(10f, 0f));
-            label.text = isRotational ? $"J{jointIndex + 1}" : $"L{jointIndex + 1}";
-
-            var slider = UIComponentFactory.CreateSlider(row, "Slider", minLimit, maxLimit);
-            UiRuntimeStyle.Anchor((RectTransform)slider.transform, new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-116f, UIDesignTokens.Size.SliderHeight), new Vector2(50f, 0f));
-
-            var input = UIComponentFactory.CreateInputField(row, "Input", "0.0", fallbackFont);
-            UiRuntimeStyle.Anchor((RectTransform)input.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-8f, 0f));
-
-            var capturedIndex = jointIndex;
-            slider.onValueChanged.RemoveAllListeners();
-            slider.onValueChanged.AddListener(value => HandleSliderChanged(capturedIndex, value));
-            input.onEndEdit.RemoveAllListeners();
-            input.onEndEdit.AddListener(raw => HandleInputCommitted(capturedIndex, raw));
-
-            jointSliders.Add(slider);
-            jointInputs.Add(input);
-            jointIsRotational.Add(isRotational);
+            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, fontSize, style, TextAnchor.UpperLeft, color);
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            var element = UiRuntimeStyle.EnsureLayoutElement(text);
+            element.minHeight = minHeight;
+            element.preferredHeight = minHeight;
+            element.flexibleWidth = 1f;
+            return text;
         }
 
-        private void RemoveLegacyControlsRoot()
+        private static void ApplyTextHeight(Text text, float minHeight)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            var element = UiRuntimeStyle.EnsureLayoutElement(text);
+            element.minHeight = minHeight;
+            element.preferredHeight = minHeight;
+        }
+
+        private static void ConfigureButton(Button button, float height, float width, bool fullWidth)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var element = UiRuntimeStyle.EnsureLayoutElement(button);
+            element.minHeight = height;
+            element.preferredHeight = height;
+            element.flexibleWidth = fullWidth ? 1f : 0f;
+            if (!fullWidth)
+            {
+                element.minWidth = width;
+                element.preferredWidth = width;
+            }
+        }
+
+        private void ClearPanelChildren()
         {
             if (panelRoot == null)
             {
                 return;
             }
 
-            var legacy = panelRoot.Find("ControlsRoot");
-            if (legacy != null)
-            {
-                legacy.SetParent(null, false);
-                SafeDestroy(legacy.gameObject);
-            }
-        }
-
-        private void ClearControlRows()
-        {
-            if (panelRoot == null)
-            {
-                return;
-            }
-
-            var staleRows = new List<GameObject>();
+            var staleChildren = new List<GameObject>();
             for (var i = panelRoot.childCount - 1; i >= 0; i--)
             {
-                var child = panelRoot.GetChild(i);
-                if (child != null && child.name.StartsWith("JointRow_", StringComparison.Ordinal))
-                {
-                    staleRows.Add(child.gameObject);
-                    child.SetParent(null, false);
-                }
+                staleChildren.Add(panelRoot.GetChild(i).gameObject);
             }
 
-            for (var i = 0; i < staleRows.Count; i++)
+            for (var i = 0; i < staleChildren.Count; i++)
             {
-                SafeDestroy(staleRows[i]);
-            }
-        }
-
-        private void HandleSliderChanged(int jointIndex, float value)
-        {
-            if (suppressCallbacks || jointIndex < 0 || jointIndex >= jointInputs.Count)
-            {
-                return;
+                SafeDestroy(staleChildren[i]);
             }
 
-            jointInputs[jointIndex].SetTextWithoutNotify(JointInputValidator.FormatDegrees(value));
-            RaisePosePreviewChanged();
-        }
-
-        private void HandleInputCommitted(int jointIndex, string raw)
-        {
-            if (jointIndex < 0 || jointIndex >= jointSliders.Count)
-            {
-                return;
-            }
-
-            var slider = jointSliders[jointIndex];
-            var input = jointInputs[jointIndex];
-            if (!JointInputValidator.TryParseDegrees(raw, slider.minValue, slider.maxValue, out var parsed, out _))
-            {
-                input.SetTextWithoutNotify(JointInputValidator.FormatDegrees(slider.value));
-                return;
-            }
-
-            slider.SetValueWithoutNotify(parsed);
-            input.SetTextWithoutNotify(JointInputValidator.FormatDegrees(parsed));
-            RaisePosePreviewChanged();
-        }
-
-        private void RaisePosePreviewChanged()
-        {
-            var values = new double[jointSliders.Count];
-            for (var i = 0; i < jointSliders.Count; i++)
-            {
-                values[i] = jointSliders[i].value;
-            }
-
-            OnPosePreviewChanged?.Invoke(values);
+            contentRoot = null;
+            headerBlock = null;
+            primaryActionsStack = null;
+            titleText = null;
+            subtitleText = null;
+            descriptionText = null;
+            capabilityText = null;
+            helperText = null;
+            guidedLessonButton = null;
+            sandboxButton = null;
+            robotControlButton = null;
         }
 
         private void RefreshActionButtons(RobotMetadataInfo? metadata)

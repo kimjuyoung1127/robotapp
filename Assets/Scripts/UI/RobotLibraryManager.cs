@@ -697,14 +697,15 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            var canvasWidth = canvasRoot != null && canvasRoot.rect.width > 1f ? canvasRoot.rect.width : 1920f;
             float panelWidthRatio = UILayoutProfile.IsTablet ? 0.42f : 0.34f;
-            float halfWidth = panelWidthRatio * 0.5f;
+            float panelWidth = Mathf.Clamp(canvasWidth * panelWidthRatio, 420f, UILayoutProfile.IsTablet ? 640f : 720f);
             float lowerBandTop = 1f - UIDesignTokens.Size.ShowroomViewportRatio;
 
-            panelRect.anchorMin = new Vector2(0.5f - halfWidth, 0f);
-            panelRect.anchorMax = new Vector2(0.5f + halfWidth, lowerBandTop);
-            panelRect.offsetMin = new Vector2(0f, UIDesignTokens.Space.Md);
-            panelRect.offsetMax = new Vector2(0f, -UIDesignTokens.Space.Xs);
+            panelRect.anchorMin = new Vector2(0.5f, 0f);
+            panelRect.anchorMax = new Vector2(0.5f, lowerBandTop);
+            panelRect.offsetMin = new Vector2(-panelWidth * 0.5f, UIDesignTokens.Space.Md);
+            panelRect.offsetMax = new Vector2(panelWidth * 0.5f, -UIDesignTokens.Space.Xs);
             panelRect.anchoredPosition = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0.5f);
         }
@@ -745,12 +746,6 @@ namespace KineTutor3D.UI
             selectionPanel.OnSandboxRequested += OnSelectionSandboxRequested;
             selectionPanel.OnRobotControlRequested -= OnSelectionRobotControlRequested;
             selectionPanel.OnRobotControlRequested += OnSelectionRobotControlRequested;
-            selectionPanel.OnPosePreviewChanged -= OnSelectionPosePreviewChanged;
-            selectionPanel.OnPosePreviewChanged += OnSelectionPosePreviewChanged;
-            selectionPanel.OnResetPoseRequested -= OnSelectionResetPoseRequested;
-            selectionPanel.OnResetPoseRequested += OnSelectionResetPoseRequested;
-            selectionPanel.OnDemoPoseRequested -= OnSelectionDemoPoseRequested;
-            selectionPanel.OnDemoPoseRequested += OnSelectionDemoPoseRequested;
 
             if (selectedEntry != null)
             {
@@ -758,7 +753,8 @@ namespace KineTutor3D.UI
             }
             else
             {
-                selectionPanel.ShowRobot(null, null, null, null, null);
+                EnsureDefaultSelectionEntry();
+                RefreshSelectionPanel();
             }
         }
 
@@ -864,16 +860,36 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            EnsureDefaultSelectionEntry();
+
             if (selectedEntry == null)
             {
-                selectionPanel.ShowRobot(null, null, null, null, null);
+                selectionPanel.ShowRobot(null);
                 return;
             }
 
-            var pose = GetOrCreatePreviewPose(selectedEntry);
-            GetControlSpecs(selectedEntry, out var minLimits, out var maxLimits, out var isRotational);
-            selectionPanel.ShowRobot(selectedEntry, pose, minLimits, maxLimits, isRotational);
+            selectionPanel.ShowRobot(selectedEntry);
             ApplyPreviewPose(selectedEntry.Metadata.RobotId);
+        }
+
+        private void EnsureDefaultSelectionEntry()
+        {
+            if (selectedEntry != null)
+            {
+                return;
+            }
+
+            if (RobotCatalog.TryGet("SCARA_RV", out var scaraEntry))
+            {
+                selectedEntry = scaraEntry;
+                return;
+            }
+
+            var entries = RobotCatalog.GetRobotLibraryEntries();
+            if (entries != null && entries.Length > 0)
+            {
+                selectedEntry = entries[0];
+            }
         }
 
         private double[] GetOrCreatePreviewPose(RobotCatalogEntry entry)
@@ -906,43 +922,6 @@ namespace KineTutor3D.UI
             }
 
             return new double[Mathf.Max(1, metadata.Dof)];
-        }
-
-        private void GetControlSpecs(RobotCatalogEntry entry, out float[] minLimits, out float[] maxLimits, out bool[] isRotational)
-        {
-            minLimits = Array.Empty<float>();
-            maxLimits = Array.Empty<float>();
-            isRotational = Array.Empty<bool>();
-
-            if (entry == null)
-            {
-                return;
-            }
-
-            var robotId = entry.Metadata.RobotId;
-            if (showroomManager != null && showroomManager.TryGetPod(robotId, out var pod) && pod.SupportsPoseControl)
-            {
-                pod.GetControlSpecs(out minLimits, out maxLimits, out isRotational);
-                return;
-            }
-
-            var template = RobotCatalog.CreateTemplate(robotId);
-            if (template == null)
-            {
-                return;
-            }
-
-            minLimits = new float[template.Dof];
-            maxLimits = new float[template.Dof];
-            isRotational = new bool[template.Dof];
-            for (var i = 0; i < template.Dof; i++)
-            {
-                var limit = template.GetJointLimit(i);
-                var link = template.GetLink(i);
-                minLimits[i] = (float)limit.Min * Mathf.Rad2Deg;
-                maxLimits[i] = (float)limit.Max * Mathf.Rad2Deg;
-                isRotational[i] = link.JointType != JointType.Prismatic;
-            }
         }
 
         private void ApplyPreviewPose(string robotId)
@@ -1060,45 +1039,6 @@ namespace KineTutor3D.UI
             {
                 OnOpenRobotControl(selectedEntry);
             }
-        }
-
-        private void OnSelectionPosePreviewChanged(double[] poseDeg)
-        {
-            if (selectedEntry == null || poseDeg == null)
-            {
-                return;
-            }
-
-            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = (double[])poseDeg.Clone();
-            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
-        }
-
-        private void OnSelectionResetPoseRequested()
-        {
-            if (selectedEntry == null)
-            {
-                return;
-            }
-
-            var pose = selectedEntry.Metadata.ZeroPoseDeg != null && selectedEntry.Metadata.ZeroPoseDeg.Length > 0
-                ? (double[])selectedEntry.Metadata.ZeroPoseDeg.Clone()
-                : new double[Mathf.Max(1, selectedEntry.Metadata.Dof)];
-            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = pose;
-            selectionPanel?.SetPoseWithoutNotify(pose);
-            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
-        }
-
-        private void OnSelectionDemoPoseRequested()
-        {
-            if (selectedEntry == null)
-            {
-                return;
-            }
-
-            var pose = CreateInitialPreviewPose(selectedEntry.Metadata);
-            previewPoseByRobotId[selectedEntry.Metadata.RobotId] = pose;
-            selectionPanel?.SetPoseWithoutNotify(pose);
-            ApplyPreviewPose(selectedEntry.Metadata.RobotId);
         }
 
         private void RemoveCompareStrip()
