@@ -1,0 +1,692 @@
+﻿{
+    "benchmark_name":  "unityctl-vs-coplaydev-mcp-bridge",
+    "collected_at_utc":  "2026-03-18T05:59:33.4843652+00:00",
+    "environment":  {
+                        "cwd":  "C:\\Users\\ezen601\\Desktop\\Jason\\robotapp2",
+                        "unityctl_root":  "C:\\Users\\ezen601\\Desktop\\Jason\\unityctl",
+                        "unity_project":  "C:/Users/ezen601/Desktop/Jason/robotapp2",
+                        "mcp_host":  "127.0.0.1",
+                        "mcp_port":  6400,
+                        "warmup_runs":  2,
+                        "measured_runs":  8
+                    },
+    "assumptions":  [
+                        "docs/tasks/benchmark-vs-mcp.md was not present in the repository, so the benchmark spec was inferred from the live environment.",
+                        "CoplayDev was measured by direct framed TCP calls to the exposed Unity bridge on port 6400, not by spawning an extra uvx stdio/http wrapper.",
+                        "Two Unity Editor processes were running. Some scene-oriented commands routed to \u0027C:/Users/ezen601/Desktop/Jason/My project\u0027 even though the bridge status files claimed robotapp2."
+                    ],
+    "findings":  [
+                     "unityctl status/check stayed on robotapp2, but unityctl exec active-scene lookup returned My project.",
+                     "CoplayDev get_editor_state/manage_scene/read_console also returned My project content through port 6400.",
+                     "Because of the routing mismatch, only ping and editor-state latency should be treated as high-confidence transport comparisons. Active-scene is medium confidence, diagnostic is low confidence."
+                 ],
+    "operations":  [
+                       {
+                           "name":  "ping",
+                           "comparability":  "high",
+                           "description":  "Basic reachability check.",
+                           "unityctl":  {
+                                            "label":  "unityctl/ping",
+                                            "warmup_runs":  [
+                                                                {
+                                                                    "run":  1,
+                                                                    "ms":  2299.85
+                                                                },
+                                                                {
+                                                                    "run":  2,
+                                                                    "ms":  2069.76
+                                                                }
+                                                            ],
+                                            "measured_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  2107.74
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  2096.57
+                                                                  },
+                                                                  {
+                                                                      "run":  3,
+                                                                      "ms":  2018.39
+                                                                  },
+                                                                  {
+                                                                      "run":  4,
+                                                                      "ms":  2111.9
+                                                                  },
+                                                                  {
+                                                                      "run":  5,
+                                                                      "ms":  2111.62
+                                                                  },
+                                                                  {
+                                                                      "run":  6,
+                                                                      "ms":  1995.32
+                                                                  },
+                                                                  {
+                                                                      "run":  7,
+                                                                      "ms":  2035.81
+                                                                  },
+                                                                  {
+                                                                      "run":  8,
+                                                                      "ms":  2123.14
+                                                                  }
+                                                              ],
+                                            "stats":  {
+                                                          "runs":  8,
+                                                          "min_ms":  1995.32,
+                                                          "max_ms":  2123.14,
+                                                          "mean_ms":  2075.06,
+                                                          "median_ms":  2102.15,
+                                                          "stdev_ms":  46.97
+                                                      },
+                                            "sample":  {
+                                                           "text":  "{\r\n  \"statusCode\": 0,\r\n  \"success\": true,\r\n  \"message\": \"pong\",\r\n  \"data\": {\r\n    \"version\": \"0.2.0\",\r\n    \"unityVersion\": \"6000.0.64f1\"\r\n  },\r\n  \"requestId\": \"3fe84950547246c9a4f8311cb8358b93\"\r\n}",
+                                                           "json":  {
+                                                                        "statusCode":  0,
+                                                                        "success":  true,
+                                                                        "message":  "pong",
+                                                                        "data":  {
+                                                                                     "version":  "0.2.0",
+                                                                                     "unityVersion":  "6000.0.64f1"
+                                                                                 },
+                                                                        "requestId":  "3fe84950547246c9a4f8311cb8358b93"
+                                                                    }
+                                                       }
+                                        },
+                           "mcp_bridge":  {
+                                              "label":  "mcp/ping",
+                                              "warmup_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  181.72
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  1.75
+                                                                  }
+                                                              ],
+                                              "measured_runs":  [
+                                                                    {
+                                                                        "run":  1,
+                                                                        "ms":  1.07
+                                                                    },
+                                                                    {
+                                                                        "run":  2,
+                                                                        "ms":  1.03
+                                                                    },
+                                                                    {
+                                                                        "run":  3,
+                                                                        "ms":  1.11
+                                                                    },
+                                                                    {
+                                                                        "run":  4,
+                                                                        "ms":  1.69
+                                                                    },
+                                                                    {
+                                                                        "run":  5,
+                                                                        "ms":  1.89
+                                                                    },
+                                                                    {
+                                                                        "run":  6,
+                                                                        "ms":  1.15
+                                                                    },
+                                                                    {
+                                                                        "run":  7,
+                                                                        "ms":  1.14
+                                                                    },
+                                                                    {
+                                                                        "run":  8,
+                                                                        "ms":  1.28
+                                                                    }
+                                                                ],
+                                              "stats":  {
+                                                            "runs":  8,
+                                                            "min_ms":  1.03,
+                                                            "max_ms":  1.89,
+                                                            "mean_ms":  1.3,
+                                                            "median_ms":  1.14,
+                                                            "stdev_ms":  0.3
+                                                        },
+                                              "sample":  {
+                                                             "handshake":  "WELCOME UNITY-MCP 1 FRAMING=1",
+                                                             "text":  "{\"status\":\"success\",\"result\":{\"message\":\"pong\"}}",
+                                                             "json":  {
+                                                                          "status":  "success",
+                                                                          "result":  {
+                                                                                         "message":  "pong"
+                                                                                     }
+                                                                      }
+                                                         }
+                                          },
+                           "sample_summaries":  {
+                                                    "unityctl":  "message=pong; unityVersion=6000.0.64f1",
+                                                    "mcp":  "message=pong"
+                                                }
+                       },
+                       {
+                           "name":  "editor_state",
+                           "comparability":  "high",
+                           "description":  "Editor state lookup.",
+                           "unityctl":  {
+                                            "label":  "unityctl/editor_state",
+                                            "warmup_runs":  [
+                                                                {
+                                                                    "run":  1,
+                                                                    "ms":  2048.44
+                                                                },
+                                                                {
+                                                                    "run":  2,
+                                                                    "ms":  2103.73
+                                                                }
+                                                            ],
+                                            "measured_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  2107.51
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  2115.03
+                                                                  },
+                                                                  {
+                                                                      "run":  3,
+                                                                      "ms":  2104.48
+                                                                  },
+                                                                  {
+                                                                      "run":  4,
+                                                                      "ms":  2103.55
+                                                                  },
+                                                                  {
+                                                                      "run":  5,
+                                                                      "ms":  2013.58
+                                                                  },
+                                                                  {
+                                                                      "run":  6,
+                                                                      "ms":  2106.45
+                                                                  },
+                                                                  {
+                                                                      "run":  7,
+                                                                      "ms":  2100.38
+                                                                  },
+                                                                  {
+                                                                      "run":  8,
+                                                                      "ms":  2104.17
+                                                                  }
+                                                              ],
+                                            "stats":  {
+                                                          "runs":  8,
+                                                          "min_ms":  2013.58,
+                                                          "max_ms":  2115.03,
+                                                          "mean_ms":  2094.39,
+                                                          "median_ms":  2104.32,
+                                                          "stdev_ms":  30.8
+                                                      },
+                                            "sample":  {
+                                                           "text":  "{\r\n  \"statusCode\": 0,\r\n  \"success\": true,\r\n  \"message\": \"Ready\",\r\n  \"data\": {\r\n    \"isCompiling\": false,\r\n    \"isPlaying\": false,\r\n    \"isUpdating\": false,\r\n    \"projectPath\": \"C:/Users/ezen601/Desktop/Jason/robotapp2/Assets\",\r\n    \"unityVersion\": \"6000.0.64f1\",\r\n    \"platform\": \"StandaloneWindows64\"\r\n  },\r\n  \"requestId\": \"a7cad418afac4d5092b93148eb6e69ab\"\r\n}",
+                                                           "json":  {
+                                                                        "statusCode":  0,
+                                                                        "success":  true,
+                                                                        "message":  "Ready",
+                                                                        "data":  {
+                                                                                     "isCompiling":  false,
+                                                                                     "isPlaying":  false,
+                                                                                     "isUpdating":  false,
+                                                                                     "projectPath":  "C:/Users/ezen601/Desktop/Jason/robotapp2/Assets",
+                                                                                     "unityVersion":  "6000.0.64f1",
+                                                                                     "platform":  "StandaloneWindows64"
+                                                                                 },
+                                                                        "requestId":  "a7cad418afac4d5092b93148eb6e69ab"
+                                                                    }
+                                                       }
+                                        },
+                           "mcp_bridge":  {
+                                              "label":  "mcp/editor_state",
+                                              "warmup_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  95.81
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  96.93
+                                                                  }
+                                                              ],
+                                              "measured_runs":  [
+                                                                    {
+                                                                        "run":  1,
+                                                                        "ms":  100.39
+                                                                    },
+                                                                    {
+                                                                        "run":  2,
+                                                                        "ms":  4.1
+                                                                    },
+                                                                    {
+                                                                        "run":  3,
+                                                                        "ms":  100.88
+                                                                    },
+                                                                    {
+                                                                        "run":  4,
+                                                                        "ms":  98.7
+                                                                    },
+                                                                    {
+                                                                        "run":  5,
+                                                                        "ms":  103.35
+                                                                    },
+                                                                    {
+                                                                        "run":  6,
+                                                                        "ms":  99.65
+                                                                    },
+                                                                    {
+                                                                        "run":  7,
+                                                                        "ms":  3.21
+                                                                    },
+                                                                    {
+                                                                        "run":  8,
+                                                                        "ms":  94.61
+                                                                    }
+                                                                ],
+                                              "stats":  {
+                                                            "runs":  8,
+                                                            "min_ms":  3.21,
+                                                            "max_ms":  103.35,
+                                                            "mean_ms":  75.61,
+                                                            "median_ms":  99.18,
+                                                            "stdev_ms":  41.61
+                                                        },
+                                              "sample":  {
+                                                             "handshake":  "WELCOME UNITY-MCP 1 FRAMING=1",
+                                                             "text":  "{\"status\":\"success\",\"result\":{\"success\":true,\"message\":\"Retrieved editor state.\",\"data\":{\"schema_version\":\"unity-mcp/editor_state@2\",\"observed_at_unix_ms\":1773813616435,\"sequence\":24,\"unity\":{\"instance_id\":null,\"unity_version\":\"6000.0.64f1\",\"project_id\":null,\"platform\":\"WindowsEditor\",\"is_batch_mode\":false},\"editor\":{\"is_focused\":false,\"play_mode\":{\"is_playing\":false,\"is_paused\":false,\"is_changing\":false},\"active_scene\":{\"path\":\"C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity\",\"guid\":\"\",\"name\":\"SampleScene\"}},\"activity\":{\"phase\":\"idle\",\"since_unix_ms\":1773813369644,\"reasons\":[\"tick\"]},\"compilation\":{\"is_compiling\":false,\"is_domain_reload_pending\":false,\"last_compile_started_unix_ms\":null,\"last_compile_finished_unix_ms\":null,\"last_domain_reload_before_unix_ms\":null,\"last_domain_reload_after_unix_ms\":1773812673992},\"assets\":{\"is_updating\":false,\"external_changes_dirty\":false,\"external_changes_last_seen_unix_ms\":null,\"external_changes_dirty_since_unix_ms\":null,\"external_changes_last_cleared_unix_ms\":null,\"refresh\":{\"is_refresh_in_progress\":false,\"last_refresh_requested_unix_ms\":null,\"last_refresh_finished_unix_ms\":null}},\"tests\":{\"is_running\":false,\"mode\":null,\"current_job_id\":null,\"started_unix_ms\":null,\"started_by\":\"unknown\",\"last_run\":null},\"transport\":{\"unity_bridge_connected\":null,\"last_message_unix_ms\":null},\"settings\":{\"batch_execute_max_commands\":25}}}}",
+                                                             "json":  {
+                                                                          "status":  "success",
+                                                                          "result":  {
+                                                                                         "success":  true,
+                                                                                         "message":  "Retrieved editor state.",
+                                                                                         "data":  {
+                                                                                                      "schema_version":  "unity-mcp/editor_state@2",
+                                                                                                      "observed_at_unix_ms":  1773813616435,
+                                                                                                      "sequence":  24,
+                                                                                                      "unity":  {
+                                                                                                                    "instance_id":  null,
+                                                                                                                    "unity_version":  "6000.0.64f1",
+                                                                                                                    "project_id":  null,
+                                                                                                                    "platform":  "WindowsEditor",
+                                                                                                                    "is_batch_mode":  false
+                                                                                                                },
+                                                                                                      "editor":  {
+                                                                                                                     "is_focused":  false,
+                                                                                                                     "play_mode":  {
+                                                                                                                                       "is_playing":  false,
+                                                                                                                                       "is_paused":  false,
+                                                                                                                                       "is_changing":  false
+                                                                                                                                   },
+                                                                                                                     "active_scene":  {
+                                                                                                                                          "path":  "C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity",
+                                                                                                                                          "guid":  "",
+                                                                                                                                          "name":  "SampleScene"
+                                                                                                                                      }
+                                                                                                                 },
+                                                                                                      "activity":  {
+                                                                                                                       "phase":  "idle",
+                                                                                                                       "since_unix_ms":  1773813369644,
+                                                                                                                       "reasons":  [
+                                                                                                                                       "tick"
+                                                                                                                                   ]
+                                                                                                                   },
+                                                                                                      "compilation":  {
+                                                                                                                          "is_compiling":  false,
+                                                                                                                          "is_domain_reload_pending":  false,
+                                                                                                                          "last_compile_started_unix_ms":  null,
+                                                                                                                          "last_compile_finished_unix_ms":  null,
+                                                                                                                          "last_domain_reload_before_unix_ms":  null,
+                                                                                                                          "last_domain_reload_after_unix_ms":  1773812673992
+                                                                                                                      },
+                                                                                                      "assets":  {
+                                                                                                                     "is_updating":  false,
+                                                                                                                     "external_changes_dirty":  false,
+                                                                                                                     "external_changes_last_seen_unix_ms":  null,
+                                                                                                                     "external_changes_dirty_since_unix_ms":  null,
+                                                                                                                     "external_changes_last_cleared_unix_ms":  null,
+                                                                                                                     "refresh":  {
+                                                                                                                                     "is_refresh_in_progress":  false,
+                                                                                                                                     "last_refresh_requested_unix_ms":  null,
+                                                                                                                                     "last_refresh_finished_unix_ms":  null
+                                                                                                                                 }
+                                                                                                                 },
+                                                                                                      "tests":  {
+                                                                                                                    "is_running":  false,
+                                                                                                                    "mode":  null,
+                                                                                                                    "current_job_id":  null,
+                                                                                                                    "started_unix_ms":  null,
+                                                                                                                    "started_by":  "unknown",
+                                                                                                                    "last_run":  null
+                                                                                                                },
+                                                                                                      "transport":  {
+                                                                                                                        "unity_bridge_connected":  null,
+                                                                                                                        "last_message_unix_ms":  null
+                                                                                                                    },
+                                                                                                      "settings":  {
+                                                                                                                       "batch_execute_max_commands":  25
+                                                                                                                   }
+                                                                                                  }
+                                                                                     }
+                                                                      }
+                                                         }
+                                          },
+                           "sample_summaries":  {
+                                                    "unityctl":  "projectPath=C:/Users/ezen601/Desktop/Jason/robotapp2/Assets; isPlaying=False; isCompiling=False",
+                                                    "mcp":  "activeScene=C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity; isPlaying=False; isCompiling=False"
+                                                }
+                       },
+                       {
+                           "name":  "active_scene",
+                           "comparability":  "medium",
+                           "description":  "Active scene lookup. unityctl uses exec; MCP uses manage_scene/get_active.",
+                           "unityctl":  {
+                                            "label":  "unityctl/active_scene",
+                                            "warmup_runs":  [
+                                                                {
+                                                                    "run":  1,
+                                                                    "ms":  2005.23
+                                                                },
+                                                                {
+                                                                    "run":  2,
+                                                                    "ms":  2102.4
+                                                                }
+                                                            ],
+                                            "measured_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  2098.13
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  2110.86
+                                                                  },
+                                                                  {
+                                                                      "run":  3,
+                                                                      "ms":  2100.94
+                                                                  },
+                                                                  {
+                                                                      "run":  4,
+                                                                      "ms":  2110.73
+                                                                  },
+                                                                  {
+                                                                      "run":  5,
+                                                                      "ms":  2109.75
+                                                                  },
+                                                                  {
+                                                                      "run":  6,
+                                                                      "ms":  2105.9
+                                                                  },
+                                                                  {
+                                                                      "run":  7,
+                                                                      "ms":  2119.97
+                                                                  },
+                                                                  {
+                                                                      "run":  8,
+                                                                      "ms":  2106.79
+                                                                  }
+                                                              ],
+                                            "stats":  {
+                                                          "runs":  8,
+                                                          "min_ms":  2098.13,
+                                                          "max_ms":  2119.97,
+                                                          "mean_ms":  2107.88,
+                                                          "median_ms":  2108.27,
+                                                          "stdev_ms":  6.27
+                                                      },
+                                            "sample":  {
+                                                           "text":  "{\r\n  \"statusCode\": 0,\r\n  \"success\": true,\r\n  \"message\": \"exec: UnityEngine.SceneManagement.SceneManager.GetActiveScene().path\",\r\n  \"data\": {\r\n    \"result\": {\r\n      \"handle\": -1266,\r\n      \"path\": \"C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity\",\r\n      \"name\": \"SampleScene\",\r\n      \"isLoaded\": true,\r\n      \"buildIndex\": -1,\r\n      \"isDirty\": false,\r\n      \"rootCount\": 3,\r\n      \"isSubScene\": false\r\n    }\r\n  },\r\n  \"requestId\": \"5f8486f3f61f41b0896d438d620c5f9c\"\r\n}",
+                                                           "json":  {
+                                                                        "statusCode":  0,
+                                                                        "success":  true,
+                                                                        "message":  "exec: UnityEngine.SceneManagement.SceneManager.GetActiveScene().path",
+                                                                        "data":  {
+                                                                                     "result":  {
+                                                                                                    "handle":  -1266,
+                                                                                                    "path":  "C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity",
+                                                                                                    "name":  "SampleScene",
+                                                                                                    "isLoaded":  true,
+                                                                                                    "buildIndex":  -1,
+                                                                                                    "isDirty":  false,
+                                                                                                    "rootCount":  3,
+                                                                                                    "isSubScene":  false
+                                                                                                }
+                                                                                 },
+                                                                        "requestId":  "5f8486f3f61f41b0896d438d620c5f9c"
+                                                                    }
+                                                       }
+                                        },
+                           "mcp_bridge":  {
+                                              "label":  "mcp/active_scene",
+                                              "warmup_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  86.95
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  101.12
+                                                                  }
+                                                              ],
+                                              "measured_runs":  [
+                                                                    {
+                                                                        "run":  1,
+                                                                        "ms":  101.05
+                                                                    },
+                                                                    {
+                                                                        "run":  2,
+                                                                        "ms":  3.27
+                                                                    },
+                                                                    {
+                                                                        "run":  3,
+                                                                        "ms":  100.34
+                                                                    },
+                                                                    {
+                                                                        "run":  4,
+                                                                        "ms":  100.47
+                                                                    },
+                                                                    {
+                                                                        "run":  5,
+                                                                        "ms":  5.47
+                                                                    },
+                                                                    {
+                                                                        "run":  6,
+                                                                        "ms":  98.65
+                                                                    },
+                                                                    {
+                                                                        "run":  7,
+                                                                        "ms":  98.62
+                                                                    },
+                                                                    {
+                                                                        "run":  8,
+                                                                        "ms":  2.96
+                                                                    }
+                                                                ],
+                                              "stats":  {
+                                                            "runs":  8,
+                                                            "min_ms":  2.96,
+                                                            "max_ms":  101.05,
+                                                            "mean_ms":  63.85,
+                                                            "median_ms":  98.64,
+                                                            "stdev_ms":  46.45
+                                                        },
+                                              "sample":  {
+                                                             "handshake":  "WELCOME UNITY-MCP 1 FRAMING=1",
+                                                             "text":  "{\"status\":\"success\",\"result\":{\"success\":true,\"message\":\"Retrieved active scene information.\",\"data\":{\"name\":\"SampleScene\",\"path\":\"C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity\",\"buildIndex\":-1,\"isDirty\":false,\"isLoaded\":true,\"rootCount\":3}}}",
+                                                             "json":  {
+                                                                          "status":  "success",
+                                                                          "result":  {
+                                                                                         "success":  true,
+                                                                                         "message":  "Retrieved active scene information.",
+                                                                                         "data":  {
+                                                                                                      "name":  "SampleScene",
+                                                                                                      "path":  "C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity",
+                                                                                                      "buildIndex":  -1,
+                                                                                                      "isDirty":  false,
+                                                                                                      "isLoaded":  true,
+                                                                                                      "rootCount":  3
+                                                                                                  }
+                                                                                     }
+                                                                      }
+                                                         }
+                                          },
+                           "sample_summaries":  {
+                                                    "unityctl":  "activeScene=C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity",
+                                                    "mcp":  "activeScene=C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity"
+                                                }
+                       },
+                       {
+                           "name":  "diagnostic",
+                           "comparability":  "low",
+                           "description":  "Diagnostic read. Not apples-to-apples: unityctl=check, MCP=read_console.",
+                           "unityctl":  {
+                                            "label":  "unityctl/diagnostic",
+                                            "warmup_runs":  [
+                                                                {
+                                                                    "run":  1,
+                                                                    "ms":  2193.43
+                                                                },
+                                                                {
+                                                                    "run":  2,
+                                                                    "ms":  2477.69
+                                                                }
+                                                            ],
+                                            "measured_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  2105.19
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  2008.06
+                                                                  },
+                                                                  {
+                                                                      "run":  3,
+                                                                      "ms":  2192.05
+                                                                  },
+                                                                  {
+                                                                      "run":  4,
+                                                                      "ms":  2196.31
+                                                                  },
+                                                                  {
+                                                                      "run":  5,
+                                                                      "ms":  2073.63
+                                                                  },
+                                                                  {
+                                                                      "run":  6,
+                                                                      "ms":  2106.45
+                                                                  },
+                                                                  {
+                                                                      "run":  7,
+                                                                      "ms":  2099.77
+                                                                  },
+                                                                  {
+                                                                      "run":  8,
+                                                                      "ms":  2104.54
+                                                                  }
+                                                              ],
+                                            "stats":  {
+                                                          "runs":  8,
+                                                          "min_ms":  2008.06,
+                                                          "max_ms":  2196.31,
+                                                          "mean_ms":  2110.75,
+                                                          "median_ms":  2104.86,
+                                                          "stdev_ms":  57.08
+                                                      },
+                                            "sample":  {
+                                                           "text":  "{\r\n  \"statusCode\": 0,\r\n  \"success\": true,\r\n  \"message\": \"Compilation check passed\",\r\n  \"data\": {\r\n    \"assemblies\": 44,\r\n    \"assemblyNames\": \"Unity.Timeline, Unity.RenderPipelines.GPUDriven.Runtime, MCPForUnity.Runtime, KineTutor3D.Runtime, NaughtyAttributes.Core, Unity.RenderPipelines.Core.Runtime, Unity.Mathematics, Unity.Collections, UnityEngine.UI, Unity.RenderPipelines.Universal.2D.Runtime\",\r\n    \"isCompiling\": false,\r\n    \"scriptCompilationFailed\": false\r\n  },\r\n  \"requestId\": \"41e2a9e9d2744ee79345ba9cbc153803\"\r\n}",
+                                                           "json":  {
+                                                                        "statusCode":  0,
+                                                                        "success":  true,
+                                                                        "message":  "Compilation check passed",
+                                                                        "data":  {
+                                                                                     "assemblies":  44,
+                                                                                     "assemblyNames":  "Unity.Timeline, Unity.RenderPipelines.GPUDriven.Runtime, MCPForUnity.Runtime, KineTutor3D.Runtime, NaughtyAttributes.Core, Unity.RenderPipelines.Core.Runtime, Unity.Mathematics, Unity.Collections, UnityEngine.UI, Unity.RenderPipelines.Universal.2D.Runtime",
+                                                                                     "isCompiling":  false,
+                                                                                     "scriptCompilationFailed":  false
+                                                                                 },
+                                                                        "requestId":  "41e2a9e9d2744ee79345ba9cbc153803"
+                                                                    }
+                                                       }
+                                        },
+                           "mcp_bridge":  {
+                                              "label":  "mcp/diagnostic",
+                                              "warmup_runs":  [
+                                                                  {
+                                                                      "run":  1,
+                                                                      "ms":  50.65
+                                                                  },
+                                                                  {
+                                                                      "run":  2,
+                                                                      "ms":  2.96
+                                                                  }
+                                                              ],
+                                              "measured_runs":  [
+                                                                    {
+                                                                        "run":  1,
+                                                                        "ms":  100.24
+                                                                    },
+                                                                    {
+                                                                        "run":  2,
+                                                                        "ms":  99.78
+                                                                    },
+                                                                    {
+                                                                        "run":  3,
+                                                                        "ms":  3.21
+                                                                    },
+                                                                    {
+                                                                        "run":  4,
+                                                                        "ms":  99.98
+                                                                    },
+                                                                    {
+                                                                        "run":  5,
+                                                                        "ms":  100.76
+                                                                    },
+                                                                    {
+                                                                        "run":  6,
+                                                                        "ms":  2.92
+                                                                    },
+                                                                    {
+                                                                        "run":  7,
+                                                                        "ms":  100.46
+                                                                    },
+                                                                    {
+                                                                        "run":  8,
+                                                                        "ms":  99.73
+                                                                    }
+                                                                ],
+                                              "stats":  {
+                                                            "runs":  8,
+                                                            "min_ms":  2.92,
+                                                            "max_ms":  100.76,
+                                                            "mean_ms":  75.88,
+                                                            "median_ms":  99.88,
+                                                            "stdev_ms":  42.04
+                                                        },
+                                              "sample":  {
+                                                             "handshake":  "WELCOME UNITY-MCP 1 FRAMING=1",
+                                                             "text":  "{\"status\":\"success\",\"result\":{\"success\":true,\"message\":\"Retrieved 5 log entries.\",\"data\":[\"Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.\",\"Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.\",\"Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.\",\"\u003cb\u003e\u003ccolor=#2EA3FF\u003eMCP-FOR-UNITY\u003c/color\u003e\u003c/b\u003e: Client handler exited (remaining clients: 1)\",\"\u003cb\u003e\u003ccolor=#2EA3FF\u003eMCP-FOR-UNITY\u003c/color\u003e\u003c/b\u003e: Client handler exited (remaining clients: 0)\"]}}",
+                                                             "json":  {
+                                                                          "status":  "success",
+                                                                          "result":  {
+                                                                                         "success":  true,
+                                                                                         "message":  "Retrieved 5 log entries.",
+                                                                                         "data":  [
+                                                                                                      "Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.",
+                                                                                                      "Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.",
+                                                                                                      "Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder.",
+                                                                                                      "\u003cb\u003e\u003ccolor=#2EA3FF\u003eMCP-FOR-UNITY\u003c/color\u003e\u003c/b\u003e: Client handler exited (remaining clients: 1)",
+                                                                                                      "\u003cb\u003e\u003ccolor=#2EA3FF\u003eMCP-FOR-UNITY\u003c/color\u003e\u003c/b\u003e: Client handler exited (remaining clients: 0)"
+                                                                                                  ]
+                                                                                     }
+                                                                      }
+                                                         }
+                                          },
+                           "sample_summaries":  {
+                                                    "unityctl":  "assemblies=44; scriptCompilationFailed=False",
+                                                    "mcp":  "count=5; firstLine=Invalid AssetDatabase path: C:/Users/ezen601/Desktop/Jason/My project/Assets/Scenes/SampleScene.unity. Use path relative to the project folder."
+                                                }
+                       }
+                   ]
+}

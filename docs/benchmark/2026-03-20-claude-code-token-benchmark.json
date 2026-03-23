@@ -1,0 +1,233 @@
+{
+  "benchmark_name": "claude-code-token-efficiency",
+  "collected_at_utc": "2026-03-20T10:35:10.443293+00:00",
+  "project": "C:/Users/ezen601/Desktop/Jason/robotapp2",
+  "operations": [
+    {
+      "id": "compile_check",
+      "label": "Compile Check"
+    },
+    {
+      "id": "scene_hierarchy",
+      "label": "Scene Hierarchy (depth=2)"
+    },
+    {
+      "id": "robot_catalog",
+      "label": "Robot Catalog"
+    },
+    {
+      "id": "dh_table",
+      "label": "DH Table (2DOF_RR)"
+    },
+    {
+      "id": "build_settings",
+      "label": "Build Settings"
+    }
+  ],
+  "notes": [
+    "Token estimate uses UTF-8 bytes/4 heuristic.",
+    "CLI schema cost in Claude Code context is 0 (Bash tool shared).",
+    "All operations are read-only and do not modify project state."
+  ],
+  "data": {
+    "cli": {
+      "schema": {
+        "bytes": 11927,
+        "approx_tokens": 2982
+      },
+      "bash_tool_schema": {
+        "bytes": 384,
+        "approx_tokens": 96,
+        "text": "{\"name\":\"Bash\",\"description\":\"Executes a given bash command and returns its output.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"command\":{\"type\":\"string\",\"description\":\"The command to execute\"},\"description\":{\"type\":\"string\",\"description\":\"Description of what this command does\"},\"timeout\":{\"type\":\"number\",\"description\":\"Optional timeout in milliseconds\"}},\"required\":[\"command\"]}}"
+      },
+      "operations": {
+        "compile_check": {
+          "request": {
+            "bytes": 207,
+            "approx_tokens": 52
+          },
+          "response": {
+            "bytes": 514,
+            "approx_tokens": 129
+          }
+        },
+        "scene_hierarchy": {
+          "request": {
+            "bytes": 321,
+            "approx_tokens": 81
+          },
+          "response": {
+            "bytes": 339,
+            "approx_tokens": 85
+          }
+        },
+        "robot_catalog": {
+          "request": {
+            "bytes": 290,
+            "approx_tokens": 73
+          },
+          "response": {
+            "bytes": 243,
+            "approx_tokens": 61
+          }
+        },
+        "dh_table": {
+          "request": {
+            "bytes": 273,
+            "approx_tokens": 69
+          },
+          "response": {
+            "bytes": 273,
+            "approx_tokens": 69
+          }
+        },
+        "build_settings": {
+          "request": {
+            "bytes": 231,
+            "approx_tokens": 58
+          },
+          "response": {
+            "bytes": 4429,
+            "approx_tokens": 1108
+          }
+        }
+      }
+    },
+    "unityctl_mcp": {
+      "schema": {
+        "bytes": 5024,
+        "approx_tokens": 1256
+      },
+      "tool_count": 12,
+      "tool_names": [
+        "unityctl_scene_snapshot",
+        "unityctl_scene_diff",
+        "unityctl_build",
+        "unityctl_check",
+        "unityctl_log",
+        "unityctl_schema",
+        "unityctl_watch",
+        "unityctl_test",
+        "unityctl_session_list",
+        "unityctl_ping",
+        "unityctl_exec",
+        "unityctl_status"
+      ],
+      "operations": {
+        "compile_check": {
+          "request": {
+            "bytes": 109,
+            "approx_tokens": 28
+          },
+          "response": {
+            "bytes": 525,
+            "approx_tokens": 132
+          }
+        },
+        "scene_hierarchy": {
+          "request": {
+            "bytes": 223,
+            "approx_tokens": 56
+          },
+          "response": {
+            "bytes": 344,
+            "approx_tokens": 86
+          }
+        },
+        "robot_catalog": {
+          "request": {
+            "bytes": 192,
+            "approx_tokens": 48
+          },
+          "response": {
+            "bytes": 248,
+            "approx_tokens": 62
+          }
+        },
+        "dh_table": {
+          "request": {
+            "bytes": 175,
+            "approx_tokens": 44
+          },
+          "response": {
+            "bytes": 278,
+            "approx_tokens": 70
+          }
+        },
+        "build_settings": {
+          "request": {
+            "bytes": 137,
+            "approx_tokens": 35
+          },
+          "response": {
+            "bytes": 4571,
+            "approx_tokens": 1143
+          }
+        }
+      }
+    },
+    "coplaydev_mcp": {
+      "schema": {
+        "bytes": 45705,
+        "approx_tokens": 11427
+      },
+      "tool_count": 30,
+      "tool_names": [
+        "batch_execute",
+        "debug_request_context",
+        "execute_menu_item",
+        "find_gameobjects",
+        "find_in_file",
+        "manage_animation",
+        "manage_asset",
+        "manage_components",
+        "manage_editor",
+        "manage_gameobject",
+        "manage_material",
+        "manage_prefabs",
+        "manage_scene",
+        "refresh_unity",
+        "apply_text_edits",
+        "create_script",
+        "delete_script",
+        "validate_script",
+        "manage_script",
+        "manage_script_capabilities",
+        "get_sha",
+        "manage_scriptable_object",
+        "manage_shader",
+        "manage_texture",
+        "manage_vfx",
+        "read_console",
+        "run_tests",
+        "get_test_job",
+        "script_apply_edits",
+        "set_active_instance"
+      ],
+      "operations": {
+        "compile_check": {
+          "status": "N/A — no matching tool"
+        },
+        "scene_hierarchy": {
+          "request": {
+            "bytes": 62,
+            "approx_tokens": 16
+          },
+          "response": {
+            "bytes": 2864,
+            "approx_tokens": 716
+          }
+        },
+        "robot_catalog": {
+          "status": "N/A — no matching tool"
+        },
+        "dh_table": {
+          "status": "N/A — no matching tool"
+        },
+        "build_settings": {
+          "status": "N/A — no matching tool"
+        }
+      }
+    }
+  }
+}
