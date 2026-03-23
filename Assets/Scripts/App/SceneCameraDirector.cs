@@ -153,10 +153,10 @@ namespace KineTutor3D.App
             {
                 case SceneId.Sandbox:
                     profile = new CameraProfile(
-                        new Vector3(0f, 1.8f, -7.4f),
-                        new Vector3(7f, 0f, 0f),
-                        82f,
-                        0.3f,
+                        new Vector3(0f, 0.8f, -2.5f),
+                        new Vector3(10f, 0f, 0f),
+                        40f,
+                        0.01f,
                         1000f,
                         new Color(0.10f, 0.10f, 0.18f, 1f));
                     return true;

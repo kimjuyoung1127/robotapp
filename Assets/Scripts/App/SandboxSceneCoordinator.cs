@@ -221,10 +221,14 @@ namespace KineTutor3D.App
         private void EnsureOrbitCamera()
         {
             FairinoRobotControlViewBuilder.EnsureEventSystem();
-            FairinoRobotControlViewBuilder.EnsureCamera();
+            var camera = FairinoRobotControlViewBuilder.EnsureCamera();
             FairinoRobotControlViewBuilder.EnsureLight();
 
-            var camera = Camera.main;
+            if (camera == null)
+            {
+                camera = Camera.main;
+            }
+
             if (camera == null || controlRobotInstance == null)
             {
                 return;
@@ -614,6 +618,16 @@ namespace KineTutor3D.App
                 if (rigidbodies[i] != null)
                 {
                     rigidbodies[i].isKinematic = true;
+                }
+            }
+
+            // URDF Importer의 Controller가 레거시 Input API를 사용하므로 제거
+            var controllers = robot.GetComponentsInChildren<MonoBehaviour>(true);
+            for (var i = 0; i < controllers.Length; i++)
+            {
+                if (controllers[i] != null && controllers[i].GetType().FullName == "Unity.Robotics.UrdfImporter.Control.Controller")
+                {
+                    Destroy(controllers[i]);
                 }
             }
         }
