@@ -1,6 +1,5 @@
 // Folder: Visualization - 3D rendering helpers for robot joint/link display.
 using System;
-using KineTutor3D.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -20,7 +19,7 @@ namespace KineTutor3D.Visualization
         private const float DragSensitivity = 0.5f;
 
         [SerializeField] private int jointIndex;
-        [SerializeField] private Color handleColor = UIDesignTokens.Colors.AccentPrimary;
+        [SerializeField] private Color handleColor = new Color(0.29f, 0.56f, 0.85f, 1f);
 
         private LineRenderer lineRenderer;
         private Vector3 rotationAxis = Vector3.up;

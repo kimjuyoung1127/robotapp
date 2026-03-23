@@ -17,7 +17,13 @@ namespace NaughtyAttributes.Editor
 
         public static T[] GetAttributes<T>(SerializedProperty property) where T : class
         {
-            FieldInfo fieldInfo = ReflectionUtility.GetField(GetTargetObjectWithProperty(property), property.name);
+            object target = GetTargetObjectWithProperty(property);
+            if (target == null)
+            {
+                return new T[] { };
+            }
+
+            FieldInfo fieldInfo = ReflectionUtility.GetField(target, property.name);
             if (fieldInfo == null)
             {
                 return new T[] { };
@@ -46,6 +52,11 @@ namespace NaughtyAttributes.Editor
             }
 
             object target = GetTargetObjectWithProperty(property);
+            if (target == null)
+            {
+                return;
+            }
+
             property.serializedObject.ApplyModifiedProperties(); // We must apply modifications so that the new value is updated in the serialized object
 
             foreach (var onValueChangedAttribute in onValueChangedAttributes)
@@ -83,6 +94,10 @@ namespace NaughtyAttributes.Editor
             }
 
             object target = GetTargetObjectWithProperty(property);
+            if (target == null)
+            {
+                return false;
+            }
 
             // deal with enum conditions
             if (enableIfAttribute.EnumValue != null)
@@ -128,6 +143,10 @@ namespace NaughtyAttributes.Editor
             }
 
             object target = GetTargetObjectWithProperty(property);
+            if (target == null)
+            {
+                return false;
+            }
 
             // deal with enum conditions
             if (showIfAttribute.EnumValue != null)

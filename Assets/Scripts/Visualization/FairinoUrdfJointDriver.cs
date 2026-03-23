@@ -61,14 +61,6 @@ namespace KineTutor3D.Visualization
         }
 
         /// <summary>
-        /// FairinoRobotState의 관절 각도를 적용합니다.
-        /// </summary>
-        public void ApplyJointAngles(App.Fairino.FairinoRobotState state)
-        {
-            ApplyJointAngles(state.JointPosDeg);
-        }
-
-        /// <summary>
         /// 지정 관절의 Transform을 반환합니다. 핸들 부착용입니다.
         /// </summary>
         public Transform GetJointTransform(int index)

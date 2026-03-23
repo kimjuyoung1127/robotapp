@@ -18,6 +18,14 @@ namespace NaughtyAttributes.Editor
 
         protected virtual void OnEnable()
         {
+            if (target == null)
+            {
+                _nonSerializedFields = Enumerable.Empty<FieldInfo>();
+                _nativeProperties = Enumerable.Empty<PropertyInfo>();
+                _methods = Enumerable.Empty<MethodInfo>();
+                return;
+            }
+
             _nonSerializedFields = ReflectionUtility.GetAllFields(
                 target, f => f.GetCustomAttributes(typeof(ShowNonSerializedFieldAttribute), true).Length > 0);
 
@@ -35,6 +43,12 @@ namespace NaughtyAttributes.Editor
 
         public override void OnInspectorGUI()
         {
+            if (target == null || serializedObject == null || serializedObject.targetObject == null)
+            {
+                EditorGUILayout.HelpBox("Target object is missing or was destroyed. Re-select the object and check for missing scripts.", MessageType.Warning);
+                return;
+            }
+
             GetSerializedProperties(ref _serializedProperties);
 
             bool anyNaughtyAttribute = _serializedProperties.Any(p => PropertyUtility.GetAttribute<INaughtyAttribute>(p) != null);

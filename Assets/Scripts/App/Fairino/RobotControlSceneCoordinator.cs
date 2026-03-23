@@ -299,7 +299,7 @@ namespace KineTutor3D.App.Fairino
 
             if (jointDriver != null)
             {
-                jointDriver.ApplyJointAngles(state);
+                jointDriver.ApplyJointAngles(state.JointPosDeg);
             }
 
             jointControlPanel?.SetSliderValues(state.JointPosDeg);
