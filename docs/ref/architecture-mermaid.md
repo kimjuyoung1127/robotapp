@@ -23,9 +23,11 @@ flowchart TD
     RobotLib -->|수학 기초| MathReady
 
     MathReady --> App["AppController"]
-    Sandbox --> SandboxCoord["SandboxSceneCoordinator"]
-    Sandbox --> App
+    Sandbox --> SandboxCoord["SandboxSceneCoordinator\n(독립형, AppController 무관)"]
     RobotCtrl --> RobotCtrlCoord["RobotControlSceneCoordinator"]
+
+    SandboxCoord --> SandboxViz["UrdfJointDriver + RobotKinematicsFacade\nFrameGizmoFactory / EETrailRenderer / OrbitCamera"]
+    SandboxCoord --> SandboxUI["SandboxViewBuilder\nN축 슬라이더 / 프리셋 / 정보 / 네비"]
 
     App --> UI["HUD UI\nDHTableEditor / MatrixDisplay / StepNavigator\nWhyItMovedPanel / JointInputRail / BeginnerLeftPanel"]
     App --> Viz["RobotRenderer"]
@@ -210,12 +212,14 @@ flowchart TB
 - `frame_0`, `frame_1`, and `Frame_EE` are the canonical frame ownership points.
 - `ScaraRobot.prefab` is the donor source; visual donor path uses `Base`, `Axis1`, `Axis2`, and `Axis3/Gripper`.
 - `Pick` is a helper point, not a visual donor.
-- `AppController` is the public runtime state and event facade (MathReadiness/Sandbox).
+- `AppController` is the public runtime state and event facade (MathReadiness only, Sandbox separated).
+- `SandboxSceneCoordinator` is the Sandbox scene facade (독립형, AppController 의존 없음, UrdfJointDriver + RobotKinematicsFacade + SandboxViewBuilder).
 - `RobotControlSceneCoordinator` is the RobotControl scene facade (robotId→`RobotControlFactory`→`RobotControlTemplateDefinition` 동적 로드).
 - `RobotKinematicsFacade` is the generic FK facade accepting any `RobotTemplate`.
 - `RobotControlFactory` maps robotId string to `RobotControlTemplateDefinition`.
 - `RobotRenderer` is the public visualization facade (2DOF/SCARA).
-- `FairinoUrdfJointDriver` is the FR5 visualization driver (Transform-based).
+- `UrdfJointDriver` (Shared/) is the generic URDF joint driver (ArticulationBody auto-discovery, N-axis).
+- `FairinoUrdfJointDriver` is the FR5-specific visualization driver (Transform-based, RobotControl only).
 - `Math`, `Types`, and `Kinematics` stay pure C# `double`-based domain code.
 - Build Settings: `Boot`(0), `Onboarding`(1), `RobotLibrary`(2), `Sandbox`(3), `RobotControl`(4), `MathReadiness`(5).
 - `KinematicsRuntimeState` holds previous/current snapshots and `RuntimeUpdateCause`.

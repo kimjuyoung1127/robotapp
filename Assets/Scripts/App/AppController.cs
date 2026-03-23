@@ -41,8 +41,6 @@ namespace KineTutor3D.App
         [SerializeField] private RobotRenderer robotRenderer;
         [SerializeField] private EndEffectorTrail endEffectorTrail;
         [SerializeField] private TargetMarkerVisual targetMarkerVisual;
-        [SerializeField] private SandboxActionPanel sandboxActionPanel;
-        [SerializeField] private SnapshotLitePanel snapshotLitePanel;
         [SerializeField] private MathVisualOrchestrator mathVisualOrchestrator;
         [SerializeField] private FKDiagramPanel fkDiagramPanel;
 
@@ -52,10 +50,8 @@ namespace KineTutor3D.App
         private readonly KinematicsRuntimeService kinematicsService = new KinematicsRuntimeService();
         private readonly AppUiBinder uiBinder = new AppUiBinder();
         private readonly AppSessionContextService sessionContextService = new AppSessionContextService();
-        private readonly SandboxSceneCoordinator sandboxSceneCoordinator = new SandboxSceneCoordinator();
         private string currentTrack = StepProgressSaver.CoreKinematicsTrack;
         private bool jointHighlightEnabled;
-        private bool sandboxMode;
 
         public event Action<int, TutorStepConfig> OnStepChanged;
         public event Action<InteractionType, string> OnInteractionEvent;
@@ -68,7 +64,6 @@ namespace KineTutor3D.App
         public int TotalSteps => stepConfigs?.Length ?? 0;
         public int CurrentDof => CurrentTemplate != null ? CurrentTemplate.Dof : 0;
         public string CurrentTrack => currentTrack;
-        public bool IsSandboxMode => sandboxMode;
         public bool IsCurrentGateSatisfied => gateController == null || gateController.IsGateSatisfied;
         public string CurrentGateProgressText => gateController?.GetProgressText() ?? string.Empty;
         public TutorStepConfig CurrentStepConfig => stepConfigs != null && currentStepIndex >= 0 && currentStepIndex < stepConfigs.Length
@@ -106,14 +101,6 @@ namespace KineTutor3D.App
             InitializeTemplateRuntime();
             BindRuntimeUiControllers();
             currentTrack = StepProgressSaver.GetCurrentTrack();
-            sandboxMode = sandboxSceneCoordinator.IsSandboxScene();
-
-            if (sandboxMode)
-            {
-                EnterSandboxMode();
-                return;
-            }
-
             if (TotalSteps <= 0)
             {
                 Debug.LogWarning("[AppController] Step config is empty.");
@@ -178,23 +165,6 @@ namespace KineTutor3D.App
 
             gateController?.SkipCurrentGate();
             NextStep();
-        }
-
-        public void JumpToSandbox()
-        {
-            SetCurrentStep(TotalSteps);
-        }
-
-        public void OpenCurrentRobotSandbox()
-        {
-            if (CurrentTemplate == null)
-            {
-                return;
-            }
-
-            RobotSelectionBridge.SetSelectedRobot(CurrentTemplate.Name);
-            RobotSelectionBridge.SetSelectedMode(RobotSelectionBridge.SandboxMode);
-            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         public string[] GetAvailableTemplateNames()
@@ -306,7 +276,7 @@ namespace KineTutor3D.App
                 ClearSharedLearningShellReferences();
             }
 
-            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref sandboxActionPanel, ref snapshotLitePanel, ref mathVisualOrchestrator, ref fkDiagramPanel);
+            uiBinder.AutoWire(ref disclosureController, ref gateController, ref stepTutorPanel, ref stepNavigator, ref toastController, ref focusHighlighter, ref jointSlider1, ref jointSlider2, ref dhTableEditor, ref templateSelector, ref matrixDisplay, ref jointInputRail, ref whyItMovedPanel, ref beginnerLeftPanel, ref mathReadinessPanel, ref targetFeedbackPanel, ref robotRenderer, ref endEffectorTrail, ref targetMarkerVisual, ref mathVisualOrchestrator, ref fkDiagramPanel);
         }
 
         private void EnsureDedicatedMathReadinessTrack()
@@ -425,33 +395,8 @@ namespace KineTutor3D.App
             fkDiagramPanel?.Refresh(CurrentLinks, CurrentJointValuesRad);
         }
 
-        private void EnterSandboxMode()
-        {
-            sandboxSceneCoordinator.ApplySandboxPresentation(
-                stepTutorPanel,
-                stepNavigator,
-                focusHighlighter,
-                jointInputRail,
-                whyItMovedPanel,
-                beginnerLeftPanel,
-                mathReadinessPanel,
-                targetFeedbackPanel,
-                targetMarkerVisual,
-                endEffectorTrail,
-                sandboxActionPanel,
-                snapshotLitePanel);
-            jointHighlightEnabled = true;
-            PersistSessionContext();
-        }
-
         private void ApplyFeatureState(TutorStepConfig config)
         {
-            if (sandboxMode)
-            {
-                EnterSandboxMode();
-                return;
-            }
-
             if (config == null)
             {
                 return;
@@ -522,10 +467,6 @@ namespace KineTutor3D.App
 
             // TopBar controls
             templateSelector?.SetVisible(false);
-
-            // Sandbox-only
-            sandboxActionPanel?.SetVisible(false);
-            snapshotLitePanel?.SetVisible(false);
         }
 
         private void ApplyMathReadinessVisibility(TutorStepConfig config)
@@ -609,7 +550,7 @@ namespace KineTutor3D.App
 
         private void PersistSessionContext()
         {
-            sessionContextService.SaveCurrent(CurrentTemplate, sandboxMode, currentTrack, CurrentStep);
+            sessionContextService.SaveCurrent(CurrentTemplate, false, currentTrack, CurrentStep);
         }
 
         private void InitializeMathVisualIfNeeded()

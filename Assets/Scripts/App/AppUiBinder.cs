@@ -9,7 +9,7 @@ namespace KineTutor3D.App
 {
     internal sealed class AppUiBinder
     {
-        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref MathReadinessPanel mathReadinessPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual, ref SandboxActionPanel sandboxActionPanel, ref SnapshotLitePanel snapshotLitePanel, ref MathVisualOrchestrator mathVisualOrchestrator, ref FKDiagramPanel fkDiagramPanel)
+        public void AutoWire(ref ProgressiveDisclosureController disclosureController, ref InteractionGateController gateController, ref StepTutorPanel stepTutorPanel, ref StepNavigator stepNavigator, ref ToastNotificationController toastController, ref FocusZoneHighlighter focusHighlighter, ref Slider jointSlider1, ref Slider jointSlider2, ref DHTableEditor dhTableEditor, ref TemplateSelector templateSelector, ref MatrixDisplay matrixDisplay, ref JointInputRail jointInputRail, ref WhyItMovedPanel whyItMovedPanel, ref BeginnerLeftPanel beginnerLeftPanel, ref MathReadinessPanel mathReadinessPanel, ref TargetFeedbackPanel targetFeedbackPanel, ref RobotRenderer robotRenderer, ref EndEffectorTrail endEffectorTrail, ref TargetMarkerVisual targetMarkerVisual, ref MathVisualOrchestrator mathVisualOrchestrator, ref FKDiagramPanel fkDiagramPanel)
         {
             if (SceneCatalog.GetCurrentSceneId() == SceneId.MathReadiness)
             {
@@ -46,8 +46,6 @@ namespace KineTutor3D.App
             robotRenderer ??= Object.FindFirstObjectByType<RobotRenderer>(FindObjectsInactive.Include);
             endEffectorTrail ??= Object.FindFirstObjectByType<EndEffectorTrail>(FindObjectsInactive.Include);
             targetMarkerVisual ??= Object.FindFirstObjectByType<TargetMarkerVisual>(FindObjectsInactive.Include);
-            sandboxActionPanel ??= Object.FindFirstObjectByType<SandboxActionPanel>(FindObjectsInactive.Include);
-            snapshotLitePanel ??= Object.FindFirstObjectByType<SnapshotLitePanel>(FindObjectsInactive.Include);
             mathVisualOrchestrator ??= Object.FindFirstObjectByType<MathVisualOrchestrator>(FindObjectsInactive.Include);
             fkDiagramPanel ??= Object.FindFirstObjectByType<FKDiagramPanel>(FindObjectsInactive.Include);
 

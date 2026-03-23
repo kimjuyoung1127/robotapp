@@ -259,7 +259,13 @@ namespace KineTutor3D.UI
 
         private void OpenSandbox()
         {
-            appController?.OpenCurrentRobotSandbox();
+            if (appController != null && appController.CurrentTemplate != null)
+            {
+                RobotSelectionBridge.SetSelectedRobot(appController.CurrentTemplate.Name);
+                RobotSelectionBridge.SetSelectedMode(RobotSelectionBridge.SandboxMode);
+            }
+
+            SceneNavigator.Load(SceneId.Sandbox);
         }
 
         private void RebuildOptions()

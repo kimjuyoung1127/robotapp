@@ -26,9 +26,10 @@ KineTutor3D 작업 시작 시 가장 먼저 읽는 진입 문서입니다.
 - Stability Refactor (App/UI/Visualization componentization): Done
 - Product Docs Governance (GameLab-style): InProgress
 - Navigation Refactor: InProgress (Home/Main 제거, RobotLibrary 메인 진입점, 멀티로봇 RobotControl 확장)
-- Current Cycle: InProgress (멀티로봇 RobotControl 확장 + Sandbox polish)
+- Current Cycle: InProgress (멀티로봇 RobotControl 확장 + Sandbox 리빌드)
 
 최근 확정 사항:
+- Sandbox 리빌드 (2026-03-23): 기존 Sandbox 전용 파일 11종 삭제 (SandboxActionPanel, SandboxRobotPickerOverlay, SnapshotLite* 등). AppController에서 Sandbox 코드 완전 제거. 새 독립형 `SandboxSceneCoordinator` (AppController 의존 없음): 자체 FK(`RobotKinematicsFacade`), `UrdfJointDriver` (ArticulationBody 자동탐색, N축), `SandboxViewBuilder` (N축 슬라이더 + 프리셋 + 정보 + 네비), 프레임 기즈모/EE 트레일/Orbit 카메라. 모든 URDF 로봇(FR5, UR5e, Doosan M1013, Meca500) Sandbox 조작 가능
 - Part B Phase B4 완료 (2026-03-23): Meca500 풀 스택. `TemplateMeca500` (DH 6축, d1=0.091 a2=0.135 a5=0.120 d6=0.070, 비대칭 관절 한계), `MockMecademicClient`, `Meca500PosePresets`, `Meca500RobotControlTemplateDefinition` (IP 192.168.0.100:10000). DAE 7개 `Assets/Runtime/Resources/Robots/Meca500/` (커뮤니티). URDF 임포트 + URP Material 자동 교체. 스킬 2개 추가 (#21 robot-urdf-import, #22 robot-control-add)
 - Part B Phase B3 완료 (2026-03-23): Doosan M1013 풀 스택. `TemplateDoosanM1013` (DH 6축, d1=0.1525 a2=0.62 d4=0.559 d6=0.121), `MockDoosanClient`, `DoosanM1013PosePresets`, `DoosanM1013RobotControlTemplateDefinition` (IP 192.168.137.100:12345). DAE 메시 10개 `Assets/Runtime/Resources/Robots/DoosanM1013/` (BSD-3). EditMode 426 total, 416 passed
 - Part B Phase B2 완료 (2026-03-23): UR5e 풀 스택 (Demo+Sandbox+RobotControl). `TemplateUR5e` (Standard DH 6축), `MockUR5eClient`, `UR5ePosePresets` (Home/Ready/Folded/Current), `UR5eRobotControlTemplateDefinition`, `RobotCatalog`에 UR5e 등록, `RobotControlFactory`에 case 추가, `RobotPreviewFactory`에 showroom 포즈 추가, `FairinoConnectionService`에 client 주입 생성자 추가. EditMode 테스트 9개 추가, 전부 통과. DAE 메시 7개 `Assets/Runtime/Resources/Robots/UR5e/` (BSD-3 라이선스)

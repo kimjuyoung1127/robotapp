@@ -14,8 +14,9 @@ Visualization/
 │   ├── OrbitCameraController.cs — 궤도 카메라 (좌클릭 회전, 스크롤 줌, 우클릭 팬)
 │   ├── SharedLineMaterial.cs    — LineRenderer용 공유 Material 캐시 + 설정 헬퍼
 │   ├── DisplacementArrow.cs     — EE 변위 벡터 화살표 (LineRenderer + 원뿔 헤드)
-│   └── JointRotationHandle.cs   — 관절 회전 링 핸들 (마우스 드래그→각도 emit)
-├── FairinoUrdfJointDriver.cs    — FR5 URDF Transform 관절 제어
+│   ├── JointRotationHandle.cs   — 관절 회전 링 핸들 (마우스 드래그→각도 emit)
+│   └── UrdfJointDriver.cs      — 범용 URDF 관절 드라이버 (ArticulationBody 자동탐색, N축)
+├── FairinoUrdfJointDriver.cs    — FR5 URDF Transform 관절 제어 (RobotControl 전용)
 ├── RobotRenderer.cs             — 범용 2DOF/SCARA 3D 렌더러
 ├── RobotRigBinder.cs            — 씬 계층 유틸리티
 ├── DonorMeshCopier.cs           — URDF 메시 복사
