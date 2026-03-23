@@ -132,6 +132,7 @@ flowchart TD
     Scripts --> AppFairino["App/Fairino/\nFR5 연결·제어·FK facade"]
     Scripts --> AppUR["App/UniversalRobots/\nUR5e Mock·프리셋·템플릿 정의"]
     Scripts --> AppDoosan["App/Doosan/\nM1013 Mock·프리셋·템플릿 정의"]
+    Scripts --> AppMeca["App/Mecademic/\nMeca500 Mock·프리셋·템플릿 정의"]
     Scripts --> UI["UI/\nHUD · tutorial · Fairino panels"]
     Scripts --> Viz["Visualization/\nUnity render binding"]
     Scripts --> VizShared["Visualization/Shared/\n공용 컴포넌트 (로봇 무관)"]
@@ -147,6 +148,7 @@ flowchart TD
     AppFairino --> Kin
     AppUR --> Kin
     AppDoosan --> Kin
+    AppMeca --> Kin
     UI -. no FK math .-> Kin
     Viz -. no tutorial state .-> UI
 ```
@@ -217,7 +219,7 @@ flowchart TB
 - `Math`, `Types`, and `Kinematics` stay pure C# `double`-based domain code.
 - Build Settings: `Boot`(0), `Onboarding`(1), `RobotLibrary`(2), `Sandbox`(3), `RobotControl`(4), `MathReadiness`(5).
 - `KinematicsRuntimeState` holds previous/current snapshots and `RuntimeUpdateCause`.
-- `RobotCatalog` (Templates) is the single registry for all robot metadata + template factories (FR5, UR5e, 2DOF_RR, SCARA_RV, Fanuc, igus 등록).
+- `RobotCatalog` (Templates) is the single registry for all robot metadata + template factories (FR5, UR5e, Doosan M1013, Meca500, 2DOF_RR, SCARA_RV, Fanuc, igus 등록).
 - `RobotSelectionBridge` (App) passes robot selection between scenes via PlayerPrefs.
 - Scene cameras are managed by `SceneCameraDirector` (except RobotLibrary showroom).
 - `IVisibilityControllable.SetVisible(bool)` is the standard panel visibility contract.
