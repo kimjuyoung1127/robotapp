@@ -89,6 +89,11 @@ namespace KineTutor3D.UI
             public static readonly Color DiagramGrid       = new Color(0.20f, 0.22f, 0.30f, 0.40f);
             public static readonly Color DiagramAxis       = new Color(0.55f, 0.60f, 0.72f, 0.70f);
             public static readonly Color DiagramEE         = new Color(0.30f, 0.85f, 0.45f, 1f);
+
+            // Axis triplet
+            public static readonly Color AxisX             = new Color(0.90f, 0.30f, 0.25f, 1f);
+            public static readonly Color AxisY             = new Color(0.30f, 0.85f, 0.35f, 1f);
+            public static readonly Color AxisZ             = new Color(0.29f, 0.56f, 0.85f, 1f);
         }
 
         // ── Typography ───────────────────────────────────────────────────

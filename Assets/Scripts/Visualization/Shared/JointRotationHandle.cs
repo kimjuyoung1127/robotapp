@@ -42,9 +42,9 @@ namespace KineTutor3D.Visualization
         public event Action<int, float> OnHandleDragged;
 
         /// <summary>
-        /// 드래그 시작/종료 시 발생합니다. true=시작, false=종료.
+        /// 드래그 시작/종료 시 발생합니다. (jointIndex, true=시작, false=종료)를 전달합니다.
         /// </summary>
-        public event Action<bool> OnDragStateChanged;
+        public event Action<int, bool> OnDragStateChanged;
 
         /// <summary>
         /// 핸들을 초기화합니다.
@@ -169,7 +169,7 @@ namespace KineTutor3D.Visualization
             dragStartScreenPos = new Vector3(screenPos.x, screenPos.y, 0f);
             dragStartAngle = currentAngleDeg;
             SetSelected(true);
-            OnDragStateChanged?.Invoke(true);
+            OnDragStateChanged?.Invoke(jointIndex, true);
         }
 
         private void ContinueDrag(Mouse mouse)
@@ -185,7 +185,7 @@ namespace KineTutor3D.Visualization
         {
             dragging = false;
             SetSelected(false);
-            OnDragStateChanged?.Invoke(false);
+            OnDragStateChanged?.Invoke(jointIndex, false);
         }
 
         private void UpdateArc()

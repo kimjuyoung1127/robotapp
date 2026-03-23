@@ -118,9 +118,8 @@ namespace KineTutor3D.UI
             nextPageButton = showroomArea != null ? showroomArea.Find("BtnNextPage")?.GetComponent<Button>() : null;
             pageStatusText = showroomArea != null ? showroomArea.Find("PageStatus")?.GetComponent<Text>() : null;
             var scrollArea = canvasRoot.Find("ScrollArea") as RectTransform;
-            libraryScrollRect = scrollArea != null ? scrollArea.GetComponent<ScrollRect>() : null;
-            var viewport = scrollArea != null ? scrollArea.Find("Viewport") as RectTransform : null;
-            gridContainer = viewport != null ? viewport.Find("GridContent") as RectTransform : null;
+            libraryScrollRect = null;
+            gridContainer = null;
             detailDrawer = GetComponentInChildren<RobotDetailDrawer>(true);
             selectionPanel = GetComponentInChildren<RobotLibrarySelectionPanel>(true);
 
@@ -136,38 +135,11 @@ namespace KineTutor3D.UI
                 backBtn.onClick.AddListener(OnBackClicked);
             }
 
-            if (viewport != null && gridContainer != null)
-            {
-                ConfigureScrollViewport(viewport);
-                if (IsGridContainerInvalid(gridContainer))
-                {
-                    gridContainer = RecreateGridContainer(viewport);
-                }
-
-                ConfigureGridContainer(gridContainer);
-                ConfigureGridLayout(gridContainer, RobotCatalog.GetRobotLibraryEntries().Length);
-                useSceneAuthoredGridLayout = false;
-                if (libraryScrollRect != null)
-                {
-                    libraryScrollRect.content = gridContainer;
-                    libraryScrollRect.viewport = viewport;
-                    libraryScrollRect.horizontal = false;
-                    libraryScrollRect.vertical = true;
-                }
-            }
-            else
-            {
-                libraryScrollRect = null;
-                gridContainer = null;
-            }
+            CleanupLegacyGridUi(scrollArea);
 
             detailDrawer.Initialize(canvasRoot, fallbackFont);
             RemoveCompareStrip();
             BuildShowroomOverlay(showroomArea);
-            if (scrollArea != null)
-            {
-                ApplyBottomLayout(scrollArea);
-            }
             return true;
         }
 
@@ -522,8 +494,40 @@ namespace KineTutor3D.UI
 
         private void BuildScrollGrid()
         {
+            CleanupLegacyGridUi();
+        }
+
+        private void CleanupLegacyGridUi(RectTransform scrollArea = null)
+        {
             libraryScrollRect = null;
             gridContainer = null;
+            useSceneAuthoredGridLayout = false;
+
+            if (canvasRoot == null)
+            {
+                return;
+            }
+
+            scrollArea ??= canvasRoot.Find("ScrollArea") as RectTransform;
+            if (scrollArea != null)
+            {
+                scrollArea.SetParent(null, false);
+                SafeDestroy(scrollArea.gameObject);
+            }
+
+            var viewport = canvasRoot.Find("Viewport");
+            if (viewport != null)
+            {
+                viewport.SetParent(null, false);
+                SafeDestroy(viewport.gameObject);
+            }
+
+            var grid = canvasRoot.Find("GridContent");
+            if (grid != null)
+            {
+                grid.SetParent(null, false);
+                SafeDestroy(grid.gameObject);
+            }
         }
 
         private void ConfigureScrollViewport(RectTransform viewport)
@@ -760,56 +764,7 @@ namespace KineTutor3D.UI
 
         private void RebuildGrid()
         {
-            if (gridContainer == null)
-            {
-                return;
-            }
-
-            var validNames = new HashSet<string>(StringComparer.Ordinal);
-            var entries = RobotCatalog.GetRobotLibraryEntries();
-            Vector2 cardSize = useSceneAuthoredGridLayout ? ReadCurrentCardSize(gridContainer) : ConfigureGridLayout(gridContainer, entries.Length);
-            foreach (var entry in entries)
-            {
-                validNames.Add("Card_" + entry.Metadata.RobotId);
-            }
-
-            var staleChildren = new List<GameObject>();
-            for (int i = gridContainer.childCount - 1; i >= 0; i--)
-            {
-                var child = gridContainer.GetChild(i).gameObject;
-                if (!validNames.Contains(child.name))
-                {
-                    staleChildren.Add(child);
-                    child.transform.SetParent(null, false);
-                }
-            }
-
-            foreach (var child in staleChildren)
-            {
-                SafeDestroy(child);
-            }
-
-            foreach (var entry in entries)
-            {
-                var captured = entry;
-                RobotCardBuilder.BuildCard(
-                    gridContainer,
-                    captured,
-                    fallbackFont,
-                    selectedEntry != null && string.Equals(selectedEntry.Metadata.RobotId, captured.Metadata.RobotId, System.StringComparison.Ordinal),
-                    () => OnCardSelected(captured),
-                    () => OnViewDetails(captured),
-                    cardSize.x,
-                    cardSize.y);
-            }
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(gridContainer);
-            Canvas.ForceUpdateCanvases();
-            if (libraryScrollRect != null)
-            {
-                libraryScrollRect.normalizedPosition = new Vector2(0f, 1f);
-                libraryScrollRect.velocity = Vector2.zero;
-            }
+            CleanupLegacyGridUi();
         }
 
         private static Vector2 ReadCurrentCardSize(RectTransform content)
