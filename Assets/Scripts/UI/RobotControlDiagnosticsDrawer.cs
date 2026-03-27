@@ -1,5 +1,6 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App.Fairino;
+using KineTutor3D.App.HandTracking;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,12 @@ namespace KineTutor3D.UI
         private const float OpenAnchorX = -409.2f;
         private const float OpenAnchorY = -86.7f;
         private const float ClosedAnchorX = 380f;
+        private const string DrawerTitleText = "Diagnostics";
+        private const string HandInputSectionTitle = "Hand Input";
+        private const string HandInputUnconfiguredText = "Hand Input: 미구성\n현재 씬에 hand input source가 연결되지 않았습니다.";
+        private const string HandInputSuccessHintText = "Step 1 성공 기준: 여기 상태가 Fresh로 바뀌면 최소 연결 확인입니다.";
+        private const string HandInputNoPacketText = "패킷이 아직 들어오지 않았습니다.";
+        private const string HandInputStaleText = "최근 샘플은 있었지만 현재는 fresh 상태가 아닙니다.";
 
         [SerializeField] private RectTransform drawerPanel;
         [SerializeField] private Image backdrop;
@@ -24,7 +31,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Text recentFeedbackLabel;
         [SerializeField] private Text errorSummaryLabel;
         [SerializeField] private Text retryHintLabel;
-        [SerializeField] private Text logPlaceholderLabel;
+        [SerializeField] private Text handInputLabel;
         [SerializeField] private Button closeButton;
         [SerializeField] private Font fallbackFont;
 
@@ -32,11 +39,14 @@ namespace KineTutor3D.UI
         private FairinoConnectionPanel connectionPanel;
         private FairinoJointControlPanel jointControlPanel;
         private FairinoTcpControlPanel tcpControlPanel;
+        private IHandPoseSource handPoseSource;
+        private readonly HandInputDiagnosticsState handInputState = new HandInputDiagnosticsState();
         private string cachedVersionText = "FW/SDK: 대기 중";
         private string lastErrorText = "최근 오류 없음";
         private string lastServiceEventText = "최근 이벤트 없음";
         private float slide;
         private float targetSlide;
+        private float nextStatusRefreshTime;
         private bool listenersBound;
 
         /// <summary>
@@ -51,15 +61,19 @@ namespace KineTutor3D.UI
             FairinoConnectionService service,
             FairinoConnectionPanel connectionView,
             FairinoJointControlPanel jointView,
-            FairinoTcpControlPanel tcpView)
+            FairinoTcpControlPanel tcpView,
+            IHandPoseSource handSource = null)
         {
             UnsubscribeService();
+            UnsubscribeHandSource();
             connectionService = service;
             connectionPanel = connectionView;
             jointControlPanel = jointView;
             tcpControlPanel = tcpView;
+            handPoseSource = handSource;
             EnsurePresentation();
             SubscribeService();
+            SubscribeHandSource();
             RefreshContent();
         }
 
@@ -74,6 +88,7 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             BindListeners();
             SubscribeService();
+            SubscribeHandSource();
             RefreshContent();
         }
 
@@ -81,6 +96,7 @@ namespace KineTutor3D.UI
         {
             UnbindListeners();
             UnsubscribeService();
+            UnsubscribeHandSource();
         }
 
         private void Update()
@@ -105,6 +121,12 @@ namespace KineTutor3D.UI
             if (gameObject.activeSelf && slide <= 0.001f && targetSlide <= 0.001f)
             {
                 gameObject.SetActive(false);
+            }
+
+            if (targetSlide > 0.001f && Time.unscaledTime >= nextStatusRefreshTime)
+            {
+                nextStatusRefreshTime = Time.unscaledTime + 0.25f;
+                RefreshContent();
             }
         }
 
@@ -172,7 +194,7 @@ namespace KineTutor3D.UI
 
             var title = UiRuntimeStyle.EnsureText(drawerPanel, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 20f), new Vector2(16f, -14f));
-            title.text = "Diagnostics";
+            title.text = DrawerTitleText;
 
             closeButton ??= UIComponentFactory.CreateSecondaryButton(drawerPanel, "BtnCloseDiagnostics", "닫기", fallbackFont, 72f);
             UiRuntimeStyle.Anchor((RectTransform)closeButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-16f, -10f));
@@ -183,8 +205,8 @@ namespace KineTutor3D.UI
             recentFeedbackLabel = EnsureSection(drawerPanel, "RecentFeedback", "최근 피드백", ref sectionY);
             errorSummaryLabel = EnsureSection(drawerPanel, "ErrorSummary", "최근 오류", ref sectionY);
             retryHintLabel = EnsureSection(drawerPanel, "RetryHint", "재시도 힌트", ref sectionY);
-            logPlaceholderLabel = EnsureSection(drawerPanel, "LogPlaceholder", "추가 예정", ref sectionY);
-            logPlaceholderLabel.text = "로그 수집 / 복사 버튼은 다음 라운드에서 연결합니다.";
+            handInputLabel = EnsureSection(drawerPanel, "LogPlaceholder", HandInputSectionTitle, ref sectionY);
+            handInputLabel.text = HandInputNoPacketText;
 
             slide = Mathf.Clamp01(slide);
             drawerPanel.anchoredPosition = new Vector2(
@@ -201,7 +223,7 @@ namespace KineTutor3D.UI
             recentFeedbackLabel = drawerPanel?.Find("RecentFeedbackBody")?.GetComponent<Text>();
             errorSummaryLabel = drawerPanel?.Find("ErrorSummaryBody")?.GetComponent<Text>();
             retryHintLabel = drawerPanel?.Find("RetryHintBody")?.GetComponent<Text>();
-            logPlaceholderLabel = drawerPanel?.Find("LogPlaceholderBody")?.GetComponent<Text>();
+            handInputLabel = drawerPanel?.Find("LogPlaceholderBody")?.GetComponent<Text>();
             closeButton = drawerPanel?.Find("BtnCloseDiagnostics")?.GetComponent<Button>();
 
             if (backdrop == null
@@ -211,7 +233,7 @@ namespace KineTutor3D.UI
                 || recentFeedbackLabel == null
                 || errorSummaryLabel == null
                 || retryHintLabel == null
-                || logPlaceholderLabel == null
+                || handInputLabel == null
                 || closeButton == null)
             {
                 return false;
@@ -220,10 +242,16 @@ namespace KineTutor3D.UI
             var title = drawerPanel.Find("Title")?.GetComponent<Text>();
             if (title != null)
             {
-                title.text = "Diagnostics";
+                title.text = DrawerTitleText;
             }
 
-            logPlaceholderLabel.text = "로그 수집 / 복사 버튼은 다음 라운드에서 연결합니다.";
+            var handInputTitle = drawerPanel.Find("LogPlaceholderTitle")?.GetComponent<Text>();
+            if (handInputTitle != null)
+            {
+                handInputTitle.text = HandInputSectionTitle;
+            }
+
+            handInputLabel.text = HandInputNoPacketText;
 
             var backdropButton = backdrop.GetComponent<Button>() ?? backdrop.gameObject.AddComponent<Button>();
             backdropButton.transition = Selectable.Transition.None;
@@ -287,6 +315,17 @@ namespace KineTutor3D.UI
             connectionService.OnError += HandleError;
         }
 
+        private void SubscribeHandSource()
+        {
+            if (handPoseSource == null)
+            {
+                return;
+            }
+
+            handPoseSource.OnSampleReceived -= HandleHandSampleReceived;
+            handPoseSource.OnSampleReceived += HandleHandSampleReceived;
+        }
+
         private void UnsubscribeService()
         {
             if (connectionService == null)
@@ -298,6 +337,16 @@ namespace KineTutor3D.UI
             connectionService.OnEnableStateChanged -= HandleEnableStateChanged;
             connectionService.OnModeChanged -= HandleModeChanged;
             connectionService.OnError -= HandleError;
+        }
+
+        private void UnsubscribeHandSource()
+        {
+            if (handPoseSource == null)
+            {
+                return;
+            }
+
+            handPoseSource.OnSampleReceived -= HandleHandSampleReceived;
         }
 
         private void HandleConnectionStateChanged(bool connected)
@@ -334,6 +383,15 @@ namespace KineTutor3D.UI
             RefreshContent();
         }
 
+        private void HandleHandSampleReceived(HandPoseSample sample)
+        {
+            if (sample == null)
+            {
+                return;
+            }
+            RefreshContent();
+        }
+
         private void FetchVersionInfo()
         {
             if (connectionService == null || !connectionService.Client.IsConnected)
@@ -344,7 +402,7 @@ namespace KineTutor3D.UI
 
             var versionResult = connectionService.Client.GetVersion();
             cachedVersionText = versionResult.IsSuccess
-                ? $"FW: {versionResult.Value.FirmwareVersion}\nSDK: {versionResult.Value.SdkVersion}\nController: {(connectionService.IsMockMode ? "Mock" : "Live")}"
+                ? $"FW: {versionResult.Value.FirmwareVersion}\nSDK: {versionResult.Value.SdkVersion}\nSW: {versionResult.Value.SoftwareVersion}\nCTRL: {versionResult.Value.ControllerVersion}\nController: {(connectionService.IsMockMode ? "Mock" : "Live")}"
                 : versionResult.Message;
         }
 
@@ -361,7 +419,18 @@ namespace KineTutor3D.UI
             var ipText = connectionPanel != null && !string.IsNullOrWhiteSpace(connectionPanel.CurrentIp)
                 ? connectionPanel.CurrentIp
                 : "IP 미지정";
-            connectionSummaryLabel.text = $"Mode: {modeText}\nConnected: {(isConnected ? "Yes" : "No")}\nEnabled: {(isEnabled ? "Yes" : "No")}\nIP: {ipText}";
+            var state = connectionService != null ? connectionService.LastState : default;
+            var samplePeriod = connectionService != null ? connectionService.LastRealtimeStateSamplePeriodMs : 0;
+            var safetyCode = connectionService != null ? connectionService.LastSafetyCode : 0;
+            connectionSummaryLabel.text =
+                $"Mode: {modeText}\n" +
+                $"Connected: {(isConnected ? "Yes" : "No")}\n" +
+                $"Enabled: {(isEnabled ? "Yes" : "No")}\n" +
+                $"IP: {ipText}\n" +
+                $"RobotMode: {state.RobotMode}\n" +
+                $"Queue: {state.MotionQueueLength}\n" +
+                $"Safety: {safetyCode}\n" +
+                $"Sample: {samplePeriod} ms";
 
             versionSummaryLabel.text = !string.IsNullOrWhiteSpace(connectionPanel != null ? connectionPanel.CurrentVersionText : null)
                 ? connectionPanel.CurrentVersionText
@@ -373,10 +442,11 @@ namespace KineTutor3D.UI
                 ? tcpFeedback
                 : !string.IsNullOrWhiteSpace(jointFeedback)
                     ? jointFeedback
-                    : lastServiceEventText;
+                    : $"Event: {lastServiceEventText}\nEmergencyStop: {(state.IsEmergencyStop ? "Yes" : "No")}\nCollision: {(state.IsCollisionDetected ? "Yes" : "No")}";
 
             errorSummaryLabel.text = lastErrorText;
             retryHintLabel.text = ResolveRetryHint(isConnected, isEnabled, modeText);
+            handInputLabel.text = BuildHandInputSummary();
         }
 
         private static string ResolveRetryHint(bool isConnected, bool isEnabled, string modeText)
@@ -397,6 +467,61 @@ namespace KineTutor3D.UI
             }
 
             return "Live 모드에서는 DryRun 확인 후 MoveJ/MoveL을 권장합니다.";
+        }
+
+        private string BuildHandInputSummary()
+        {
+            if (handPoseSource == null)
+            {
+                handInputState.SetUnconfigured();
+                return HandInputDiagnosticsFormatter.FormatBody(handInputState);
+            }
+
+            if (handPoseSource is UdpHandPoseReceiver udpReceiver)
+            {
+                var allowedSenderIp = udpReceiver.RestrictSenderIp && !string.IsNullOrWhiteSpace(udpReceiver.AllowedSenderIp)
+                    ? udpReceiver.AllowedSenderIp
+                    : "Any";
+
+                if (handPoseSource.TryGetLatestSample(out var freshSample) && freshSample != null)
+                {
+                    handInputState.SetFresh(
+                        udpReceiver.ListenPort,
+                        allowedSenderIp,
+                        handPoseSource.SampleTimeoutSeconds,
+                        udpReceiver.LastSenderIp,
+                        freshSample.seq,
+                        freshSample.tracked,
+                        freshSample.handX,
+                        freshSample.handY,
+                        freshSample.pinch,
+                        freshSample.sourceId);
+                    return HandInputDiagnosticsFormatter.FormatBody(handInputState);
+                }
+
+                if (handPoseSource.LatestSample != null)
+                {
+                    var latestSample = handPoseSource.LatestSample;
+                    handInputState.SetStale(
+                        udpReceiver.ListenPort,
+                        allowedSenderIp,
+                        handPoseSource.SampleTimeoutSeconds,
+                        udpReceiver.LastSenderIp,
+                        latestSample.seq,
+                        latestSample.tracked,
+                        latestSample.handX,
+                        latestSample.handY,
+                        latestSample.pinch,
+                        latestSample.sourceId);
+                    return HandInputDiagnosticsFormatter.FormatBody(handInputState);
+                }
+
+                handInputState.SetListening(udpReceiver.ListenPort, allowedSenderIp, udpReceiver.IsListening);
+                return HandInputDiagnosticsFormatter.FormatBody(handInputState);
+            }
+
+            handInputState.SetListening(0, "Any", false);
+            return HandInputDiagnosticsFormatter.FormatBody(handInputState);
         }
 
         private void Close()

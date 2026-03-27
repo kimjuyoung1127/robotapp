@@ -73,6 +73,47 @@ flowchart LR
     D --> F
 ```
 
+## Extensibility Direction
+
+- 최종 구조는 "손 입력을 기존 기능 위에 덧붙이는 방식"이 아니라 "입력 소스를 늘리고 중앙에서 중재하는 방식"을 목표로 한다.
+- 즉 slider, handle, TCP, hand input은 서로를 덮어쓰는 것이 아니라 같은 `RobotControl` 안의 병렬 입력 소스가 되어야 한다.
+
+### Architecture Principle
+
+```mermaid
+flowchart LR
+    A["Slider Input"] --> M["Input Arbitration Layer"]
+    B["Handle Input"] --> M
+    C["TCP Input"] --> M
+    D["Hand Input"] --> M
+    M --> E["Preview Apply"]
+    M --> F["Teaching Save"]
+    M --> G["Later: Live Apply"]
+```
+
+### Why This Matters
+
+- 기존 `RobotControl` 기능을 깨지 않고 hand input을 추가할 수 있다.
+- 나중에 손 입력을 꺼도 slider, handle, TCP 흐름은 그대로 유지된다.
+- `Hand Teaching Mode`, `Manual Mode`, `Playback Mode`, `Live Mode` 같은 모드 전환이 쉬워진다.
+- 향후 UDP 외에도 WebSocket, XR, Leap Motion, OpenXR 입력으로 교체하기 쉽다.
+
+### Recommended Future Components
+
+- `HandPoseSource`
+- `HandMotionMapper`
+- `RobotControlInputArbiter`
+- `RobotControlHandTeachingService`
+- `RobotControlLiveGate`
+
+### Step 1 Definition
+
+- 1단계의 성공 기준은 "로봇이 움직이는 것"이 아니라 "외부 hand input이 앱 안으로 실제로 들어온 것을 안정적으로 확인하는 것"이다.
+- 현재 기준 최소 성공 신호는 아래다.
+  - `RobotControl` 진단 서랍에서 `Hand Input: Fresh` 상태 확인
+  - 최근 수신 `seq`, `tracked`, `handX`, `handY`, `pinch` 값 확인
+  - timeout 이후 `Stale` 상태로 바뀌는지 확인
+
 ## Connectivity Recommendation
 
 - 1차 파일럿은 `무선`을 기본으로 본다.

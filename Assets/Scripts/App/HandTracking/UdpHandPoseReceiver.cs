@@ -33,6 +33,14 @@ namespace KineTutor3D.App.HandTracking
 
         public event Action<HandPoseSample> OnSampleReceived;
 
+        public int ListenPort => listenPort;
+
+        public bool IsListening => running;
+
+        public bool RestrictSenderIp => restrictSenderIp;
+
+        public string AllowedSenderIp => allowedSenderIp;
+
         public bool HasFreshSample =>
             latestSample != null && Time.realtimeSinceStartup - lastReceiveRealtime <= sampleTimeoutSeconds;
 

@@ -1,5 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.App;
+using KineTutor3D.App.HandTracking;
 using KineTutor3D.Math;
 using KineTutor3D.UI;
 using KineTutor3D.Visualization;
@@ -31,6 +32,7 @@ namespace KineTutor3D.App.Fairino
         [SerializeField] private GameObject controlRobotInstance;
 
         private RobotControlTemplateDefinition templateDefinition;
+        private UdpHandPoseReceiver handPoseReceiver;
         private FairinoConnectionService connectionService;
         private FairinoErrorTranslator errorTranslator;
         private FairinoRobotConfig config;
@@ -94,6 +96,7 @@ namespace KineTutor3D.App.Fairino
 
             EnsureRobotSelection();
             EnsureRuntimeRoot();
+            EnsureHandPoseReceiver();
             EnsureControlRobot();
             EnsureJointDriver();
             EnsureVisualizationHelpers();
@@ -129,7 +132,7 @@ namespace KineTutor3D.App.Fairino
             jointControlPanel?.Inject(connectionService, config);
             statePanel?.Inject(connectionService, errorTranslator, kinematicsFacade);
             tcpPanel?.Inject(connectionService, config, kinematicsFacade);
-            diagnosticsDrawer?.Inject(connectionService, connectionPanel, jointControlPanel, tcpPanel);
+            diagnosticsDrawer?.Inject(connectionService, connectionPanel, jointControlPanel, tcpPanel, handPoseReceiver);
             whyItMovedLabel?.Inject(kinematicsFacade);
             jointControlPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
             tcpPanel?.InjectMoveConfirmDialog(moveConfirmDialog);
@@ -716,6 +719,26 @@ namespace KineTutor3D.App.Fairino
             runtimeRoot = new GameObject(templateDefinition.RuntimeRootName).transform;
             runtimeRoot.localPosition = Vector3.zero;
             runtimeRoot.localRotation = Quaternion.identity;
+        }
+
+        private void EnsureHandPoseReceiver()
+        {
+            if (runtimeRoot == null)
+            {
+                return;
+            }
+
+            var existing = runtimeRoot.Find("HandTrackingReceiver");
+            Transform receiverRoot = existing;
+            if (receiverRoot == null)
+            {
+                var go = new GameObject("HandTrackingReceiver");
+                go.transform.SetParent(runtimeRoot, false);
+                receiverRoot = go.transform;
+            }
+
+            handPoseReceiver = receiverRoot.GetComponent<UdpHandPoseReceiver>()
+                ?? receiverRoot.gameObject.AddComponent<UdpHandPoseReceiver>();
         }
 
         private void EnsureControlRobot()

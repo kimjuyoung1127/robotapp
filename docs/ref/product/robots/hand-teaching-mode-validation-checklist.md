@@ -37,10 +37,18 @@ C:\Users\ezen601\Desktop\Jason\external\hand-teaching-mode\MediaPipeUnityPlugin
 
 ## Phase 0. Editor Baseline
 
-- [ ] Unity Editor가 정상 재시작되었는지 확인
-- [ ] `unityctl status --wait`가 IPC ready 상태까지 도달하는지 확인
+- [x] Unity Editor가 정상 재시작되었는지 확인
+- [x] `unityctl` bridge가 `Ready` 상태로 올라오는지 확인
 - [ ] `unityctl check --type compile`가 통과하는지 확인
 - [ ] 현재 씬/패키지 기준선이 restart 전과 동일한지 확인
+
+### Confirmed Baseline Result
+
+- `ProjectSettings/UnityctlSettings.asset`를 추가해 `com.unityctl.bridge` bootstrap을 활성화했다.
+- 최신 릴리스 `unityctl v0.3.5` 기준 `status` 결과:
+  - `state = Ready`
+  - `bridgeLoaded = true`
+  - `ipcPipePresent = true`
 
 ## Phase 1. External Hand Tracking Baseline
 
@@ -64,11 +72,35 @@ C:\Users\ezen601\Desktop\Jason\external\hand-teaching-mode\MediaPipeUnityPlugin
 
 ## Phase 2. robotapp2 Receive Path
 
-- [ ] `Assets/Scripts/App/HandTracking/` 폴더 추가
-- [ ] UDP 또는 WebSocket receiver 추가
-- [ ] 수신값 clamp / deadzone / timeout 처리 추가
-- [ ] preview-only 모드에서만 입력 허용
+- [x] `Assets/Scripts/App/HandTracking/` 폴더 추가
+- [x] UDP receiver 추가
+- [x] 수신값 clamp / deadzone / timeout 처리 추가
+- [x] preview-only 모드에서만 입력 허용
 - [ ] FR5 preview가 손 입력에 따라 움직이는지 확인
+
+### Step 1 Result
+
+- [x] `RobotControl` 런타임에 `HandTrackingReceiver` 생성 확인
+- [x] Android UDP sender에서 테스트 payload 송신 확인
+- [x] Diagnostics drawer의 `Hand Input` 섹션에서 payload 수신 확인
+- [x] Fresh 후 timeout에 따라 `Stale`로 전환되는 것 확인
+
+### Observed Runtime Signal
+
+- `Hand Input: Stale`
+- `Port: 5005`
+- `Sender: 192.168.0.23`
+- `Seq: 1`
+- `Tracked: Yes`
+- `X/Y: 0.12 / -0.34`
+- `Pinch: 0.77`
+- `Source: android-debug`
+
+해석:
+
+- 패킷은 실제로 도착했다.
+- 현재 timeout이 `0.5 sec`라서, 확인 시점에는 `Fresh`에서 `Stale`로 넘어가 있었다.
+- 즉 Step 1의 목적이었던 "`폰 -> UDP -> robotapp2` 최소 연결 확인"은 달성했다.
 
 ## Phase 3. Hand Teaching Loop
 
@@ -109,10 +141,10 @@ C:\Users\ezen601\Desktop\Jason\external\hand-teaching-mode\MediaPipeUnityPlugin
 
 Go:
 
-- Unity compile baseline 통과
+- Unity IPC bridge ready
 - 폰이 값 송신 가능
 - robotapp2가 값 수신 가능
-- preview 로봇 반응
+- Diagnostics drawer에서 hand input 상태 확인 가능
 - pose 저장/재적용 가능
 
 No-Go:
