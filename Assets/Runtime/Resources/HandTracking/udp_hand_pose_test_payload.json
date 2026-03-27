@@ -1,0 +1,12 @@
+{
+  "seq": 1,
+  "tracked": true,
+  "handX": 0.12,
+  "handY": -0.34,
+  "pinch": 0.77,
+  "palmYaw": 18.0,
+  "palmPitch": -9.0,
+  "confidence": 0.95,
+  "sentUnixMs": 1743062400000,
+  "sourceId": "debug-phone"
+}
