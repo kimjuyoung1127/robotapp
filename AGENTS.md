@@ -7,18 +7,27 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 1. `AGENTS.md`
 2. `docs/ref/architecture-mermaid.md`
 3. `CLAUDE.md`
-4. `docs/status/PRODUCT-DOC-BOARD.md`
-5. `docs/ref/PRD.md`
-6. `docs/ref/WIREFRAME.md`
-7. `docs/ref/PRODUCT-ROADMAP.md`
-8. `docs/ref/phase5-implementation-plan.md` (when implementing or reviewing Phase 5)
+4. `docs/ref/csharp-master-harness.md` (when creating or editing C#)
+5. `docs/ref/code-patterns.md` (implementation detail and patterns)
+6. `docs/status/PRODUCT-DOC-BOARD.md`
+7. `docs/ref/PRD.md`
+8. `docs/ref/WIREFRAME.md`
+9. `docs/ref/PRODUCT-ROADMAP.md`
+10. `docs/ref/phase5-implementation-plan.md` (when implementing or reviewing Phase 5)
 
 ## Mandatory Navigation Rule
 - Always read the root `AGENTS.md` before exploring files.
 - When working inside `Assets/Scripts/App`, `Assets/Scripts/UI`, or `Assets/Scripts/Visualization`, read that folder's `AGENTS.md` first.
+- When creating or editing C# files, read `docs/ref/csharp-master-harness.md` and `docs/ref/code-patterns.md` before patching code.
 - For fast system-level context, read `docs/ref/architecture-mermaid.md` before chasing individual files.
 - Product/planning work must read `docs/status/PRODUCT-DOC-BOARD.md` and the canonical product docs in `docs/ref/` before changing status files.
 - Runtime implementation work should read `docs/ref/architecture-mermaid.md` after the canonical product docs.
+
+## Current Runtime Truth
+- Active scene flow is `Boot -> Onboarding -> RobotLibrary -> {MathReadiness, Sandbox, RobotControl}`.
+- `RobotLibrary` is the main user entry scene after onboarding.
+- `Home` and `Main` are historical scene names, not current runtime entry points.
+- Prefer `docs/ref/architecture-mermaid.md` and `docs/ref/project-flow-code-review.md` when verifying current flow.
 
 ## Folder Responsibility Rule
 - `Assets/Scripts/App`: application state, scene flow, orchestration, runtime coordination.
@@ -71,9 +80,46 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Asset sourcing / curation / validation: `docs/ref/product/roadmap/asset-sourcing-checklist.md` -> `docs/ref/asset-curation-map.md` -> `docs/ref/asset-validation-report.md` -> `docs/ref/asset-registry.md`
 - Plan-change procedure: `docs/ref/PRODUCT-ROADMAP.md` -> `docs/ref/product/roadmap/release-gates.md`
 
-## Unity CLI Usage
-- For current `unity-cli` usage, read `docs/ref/cli-tools-guide.md`.
-- In PowerShell, prefer `$PSNativeCommandArgumentPassing = "Standard"` before calling `unity-cli`.
-- Custom tool names use the registered `snake_case` form such as `compile_check_tool`, `scene_validate_tool`, and `run_tests_tool`.
-- When parameters include strings, commas, or booleans, prefer `--params '{"key":"value"}'` over positional flags.
-- Current baseline: EditMode automation is reliable; PlayMode automation is still under investigation and should be treated as unstable until the CLI guide says otherwise.
+## Subfolder Claude Routing
+- App runtime, scene flow, session state: `Assets/Scripts/App/CLAUDE.md`
+- RobotControl runtime and live/mock robot integration: `Assets/Scripts/App/Fairino/CLAUDE.md`
+- UR5e-specific RobotControl setup: `Assets/Scripts/App/UniversalRobots/CLAUDE.md`
+- Doosan-specific RobotControl setup: `Assets/Scripts/App/Doosan/CLAUDE.md`
+- Meca500-specific RobotControl setup: `Assets/Scripts/App/Mecademic/CLAUDE.md`
+- External hand tracking input: `Assets/Scripts/App/HandTracking/CLAUDE.md`
+- HUD, onboarding, tutorial, navigation UI: `Assets/Scripts/UI/CLAUDE.md`
+- UI config/data assets: `Assets/Scripts/UI/Data/CLAUDE.md`
+- Visualization facade and donor/render binding: `Assets/Scripts/Visualization/CLAUDE.md`
+- Shared visualization primitives and URDF helpers: `Assets/Scripts/Visualization/Shared/CLAUDE.md`
+- Editor QA and authoring utilities: `Assets/Editor/KineTutor3D/CLAUDE.md`
+- `unityctl exec` helpers and CLI automation entry points: `Assets/Editor/KineTutor3D/CliTools/CLAUDE.md`
+- Test suite overview: `Assets/Tests/CLAUDE.md`
+- EditMode test rules: `Assets/Tests/EditMode/CLAUDE.md`
+- PlayMode smoke and flow tests: `Assets/Tests/PlayMode/CLAUDE.md`
+
+## Unityctl Default Usage
+- Default Unity automation tool for this repository is `unityctl`, not `unity-cli`.
+- Fixed default path: `C:\Users\ezen601\Desktop\Jason\unityctl\src\Unityctl.Cli\bin\Debug\net10.0\unityctl.exe`
+- First command in a new session should usually be:
+  `& 'C:\Users\ezen601\Desktop\Jason\unityctl\src\Unityctl.Cli\bin\Debug\net10.0\unityctl.exe' status --project 'C:\Users\ezen601\Desktop\Jason\robotapp2' --wait --json`
+- Preferred verification loop:
+  `status --wait` -> `check --type compile` -> `play start/stop` or `test --mode edit/play` -> `console get-entries` / `exec`
+- Use `exec` for project-specific runtime inspection when no dedicated `unityctl` command exists.
+- Only fall back to MCP when `unityctl` has no equivalent command or IPC is unavailable.
+- Treat `docs/ref/cli-tools-guide.md` and `unity-cli` commands as legacy/historical guidance only unless a task explicitly requires them.
+
+## Unityctl Working Recipes
+- Session bootstrap:
+  `status --wait` -> `check --type compile` -> `console get-entries`
+- Fast C# validation loop:
+  edit files -> `check --type compile` -> `test --mode edit` -> inspect console if needed
+- Scene/UI verification loop:
+  `scene open` -> `play start` -> `console get-entries` -> `ui find/get/toggle/input` or `exec` -> `play stop`
+- Runtime investigation loop:
+  `status --wait` -> `play start` -> `exec` for project probes -> `console get-entries` -> `screenshot capture` or `scene snapshot`
+- Regression closure loop:
+  `check --type compile` -> targeted `test --mode edit` or `test --mode play` -> `console clear` -> rerun failing path
+- Practical shell setup per session:
+  set `$unityctl = 'C:\Users\ezen601\Desktop\Jason\unityctl\src\Unityctl.Cli\bin\Debug\net10.0\unityctl.exe'`
+  set `$project = 'C:\Users\ezen601\Desktop\Jason\robotapp2'`
+  then call `& $unityctl status --project $project --wait --json`

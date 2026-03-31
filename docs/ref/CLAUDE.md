@@ -4,6 +4,7 @@
 
 ## 파일 목록
 - `architecture-diagrams.md` — Unity 프로젝트 아키텍처
+- `csharp-master-harness.md` — C# 작업 운영 하네스 (`unityctl`, 경계, 검증 루프)
 - `dh-reference.md` — DH 파라미터 수학 레퍼런스 (기본 변환행렬, Modified DH 포함)
 - `coordinate-mapping.md` — 로보틱스 ↔ Unity 좌표 매핑
 - `test-reference-values.md` — 검증용 기준값 (2DOF, SCARA, PUMA 560)

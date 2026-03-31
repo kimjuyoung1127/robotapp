@@ -1,7 +1,7 @@
 ﻿# KineTutor3D Architecture Diagrams
 
-Version: 1.6.0
-Last Updated: 2026-03-14 (KST)
+Version: 1.7.0
+Last Updated: 2026-03-31 (KST)
 
 ## Fast Context Entry
 
@@ -12,13 +12,22 @@ Last Updated: 2026-03-14 (KST)
 ## Scene Flow Map
 
 ```mermaid
-flowchart LR
-  A["Boot.unity"] --> B{"HasVisited?"}
+flowchart TD
+  A["Boot.unity"] --> B{"StepProgressSaver.HasVisited()?"}
   B -->|"false"| C["Onboarding.unity"]
-  B -->|"true"| D["Main.unity"]
-  C --> E["SceneNavigationBar"]
-  D --> E
-  C -->|"학습 시작 / 건너뛰기"| D
+  B -->|"true"| D["RobotLibrary.unity"]
+
+  C -->|"Start Learning"| D
+  C -->|"Begin as Beginner"| E["MathReadiness.unity"]
+  C -->|"Skip to Sandbox"| F["Sandbox.unity"]
+
+  D -->|"Guided lesson capable robot"| F
+  D -->|"Sandbox"| F
+  D -->|"Robot Control"| G["RobotControl.unity"]
+  D -->|"Back"| C
+
+  E -->|"track complete"| D
+  E -->|"Open Sandbox"| F
 ```
 
 ## UX Module Map (Phase 3 확장)
@@ -115,6 +124,8 @@ flowchart TB
 ```mermaid
 flowchart TD
     Coord["RobotControlSceneCoordinator"]
+    Bridge["RobotSelectionBridge"]
+    Factory["RobotControlFactory"]
 
     subgraph Panels["UI 패널"]
         ConnP["FairinoConnectionPanel"]
@@ -128,8 +139,8 @@ flowchart TD
     subgraph Services["서비스"]
         ConnSvc["FairinoConnectionService\nMock↔Live + SyncCurrentState"]
         Client["IFairinoRobotClient\nMoveJ / MoveL / ServoJ / ReadState"]
-        FK["FR5KinematicsFacade\nDH + FK chain"]
-        Presets["FR5PosePresets\nHome/Ready/Folded/Current"]
+        FK["RobotKinematicsFacade\nDH + FK chain"]
+        Presets["Template PosePresetProvider\nHome/Ready/Folded/Current"]
     end
 
     subgraph Viz3D["3D 시각화"]
@@ -141,6 +152,8 @@ flowchart TD
         Orbit["OrbitCameraController\n핸들 드래그 시 잠금"]
     end
 
+    Bridge --> Factory
+    Factory --> Coord
     Coord --> ConnSvc
     Coord --> FK
     Coord --> Driver
@@ -148,6 +161,7 @@ flowchart TD
     Coord --> Gizmos
     Coord --> Trail
     Coord --> Arrow
+    Coord --> Presets
     ConnSvc --> Client
     JointP --> Coord
     TcpP --> Coord
@@ -244,4 +258,4 @@ flowchart LR
 9. Play 중 중앙을 덮는 placeholder modal과 viewport fill box는 허용하지 않는다.
 10. 온보딩은 유효한 모달 구성이 있는 경우에만 표시하며, placeholder만 존재하면 즉시 스텝 흐름으로 진행한다.
 11. `Boot`는 로직 전용 씬이며 첫 방문 분기 외의 UI 책임을 갖지 않는다.
-12. `Onboarding`과 `Main`은 같은 `SceneNavigationBar`를 사용해 상호 이동한다.
+12. `Onboarding`과 `RobotLibrary`는 같은 `SceneNavigationBar`를 사용해 상호 이동한다.
