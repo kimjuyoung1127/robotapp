@@ -1,3 +1,5 @@
+﻿// Folder: Editor - Unity Editor authoring, QA, and packaging tools.
+// UX 테스트용 샘플 데이터를 시드하는 에디터 도구입니다.
 using System.Collections.Generic;
 using KineTutor3D.UI.Data;
 using UnityEditor;

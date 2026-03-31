@@ -55,7 +55,7 @@ namespace KineTutor3D.Templates
                     zeroPoseDeg: new[] { 0d, 0d, 0d, 0d },
                     homePoseDeg: new[] { 0d, 25d, 0d, 0d },
                     demoPoseDeg: new[] { 35d, -20d, 40d, 10d },
-                    importSource: "Assets/realvirtual/3DPrefabs/ScaraRobot.prefab"),
+                    importSource: "Assets/Runtime/Resources/Robots/ScaraRobot.prefab"),
                 TemplateSCARA_RV.Create));
 
             Register(new RobotCatalogEntry(
@@ -147,7 +147,7 @@ namespace KineTutor3D.Templates
                     supportedLessons: new[] { "Demo" },
                     inputModes: new[] { "demo" },
                     visualizationLevel: "DonorMesh",
-                    importSource: "Assets/realvirtual/3DPrefabs/FanucCRX-10iA_L.prefab")));
+                    importSource: "Assets/Runtime/Resources/Robots/FanucCRX-10iA_L.prefab")));
 
             Register(new RobotCatalogEntry(
                 new RobotMetadataInfo(
@@ -157,7 +157,7 @@ namespace KineTutor3D.Templates
                     supportedLessons: new[] { "Demo" },
                     inputModes: new[] { "demo" },
                     visualizationLevel: "DonorMesh",
-                    importSource: "Assets/realvirtual/Interfaces/igusREBEL/igusRebel.prefab")));
+                    importSource: "Assets/Runtime/Resources/Robots/igusRebel.prefab")));
         }
 
         /// <summary>

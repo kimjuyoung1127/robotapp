@@ -1,3 +1,5 @@
+﻿// Folder: Templates - Robot configuration templates; no UnityEngine references.
+// SCARA RV 로봇 템플릿을 정의합니다.
 using KineTutor3D.Types;
 
 namespace KineTutor3D.Templates

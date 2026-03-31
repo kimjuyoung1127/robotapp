@@ -9,6 +9,12 @@
 - UI auto-wire that belongs to application bootstrap
 - kinematics runtime coordination (not raw math implementation)
 
+## Subfolders
+- `Runtime/`: kinematics runtime state, update causes, FK facade helpers
+- `Session/`: resume context, persisted progress, track/session storage
+- `Lessons/`: lesson factory defaults and step-flow helper services
+- `Fairino/Template/`: FR5 slim template extraction/demo assets and manifests
+
 ## Not Allowed Here
 - donor mesh traversal/copy
 - HUD widget styling/rendering details
@@ -23,4 +29,5 @@
 
 ## Refactor Rule
 - keep `AppController` as the public facade
+- keep scene entry helpers (`BootSceneRouter`, `SceneNavigator`, `SceneCatalog`, `SceneId`) at App root
 - move step flow, UI binding, and kinematics runtime into helper/service classes when size or coupling grows

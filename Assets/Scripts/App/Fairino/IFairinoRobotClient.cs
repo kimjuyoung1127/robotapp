@@ -73,5 +73,30 @@ namespace KineTutor3D.App.Fairino
         /// 로봇 버전 정보를 읽어옵니다.
         /// </summary>
         FairinoResult<FairinoVersionInfo> GetVersion();
+
+        /// <summary>
+        /// 현재 safety code를 읽어옵니다.
+        /// </summary>
+        FairinoResult<int> GetSafetyCode();
+
+        /// <summary>
+        /// 실시간 상태 주기를 읽어옵니다.
+        /// </summary>
+        FairinoResult<int> GetRealtimeStateSamplePeriod();
+
+        /// <summary>
+        /// 실시간 상태 주기를 설정합니다.
+        /// </summary>
+        FairinoResult SetRealtimeStateSamplePeriod(int periodMs);
+
+        /// <summary>
+        /// 모션 큐를 비웁니다.
+        /// </summary>
+        FairinoResult ClearMotionQueue();
+
+        /// <summary>
+        /// 컨트롤러 모드를 설정합니다.
+        /// </summary>
+        FairinoResult SetMode(int mode);
     }
 }

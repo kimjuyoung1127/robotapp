@@ -11,6 +11,8 @@ namespace KineTutor3D.App.Fairino
     {
         private double[] currentJointPosDeg = { 0, -45, 0, -59, -92, -42 };
         private double[] currentTcpPose = new double[6];
+        private int currentMode;
+        private int stateSamplePeriodMs = 100;
 
         /// <summary>
         /// 현재 연결 상태입니다.
@@ -107,7 +109,16 @@ namespace KineTutor3D.App.Fairino
                 return FairinoResult<FairinoRobotState>.Fail(-1, "연결되지 않은 상태입니다.");
             }
 
-            var state = new FairinoRobotState(currentJointPosDeg, currentTcpPose);
+            var state = new FairinoRobotState(
+                currentJointPosDeg,
+                currentTcpPose,
+                robotMode: currentMode,
+                motionQueueLength: 0,
+                safetyCode: 0,
+                realtimeStateSamplePeriodMs: stateSamplePeriodMs,
+                isEmergencyStop: false,
+                isCollisionDetected: false,
+                isRobotEnabled: IsEnabled);
             return FairinoResult<FairinoRobotState>.Ok(state, "Mock 상태 읽기 성공");
         }
 
@@ -145,6 +156,49 @@ namespace KineTutor3D.App.Fairino
 
             var version = new FairinoVersionInfo("Mock-1.0.0", "SDK-Mock-1.0");
             return FairinoResult<FairinoVersionInfo>.Ok(version);
+        }
+
+        public FairinoResult<int> GetSafetyCode()
+        {
+            return !IsConnected
+                ? FairinoResult<int>.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult<int>.Ok(0);
+        }
+
+        public FairinoResult<int> GetRealtimeStateSamplePeriod()
+        {
+            return !IsConnected
+                ? FairinoResult<int>.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult<int>.Ok(stateSamplePeriodMs);
+        }
+
+        public FairinoResult SetRealtimeStateSamplePeriod(int periodMs)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            stateSamplePeriodMs = System.Math.Max(10, periodMs);
+            return FairinoResult.Ok("Mock 상태 주기 설정 완료");
+        }
+
+        public FairinoResult ClearMotionQueue()
+        {
+            return !IsConnected
+                ? FairinoResult.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult.Ok("Mock 모션 큐 비움");
+        }
+
+        public FairinoResult SetMode(int mode)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            currentMode = mode;
+            return FairinoResult.Ok($"Mock 모드 전환: {mode}");
         }
     }
 }

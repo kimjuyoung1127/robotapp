@@ -121,6 +121,7 @@ namespace KineTutor3D.Visualization
 
         private void ConfigureAxis(LineRenderer renderer, Color color, Vector3 endPoint)
         {
+            renderer.sharedMaterial = SharedLineMaterial.Get();
             renderer.startWidth = lineWidth;
             renderer.endWidth = lineWidth;
             renderer.startColor = color;

@@ -18,6 +18,8 @@ namespace KineTutor3D.App.Fairino
         private FairinoRobotState lastState;
         private int consecutiveErrors;
         private bool useMock = true;
+        private int lastSafetyCode;
+        private int lastRealtimeStateSamplePeriodMs;
 
         /// <summary>
         /// 현재 사용 중인 클라이언트입니다.
@@ -33,6 +35,16 @@ namespace KineTutor3D.App.Fairino
         /// 마지막으로 읽은 로봇 상태입니다.
         /// </summary>
         public FairinoRobotState LastState => lastState;
+
+        /// <summary>
+        /// 마지막으로 읽은 safety code입니다.
+        /// </summary>
+        public int LastSafetyCode => lastSafetyCode;
+
+        /// <summary>
+        /// 마지막으로 읽은 실시간 상태 주기(ms)입니다.
+        /// </summary>
+        public int LastRealtimeStateSamplePeriodMs => lastRealtimeStateSamplePeriodMs;
 
         /// <summary>
         /// 상태가 갱신될 때 발생하는 이벤트입니다.
@@ -103,6 +115,8 @@ namespace KineTutor3D.App.Fairino
                 ? (IFairinoRobotClient)new MockFairinoClient()
                 : new LiveFairinoClient(errorTranslator);
             lastState = FairinoRobotState.Zero();
+            lastSafetyCode = 0;
+            lastRealtimeStateSamplePeriodMs = 0;
             pollTimer = 0f;
             OnModeChanged?.Invoke(useMock);
             OnConnectionStateChanged?.Invoke(client.IsConnected);
@@ -160,6 +174,20 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 컨트롤러 모드를 설정합니다.
+        /// </summary>
+        public FairinoResult SetMode(int mode)
+        {
+            var result = client.SetMode(mode);
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 로봇 서보를 비활성화합니다.
         /// </summary>
         public FairinoResult Disable()
@@ -189,6 +217,74 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 현재 safety code를 읽어옵니다.
+        /// </summary>
+        public FairinoResult<int> GetSafetyCode()
+        {
+            var result = client.GetSafetyCode();
+            if (result.IsSuccess)
+            {
+                lastSafetyCode = result.Value;
+            }
+            else
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 실시간 상태 주기를 읽어옵니다.
+        /// </summary>
+        public FairinoResult<int> GetRealtimeStateSamplePeriod()
+        {
+            var result = client.GetRealtimeStateSamplePeriod();
+            if (result.IsSuccess)
+            {
+                lastRealtimeStateSamplePeriodMs = result.Value;
+            }
+            else
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 실시간 상태 주기를 설정합니다.
+        /// </summary>
+        public FairinoResult SetRealtimeStateSamplePeriod(int periodMs)
+        {
+            var result = client.SetRealtimeStateSamplePeriod(periodMs);
+            if (result.IsSuccess)
+            {
+                lastRealtimeStateSamplePeriodMs = periodMs;
+            }
+            else
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 모션 큐를 비웁니다.
+        /// </summary>
+        public FairinoResult ClearMotionQueue()
+        {
+            var result = client.ClearMotionQueue();
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 현재 로봇 상태를 읽어 반환합니다. Live 모드에서 관절 동기화용입니다.
         /// </summary>
         public FairinoResult<FairinoRobotState> SyncCurrentState()
@@ -202,6 +298,8 @@ namespace KineTutor3D.App.Fairino
             if (result.IsSuccess)
             {
                 lastState = result.Value;
+                lastSafetyCode = result.Value.SafetyCode;
+                lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
                 OnStateUpdated?.Invoke(lastState);
             }
             else
@@ -236,6 +334,8 @@ namespace KineTutor3D.App.Fairino
             {
                 consecutiveErrors = 0;
                 lastState = result.Value;
+                lastSafetyCode = result.Value.SafetyCode;
+                lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
                 OnStateUpdated?.Invoke(lastState);
             }
             else
@@ -259,6 +359,8 @@ namespace KineTutor3D.App.Fairino
             if (result.IsSuccess)
             {
                 lastState = result.Value;
+                lastSafetyCode = result.Value.SafetyCode;
+                lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
                 OnStateUpdated?.Invoke(lastState);
                 return;
             }

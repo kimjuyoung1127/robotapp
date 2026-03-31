@@ -5,6 +5,11 @@
 ## 폴더 구조
 ```
 Visualization/
+├── Renderer/         ← RobotRenderer facade + donor binding + bounds/rig helpers
+├── RobotLibrary/     ← RobotLibrary preview pod/factory
+├── RobotControl/     ← RobotControl 전용 시각 드라이버
+├── MathReadiness/    ← 각도/길이/격자/단순 팔 teaching visuals
+├── Targets/          ← target marker + highlight helpers
 ├── Shared/           ← 로봇 무관 공용 컴포넌트 (어느 씬에서든 AddComponent로 사용)
 │   ├── CoordConverter.cs         — 로보틱스↔Unity 좌표 변환
 │   ├── EETrailRenderer.cs       — 공유 EE 궤적 코어 (거리게이팅, FIFO, 그라데이션)
@@ -16,19 +21,16 @@ Visualization/
 │   ├── DisplacementArrow.cs     — EE 변위 벡터 화살표 (LineRenderer + 원뿔 헤드)
 │   ├── JointRotationHandle.cs   — 관절 회전 링 핸들 (마우스 드래그→각도 emit)
 │   └── UrdfJointDriver.cs      — 범용 URDF 관절 드라이버 (ArticulationBody 자동탐색, N축)
-├── FairinoUrdfJointDriver.cs    — FR5 URDF Transform 관절 제어 (RobotControl 전용)
-├── RobotRenderer.cs             — 범용 2DOF/SCARA 3D 렌더러
-├── RobotRigBinder.cs            — 씬 계층 유틸리티
-├── DonorMeshCopier.cs           — URDF 메시 복사
-├── ScaraDonorMapper.cs          — SCARA 전용 메시 매핑
-├── RobotPreviewFactory.cs       — RobotLibrary 프리뷰 생성
-└── ...                          — 기타 시각화 헬퍼
+├── Renderer/RobotRenderer.cs    — 범용 2DOF/SCARA 3D 렌더러
+├── RobotControl/FairinoUrdfJointDriver.cs — FR5 URDF Transform 관절 제어
+├── RobotLibrary/RobotPreviewFactory.cs    — RobotLibrary 프리뷰 생성
+└── ...                          — 역할별 시각화 헬퍼
 ```
 
 ## Shared/ 사용 규칙
 - 새 공용 시각화 컴포넌트는 `Shared/`에 작성
 - 네임스페이스는 `KineTutor3D.Visualization` 유지 (하위 네임스페이스 불필요)
-- 특정 로봇(FR5, SCARA 등)에 종속되는 코드는 `Visualization/` 루트에 유지
+- 특정 페이지/로봇에 종속되는 코드는 해당 역할 폴더(`RobotControl/`, `MathReadiness/`, `Renderer/` 등)에 유지
 - LineRenderer Material은 `SharedLineMaterial.Get()` 사용 (개별 static Material 캐시 금지)
 - LineRenderer 기본 설정은 `SharedLineMaterial.ConfigureLineRenderer()` 사용
 

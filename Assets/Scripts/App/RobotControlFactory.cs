@@ -3,6 +3,7 @@ using KineTutor3D.App.Doosan;
 using KineTutor3D.App.Fairino;
 using KineTutor3D.App.Mecademic;
 using KineTutor3D.App.UniversalRobots;
+using KineTutor3D.Templates;
 using UnityEngine;
 
 namespace KineTutor3D.App
@@ -21,6 +22,10 @@ namespace KineTutor3D.App
         {
             switch (robotId)
             {
+                case "2DOF_RR":
+                    return Create2DofTemplateDefinition();
+                case "SCARA_RV":
+                    return CreateScaraTemplateDefinition();
                 case "FAIRINO_FR5":
                     return FR5RobotControlTemplateDefinition.Create();
                 case "UR5e":
@@ -32,6 +37,62 @@ namespace KineTutor3D.App
                 default:
                     Debug.LogWarning($"[RobotControlFactory] Unknown robotId '{robotId}', falling back to FR5");
                     return FR5RobotControlTemplateDefinition.Create();
+            }
+        }
+
+        private static RobotControlTemplateDefinition Create2DofTemplateDefinition()
+        {
+            var currentPose = new double[Template2DOF_RR.Create().Dof];
+
+            return new RobotControlTemplateDefinition
+            {
+                RobotId = Template2DOF_RR.Name,
+                DisplayName = "2DOF RR",
+                ControlPrefabResourcePath = string.Empty,
+                ShowroomPrefabResourcePath = string.Empty,
+                JointCount = 2,
+                ConfigResourceName = string.Empty,
+                RuntimeRootName = "SandboxRuntimeRoot",
+                ControlRobotInstanceName = "SandboxRobot",
+                PosePresetProvider = new RobotControlPosePresetProvider(
+                    readyPoseFactory: () => new double[] { 0d, 0d },
+                    updateCurrentPose: pose => CopyPose(pose, currentPose)),
+                KinematicsFactory = () => new RobotKinematicsFacade(Template2DOF_RR.Create())
+            };
+        }
+
+        private static RobotControlTemplateDefinition CreateScaraTemplateDefinition()
+        {
+            var currentPose = new double[TemplateSCARA_RV.Create().Dof];
+
+            return new RobotControlTemplateDefinition
+            {
+                RobotId = TemplateSCARA_RV.Name,
+                DisplayName = "SCARA Robot",
+                ControlPrefabResourcePath = "Robots/ScaraRobot",
+                ShowroomPrefabResourcePath = "Robots/ScaraRobot",
+                JointCount = 4,
+                ConfigResourceName = string.Empty,
+                RuntimeRootName = "SandboxRuntimeRoot",
+                ControlRobotInstanceName = "SandboxRobot",
+                PosePresetProvider = new RobotControlPosePresetProvider(
+                    readyPoseFactory: () => new double[] { 0d, 25d, 0d, 0d },
+                    updateCurrentPose: pose => CopyPose(pose, currentPose)),
+                KinematicsFactory = () => new RobotKinematicsFacade(TemplateSCARA_RV.Create())
+            };
+        }
+
+        private static void CopyPose(double[] source, double[] target)
+        {
+            if (source == null || target == null)
+            {
+                return;
+            }
+
+            var count = Mathf.Min(source.Length, target.Length);
+            for (var i = 0; i < count; i++)
+            {
+                target[i] = source[i];
             }
         }
     }

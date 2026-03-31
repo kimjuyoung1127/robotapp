@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace KineTutor3D.Editor
 {
@@ -46,6 +47,28 @@ namespace KineTutor3D.Editor
         private const string Meca500UrdfAssetPath = "Assets/Runtime/Robots/MECA500/meca500.urdf";
         private const string Meca500PrefabAssetPath = "Assets/Runtime/Resources/Robots/Meca500/Meca500.prefab";
         private const string Meca500ControlPrefabAssetPath = "Assets/Runtime/Resources/Robots/Meca500/Meca500_Control.prefab";
+        private const string SourceUrpAssetPath = "Assets/realvirtual/RenderPipelines/Resources/URP/URP-Default.asset";
+        private const string SourceUrpDefaultRendererPath = "Assets/realvirtual/RenderPipelines/Resources/URP/Settings/URP-Default-Renderer.asset";
+        private const string SourceUrpThumbnailRendererPath = "Assets/realvirtual/RenderPipelines/Resources/URP/Settings/URP-Thumbnail-Renderer.asset";
+        private const string RuntimeUrpFolder = "Assets/Runtime/RenderPipelines/URP";
+        private const string RuntimeUrpSettingsFolder = "Assets/Runtime/RenderPipelines/URP/Settings";
+        private const string RuntimeUrpAssetPath = "Assets/Runtime/RenderPipelines/URP/KineTutor3D-URP.asset";
+        private const string RuntimeUrpDefaultRendererPath = "Assets/Runtime/RenderPipelines/URP/Settings/KineTutor3D-URP-Default-Renderer.asset";
+        private const string RuntimeUrpThumbnailRendererPath = "Assets/Runtime/RenderPipelines/URP/Settings/KineTutor3D-URP-Thumbnail-Renderer.asset";
+        private static readonly string[] RuntimeRobotPrefabPaths =
+        {
+            "Assets/Runtime/Resources/Robots/ScaraRobot.prefab",
+            "Assets/Runtime/Resources/Robots/FanucCRX-10iA_L.prefab",
+            "Assets/Runtime/Resources/Robots/igusRebel.prefab",
+            FairinoPrefabAssetPath,
+            FairinoControlPrefabAssetPath,
+            Ur5ePrefabAssetPath,
+            Ur5eControlPrefabAssetPath,
+            DoosanPrefabAssetPath,
+            DoosanControlPrefabAssetPath,
+            Meca500PrefabAssetPath,
+            Meca500ControlPrefabAssetPath
+        };
 
         [MenuItem("KineTutor3D/QA: Reset to First-Time User", priority = 100)]
         private static void ResetToFirstTimeUser()
@@ -215,6 +238,86 @@ namespace KineTutor3D.Editor
                 robotId: "Meca500",
                 controlPrefabPath: Meca500ControlPrefabAssetPath,
                 previewPrefabPath: Meca500PrefabAssetPath);
+        }
+
+        [MenuItem("KineTutor3D/Robots/Sanitize Runtime Robot Prefabs", priority = 144)]
+        public static void SanitizeRuntimeRobotPrefabsMenu()
+        {
+            SanitizeRuntimeRobotPrefabs();
+        }
+
+        public static string SanitizeRuntimeRobotPrefabsExec => SanitizeRuntimeRobotPrefabs();
+
+        [MenuItem("KineTutor3D/Rendering/Adopt Project-Owned URP Assets", priority = 145)]
+        public static void AdoptProjectOwnedUrpAssetsMenu()
+        {
+            AdoptProjectOwnedUrpAssets();
+        }
+
+        public static string AdoptProjectOwnedUrpAssetsExec => AdoptProjectOwnedUrpAssets();
+
+        public static string SanitizeRuntimeRobotPrefabs()
+        {
+            var sanitizedPrefabs = 0;
+            var removedComponents = 0;
+            var missingPrefabs = new List<string>();
+
+            for (var i = 0; i < RuntimeRobotPrefabPaths.Length; i++)
+            {
+                var prefabPath = RuntimeRobotPrefabPaths[i];
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) == null)
+                {
+                    missingPrefabs.Add(prefabPath);
+                    continue;
+                }
+
+                var removedInPrefab = RemoveVendorComponents(prefabPath);
+                if (removedInPrefab <= 0)
+                {
+                    continue;
+                }
+
+                sanitizedPrefabs++;
+                removedComponents += removedInPrefab;
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            var urpMessage = AdoptProjectOwnedUrpAssets();
+
+            var message =
+                $"[QA] Sanitized {sanitizedPrefabs} runtime robot prefab(s), removed {removedComponents} realvirtual component(s)." +
+                (missingPrefabs.Count > 0 ? $" Missing: {string.Join(", ", missingPrefabs)}" : string.Empty) +
+                $" {urpMessage}";
+            Debug.Log(message);
+            return message;
+        }
+
+        public static string AdoptProjectOwnedUrpAssets()
+        {
+            EnsureFolder("Assets/Runtime");
+            EnsureFolder("Assets/Runtime/RenderPipelines");
+            EnsureFolder(RuntimeUrpFolder);
+            EnsureFolder(RuntimeUrpSettingsFolder);
+
+            CopyFreshAsset(SourceUrpAssetPath, RuntimeUrpAssetPath);
+            CopyFreshAsset(SourceUrpDefaultRendererPath, RuntimeUrpDefaultRendererPath);
+            CopyFreshAsset(SourceUrpThumbnailRendererPath, RuntimeUrpThumbnailRendererPath);
+
+            var removedDefault = SanitizeRendererAsset(RuntimeUrpDefaultRendererPath);
+            var removedThumbnail = SanitizeRendererAsset(RuntimeUrpThumbnailRendererPath);
+            WirePipelineAsset(RuntimeUrpAssetPath, RuntimeUrpDefaultRendererPath, RuntimeUrpThumbnailRendererPath);
+            RepointProjectPipelineSettings(
+                AssetDatabase.AssetPathToGUID(SourceUrpAssetPath),
+                AssetDatabase.AssetPathToGUID(RuntimeUrpAssetPath));
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            var message =
+                $"[QA] Adopted project-owned URP assets. Removed {removedDefault + removedThumbnail} realvirtual renderer feature(s).";
+            Debug.Log(message);
+            return message;
         }
 
         [MenuItem("KineTutor3D/RobotControl/Author Scene UI", priority = 145)]
@@ -509,6 +612,213 @@ namespace KineTutor3D.Editor
 
             AssetDatabase.SaveAssets();
             return count;
+        }
+
+        private static void CopyFreshAsset(string sourcePath, string targetPath)
+        {
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(sourcePath) == null)
+            {
+                throw new FileNotFoundException($"Source asset not found: {sourcePath}");
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(targetPath) != null)
+            {
+                AssetDatabase.DeleteAsset(targetPath);
+            }
+
+            if (!AssetDatabase.CopyAsset(sourcePath, targetPath))
+            {
+                throw new IOException($"Failed to copy asset from '{sourcePath}' to '{targetPath}'.");
+            }
+        }
+
+        private static int SanitizeRendererAsset(string rendererAssetPath)
+        {
+            var rendererAsset = AssetDatabase.LoadMainAssetAtPath(rendererAssetPath);
+            if (rendererAsset == null)
+            {
+                throw new FileNotFoundException($"Renderer asset not found: {rendererAssetPath}");
+            }
+
+            var rendererObject = new SerializedObject(rendererAsset);
+            var featuresProperty = rendererObject.FindProperty("m_RendererFeatures");
+            if (featuresProperty == null)
+            {
+                return 0;
+            }
+
+            var removed = 0;
+            for (var i = featuresProperty.arraySize - 1; i >= 0; i--)
+            {
+                var featureObject = featuresProperty.GetArrayElementAtIndex(i).objectReferenceValue;
+                if (featureObject == null)
+                {
+                    featuresProperty.DeleteArrayElementAtIndex(i);
+                    removed++;
+                    continue;
+                }
+
+                var type = featureObject.GetType();
+                var fullName = type.FullName ?? string.Empty;
+                var assemblyName = type.Assembly.GetName().Name ?? string.Empty;
+                if (!fullName.StartsWith("realvirtual.", System.StringComparison.Ordinal) &&
+                    !assemblyName.StartsWith("realvirtual", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                featuresProperty.DeleteArrayElementAtIndex(i);
+                AssetDatabase.RemoveObjectFromAsset(featureObject);
+                UnityEngine.Object.DestroyImmediate(featureObject, true);
+                removed++;
+            }
+
+            rendererObject.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(rendererAsset);
+            return removed;
+        }
+
+        private static void WirePipelineAsset(string pipelineAssetPath, string defaultRendererPath, string thumbnailRendererPath)
+        {
+            var pipelineAsset = AssetDatabase.LoadMainAssetAtPath(pipelineAssetPath);
+            var defaultRenderer = AssetDatabase.LoadMainAssetAtPath(defaultRendererPath);
+            var thumbnailRenderer = AssetDatabase.LoadMainAssetAtPath(thumbnailRendererPath);
+            if (pipelineAsset == null || defaultRenderer == null || thumbnailRenderer == null)
+            {
+                throw new FileNotFoundException("Failed to load copied URP pipeline asset set.");
+            }
+
+            var pipelineObject = new SerializedObject(pipelineAsset);
+            var rendererList = pipelineObject.FindProperty("m_RendererDataList");
+            if (rendererList != null)
+            {
+                rendererList.arraySize = 2;
+                rendererList.GetArrayElementAtIndex(0).objectReferenceValue = defaultRenderer;
+                rendererList.GetArrayElementAtIndex(1).objectReferenceValue = thumbnailRenderer;
+            }
+
+            var obsoleteRenderer = pipelineObject.FindProperty("m_RendererData");
+            if (obsoleteRenderer != null)
+            {
+                obsoleteRenderer.objectReferenceValue = defaultRenderer;
+            }
+
+            var defaultRendererIndex = pipelineObject.FindProperty("m_DefaultRendererIndex");
+            if (defaultRendererIndex != null)
+            {
+                defaultRendererIndex.intValue = 0;
+            }
+
+            pipelineObject.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(pipelineAsset);
+        }
+
+        private static void RepointProjectPipelineSettings(string oldGuid, string newGuid)
+        {
+            ReplaceGuidInFile("ProjectSettings/GraphicsSettings.asset", oldGuid, newGuid);
+            ReplaceGuidInFile("ProjectSettings/QualitySettings.asset", oldGuid, newGuid);
+        }
+
+        private static void ReplaceGuidInFile(string filePath, string oldGuid, string newGuid)
+        {
+            if (string.IsNullOrWhiteSpace(oldGuid) || string.IsNullOrWhiteSpace(newGuid))
+            {
+                throw new System.ArgumentException("Pipeline GUID replacement requires both old and new GUID.");
+            }
+
+            var fullPath = Path.GetFullPath(filePath);
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException($"Settings file not found: {fullPath}");
+            }
+
+            var text = File.ReadAllText(fullPath);
+            if (!text.Contains(oldGuid))
+            {
+                return;
+            }
+
+            File.WriteAllText(fullPath, text.Replace(oldGuid, newGuid));
+        }
+
+        private static int RemoveVendorComponents(string prefabPath)
+        {
+            var root = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                UnpackNestedPrefabInstances(root);
+
+                var removedCount = 0;
+                var components = root.GetComponentsInChildren<MonoBehaviour>(true);
+                for (var i = 0; i < components.Length; i++)
+                {
+                    var component = components[i];
+                    if (component == null)
+                    {
+                        continue;
+                    }
+
+                    var type = component.GetType();
+                    var fullName = type.FullName ?? string.Empty;
+                    var assemblyName = type.Assembly.GetName().Name ?? string.Empty;
+                    if (!fullName.StartsWith("realvirtual.", System.StringComparison.Ordinal) &&
+                        !assemblyName.StartsWith("realvirtual", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    UnityEngine.Object.DestroyImmediate(component, true);
+                    removedCount++;
+                }
+
+                if (removedCount > 0)
+                {
+                    PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+                }
+
+                return removedCount;
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void UnpackNestedPrefabInstances(GameObject root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            var pendingRoots = new HashSet<GameObject>();
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                var instanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(transforms[i].gameObject);
+                if (instanceRoot == null || instanceRoot == root)
+                {
+                    continue;
+                }
+
+                if (!instanceRoot.transform.IsChildOf(root.transform))
+                {
+                    continue;
+                }
+
+                pendingRoots.Add(instanceRoot);
+            }
+
+            foreach (var instanceRoot in pendingRoots)
+            {
+                if (instanceRoot != null && PrefabUtility.IsPartOfPrefabInstance(instanceRoot))
+                {
+                    PrefabUtility.UnpackPrefabInstance(
+                        instanceRoot,
+                        PrefabUnpackMode.Completely,
+                        InteractionMode.AutomatedAction);
+                }
+            }
         }
 
         private static void ClearQaState()

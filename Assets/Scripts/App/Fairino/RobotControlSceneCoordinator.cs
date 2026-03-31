@@ -117,7 +117,7 @@ namespace KineTutor3D.App.Fairino
 
         private void OnDisable()
         {
-            axisTripletOverlay?.HideImmediate();
+            HideAxisTripletOverlayImmediate();
             UnbindListeners();
         }
 
@@ -270,7 +270,7 @@ namespace KineTutor3D.App.Fairino
 
         private void UnbindHandleListeners()
         {
-            axisTripletOverlay?.HideImmediate();
+            HideAxisTripletOverlayImmediate();
             activeOverlayJointIndex = -1;
             hasOverlayStartEePosition = false;
 
@@ -357,7 +357,7 @@ namespace KineTutor3D.App.Fairino
         {
             eeTrailRenderer?.Clear();
             displacementArrow?.Clear();
-            axisTripletOverlay?.HideImmediate();
+            HideAxisTripletOverlayImmediate();
             activeOverlayJointIndex = -1;
             hasOverlayStartEePosition = false;
 
@@ -400,7 +400,7 @@ namespace KineTutor3D.App.Fairino
         private void OnConnectionLost()
         {
             presetAnimator?.Cancel();
-            axisTripletOverlay?.HideImmediate();
+            HideAxisTripletOverlayImmediate();
             activeOverlayJointIndex = -1;
             hasOverlayStartEePosition = false;
             jointControlPanel?.SetControlsEnabled(false);
@@ -478,13 +478,20 @@ namespace KineTutor3D.App.Fairino
                 activeOverlayJointIndex = jointIndex;
                 overlayStartEePosition = GetCurrentEndEffectorPosition();
                 hasOverlayStartEePosition = true;
-                axisTripletOverlay?.Show(GetAxisOverlayScreenPoint(jointIndex), AxisOverlayTitle, 0d, 0d, 0d, AxisOverlayUnit);
+                if (axisTripletOverlay != null)
+                {
+                    axisTripletOverlay.Show(GetAxisOverlayScreenPoint(jointIndex), AxisOverlayTitle, 0d, 0d, 0d, AxisOverlayUnit);
+                }
+
                 return;
             }
 
             if (activeOverlayJointIndex == jointIndex)
             {
-                axisTripletOverlay?.BeginHoldAndFade();
+                if (axisTripletOverlay != null)
+                {
+                    axisTripletOverlay.BeginHoldAndFade();
+                }
             }
         }
 
@@ -1347,6 +1354,14 @@ namespace KineTutor3D.App.Fairino
                 deltaMm.Y,
                 deltaMm.Z,
                 AxisOverlayUnit);
+        }
+
+        private void HideAxisTripletOverlayImmediate()
+        {
+            if (axisTripletOverlay != null)
+            {
+                axisTripletOverlay.HideImmediate();
+            }
         }
 
         private Vec3D GetCurrentEndEffectorPosition()

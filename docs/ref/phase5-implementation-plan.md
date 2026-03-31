@@ -65,7 +65,7 @@ Phase 5G: Tests + Docs
 
 ### 수정 파일
 
-**1. `Assets/Scripts/App/KinematicsRuntimeState.cs`** (+6줄)
+**1. `Assets/Scripts/App/Runtime/KinematicsRuntimeState.cs`** (+6줄)
 ```csharp
 // 추가 필드
 public double[] PreviousJointValuesRad = Array.Empty<double>();
@@ -76,7 +76,7 @@ public int ChangedJointIndex = -1;
 public RuntimeUpdateCause LastUpdateCause = RuntimeUpdateCause.None;
 ```
 
-**2. `Assets/Scripts/App/RuntimeUpdateCause.cs`** (신규, ~12줄)
+**2. `Assets/Scripts/App/Runtime/RuntimeUpdateCause.cs`** (신규, ~12줄)
 ```csharp
 public enum RuntimeUpdateCause
 {
@@ -87,7 +87,7 @@ public enum RuntimeUpdateCause
 }
 ```
 
-**3. `Assets/Scripts/App/KinematicsRuntimeService.cs`** (+20줄)
+**3. `Assets/Scripts/App/Runtime/KinematicsRuntimeService.cs`** (+20줄)
 - `RecomputeForwardKinematics()` 안에는 snapshot 로직을 넣지 않는다.
 - 아래 helper를 추가하고, mutation 직전에 호출한다:
 ```csharp
@@ -143,7 +143,7 @@ CompareCombination,
 TargetMatch
 ```
 
-**7. `Assets/Scripts/App/StepProgressSaver.cs`** (+20줄)
+**7. `Assets/Scripts/App/Session/StepProgressSaver.cs`** (+20줄)
 ```csharp
 // 추가 키
 private const string TrackKey = "KineTutor3D.CurrentTrack"; // "pre_kinematics" | "core_kinematics"
@@ -177,7 +177,7 @@ public static int GetResumeStep(string track, int defaultStep)
 
 ### 신규 파일
 
-**1. `Assets/Scripts/UI/WhyItMovedState.cs`** (~50줄)
+**1. `Assets/Scripts/UI/GuidedLesson/WhyItMovedState.cs`** (~50줄)
 ```
 순수 C# 클래스 (MonoBehaviour 아님)
 - RuntimeUpdateCause updateCause
@@ -193,7 +193,7 @@ public static int GetResumeStep(string track, int defaultStep)
   - `state.LastUpdateCause != JointAngleChange`면 plain-language 결과를 만들지 않음
 ```
 
-**2. `Assets/Scripts/UI/WhyItMovedFormatter.cs`** (~60줄)
+**2. `Assets/Scripts/UI/GuidedLesson/WhyItMovedFormatter.cs`** (~60줄)
 ```
 static 클래스
 - FormatPlainLanguage(WhyItMovedState) -> string
@@ -204,7 +204,7 @@ static 클래스
   예: "x: +0.12  y: +0.08  z: 0.00"
 ```
 
-**3. `Assets/Scripts/UI/WhyItMovedPanel.cs`** (~150줄)
+**3. `Assets/Scripts/UI/GuidedLesson/WhyItMovedPanel.cs`** (~150줄)
 ```
 [ExecuteAlways] MonoBehaviour
 SerializeField: panelRoot, font
@@ -254,14 +254,14 @@ Auto-wire: UiRuntimeStyle 패턴 사용
 
 ### 신규 파일
 
-**1. `Assets/Scripts/UI/JointInputValidator.cs`** (~40줄)
+**1. `Assets/Scripts/UI/GuidedLesson/JointInputValidator.cs`** (~40줄)
 ```
 static 클래스
 - TryParseDegrees(string, double min, double max, out float, out string error) -> bool
 - NaN/Infinity 거부, 범위 체크
 ```
 
-**2. `Assets/Scripts/UI/JointInputRow.cs`** (~120줄)
+**2. `Assets/Scripts/UI/GuidedLesson/JointInputRow.cs`** (~120줄)
 ```
 internal sealed 클래스 (MonoBehaviour 아님, UI 요소 참조 홀더)
 - Slider slider
@@ -280,7 +280,7 @@ prev/curr/delta: TextSecondary 11px
 delta 색상: +AccentYellow, -AccentBlue, 0=TextMuted
 ```
 
-**3. `Assets/Scripts/UI/JointInputRail.cs`** (~160줄)
+**3. `Assets/Scripts/UI/GuidedLesson/JointInputRail.cs`** (~160줄)
 ```
 [ExecuteAlways] MonoBehaviour
 BottomBar 영역에 배치
@@ -304,7 +304,7 @@ Phase 5 범위에서는 `2DOF adapter`로 구현
 - SetSliderWithoutNotify(int index, float degrees) -> 슬라이더만 갱신
 ```
 
-**4. `Assets/Scripts/Visualization/JointHighlightRing.cs`** (~80줄)
+**4. `Assets/Scripts/Visualization/Targets/JointHighlightRing.cs`** (~80줄)
 ```
 MonoBehaviour (RobotRenderer 자식으로 생성)
 LineRenderer로 관절 축 주위에 원형 링 그리기
@@ -317,7 +317,7 @@ LineRenderer로 관절 축 주위에 원형 링 그리기
 세그먼트: 32개 점으로 원 근사
 ```
 
-**5. `Assets/Scripts/Visualization/LinkHighlighter.cs`** (~60줄)
+**5. `Assets/Scripts/Visualization/Targets/LinkHighlighter.cs`** (~60줄)
 ```
 static 클래스
 - Highlight(Transform linkVisual, Color color) -> MaterialPropertyBlock._EmissionColor 설정
@@ -327,7 +327,7 @@ URP Lit 셰이더의 _EmissionColor 속성 사용
 
 ### 수정 파일
 
-**`Assets/Scripts/Visualization/RobotRenderer.cs`** (+20줄)
+**`Assets/Scripts/Visualization/Renderer/RobotRenderer.cs`** (+20줄)
 ```csharp
 // 추가 메서드
 public void HighlightJoint(int jointIndex)
@@ -344,7 +344,7 @@ public void ClearJointHighlight()
 - JointInputRail 참조 + AutoWire
 - OnJointFocused(int index) / OnJointUnfocused() 이벤트 추가
 
-**`Assets/Scripts/UI/StepNavigator.cs`** (+5줄)
+**`Assets/Scripts/UI/GuidedLesson/StepNavigator.cs`** (+5줄)
 - JointInputRail이 BottomBar에 공존하도록 레이아웃 조정
 
 ---
@@ -353,7 +353,7 @@ public void ClearJointHighlight()
 
 ### 신규 파일
 
-**1. `Assets/Scripts/Visualization/EndEffectorTrail.cs`** (~90줄)
+**1. `Assets/Scripts/Visualization/Shared/EndEffectorTrail.cs`** (~90줄)
 ```
 MonoBehaviour (Frame_EE 자식으로 부착)
 기본 TrailRenderer 1개 + compare용 child TrailRenderer 3개 관리
@@ -393,7 +393,7 @@ public class TargetMarkerConfig
 }
 ```
 
-**3. `Assets/Scripts/Visualization/TargetMarkerVisual.cs`** (~100줄)
+**3. `Assets/Scripts/Visualization/Targets/TargetMarkerVisual.cs`** (~100줄)
 ```
 MonoBehaviour
 ShootingTarget.prefab를 instantiate하여 목표점에 배치
@@ -412,7 +412,7 @@ ShootingTarget.prefab를 instantiate하여 목표점에 배치
 
 ### 수정 파일
 
-**`Assets/Scripts/Visualization/RobotRenderer.cs`** (+15줄)
+**`Assets/Scripts/Visualization/Renderer/RobotRenderer.cs`** (+15줄)
 - EndEffectorTrail 참조 + step 변경 시 single/compare mode 전환 및 clear
 - TargetMarkerVisual[] 관리
 
@@ -508,7 +508,7 @@ ShootingTarget.prefab를 instantiate하여 목표점에 배치
 
 ### 신규 파일
 
-**1. `Assets/Scripts/App/BeginnerLessonFactory.cs`** (~120줄)
+**1. `Assets/Scripts/App/Lessons/BeginnerLessonFactory.cs`** (~120줄)
 ```
 static 클래스 (TutorStepRuntimeFactory 패턴 따름)
 - CreateLessons() -> TutorStepConfig[4]
@@ -536,7 +536,7 @@ L3 config: (target_match)
   conditions: [StepAction:"target_reached":2]
 ```
 
-**2. `Assets/Scripts/UI/BeginnerLeftPanel.cs`** (~120줄)
+**2. `Assets/Scripts/UI/GuidedLesson/BeginnerLeftPanel.cs`** (~120줄)
 ```
 [ExecuteAlways] MonoBehaviour
 LeftPanel 영역, beginnerLeftContent에 따라 내용 전환
@@ -554,7 +554,7 @@ LeftPanel 영역, beginnerLeftContent에 따라 내용 전환
 - SetVisible(bool)
 ```
 
-**3. `Assets/Scripts/UI/TargetFeedbackPanel.cs`** (~100줄)
+**3. `Assets/Scripts/UI/GuidedLesson/TargetFeedbackPanel.cs`** (~100줄)
 ```
 [ExecuteAlways] MonoBehaviour
 RightPanel 하단 (WhyItMovedPanel 대신 또는 아래)
@@ -572,7 +572,7 @@ RightPanel 하단 (WhyItMovedPanel 대신 또는 아래)
 +--------------------------------------+
 ```
 
-**4. `Assets/Scripts/UI/CompareModePanelHelper.cs`** (~80줄)
+**4. `Assets/Scripts/UI/GuidedLesson/CompareModePanelHelper.cs`** (~80줄)
 ```
 L2 전용 비교 모드 UI 상태 관리
 - compare_j1_only, compare_j2_only, compare_both 버튼/상태
@@ -604,8 +604,8 @@ L2 전용 비교 모드 UI 상태 관리
 | 파일 | 줄 | 설명 |
 |------|---|------|
 | `Assets/Scripts/UI/Data/RobotMetadata.cs` | ~40 | ScriptableObject: name, dof, type, difficulty, supportedModes |
-| `Assets/Scripts/UI/RobotLibraryPanel.cs` | ~150 | Grid 레이아웃, RobotCard 동적 생성 |
-| `Assets/Scripts/UI/RobotCard.cs` | ~100 | 카드 1개: RenderTexture 미리보기, 메타데이터, CTA |
+| `Assets/Scripts/UI/RobotLibrary/RobotLibraryPanel.cs` | ~150 | Grid 레이아웃, RobotCard 동적 생성 |
+| `Assets/Scripts/UI/RobotLibrary/RobotCard.cs` | ~100 | 카드 1개: RenderTexture 미리보기, 메타데이터, CTA |
 
 ### 레이아웃
 ```
@@ -663,43 +663,43 @@ L2 전용 비교 모드 UI 상태 관리
 | # | 경로 | 줄 | Phase |
 |---|------|---|-------|
 | 1 | `Assets/Scripts/UI/Data/BeginnerLeftContent.cs` | ~10 | 5A |
-| 2 | `Assets/Scripts/App/RuntimeUpdateCause.cs` | ~12 | 5A |
+| 2 | `Assets/Scripts/App/Runtime/RuntimeUpdateCause.cs` | ~12 | 5A |
 | 3 | `Assets/Scripts/UI/Data/TargetMarkerConfig.cs` | ~30 | 5D |
-| 4 | `Assets/Scripts/UI/WhyItMovedState.cs` | ~50 | 5B |
-| 5 | `Assets/Scripts/UI/WhyItMovedFormatter.cs` | ~60 | 5B |
-| 6 | `Assets/Scripts/UI/WhyItMovedPanel.cs` | ~150 | 5B |
-| 7 | `Assets/Scripts/UI/JointInputValidator.cs` | ~40 | 5C |
-| 8 | `Assets/Scripts/UI/JointInputRow.cs` | ~120 | 5C |
-| 9 | `Assets/Scripts/UI/JointInputRail.cs` | ~160 | 5C |
-| 10 | `Assets/Scripts/Visualization/JointHighlightRing.cs` | ~80 | 5C |
-| 11 | `Assets/Scripts/Visualization/LinkHighlighter.cs` | ~60 | 5C |
-| 12 | `Assets/Scripts/Visualization/EndEffectorTrail.cs` | ~120 | 5D |
-| 13 | `Assets/Scripts/Visualization/TargetMarkerVisual.cs` | ~100 | 5D |
-| 14 | `Assets/Scripts/App/BeginnerLessonFactory.cs` | ~120 | 5E |
-| 15 | `Assets/Scripts/UI/BeginnerLeftPanel.cs` | ~120 | 5E |
-| 16 | `Assets/Scripts/UI/TargetFeedbackPanel.cs` | ~100 | 5E |
-| 17 | `Assets/Scripts/UI/CompareModePanelHelper.cs` | ~80 | 5E |
+| 4 | `Assets/Scripts/UI/GuidedLesson/WhyItMovedState.cs` | ~50 | 5B |
+| 5 | `Assets/Scripts/UI/GuidedLesson/WhyItMovedFormatter.cs` | ~60 | 5B |
+| 6 | `Assets/Scripts/UI/GuidedLesson/WhyItMovedPanel.cs` | ~150 | 5B |
+| 7 | `Assets/Scripts/UI/GuidedLesson/JointInputValidator.cs` | ~40 | 5C |
+| 8 | `Assets/Scripts/UI/GuidedLesson/JointInputRow.cs` | ~120 | 5C |
+| 9 | `Assets/Scripts/UI/GuidedLesson/JointInputRail.cs` | ~160 | 5C |
+| 10 | `Assets/Scripts/Visualization/Targets/JointHighlightRing.cs` | ~80 | 5C |
+| 11 | `Assets/Scripts/Visualization/Targets/LinkHighlighter.cs` | ~60 | 5C |
+| 12 | `Assets/Scripts/Visualization/Shared/EndEffectorTrail.cs` | ~120 | 5D |
+| 13 | `Assets/Scripts/Visualization/Targets/TargetMarkerVisual.cs` | ~100 | 5D |
+| 14 | `Assets/Scripts/App/Lessons/BeginnerLessonFactory.cs` | ~120 | 5E |
+| 15 | `Assets/Scripts/UI/GuidedLesson/BeginnerLeftPanel.cs` | ~120 | 5E |
+| 16 | `Assets/Scripts/UI/GuidedLesson/TargetFeedbackPanel.cs` | ~100 | 5E |
+| 17 | `Assets/Scripts/UI/GuidedLesson/CompareModePanelHelper.cs` | ~80 | 5E |
 | 18 | `Assets/Scripts/UI/Data/RobotMetadata.cs` | ~40 | 5F deferred |
-| 19 | `Assets/Scripts/UI/RobotLibraryPanel.cs` | ~150 | 5F deferred |
-| 20 | `Assets/Scripts/UI/RobotCard.cs` | ~100 | 5F deferred |
+| 19 | `Assets/Scripts/UI/RobotLibrary/RobotLibraryPanel.cs` | ~150 | 5F deferred |
+| 20 | `Assets/Scripts/UI/RobotLibrary/RobotCard.cs` | ~100 | 5F deferred |
 
 ### 수정 파일 (13개)
 
 | # | 경로 | 변경량 | Phase |
 |---|------|-------|-------|
-| 1 | `Assets/Scripts/App/KinematicsRuntimeState.cs` | +4줄 | 5A |
-| 2 | `Assets/Scripts/App/KinematicsRuntimeService.cs` | +10줄 | 5A |
+| 1 | `Assets/Scripts/App/Runtime/KinematicsRuntimeState.cs` | +4줄 | 5A |
+| 2 | `Assets/Scripts/App/Runtime/KinematicsRuntimeService.cs` | +10줄 | 5A |
 | 3 | `Assets/Scripts/UI/Data/TutorStepConfig.cs` | +12줄 | 5A |
 | 4 | `Assets/Scripts/UI/Data/InteractionType.cs` | +4줄 | 5A |
-| 5 | `Assets/Scripts/App/StepProgressSaver.cs` | +10줄 | 5A |
+| 5 | `Assets/Scripts/App/Session/StepProgressSaver.cs` | +10줄 | 5A |
 | 6 | `Assets/Scripts/App/AppController.cs` | +40줄 | 5B+5C+5E |
 | 7 | `Assets/Scripts/App/AppUiBinder.cs` | +15줄 | 5B+5C+5E |
-| 8 | `Assets/Scripts/Visualization/RobotRenderer.cs` | +35줄 | 5C+5D |
-| 9 | `Assets/Scripts/UI/StepNavigator.cs` | +5줄 | 5C |
-| 10 | `Assets/Scripts/App/StepFlowService.cs` | +15줄 | 5E |
-| 11 | `Assets/Scripts/UI/ProgressiveDisclosureController.cs` | +10줄 | 5E |
-| 12 | `Assets/Scripts/UI/StepTutorPanel.cs` | +5줄 | 5E |
-| 13 | `Assets/Scripts/UI/OnboardingManager.cs` | +15줄 | 5E |
+| 8 | `Assets/Scripts/Visualization/Renderer/RobotRenderer.cs` | +35줄 | 5C+5D |
+| 9 | `Assets/Scripts/UI/GuidedLesson/StepNavigator.cs` | +5줄 | 5C |
+| 10 | `Assets/Scripts/App/Lessons/StepFlowService.cs` | +15줄 | 5E |
+| 11 | `Assets/Scripts/UI/GuidedLesson/ProgressiveDisclosureController.cs` | +10줄 | 5E |
+| 12 | `Assets/Scripts/UI/GuidedLesson/StepTutorPanel.cs` | +5줄 | 5E |
+| 13 | `Assets/Scripts/UI/Onboarding/OnboardingManager.cs` | +15줄 | 5E |
 
 ---
 

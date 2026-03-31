@@ -144,11 +144,24 @@
 - `RobotLibrary` / showroom은 `RobotPreviewFactory`가 `Resources/Robots/FAIRINO_FR5.prefab` donor preview를 mesh-only clone으로 띄우는 경로가 이미 안정적이다.
 - `RobotControl`은 `Resources/Robots/FAIRINO_FR5_Control.prefab` URDF control prefab을 사용한다.
 - `Assets/Plugins/Fairino/`에는 공식 SDK ZIP에서 확인한 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`이 로컬 staging 되었다.
+- `LiveFairinoClient`는 현재 아래 SDK 경로를 직접 다루도록 보강되었다.
+  - `RPC`
+  - `RobotEnable`
+  - `MoveJ`
+  - `MoveL`
+  - `ServoJ`
+  - `GetRobotRealTimeState`
+  - `GetActualJointPosDegree`
+  - `GetActualTCPPose`
+  - `GetSDKVersion`
+  - `GetSoftwareVersion`
+  - `GetFirmwareVersion`
 - 현재 `RobotControl`에서는 다음이 확인되었다.
   - control prefab 로드 성공
   - runtime gravity 낙하 방지 적용
   - URDF 기본 `Controller` 비활성화로 Input System 예외 제거
-- SDK 추가 후 드러난 Unity compile blocker 4건(`SceneCameraDirector` 1건, `Editor/CliTools` 3건)은 수정 완료했다.
+- SDK 추가 후 드러난 Unity compile blocker는 수정 완료했고, compile 기준선은 다시 회복되었다.
+- `Assets/Editor/KineTutor3D/FairinoLiveSmokeTools.cs`를 통해 `Connect -> GetVersion -> ReadState` smoke test를 바로 실행할 수 있다.
 - 하지만 `FairinoConnectionService` 상태를 3D joint pose로 반영하는 전용 visual adapter는 아직 없다.
 - 따라서 단기적으로는:
   - `visual-only`는 showroom donor preview 경로 재사용
@@ -156,13 +169,33 @@
   로 나누어 보는 것이 안전하다.
 
 ## Current Live-Test Blocker
-- 현재 남은 blocker는 SDK 부재가 아니라 `실기 컨트롤러 IP 미확정`이다.
-- 즉 로컬 프로젝트는 Live SDK 로드 준비가 되었지만, 아직 실제 `Connect(...)` 호출 대상으로 쓸 컨트롤러 주소를 모른다.
+- 현재 남은 blocker는 SDK 부재가 아니라 `실기 컨트롤러 네트워크 응답 부재`다.
+- 로컬 smoke 결과:
+  - 기본 IP `192.168.58.2`
+  - 기본 port `8080`
+  - `CONNECT_FAIL`
+- 즉 현재 로컬 프로젝트는 Live SDK 로드와 호출 준비가 되었지만, 테스트 머신에서 실제 컨트롤러 응답이 없다.
 - 다음 현장 검증 순서는 아래 순서를 권장한다.
   1. Live 모드에서 `Connect`만 확인
   2. `GetVersion`, `ReadState` 같은 읽기 API 확인
   3. `Enable`
   4. 아주 작은 범위의 `MoveJ`
+
+## Live Smoke Test Entry
+
+- Editor menu:
+  - `KineTutor3D/RobotControl/Run FAIRINO Live Smoke Test`
+- environment override:
+  - `FAIRINO_IP`
+  - `FAIRINO_PORT`
+- expected order:
+  - `Connect`
+  - `GetVersion`
+  - `ReadState`
+  - `Disconnect`
+
+이 smoke test는 의도적으로 비파괴 순서만 수행한다.
+실제 모션 명령은 현장 승인 전까지 포함하지 않는다.
 
 ## Plain-Language Explanation
 ### `FR5 연결 패널`

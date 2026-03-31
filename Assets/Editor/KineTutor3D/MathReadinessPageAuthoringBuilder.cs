@@ -1,3 +1,5 @@
+﻿// Folder: Editor - Unity Editor authoring, QA, and packaging tools.
+// MathReadiness authored 페이지 레이아웃을 구성하는 에디터 빌더입니다.
 using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;

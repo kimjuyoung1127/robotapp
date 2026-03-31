@@ -6,7 +6,7 @@ Assets/Scripts/App/SceneNavigator.cs
 Assets/Scripts/App/RobotSelectionBridge.cs
 Assets/Scripts/App/SceneCameraDirector.cs
 Assets/Scripts/UI
-Assets/Scripts/Visualization/FairinoUrdfJointDriver.cs
+Assets/Scripts/Visualization/RobotControl/FairinoUrdfJointDriver.cs
 Assets/Scripts/Visualization/Shared
 Assets/Scripts/Types
 Assets/Scripts/Templates

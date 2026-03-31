@@ -13,8 +13,8 @@ Primary source files:
 - `Assets/Scripts/App/AppController.cs`
 - `Assets/Scripts/App/SandboxSceneCoordinator.cs`
 - `Assets/Scripts/App/Fairino/RobotControlSceneCoordinator.cs`
-- `Assets/Scripts/UI/OnboardingManager.cs`
-- `Assets/Scripts/UI/RobotLibraryManager.cs`
+- `Assets/Scripts/UI/Onboarding/OnboardingManager.cs`
+- `Assets/Scripts/UI/RobotLibrary/RobotLibraryManager.cs`
 
 ## 1. Scene Entry Flow
 

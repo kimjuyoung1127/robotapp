@@ -1,6 +1,6 @@
 ﻿# KineTutor3D 프로젝트 상태
 
-최종 업데이트: 2026-03-17 (KST)
+최종 업데이트: 2026-03-31 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
 ## 현재 Phase
@@ -13,6 +13,32 @@
 - **Phase 6: CI/CD (Unity tests workflow)** (Hold — 로컬 테스트 전용, runner 미등록)
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
+
+## 이번 턴 반영 내용 (구조 정리 + realvirtual 의존 축소 1차)
+1. `Assets/Scripts/App`, `Assets/Scripts/UI`, `Assets/Scripts/Visualization`를 역할/페이지 기준 하위 폴더 구조로 재정리했다.
+   - `App`: `Runtime/`, `Session/`, `Lessons/`, `Fairino/Template/`
+   - `UI`: `GuidedLesson/`, `Onboarding/`, `RobotLibrary/`, `RobotControl/`, `MathReadiness/`, `Sandbox/`, `Shared/`, `DesignSystem/`
+   - `Visualization`: `Renderer/`, `RobotLibrary/`, `RobotControl/`, `MathReadiness/`, `Targets/`, `Shared/`
+2. 각 폴더의 `AGENTS.md` / `CLAUDE.md`와 루트 `AGENTS.md`를 새 구조 기준으로 동기화했다.
+3. `realvirtual` 직접 코드 의존을 1차 축소했다.
+   - `RobotCatalog`의 `SCARA/Fanuc/igus` importSource를 `Assets/Runtime/Resources/Robots/...`로 전환
+   - `ScaraDonorStructureTests`를 런타임 donor prefab 기준으로 전환
+   - `RobotPreviewPod`에서 `realvirtual.Drive` reflection 경로 제거
+4. 관련 문서(`asset-registry`, `asset-validation-report`, `PROJECT-STATUS`, `SKILL-DOC-MATRIX` 등)는 `Assets/Runtime/Resources/Robots`를 **현재 donor/runtime 경로**, `Assets/Runtime/Robots/Common`을 **공용 donor 복구 자산층**으로 정리했다.
+5. `realvirtual` 런타임 prefab sanitation을 완료해 `realvirtualController` 직렬화 흔적과 대표 vendor component를 runtime robot prefab에서 제거했다.
+6. `realvirtual` editor bootstrap 중 `OnLoad.cs`의 동기 `PackageManager.Client.List()` 대기를 비동기 polling으로 완화해 domain reload 정체 가능성을 줄였다.
+7. 리로드 정체 조사 결과, 병목 구간은 `ProcessInitializeOnLoadAttributes`이며 `realvirtual`의 `QuickEditToolbarIMGUI`가 `delayCall + update + hierarchyChanged + afterAssemblyReload`를 동시에 묶는 가장 유력한 후보로 확인했다.
+8. `realvirtual/private/Editor/QuickEditToolbarIMGUI.cs`는 기본 부트스트랩을 비활성화해(`KineTutor3D.EnableRealvirtualQuickEditBootstrap=false` 기본값) 원인 범위를 더 좁힐 수 있는 상태로 만들었다.
+9. `docs/status/REALVIRTUAL-REMOVAL-PLAN.md`를 추가해 삭제 보류 이유, 남은 runtime prefab 리스크, 단계별 제거 순서를 고정했다.
+10. `QaToolsMenu.SanitizeRuntimeRobotPrefabs()`를 통해 `ScaraRobot`, `FanucCRX-10iA_L`, `igusRebel` 런타임 prefab에서 총 38개 `realvirtual` component를 제거했고, 관련 donor/preview EditMode 테스트와 compile green을 유지했다.
+11. `Assets/Runtime/RenderPipelines/URP/` 아래에 project-owned URP pipeline asset 세트를 복제/정리하고, copied renderer asset에서 `realvirtual` 전용 renderer feature block을 제거했다.
+12. `GraphicsSettings`와 모든 `QualitySettings` tier를 새 `KineTutor3D-URP.asset` GUID로 repoint했고, `Assets/Runtime` + `ProjectSettings` 범위 검색 기준 old realvirtual URP GUID / renderer GUID / renderer feature GUID가 더 이상 직접 검출되지 않는다.
+13. `Assets/realvirtual` + `Assets/Gizmos/realvirtual`를 실제 삭제했고, 삭제 상태에서 compile green과 `realvirtual.base` 비포함 assembly 목록을 확인했다.
+14. 삭제 후 `Boot` play smoke, `RobotLibrary`/`Sandbox`/`RobotControl` scene open smoke를 확인했고, 콘솔에는 `unityctl` IPC noise 외에 신규 삭제 유발 오류가 없었다.
+15. 삭제 직후 깨진 `SCARA`, `FANUC CRX-10iA/L`, `IGUS REBEL` donor 시각 참조는 `Assets/Runtime/Robots/Common/` 아래 최소 mesh/material/prefab 복구 자산으로 복원했고, `MathReadiness`의 stale donor prefab 참조와 `FrameGizmo` shared material 적용도 함께 보정했다.
+7. 검증:
+   - `unityctl check --project ... --type compile` 통과
+   - `KineTutor3D.Tests.EditMode.ScaraDonorStructureTests` 2개 통과
 
 ## 이번 턴 반영 내용 (FAIRINO live SDK staging)
 1. 공식 `fairino-csharp-sdk` ZIP을 다시 확인해 실제 DLL 이름이 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`임을 검증했다.
@@ -83,7 +109,7 @@
 6. Home 화면은 실제 렌더 확인을 마쳤고, Sandbox는 새 패널 노출까지 확인했지만 버튼/아이콘 가독성과 일부 panel overlap 정리는 아직 진행 중이다.
 
 ## 이번 턴 반영 내용 (Asset vendor/runtime hierarchy normalization)
-1. `Assets/realvirtual`은 그대로 유지하고, 나머지 외부 소스 폴더를 `Assets/Vendors/Archive/` 아래로 재배치했다.
+1. `Assets/realvirtual`은 레거시 vendor source 구역으로 유지하고, 나머지 외부 소스 폴더를 `Assets/Vendors/Archive/` 아래로 재배치했다.
 2. curated runtime 자산은 `Assets/Runtime/Art`, `Assets/Runtime/Prefabs`, `Assets/Runtime/Resources` 아래로 통합했다.
 3. `UxDataSeeder`, `TargetMarkerVisual`, `TargetMarkerAssetResolutionTests`, 관련 문서들이 새 경로를 사용하도록 동기화했다.
 4. 확인 결과 새 경로(`Assets/Vendors/Archive/*`, `Assets/Runtime/*`)는 존재하고, 기존 루트 경로(`Assets/Art`, `Assets/Prefabs`, `Assets/Resources`, `_Heathen Engineering`, `Glowing Rifts`, `HQP Studios`, `DemoRealvirtual`)는 제거되었다.
@@ -246,7 +272,7 @@
    - `Assets/Scripts/App/SceneCatalog.cs`
    - `Assets/Scripts/App/SceneNavigator.cs`
    - `Assets/Scripts/App/BootSceneRouter.cs`
-   - `Assets/Scripts/UI/SceneNavigationBar.cs`
+   - `Assets/Scripts/UI/Shared/SceneNavigationBar.cs`
 3. `Main` 온보딩 의존 제거
    - `AppController`에서 `OnboardingManager.Initialize()` 경로 제거
    - `Canvas`의 `OnboardingManager`, `SpotlightOverlay` 제거
@@ -261,15 +287,15 @@
 
 ## 이전 턴 반영 내용 (Phase 4 Visualization 마감 + URP 정상화)
 1. Visualization 코어 3개 유지
-   - `Assets/Scripts/Visualization/CoordConverter.cs`
-   - `Assets/Scripts/Visualization/FrameGizmo.cs`
-   - `Assets/Scripts/Visualization/RobotRenderer.cs`
+   - `Assets/Scripts/Visualization/Shared/CoordConverter.cs`
+   - `Assets/Scripts/Visualization/Shared/FrameGizmo.cs`
+   - `Assets/Scripts/Visualization/Renderer/RobotRenderer.cs`
 2. `Main.unity` canonical frame 통합
    - 기존 `frame_0`, `frame_1`을 world/joint-1의 단일 source로 승격
    - `Frame_EE`는 EE 전용 표준 frame으로 유지
    - legacy duplicate frame(`WorldFrame`, `Frame_1`)은 비활성화
 3. donor mesh 교체
-   - `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 `ScaraDonorProbe` hidden donor source로 배치
+   - 당시 `Assets/realvirtual/3DPrefabs/ScaraRobot.prefab`을 donor source로 사용했으나, 현재 카탈로그/검증 기준은 `Assets/Runtime/Resources/Robots/ScaraRobot.prefab` 쪽으로 이관 중
    - vendor runtime 없이 `BaseVisual`, `Link0Visual`, `Link1Visual`, `EndEffectorVisualMesh`에 mesh-only 복제
    - 기존 primitive visual marker는 숨기고 FK 기반 anchor만 유지
 4. 렌더 파이프라인/씬 정상화

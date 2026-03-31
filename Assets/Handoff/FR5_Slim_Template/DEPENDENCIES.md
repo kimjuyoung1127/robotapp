@@ -14,11 +14,11 @@
 - `Assets/Scripts/Kinematics/*`
 - `Assets/Scripts/Types/*`
 - `Assets/Scripts/Templates/TemplateFAIRINO_FR5.cs`
-- `Assets/Scripts/App/RobotKinematicsFacade.cs`
-- `Assets/Scripts/App/FR5TemplateMinimalController.cs`
-- `Assets/Scripts/App/FR5TemplatePoseCatalog.cs`
-- `Assets/Scripts/App/FR5TemplateSlimManifest.cs`
-- `Assets/Scripts/Visualization/FairinoUrdfJointDriver.cs`
+- `Assets/Scripts/App/Runtime/RobotKinematicsFacade.cs`
+- `Assets/Scripts/App/Fairino/Template/FR5TemplateMinimalController.cs`
+- `Assets/Scripts/App/Fairino/Template/FR5TemplatePoseCatalog.cs`
+- `Assets/Scripts/App/Fairino/Template/FR5TemplateSlimManifest.cs`
+- `Assets/Scripts/Visualization/RobotControl/FairinoUrdfJointDriver.cs`
 - `Assets/Scripts/Visualization/Shared/JointRotationHandle.cs`
 - `Assets/Scripts/Visualization/Shared/OrbitCameraController.cs`
 - `Assets/Scripts/Visualization/Shared/SharedLineMaterial.cs`

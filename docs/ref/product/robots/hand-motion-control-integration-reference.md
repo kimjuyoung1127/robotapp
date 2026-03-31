@@ -200,9 +200,9 @@ flowchart LR
 - `Assets/Scripts/App/Fairino/RobotControlSceneCoordinator.cs`
   - `OnJointSliderPreview(...)`가 현재 preview 입력의 핵심 진입점이다.
   - `OnHandleDragged(...)`도 결국 같은 preview 흐름으로 모인다.
-- `Assets/Scripts/App/RobotKinematicsFacade.cs`
+- `Assets/Scripts/App/Runtime/RobotKinematicsFacade.cs`
   - 관절값을 degree로 받아 FK를 갱신한다.
-- `Assets/Scripts/Visualization/FairinoUrdfJointDriver.cs`
+- `Assets/Scripts/Visualization/RobotControl/FairinoUrdfJointDriver.cs`
   - 6축 URDF joint transform에 degree 값을 직접 반영한다.
 
 ### Live Robot
@@ -369,8 +369,8 @@ live_robot_send = false
 3. `docs/daily/03-13/robotcontrol-fr5-and-camera-centralization.md`
 4. `docs/daily/03-17/fairino-official-docs-to-unity-flow.md`
 5. `Assets/Editor/KineTutor3D/QaToolsMenu.cs`
-6. `Assets/Scripts/Visualization/RobotPreviewFactory.cs`
-7. `Assets/Scripts/Visualization/DonorMeshCopier.cs`
+6. `Assets/Scripts/Visualization/RobotLibrary/RobotPreviewFactory.cs`
+7. `Assets/Scripts/Visualization/Renderer/DonorMeshCopier.cs`
 
 ## Copy-Paste Paths
 

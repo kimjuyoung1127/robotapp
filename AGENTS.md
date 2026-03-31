@@ -88,9 +88,24 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Meca500-specific RobotControl setup: `Assets/Scripts/App/Mecademic/CLAUDE.md`
 - External hand tracking input: `Assets/Scripts/App/HandTracking/CLAUDE.md`
 - HUD, onboarding, tutorial, navigation UI: `Assets/Scripts/UI/CLAUDE.md`
+- Guided lesson HUD and shared lesson panels: `Assets/Scripts/UI/GuidedLesson/CLAUDE.md`
+- Onboarding page UI: `Assets/Scripts/UI/Onboarding/CLAUDE.md`
+- Robot Library page UI: `Assets/Scripts/UI/RobotLibrary/CLAUDE.md`
+- RobotControl page UI: `Assets/Scripts/UI/RobotControl/CLAUDE.md`
+- MathReadiness page UI: `Assets/Scripts/UI/MathReadiness/CLAUDE.md`
+- Sandbox page UI builders: `Assets/Scripts/UI/Sandbox/CLAUDE.md`
+- Shared cross-page UI widgets: `Assets/Scripts/UI/Shared/CLAUDE.md`
+- UI design system primitives: `Assets/Scripts/UI/DesignSystem/CLAUDE.md`
 - UI config/data assets: `Assets/Scripts/UI/Data/CLAUDE.md`
 - Visualization facade and donor/render binding: `Assets/Scripts/Visualization/CLAUDE.md`
+- Visualization renderer facade and donor binding: `Assets/Scripts/Visualization/Renderer/CLAUDE.md`
+- Visualization RobotLibrary preview helpers: `Assets/Scripts/Visualization/RobotLibrary/CLAUDE.md`
+- Visualization RobotControl-specific drivers: `Assets/Scripts/Visualization/RobotControl/CLAUDE.md`
+- Visualization MathReadiness helpers: `Assets/Scripts/Visualization/MathReadiness/CLAUDE.md`
+- Visualization target/highlight helpers: `Assets/Scripts/Visualization/Targets/CLAUDE.md`
 - Shared visualization primitives and URDF helpers: `Assets/Scripts/Visualization/Shared/CLAUDE.md`
+- Domain value types and robot metadata: `Assets/Scripts/Types/CLAUDE.md`
+- Robot template definitions and catalog: `Assets/Scripts/Templates/CLAUDE.md`
 - Editor QA and authoring utilities: `Assets/Editor/KineTutor3D/CLAUDE.md`
 - `unityctl exec` helpers and CLI automation entry points: `Assets/Editor/KineTutor3D/CliTools/CLAUDE.md`
 - Test suite overview: `Assets/Tests/CLAUDE.md`
