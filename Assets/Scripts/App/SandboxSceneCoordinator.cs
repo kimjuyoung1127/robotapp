@@ -121,6 +121,8 @@ namespace KineTutor3D.App
 
             if (controlRobotInstance != null)
             {
+                StabilizeControlRobot(controlRobotInstance);
+                TeleportRootUpright(controlRobotInstance);
                 return;
             }
 
@@ -129,6 +131,7 @@ namespace KineTutor3D.App
             {
                 controlRobotInstance = existing.gameObject;
                 StabilizeControlRobot(controlRobotInstance);
+                TeleportRootUpright(controlRobotInstance);
                 return;
             }
 
@@ -151,6 +154,7 @@ namespace KineTutor3D.App
             controlRobotInstance = Instantiate(prefab, runtimeRoot);
             controlRobotInstance.name = ControlRobotInstanceName;
             StabilizeControlRobot(controlRobotInstance);
+            TeleportRootUpright(controlRobotInstance);
 
             Debug.Log($"[SandboxSceneCoordinator] Loaded robot prefab '{prefabPath}'.");
         }
@@ -165,15 +169,14 @@ namespace KineTutor3D.App
             jointDriver = controlRobotInstance.GetComponent<UrdfJointDriver>()
                 ?? controlRobotInstance.AddComponent<UrdfJointDriver>();
 
-            var baseLink = controlRobotInstance.transform.Find("base_link");
-            if (baseLink != null)
+            var driverRoot = ResolveRobotAnchor(controlRobotInstance.transform);
+            if (driverRoot == null)
             {
-                jointDriver.Inject(baseLink, templateDefinition.JointCount);
+                Debug.LogWarning("[SandboxSceneCoordinator] Failed to resolve a joint-driver root.");
+                return;
             }
-            else
-            {
-                Debug.LogWarning("[SandboxSceneCoordinator] base_link not found in control robot.");
-            }
+
+            jointDriver.Inject(driverRoot, templateDefinition.JointCount);
         }
 
         private void EnsureKinematics()
@@ -240,8 +243,7 @@ namespace KineTutor3D.App
                 orbitCamera = camera.gameObject.AddComponent<OrbitCameraController>();
             }
 
-            var baseLink = controlRobotInstance.transform.Find("base_link");
-            orbitCamera.SetTarget(baseLink != null ? baseLink : controlRobotInstance.transform);
+            orbitCamera.SetTarget(ResolveRobotAnchor(controlRobotInstance.transform) ?? controlRobotInstance.transform);
         }
 
         private void EnsurePresetAnimator()
@@ -603,12 +605,31 @@ namespace KineTutor3D.App
                 return;
             }
 
+            var controllers = robot.GetComponentsInChildren<MonoBehaviour>(true);
+            for (var i = 0; i < controllers.Length; i++)
+            {
+                if (controllers[i] != null && controllers[i].GetType().FullName == "Unity.Robotics.UrdfImporter.Control.Controller")
+                {
+                    controllers[i].enabled = false;
+                }
+            }
+
             var bodies = robot.GetComponentsInChildren<ArticulationBody>(true);
             for (var i = 0; i < bodies.Length; i++)
             {
-                if (bodies[i] != null && !bodies[i].isRoot)
+                var body = bodies[i];
+                if (body == null)
                 {
-                    bodies[i].enabled = false;
+                    continue;
+                }
+
+                body.useGravity = false;
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+
+                if (!body.isRoot)
+                {
+                    body.enabled = false;
                 }
             }
 
@@ -618,18 +639,80 @@ namespace KineTutor3D.App
                 if (rigidbodies[i] != null)
                 {
                     rigidbodies[i].isKinematic = true;
+                    rigidbodies[i].useGravity = false;
+                    rigidbodies[i].linearVelocity = Vector3.zero;
+                    rigidbodies[i].angularVelocity = Vector3.zero;
                 }
             }
 
-            // URDF Importer의 Controller가 레거시 Input API를 사용하므로 제거
-            var controllers = robot.GetComponentsInChildren<MonoBehaviour>(true);
-            for (var i = 0; i < controllers.Length; i++)
+            var rootBody = FindRootArticulationBody(robot);
+            if (rootBody != null)
             {
-                if (controllers[i] != null && controllers[i].GetType().FullName == "Unity.Robotics.UrdfImporter.Control.Controller")
+                rootBody.immovable = true;
+            }
+        }
+
+        private static void TeleportRootUpright(GameObject robot)
+        {
+            var rootBody = FindRootArticulationBody(robot);
+            if (rootBody != null)
+            {
+                rootBody.TeleportRoot(rootBody.transform.position, rootBody.transform.rotation);
+            }
+        }
+
+        private static ArticulationBody FindRootArticulationBody(GameObject robot)
+        {
+            if (robot == null)
+            {
+                return null;
+            }
+
+            var bodies = robot.GetComponentsInChildren<ArticulationBody>(true);
+            for (var i = 0; i < bodies.Length; i++)
+            {
+                if (bodies[i] != null && bodies[i].isRoot)
                 {
-                    Destroy(controllers[i]);
+                    return bodies[i];
                 }
             }
+
+            return null;
+        }
+
+        private static Transform ResolveRobotAnchor(Transform root)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            return FindChildRecursive(root, "base_link") ?? root;
+        }
+
+        private static Transform FindChildRecursive(Transform parent, string childName)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            var direct = parent.Find(childName);
+            if (direct != null)
+            {
+                return direct;
+            }
+
+            for (var i = 0; i < parent.childCount; i++)
+            {
+                var found = FindChildRecursive(parent.GetChild(i), childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
 
         private GameObject CreatePlaceholder()
