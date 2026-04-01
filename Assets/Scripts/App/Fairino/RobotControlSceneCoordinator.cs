@@ -67,6 +67,20 @@ namespace KineTutor3D.App.Fairino
             canvas = FairinoRobotControlViewBuilder.EnsureCanvas(canvas, fallbackFont);
             FairinoRobotControlViewBuilder.EnsureCamera();
             FairinoRobotControlViewBuilder.EnsureLight();
+
+            if (SceneCatalog.GetCurrentSceneId() == SceneId.RobotControlV2)
+            {
+                var sceneBootstrap = GameObject.Find("SceneBootstrap") ?? gameObject;
+                sceneBootstrap.name = "SceneBootstrap";
+                if (sceneBootstrap.GetComponent<RobotControlV2SceneCoordinator>() == null)
+                {
+                    sceneBootstrap.AddComponent<RobotControlV2SceneCoordinator>();
+                }
+
+                enabled = false;
+                return;
+            }
+
             if (!FairinoRobotControlViewBuilder.TryBindExistingLayout(
                     canvas,
                     out connectionPanel,
@@ -81,16 +95,20 @@ namespace KineTutor3D.App.Fairino
                     out clearTrailButton))
             {
                 FairinoRobotControlViewBuilder.EnsureLayout(canvas, fallbackFont,
+                    templateDefinition.TopBarModeText,
                     out connectionPanel, out jointControlPanel, out statePanel,
                     out tcpPanel, out diagnosticsDrawer, out whyItMovedLabel, out moveConfirmDialog,
                     out diagnosticsButton,
                     out gizmoToggle, out clearTrailButton);
             }
 
+            FairinoRobotControlViewBuilder.ApplyTopBarModeText(canvas, templateDefinition.TopBarModeText);
+
             errorTranslator = new FairinoErrorTranslator();
             connectionService = templateDefinition.ConnectionServiceFactory(errorTranslator);
             connectionService.SetMockMode(true);
             config = FairinoRobotConfig.Load(templateDefinition.ConfigResourceName) ?? templateDefinition.FallbackConfigFactory();
+            connectionService.ApplyLiveDefaults(config != null ? config.liveDefaults : null);
 
             kinematicsFacade = templateDefinition.KinematicsFactory();
 
@@ -128,8 +146,8 @@ namespace KineTutor3D.App.Fairino
 
         private void InjectDependencies()
         {
-            connectionPanel?.Inject(connectionService, config);
-            jointControlPanel?.Inject(connectionService, config);
+            connectionPanel?.Inject(connectionService, config, templateDefinition.ConnectionTitleText);
+            jointControlPanel?.Inject(connectionService, config, templateDefinition.PosePresetOptionsFactory);
             statePanel?.Inject(connectionService, errorTranslator, kinematicsFacade);
             tcpPanel?.Inject(connectionService, config, kinematicsFacade);
             diagnosticsDrawer?.Inject(connectionService, connectionPanel, jointControlPanel, tcpPanel, handPoseReceiver);
@@ -545,7 +563,7 @@ namespace KineTutor3D.App.Fairino
             jointDriver = controlRobotInstance.GetComponent<FairinoUrdfJointDriver>()
                 ?? controlRobotInstance.AddComponent<FairinoUrdfJointDriver>();
 
-            var baseLink = controlRobotInstance.transform.Find("base_link");
+            var baseLink = FindBaseLink(controlRobotInstance.transform);
             if (baseLink != null)
             {
                 jointDriver.Inject(baseLink);
@@ -608,7 +626,7 @@ namespace KineTutor3D.App.Fairino
                 orbitCamera = camera.gameObject.AddComponent<OrbitCameraController>();
             }
 
-            var baseLink = controlRobotInstance.transform.Find("base_link");
+            var baseLink = FindBaseLink(controlRobotInstance.transform);
             orbitCamera.SetTarget(baseLink != null ? baseLink : controlRobotInstance.transform);
         }
 
@@ -716,14 +734,15 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
-            var existing = FindSceneRuntimeRoot();
+            var effectiveTemplate = GetEffectiveTemplateDefinition();
+            var existing = FindSceneRuntimeRoot(effectiveTemplate.RuntimeRootName);
             if (existing != null)
             {
                 runtimeRoot = existing;
                 return;
             }
 
-            runtimeRoot = new GameObject(templateDefinition.RuntimeRootName).transform;
+            runtimeRoot = new GameObject(effectiveTemplate.RuntimeRootName).transform;
             runtimeRoot.localPosition = Vector3.zero;
             runtimeRoot.localRotation = Quaternion.identity;
         }
@@ -810,17 +829,17 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
-            Debug.Log($"[RobotControlSceneCoordinator] Loaded FR5 control prefab with {meshFilterCount} MeshFilter(s) and {meshRendererCount} MeshRenderer(s). No scale applied (ArticulationBody).");
+            Debug.Log($"[RobotControlSceneCoordinator] Loaded {GetEffectiveTemplateDefinition().DisplayName} control prefab with {meshFilterCount} MeshFilter(s) and {meshRendererCount} MeshRenderer(s). No scale applied (ArticulationBody).");
         }
 
-        private static void TeleportRootUpright(GameObject root)
+        private void TeleportRootUpright(GameObject root)
         {
             if (root == null)
             {
                 return;
             }
 
-            var baseLink = root.transform.Find("base_link");
+            var baseLink = FindBaseLink(root.transform);
             if (baseLink == null)
             {
                 return;
@@ -833,7 +852,12 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
-        private Transform FindSceneRuntimeRoot()
+        private static Transform FindSceneRuntimeRoot()
+        {
+            return FindSceneRuntimeRoot("FR5_RuntimeRoot");
+        }
+
+        private static Transform FindSceneRuntimeRoot(string runtimeRootName)
         {
             var scene = SceneManager.GetActiveScene();
             if (!scene.IsValid())
@@ -844,7 +868,7 @@ namespace KineTutor3D.App.Fairino
             var roots = scene.GetRootGameObjects();
             for (var i = 0; i < roots.Length; i++)
             {
-                if (roots[i] != null && roots[i].name == templateDefinition.RuntimeRootName)
+                if (roots[i] != null && roots[i].name == runtimeRootName)
                 {
                     return roots[i].transform;
                 }
@@ -855,13 +879,14 @@ namespace KineTutor3D.App.Fairino
 
         private bool TryLoadControlPrefab(out GameObject prefab, out string diagnostic, out int meshFilterCount, out int meshRendererCount)
         {
-            prefab = Resources.Load<GameObject>(templateDefinition.ControlPrefabResourcePath);
+            var effectiveTemplate = GetEffectiveTemplateDefinition();
+            prefab = Resources.Load<GameObject>(effectiveTemplate.ControlPrefabResourcePath);
             meshFilterCount = 0;
             meshRendererCount = 0;
 
             if (prefab == null)
             {
-                diagnostic = $"Control prefab missing at Resources/{templateDefinition.ControlPrefabResourcePath}. Run QA import first.";
+                diagnostic = $"Control prefab missing at Resources/{effectiveTemplate.ControlPrefabResourcePath}. Run QA import first.";
                 return false;
             }
 
@@ -870,7 +895,7 @@ namespace KineTutor3D.App.Fairino
             meshRendererCount = prefab.GetComponentsInChildren<MeshRenderer>(true).Length;
             if (meshFilterCount <= 0 || meshRendererCount <= 0)
             {
-                diagnostic = $"Control prefab at Resources/{templateDefinition.ControlPrefabResourcePath} has no visible meshes. Re-run FR5 import/repair.";
+                diagnostic = $"Control prefab at Resources/{effectiveTemplate.ControlPrefabResourcePath} has no visible meshes. Re-run {effectiveTemplate.DisplayName} import/repair.";
                 return false;
             }
 
@@ -886,7 +911,7 @@ namespace KineTutor3D.App.Fairino
 
             if (totalVertices <= 0)
             {
-                diagnostic = $"Control prefab at Resources/{templateDefinition.ControlPrefabResourcePath} has {meshFilterCount} MeshFilter(s) but 0 vertices. Re-run FR5 import/repair.";
+                diagnostic = $"Control prefab at Resources/{effectiveTemplate.ControlPrefabResourcePath} has {meshFilterCount} MeshFilter(s) but 0 vertices. Re-run {effectiveTemplate.DisplayName} import/repair.";
                 return false;
             }
 
@@ -896,8 +921,9 @@ namespace KineTutor3D.App.Fairino
 
         private GameObject InstantiateAndSetup(GameObject prefab)
         {
+            var effectiveTemplate = GetEffectiveTemplateDefinition();
             var instance = Instantiate(prefab, runtimeRoot);
-            instance.name = templateDefinition.ControlRobotInstanceName;
+            instance.name = effectiveTemplate.ControlRobotInstanceName;
             instance.transform.localPosition = Vector3.zero;
             instance.transform.localRotation = Quaternion.identity;
             return instance;
@@ -951,7 +977,7 @@ namespace KineTutor3D.App.Fairino
 
         private bool TryLoadShowroomFallback(out GameObject prefab, out int meshFilterCount, out int meshRendererCount)
         {
-            prefab = Resources.Load<GameObject>(templateDefinition.ShowroomPrefabResourcePath);
+            prefab = Resources.Load<GameObject>(GetEffectiveTemplateDefinition().ShowroomPrefabResourcePath);
             meshFilterCount = 0;
             meshRendererCount = 0;
             if (prefab == null)
@@ -966,8 +992,9 @@ namespace KineTutor3D.App.Fairino
 
         private GameObject CreatePlaceholderControlRobot(Transform parent)
         {
+            var effectiveTemplate = GetEffectiveTemplateDefinition();
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            placeholder.name = templateDefinition.ControlRobotInstanceName;
+            placeholder.name = effectiveTemplate.ControlRobotInstanceName;
             placeholder.transform.SetParent(parent, false);
             placeholder.transform.localScale = new Vector3(0.3f, 0.12f, 0.3f);
             placeholder.transform.localPosition = Vector3.zero;
@@ -1026,14 +1053,14 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
-        private static void StabilizeControlRobot(GameObject controlRoot)
+        private void StabilizeControlRobot(GameObject controlRoot)
         {
             if (controlRoot == null)
             {
                 return;
             }
 
-            var components = controlRoot.GetComponents<MonoBehaviour>();
+            var components = controlRoot.GetComponentsInChildren<MonoBehaviour>(true);
             for (var i = 0; i < components.Length; i++)
             {
                 var component = components[i];
@@ -1067,12 +1094,31 @@ namespace KineTutor3D.App.Fairino
                 }
             }
 
-            var baseLink = controlRoot.transform.Find("base_link");
+            var baseLink = FindBaseLink(controlRoot.transform);
             var baseBody = baseLink != null ? baseLink.GetComponent<ArticulationBody>() : null;
             if (baseBody != null)
             {
                 baseBody.immovable = true;
             }
+        }
+
+        private Transform FindBaseLink(Transform root)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            var effectiveTemplate = GetEffectiveTemplateDefinition();
+            var baseLinkName = !string.IsNullOrWhiteSpace(effectiveTemplate.BaseLinkName)
+                ? effectiveTemplate.BaseLinkName
+                : "base_link";
+            return root.Find(baseLinkName);
+        }
+
+        private RobotControlTemplateDefinition GetEffectiveTemplateDefinition()
+        {
+            return templateDefinition ?? FR5RobotControlTemplateDefinition.Create();
         }
 
         private void EnsurePresetAnimator()

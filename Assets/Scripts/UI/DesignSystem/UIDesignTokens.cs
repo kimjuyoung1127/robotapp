@@ -193,6 +193,49 @@ namespace KineTutor3D.UI
             public const float ConnectionSync   = 0.8f;
         }
 
+        // ── RobotControl V2 Theme ──────────────────────────────────────
+
+        /// <summary>
+        /// RobotControlV2 전용 theme 토큰.
+        /// authored-first 셸과 상단 상태 바가 동일한 팔레트를 공유할 때 사용합니다.
+        /// </summary>
+        public static class RobotControlV2
+        {
+            public static class Colors
+            {
+                public static readonly Color Backdrop         = new Color(0.08f, 0.09f, 0.11f, 1f);
+                public static readonly Color SafeArea         = new Color(0.10f, 0.11f, 0.14f, 1f);
+                public static readonly Color LeftRail         = new Color(0.13f, 0.14f, 0.17f, 0.98f);
+                public static readonly Color CenterViewport   = new Color(0.10f, 0.11f, 0.13f, 0.96f);
+                public static readonly Color RightRail        = new Color(0.13f, 0.14f, 0.17f, 0.98f);
+                public static readonly Color BottomSheet      = new Color(0.16f, 0.17f, 0.20f, 0.98f);
+                public static readonly Color Card            = new Color(0.18f, 0.19f, 0.23f, 0.98f);
+                public static readonly Color CardAlt         = new Color(0.15f, 0.16f, 0.19f, 0.98f);
+                public static readonly Color SurfaceStroke   = new Color(0.36f, 0.33f, 0.30f, 1f);
+
+                public static readonly Color Accent          = new Color(0.78f, 0.64f, 0.49f, 1f);
+                public static readonly Color AccentSoft      = new Color(0.29f, 0.24f, 0.20f, 1f);
+                public static readonly Color Success         = new Color(0.38f, 0.68f, 0.58f, 1f);
+                public static readonly Color Warning         = new Color(0.84f, 0.67f, 0.37f, 1f);
+                public static readonly Color Danger          = new Color(0.76f, 0.44f, 0.39f, 1f);
+
+                public static readonly Color TitleText       = new Color(0.95f, 0.92f, 0.88f, 1f);
+                public static readonly Color MutedText       = new Color(0.80f, 0.75f, 0.69f, 1f);
+                public static readonly Color Border          = new Color(0.33f, 0.30f, 0.27f, 1f);
+
+                public static readonly Color TopBarBackground = new Color(0.12f, 0.13f, 0.16f, 0.98f);
+                public static readonly Color TopBarSecondary  = new Color(0.19f, 0.20f, 0.24f, 1f);
+            }
+
+            public static class Size
+            {
+                public const float LeftRailWidth = 360f;
+                public const float RightRailWidth = 360f;
+                public const float BottomSheetHeight = 240f;
+                public const float StatusBarHeight = 72f;
+            }
+        }
+
         // ── Helpers ──────────────────────────────────────────────────────
 
         /// <summary>

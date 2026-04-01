@@ -12,5 +12,6 @@ namespace KineTutor3D.App
         Sandbox = 3,
         RobotControl = 4,
         MathReadiness = 5,
+        RobotControlV2 = 6,
     }
 }

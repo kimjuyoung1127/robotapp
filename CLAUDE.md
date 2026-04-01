@@ -34,6 +34,27 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 4. Unity 작업의 기본 도구는 `unityctl`입니다. `unityctl`에 없는 작업만 MCP로 폴백합니다.
 5. 문서와 코드가 다르면 현재 코드와 테스트 결과를 우선합니다.
 6. 하위 폴더 규칙이 바뀌면 가장 가까운 `AGENTS.md` 또는 `CLAUDE.md`를 같이 갱신합니다.
+7. 외부 범용 하네스는 운영 원칙과 템플릿 참고원으로만 사용합니다. 이 저장소의 SSOT는 계속 로컬 `AGENTS.md`, `CLAUDE.md`, `docs/ref/csharp-master-harness.md`입니다.
+
+## RobotControl 구현 규율
+1. `RobotControl`은 full rewrite가 아니라 `구조적 재조립`으로 진행합니다.
+2. 문서 기준선은 메인에 유지하고, 실제 구현은 기능 브랜치에서 진행합니다. 권장 브랜치 패턴은 `codex/robotcontrol-*` 입니다.
+3. 구현 순서는 `셸 -> 필수 패널 -> 3D 차별화 -> UX 보강 -> Tablet` 순서를 기본으로 합니다.
+4. 각 구현 Phase는 `구현 -> 자기리뷰 -> unityctl 검증 -> 커밋` 순서를 강제로 지킵니다.
+5. 문서 업데이트는 종료 조건이 아닙니다. 문서 기준선을 갱신했다면 같은 세션에서 바로 다음 구현/검증 단위로 이어갑니다.
+6. 문서 업데이트가 있는 턴에는 최소 `다음 실행 단위 1개`를 진행합니다.
+7. 자기리뷰 체크포인트:
+   - 역할 경계 유지 (`App`, `UI`, `Visualization` 혼합 금지)
+   - 디자인 토큰 우회 금지
+   - `RobotControlV2` 시각 변경은 `UIDesignTokens.RobotControlV2`를 SSOT로 사용할 것
+   - authored-first 유지
+   - `필수 / 선택 / 제외` 범위 누수 금지
+   - 패널 비대화 금지
+8. `unityctl` 검증 기본 루프:
+   - `check --type compile`
+   - 관련 `test --mode edit`
+   - 필요 시 `play start`, `console get-entries`, `scene snapshot`, `screenshot capture`
+9. 각 Phase 커밋은 해당 범위만 포함합니다. unrelated 변경을 같이 묶지 않습니다.
 
 ## Unityctl Quickstart
 - 고정 경로:

@@ -2,11 +2,16 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace KineTutor3D.UI
 {
     internal static class UiRuntimeStyle
     {
+        private static Sprite cachedDefaultSprite;
+
         // ── Legacy color aliases → UIDesignTokens (기존 시그니처 100% 유지) ──
 
         [Obsolete("Use UIDesignTokens.Colors.SurfaceBase instead")]
@@ -118,6 +123,12 @@ namespace KineTutor3D.UI
                 image = rect.gameObject.AddComponent<Image>();
             }
 
+            if (image.sprite == null)
+            {
+                image.sprite = ResolveDefaultSprite();
+                image.type = Image.Type.Sliced;
+            }
+
             image.color = color;
             image.raycastTarget = false;
             return image;
@@ -176,6 +187,35 @@ namespace KineTutor3D.UI
             }
 
             return element;
+        }
+
+        public static CanvasGroup EnsureCanvasGroup(GameObject target)
+        {
+            var group = target.GetComponent<CanvasGroup>();
+            if (group == null)
+            {
+                group = target.AddComponent<CanvasGroup>();
+            }
+
+            return group;
+        }
+
+        public static void SetCanvasVisible(GameObject target, bool visible)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            if (!target.activeSelf)
+            {
+                target.SetActive(true);
+            }
+
+            var group = EnsureCanvasGroup(target);
+            group.alpha = visible ? 1f : 0f;
+            group.interactable = visible;
+            group.blocksRaycasts = visible;
         }
 
         public static VerticalLayoutGroup EnsureVerticalLayout(GameObject target, float spacing, bool controlHeight = true)
@@ -249,6 +289,12 @@ namespace KineTutor3D.UI
                 image = button.gameObject.AddComponent<Image>();
             }
 
+            if (image.sprite == null)
+            {
+                image.sprite = ResolveDefaultSprite();
+                image.type = Image.Type.Sliced;
+            }
+
             image.color = backgroundColor;
 
             var labelText = EnsureText(button.transform, "Label", font, UIDesignTokens.Type.HeadingSm, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
@@ -264,6 +310,45 @@ namespace KineTutor3D.UI
             button.colors = colors;
 
             return labelText;
+        }
+
+        private static Sprite ResolveDefaultSprite()
+        {
+            if (cachedDefaultSprite != null)
+            {
+                return cachedDefaultSprite;
+            }
+
+#if UNITY_EDITOR
+            cachedDefaultSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            if (cachedDefaultSprite != null)
+            {
+                return cachedDefaultSprite;
+            }
+
+            cachedDefaultSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
+            if (cachedDefaultSprite != null)
+            {
+                return cachedDefaultSprite;
+            }
+#endif
+
+            cachedDefaultSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            if (cachedDefaultSprite != null)
+            {
+                return cachedDefaultSprite;
+            }
+
+            cachedDefaultSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+            if (cachedDefaultSprite != null)
+            {
+                return cachedDefaultSprite;
+            }
+
+            var texture = Texture2D.whiteTexture;
+            cachedDefaultSprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+            cachedDefaultSprite.name = "GeneratedDefaultUiSprite";
+            return cachedDefaultSprite;
         }
     }
 }

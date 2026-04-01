@@ -1,6 +1,44 @@
 # RobotControl 구현 보드
 
-> 최종 갱신: 2026-03-16
+> 최종 갱신: 2026-04-01
+
+## RobotControlV2 현재 구현 상태
+
+### 셸 / authored 구조
+- [x] `RobotControlV2` 별도 composition root 도입
+- [x] `SceneBootstrap`, `RuntimeRoot`, `RobotRuntimeRoot`, `RobotControlShell/SafeArea/...` authored 구조 고정
+- [x] old FR5 panel authored 오브젝트 제거
+- [x] old shell 잔재(`RobotControlOverlay`, `TabBar`, `Tab_0`, `Tab_1`) 제거
+- [x] duplicated child 제거 (`TopStatusBar`, `EasyMotionPanel`)
+- [x] `ExecuteAlways` 기반 edit-mode mutation 제거
+
+### UI polish
+- [x] `TopStatusBar` compact width 규칙 추가
+- [x] `WorkTabBar` 3열 grid 구조로 전환
+- [x] `EasyMotionPanel` compact spacing / button height 규칙 추가
+- [x] `TcpJogPanel` compact input/card 구조 추가
+- [x] `JointJogPanel` single-axis / multi-axis 카드 구조 추가
+- [x] `PointMovePanel` pose 입력 / CTA 카드 구조 추가
+- [x] `TeachingPanel` quick save / point list / TPD 카드 구조 추가
+- [x] `DiagnosticsDrawer`를 debug-only 우하단 anchor로 이동
+- [x] `WorkTabBar` red-X 원인 제거
+- [x] popup 3종 CTA 구조 추가
+- [x] `BottomSheets` 하위 sheet authored 구조 추가
+- [x] `play 시작 1회 authored-lock` 훅 추가
+
+### 검증
+- [x] `unityctl check --type compile`
+- [x] `scene snapshot`으로 V2 shell 계층 확인
+- [x] restart 후 다시 compile / scene open 확인
+- [x] `AuthorOpenScene()` 기준 panel child authored 구조 확인
+- [ ] GameView `16:9` 실제 시각 점검
+- [ ] GameView `4:3` 실제 시각 점검
+- [ ] `Onboarding -> RobotLibrary -> RobotControlV2` 진입 흐름 authored-lock 확인
+
+### 다음 구현 단위
+- [ ] Onboarding 경유 V2 진입 검증
+- [ ] spacing / card 높이 최종 polish
+- [ ] Mock binding 착수
 
 ## 재활용 컴포넌트 매트릭스
 
@@ -88,6 +126,18 @@
 - [x] **UI 토큰**: `UIDesignTokens.Anim.PresetTransition=1.5f`, `ConnectionSync=0.8f`
 - [x] **EditMode 테스트**: `PresetTransitionAnimatorTests.cs` — EaseInOutCubic + LerpDouble 13개
 - [ ] Play Mode 검증: 프리셋 보간 + Speed 선택 + 연결 끊김/복구 시각 검증
+
+### Phase 11: Live Bring-Up Hardening
+- [x] `IFairinoRobotClient` 확장 — reconnect / drag teach / auto mode / coord context / controller fault / reset error
+- [x] `LiveFairinoClient.cs` 수정 — tool/user 문맥 캐시, fault/safety 조회, MoveJ/MoveL preflight
+- [x] `FairinoConnectionService.cs` 수정 — Live 기본 초기화 시퀀스를 서비스 한 곳으로 정리
+- [x] `FairinoConnectionService.cs` 수정 — disconnect / connection lost 시 상태 캐시 초기화
+- [x] `LiveFairinoClient.ReadState()` 경량화 — 폴링마다 보조 RPC 중복 호출 제거
+- [x] `UI/FairinoConnectionPanel.cs` 수정 — Mode/Drag/Tool/User/Safety/Fault 표시
+- [x] `UI/RobotControlDiagnosticsDrawer.cs` 수정 — `Reset Error` 버튼 + reconnect/fault/tool-user 요약
+- [x] `UI/FairinoJointControlPanel.cs` / `UI/FairinoTcpControlPanel.cs` 수정 — Live v1에서 `ServoJ` / `ServoCart` 비활성화
+- [x] `Assets/Runtime/Resources/LearningTabs/FAIRINO_FR5.json` 수정 — `liveDefaults` 추가
+- [x] EditMode 테스트 보강 — SDK 메서드, config, UX gate
 
 ### Phase 9: 최종 검증
 - [x] EditMode 테스트 green (FR5KinematicsFacade + FR5PosePresets + PresetTransitionAnimator + Integration)
@@ -226,11 +276,14 @@ Disconnect ──► OnConnectionStateChanged              ReadState() 폴링
 
 1. FR5 전원 ON + 네트워크 연결 확인
 2. Mock Toggle → OFF (Live 모드 전환)
-3. IP 입력 → Connect → StatusLabel 녹색 확인
-4. Enable 버튼 → 서보 활성 확인
-5. DryRun OFF → MoveJ 또는 MoveL 실행
-6. 연결 끊김 테스트: 케이블 분리 → 3회 폴링 실패 → 빨간 "연결 끊김" 확인
-7. 재연결: Connect → 패널 자동 활성화 + 0.8초 포즈 보간
+3. IP 입력 → Connect → `Mode/Drag/Tool/User/Fault` 표시 확인
+4. `Mode=Auto`, `Drag=Off`, `Fault=0/0` 확인
+5. Enable 버튼 → 서보 활성 확인
+6. Sync → 실제 joint/TCP 동기화 확인
+7. DryRun OFF → 아주 작은 `MoveJ`
+8. 아주 작은 `MoveL`
+9. `Reset Error` / `StopMotion` 확인
+10. 연결 끊김 테스트: 케이블 분리 → 캐시 초기화 + 빨간 "연결 끊김" 확인
 
 ---
 

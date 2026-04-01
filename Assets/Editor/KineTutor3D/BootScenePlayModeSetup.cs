@@ -16,6 +16,9 @@ namespace KineTutor3D.Editor
         static BootScenePlayModeSetup()
         {
             EditorApplication.delayCall += ApplyIfEnabled;
+            EditorSceneManager.activeSceneChangedInEditMode += HandleActiveSceneChangedInEditMode;
+            EditorSceneManager.sceneOpened += HandleSceneOpened;
+            EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
         }
 
         private static bool IsEnabled
@@ -57,6 +60,24 @@ namespace KineTutor3D.Editor
             {
                 EditorSceneManager.playModeStartScene = startScene;
             }
+        }
+
+        private static void HandleActiveSceneChangedInEditMode(UnityEngine.SceneManagement.Scene _oldScene, UnityEngine.SceneManagement.Scene _newScene)
+        {
+            ApplyIfEnabled();
+        }
+
+        private static void HandlePlayModeStateChanged(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.EnteredEditMode || change == PlayModeStateChange.ExitingEditMode)
+            {
+                ApplyIfEnabled();
+            }
+        }
+
+        private static void HandleSceneOpened(UnityEngine.SceneManagement.Scene _scene, OpenSceneMode _mode)
+        {
+            ApplyIfEnabled();
         }
     }
 }

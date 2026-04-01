@@ -69,7 +69,6 @@ namespace KineTutor3D.UI
             var hideOnOnboardingValue = onboardingHideOverride ?? hideOnOnboarding;
             var shouldHide = hideOnOnboardingValue && currentScene == SceneId.Onboarding;
             topBarRoot.gameObject.SetActive(!shouldHide);
-            HideLegacyCanvasChildren(shouldHide);
             if (shouldHide)
             {
                 return;
@@ -148,27 +147,6 @@ namespace KineTutor3D.UI
             return UiRuntimeStyle.EnsureHostedRoot(this, "TopBarRect");
         }
 
-        private void HideLegacyCanvasChildren(bool hidden)
-        {
-            if (!(transform is RectTransform selfRect) || selfRect.GetComponent<Canvas>() == null)
-            {
-                return;
-            }
-
-            ToggleDirectChild("TopBarBackground", hidden);
-            ToggleDirectChild("SceneNavButtons", hidden);
-            ToggleDirectChild("TitleText", hidden);
-        }
-
-        private void ToggleDirectChild(string childName, bool hidden)
-        {
-            var child = transform.Find(childName);
-            if (child != null)
-            {
-                child.gameObject.SetActive(!hidden);
-            }
-        }
-
         private void RebuildButtons()
         {
             if (buttonContainer == null)
@@ -178,6 +156,7 @@ namespace KineTutor3D.UI
 
             var entries = SceneCatalog.GetNavigableEntries();
             var currentScene = SceneCatalog.GetCurrentSceneId();
+            ClearButtonContainer();
 
             for (var i = 0; i < entries.Count; i++)
             {
@@ -188,17 +167,6 @@ namespace KineTutor3D.UI
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => SceneNavigator.Load(targetScene));
             }
-
-            for (var i = entries.Count; i < buttonContainer.childCount; i++)
-            {
-                var child = buttonContainer.GetChild(i);
-                if (child != null)
-                {
-                    child.gameObject.SetActive(false);
-                }
-            }
-
-            HideLegacyDirectNavButtons();
         }
 
         private void ApplyCompactLearningMode(SceneId currentScene)
@@ -243,7 +211,6 @@ namespace KineTutor3D.UI
             {
                 buttonContainer.gameObject.SetActive(false);
             }
-            HideLegacyDirectNavButtons();
 
             if (titleText != null)
             {
@@ -288,17 +255,10 @@ namespace KineTutor3D.UI
 
         private Button ResolveOrCreateButton(int index, SceneEntry entry, bool isCurrentScene)
         {
-            Button button = null;
-            if (index < buttonContainer.childCount)
-            {
-                button = buttonContainer.GetChild(index).GetComponent<Button>();
-            }
-
-            if (button == null)
-            {
-                var go = new GameObject($"Nav{entry.DisplayName}", typeof(RectTransform), typeof(Image), typeof(Button));
-                button = go.GetComponent<Button>();
-            }
+            var sanitizedName = entry.DisplayName.Replace(" ", string.Empty);
+            var expectedName = $"Nav{sanitizedName}";
+            var go = new GameObject(expectedName, typeof(RectTransform), typeof(Image), typeof(Button));
+            var button = go.GetComponent<Button>();
 
             if (button.transform.parent != buttonContainer)
             {
@@ -318,6 +278,34 @@ namespace KineTutor3D.UI
             return button;
         }
 
+        private void ClearButtonContainer()
+        {
+            if (buttonContainer == null)
+            {
+                return;
+            }
+
+            for (var i = buttonContainer.childCount - 1; i >= 0; i--)
+            {
+                var child = buttonContainer.GetChild(i);
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (Application.isPlaying)
+                {
+                    child.gameObject.SetActive(false);
+                    child.SetParent(null, false);
+                    Destroy(child.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+
         /// <summary>
         /// 네비게이션 바 가시성을 설정합니다.
         /// </summary>
@@ -326,27 +314,6 @@ namespace KineTutor3D.UI
             if (topBarRoot != null) topBarRoot.gameObject.SetActive(visible);
         }
 
-        private void HideLegacyDirectNavButtons()
-        {
-            if (topBarRoot == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < topBarRoot.childCount; i++)
-            {
-                var child = topBarRoot.GetChild(i);
-                if (child == null || child == buttonContainer)
-                {
-                    continue;
-                }
-
-                if (child.name.StartsWith("Nav"))
-                {
-                    child.gameObject.SetActive(false);
-                }
-            }
-        }
     }
 }
 
