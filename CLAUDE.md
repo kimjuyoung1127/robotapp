@@ -94,6 +94,7 @@ $project = 'C:\Users\ezen601\Desktop\Jason\robotapp2'
 - 현재 전체 플로우: `docs/ref/project-flow-code-review.md`
 
 ### RobotControl / 멀티로봇 / 실기 연동
+- **V3 티칭패드 설계 (UI Toolkit)**: `docs/ref/product/pendant-v3/README.md`
 - 공용 RobotControl 런타임: `Assets/Scripts/App/Fairino/CLAUDE.md`
 - FR5 실기 참고: `docs/ref/product/robots/fairino-fr5-integration-reference.md`
 - UR5e: `Assets/Scripts/App/UniversalRobots/CLAUDE.md`
