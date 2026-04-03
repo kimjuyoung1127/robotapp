@@ -71,6 +71,9 @@
 | JointHighlight | 관절 링 + 링크 발광 | 조그 시 ON | 자동 |
 | TargetMarker | 목표점 마커 (체크/경고) | 포인트 이동 시 ON | 자동 |
 | CollisionZone | 충돌 위험 구간 하이라이트 | 위험 감지 시 ON | 자동 |
+| WorkspaceBoundary | 작업공간 경계 (도달 범위 반투명 구체) (A1) | OFF | 3D 툴바 |
+| CartesianArrows | 데카르트 화살표 (XYZ 이동 + RPY 회전 링) (U12) | TCP 조그 시 ON | 자동 |
+| MultiPointPath | 다중 포인트 전체 경로 점선 (A7) | 시퀀스 미리보기 시 ON | 자동 |
 
 ---
 

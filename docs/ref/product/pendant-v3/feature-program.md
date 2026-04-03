@@ -2,7 +2,7 @@
 
 ## Purpose
 - Step 실행, 전체 실행, 기본 블록 삽입의 UI를 정의한다.
-- 현재 SSOT에서는 제외(Excluded) 상태. V3에 넣을지 별도 결정 필요.
+- **확정**: 제조사 Lua 프로그램 load/run은 제외 유지. Unity 내부 시퀀스 실행만 Phase 5 블록 에디터로 포함.
 
 ## Parent Doc
 - [README.md](./README.md)
@@ -60,10 +60,8 @@
 
 ---
 
-## 결정 필요 사항
-1. 제조사 Lua 프로그램 load/run을 지원할 것인가?
-2. Unity 내부 시퀀스만 실행할 것인가?
-3. 두 체계를 어떻게 구분할 것인가?
-
-> 현재 추천: Unity 내부 시퀀스 실행만 P1에서 지원.
-> 제조사 프로그램 load/run은 P2 이후.
+## 확정 사항
+1. 제조사 Lua 프로그램 load/run → **제외** (SSOT 유지)
+2. Unity 내부 시퀀스 실행 → **Phase 5 블록 에디터**로 포함
+3. 실행 모니터링(BottomBar Step/Play/Stop) → Phase 5에서 구현
+4. 제조사 프로그램 연동은 **P2 이후** 별도 검토

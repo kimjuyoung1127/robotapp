@@ -85,13 +85,24 @@
 
 ---
 
-## BottomBar Undo/Redo 버튼
+## BottomBar Undo/Redo + 속도 슬라이더
 
 ```text
-BottomBar에 Undo/Redo 추가:
+BottomBar 최종 구성:
 
-[▶실행] [■정지] [▷DryRun] [← Undo] [Redo →] [Step◀] [Step▶] [━●━] 30%
+[▶실행] [■정지] [▷DryRun] [← Undo] [Redo →] [Step◀] [Step▶] [━━●━━━] 30%
+                                                                  ▲ 실시간 속도
+                                                                    오버라이드
+                                                                    슬라이더 (A3)
 ```
 
 - Undo/Redo는 BottomBar에 항상 가시
 - 히스토리 없으면 비활성화 (MutedText)
+- 속도 슬라이더는 드래그로 즉시 변경, 실행 중에도 반영 (A3)
+
+## 로컬스토리지 임시 저장 (U6)
+
+- 저장 항목: 마지막 속도%, 좌표계 선택, 증분값, 선택 탭, 연결 IP
+- 저장 방식: `PlayerPrefs` 또는 JSON 파일
+- 저장 시점: 값 변경 즉시 (debounce 0.5초)
+- 로드 시점: 씬 부트스트랩 시 (OnEnable)

@@ -282,9 +282,11 @@ PendantV3Root (UIDocument)
     --rc-bottom-bar-height: 48px;
     --rc-work-tab-height: 40px;
 
-    /* Typography */
-    --rc-font-size: 15px;
-    --rc-font-size-small: 13px;
-    --rc-font-size-label: 11px;
+    /* Typography — 기본 17px 확정 */
+    --rc-font-size: 17px;
+    --rc-font-size-small: 14px;
+    --rc-font-size-label: 12px;
+    --rc-font-size-header: 20px;
+    --rc-font-family: 'Noto Sans KR';
 }
 ```

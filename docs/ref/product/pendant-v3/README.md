@@ -98,6 +98,35 @@
 | 초보자/전문가 모드 | [feature-user-modes.md](./feature-user-modes.md) | BeginnerMode 확장 |
 | Undo/Redo + 히스토리 | [feature-history.md](./feature-history.md) | Roadmap P1 |
 
+### P0 추가 확정 (주인님 요구 + 채택 제안)
+
+| 기능 | 문서 | Phase |
+|------|------|-------|
+| 그리퍼 개폐 (쉬운 조작 탭) | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
+| 인풋 수정 시 0 자동선택 + 즉시 반영 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
+| 데카르트 3D 화살표 방향 기기조작 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
+| 속도 오버라이드 실시간 슬라이더 | [shell-layout.md](./shell-layout.md) | 2B |
+| 버튼 클릭 시 확인 팝업 모달 | [feature-safety-controls.md](./feature-safety-controls.md) | 2D |
+| 수정/삭제/창닫기 시 확인 팝업 | [feature-safety-controls.md](./feature-safety-controls.md) | 2D |
+| 가독성 아이콘 → 함수별 매핑 | 전체 | 0~ |
+| 작업공간 경계 시각화 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C |
+| 경로 충돌 사전 검출 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C |
+| Undo/Redo (BottomBar 상시) | [feature-history.md](./feature-history.md) | 3 |
+| 로컬스토리지 임시 값 저장 | 신규 | 3 |
+| 자동 재연결 (3초 재시도) | [feature-connection-status.md](./feature-connection-status.md) | 3 |
+
+### P1 추가 확정
+
+| 기능 | 문서 | Phase |
+|------|------|-------|
+| 블록 추가 + 단계별 루프 생성 | [feature-points-teaching.md](./feature-points-teaching.md) | 5 |
+| 논리명령(IF/ELSE/LOOP) + 이동명령(MoveJ/L/C) 블록 | [feature-points-teaching.md](./feature-points-teaching.md) | 5 |
+| MoveC 원호 이동 블록 | [feature-points-teaching.md](./feature-points-teaching.md) | 5 |
+| 다중 포인트 경로 전체 미리보기 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 5 |
+| 스크린샷/상태 캡처 (PNG+JSON) | [feature-diagnostics.md](./feature-diagnostics.md) | 6 |
+| 드래그 티칭 → 블록 자동 변환 | [feature-points-teaching.md](./feature-points-teaching.md) | 7 |
+| 조그 감도 설정 (모드별) | [feature-user-modes.md](./feature-user-modes.md) | 7 |
+
 ### P2 - 차별화 (후속 단계)
 
 | 기능 | 문서 | SSOT 상태 |
@@ -106,6 +135,7 @@
 | 비전 오버레이 | [feature-vision.md](./feature-vision.md) | 신규 |
 | 작업 템플릿 | [feature-templates.md](./feature-templates.md) | 신규 |
 | 프로그램 편집/실행 | [feature-program.md](./feature-program.md) | SSOT 제외 상태 |
+| 연결 QR 코드 (태블릿 스캔) | [feature-connection-status.md](./feature-connection-status.md) | 신규 |
 
 ---
 
@@ -123,16 +153,131 @@
 
 ---
 
+## 잠금 규칙 (Unity 공식문서 기반, 변경 금지)
+
+상세 규칙은 구현 플랜 파일 참조. 핵심만 요약:
+
+### 네이밍 1대1 매핑
+- UXML `kebab-case` ↔ Controller `PascalCase+Controller` ↔ 기능명 일치
+- USS 클래스 `.rc-` 접두사, 토큰 `--rc-` 접두사, UXML name `PascalCase`
+- 아이콘 `icon-{기능}.png`
+
+### 파일 크기/구조 제한
+- C# **300줄 초과 금지** → 컴포넌트 분리
+- UXML **중첩 5단계 초과 금지** → 별도 Template 분리
+- USS **200줄 초과 시** 기능별 분리
+
+### UI Toolkit 생명주기 (공식문서 확인)
+- `OnEnable()`에서 초기화 (Awake/Start 금지)
+- `OnDisable()`에서 콜백 해제 (메모리 누수 방지)
+- 값 갱신 시 `SetValueWithoutNotify()` (무한 루프 방지)
+- 요소 쿼리는 `Q<T>("Name")` (타입만 쿼리 금지)
+
+### Flexbox 안티패턴 (공식문서 명시)
+- ❌ flex 부모에 고정 px → 반응형 깨짐
+- ❌ `flex-shrink: 0` 남용 → 오버플로우
+- ❌ absolute + flex 자식 혼합
+- ❌ 인라인 스타일 과다 → USS 분리 필수
+
+### ListView 필수 패턴
+- `itemsSource` + `makeItem` + `bindItem` 3요소 필수
+- `FixedHeight` 가상화 필수
+- `fixedItemHeight` 명시
+
+### 잠금 변수 (확정)
+
+| 항목 | 값 |
+|------|-----|
+| 씬 | `RobotControlV3.unity` — 온보딩에서 버튼 이동 (SceneCatalog 등록) |
+| 브랜치 | `main` |
+| Scale Mode | `Scale With Screen Size`, Ref 1920x1080, Match 0.5 |
+| 기본 속도 | 30% |
+| DryRun 기본 | Live 첫 연결 시 ON |
+| 색상 테마 | 다크 고정 (V2 Colors) |
+| 아이콘 | PNG 64x64 @2x 투명배경 |
+| 텍스트 리소스 | ScriptableObject (`PendantLocalization.asset`) — Inspector 수정 가능, 후속 다국어 |
+| 포인트 저장 | JSON, `persistentDataPath/points/` |
+| Undo 깊이 | 50개 |
+| 이벤트 로그 | 200개 FIFO |
+| 자동 재연결 | 10회 (3초 간격) |
+| 루프 중첩 | 최대 3단계 |
+| MoveC | 3점 원호 (시작→중간→끝) |
+| **치수** | |
+| TopStatusBar | 56px |
+| NavRail | 72px (접힘 48px) |
+| ContextPanel | 320px |
+| BottomBar | 48px |
+| WorkTabBar | 40px |
+| 패널 간격 | 4px (margin) |
+| 카드 패딩 | 12px |
+| 터치 최소 | 44x44px |
+| 프리셋 버튼 | 88x88px |
+| **타이포** | |
+| 기본 폰트 | **17px**, Noto Sans KR |
+| 작은 텍스트 | 14px |
+| 라벨 | 12px |
+| 헤더 | 20px |
+| **타이밍** | |
+| 탭 전환 | 150ms ease-out |
+| 팝업 등장/닫기 | 200ms / 150ms |
+| 토스트 | 3초 |
+| 조그 long-press | 300ms |
+| **3D** | |
+| 고스트 투명도 | 30% |
+| 작업공간 경계 | 15% |
+| EE 트레일 | 3초 유지 |
+| **빌드** | |
+| Build Index | 7 |
+| asmdef | `KineTutor3D.UI.RobotControlV3` (uGUI 참조 금지) |
+| **스타일** | |
+| border-radius | 카드/버튼 6px, 팝업 12px, 입력 4px |
+| 비활성 opacity | 0.4 |
+| 팝업 딤 | rgba(0,0,0,0.6) |
+| 스크롤바 | 6px, 2초 후 자동 숨김 |
+| 포커스 | 2px solid AccentPrimary |
+| **데이터** | |
+| 단위 | deg/mm 고정 (전환 없음) |
+| 소수점 | 1자리 |
+| 속도 스텝 | 1% (1~100) |
+| 최대 웨이포인트 | 100개 |
+| 최대 시퀀스 스텝 | 200개 |
+| 드래그 샘플 | 50ms (20Hz) |
+| IO (FR5) | DO8 DI8 AO2 AI2 TDO2 |
+| **단축키** | |
+| Space | 긴급 정지 |
+| Ctrl+Z/Y | Undo/Redo |
+| Escape | 팝업 닫기 |
+| 1~4 | 탭 전환 |
+| **범위** | |
+| 대상 로봇 | 단일 (FR5). 멀티는 Phase 8+ |
+
+### 참조 문서 (구현 시 항상 확인)
+- [UI 시스템 비교](https://docs.unity3d.com/6000.3/Documentation/Manual/UI-system-compare.html)
+- [Runtime UI 시작](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-with-runtime-ui.html)
+- [Flexbox 레이아웃](https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/layouts.html)
+- [이벤트 처리](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-Events-Handling.html)
+- [ListView](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-uxml-element-ListView.html)
+- [USS 속성](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-USS-Properties-Reference.html)
+
+---
+
 ## 구현 Phase 계획
 
 | Phase | 범위 | 산출물 |
 |-------|------|--------|
-| **Phase 0** | UI Toolkit 인프라 | PanelSettings 생성, USS 토큰 변환, UIDocument 패턴 확립 |
-| **Phase 1** | 셸 + TopBar + 탭 네비게이션 | 빈 셸이 Desktop/Tablet에서 작동 |
-| **Phase 2** | P0 패널 UI (연결, 조그, 좌표, 안전) | 레이아웃만, 로직 없음 |
-| **Phase 3** | V1 로직 연결 | ViewState 바인딩 + Mock 모드 동작 |
-| **Phase 4** | V2 vs V3 비교 평가 | 개발속도, 반응형, 바인딩, 성능 비교 |
-| **Phase 5** | 채택 결정 후 P1 기능 추가 | 포인트, IO, 모드 분리 |
+| **Pre** | 폴더 구조 + CLAUDE.md 인덱스 | 폴더별 CLAUDE.md, 루트 링크 추가 |
+| **Phase 0** | UI Toolkit 인프라 | PanelSettings, USS 토큰, UIDocument 패턴, 아이콘 폴더, PendantLocalization.asset |
+| **Phase 1** | 셸 + 탭 + BottomBar | 빈 셸 Desktop/Tablet + ★시안 리뷰 게이트 |
+| **Phase 2A** | 연결/상태 패널 UI | TopStatusBar + 연결홈 + StatusCard |
+| **Phase 2B** | 조그/모션 패널 UI | 쉬운조작+그리퍼 + 관절 + TCP+3D화살표 + 포인트이동 + 속도슬라이더 |
+| **Phase 2C** | 안전/좌표/3D UI | 배너 + 에러3단 + CoordStrip + 뷰포트툴바 + 작업공간경계 + 충돌검출 |
+| **Phase 2D** | 팝업/도움말 UI | 전체 팝업 시스템 + 컨텍스트 도움말 + WhyItMoved |
+| **Phase 3** | ViewState 바인딩 + Mock | 바인딩 + Undo/Redo + 로컬저장 + 자동재연결 |
+| **Phase 4** | V2 vs V3 비교 평가 | 평가 매트릭스 → 채택 결정 |
+| **Phase 5** | 포인트/티칭/블록 에디터 | 블록(이동/IO/논리) + 루프 + MoveC + 다중경로 미리보기 |
+| **Phase 6** | IO/그리퍼/진단/캡처 | DI/DO/AI/AO + 그리퍼 + 세션리포트 + 스크린샷캡처 |
+| **Phase 7** | 모드 분리 + 드래그 티칭 | 초보자/전문가 + 드래그→블록 변환 + 조그감도 |
+| **Phase 8** | P2 차별화 | AI보조 + 비전 + 템플릿 + QR연결 |
 
 ---
 
@@ -163,3 +308,4 @@
 
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
+- [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 82개, 잠금 규칙 A~L)
