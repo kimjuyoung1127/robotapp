@@ -387,6 +387,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b152059de8e6f4c43adcd56dfd387165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  previewMode: 0
+  tabletBreakpoint: 1366
 --- !u!1 &1825468277
 GameObject:
   m_ObjectHideFlags: 0
