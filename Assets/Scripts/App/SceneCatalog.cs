@@ -19,6 +19,7 @@ namespace KineTutor3D.App
             new(SceneId.Sandbox, "Sandbox", "Sandbox", true),
             new(SceneId.RobotControl, "RobotControl", "Robot Control", true),
             new(SceneId.RobotControlV2, "RobotControlV2", "로봇 제어 V2", true),
+            new(SceneId.RobotControlV3, "RobotControlV3", "로봇 제어 V3", false),
         };
 
         public static IReadOnlyList<SceneEntry> GetNavigableEntries()

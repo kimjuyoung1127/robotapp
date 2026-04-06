@@ -1,0 +1,12 @@
+/* Pendant V3 - Tablet override placeholder for Phase 1B */
+.rc-root--tablet .rc-nav-rail {
+    display: none;
+}
+
+.rc-root--tablet .rc-context-panel {
+    display: none;
+}
+
+.rc-root--tablet .rc-main-split {
+    flex-direction: column;
+}

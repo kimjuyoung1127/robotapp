@@ -233,7 +233,7 @@
 | 항목 | 값 |
 |------|-----|
 | 씬 | `RobotControlV3.unity` — 온보딩에서 버튼 이동 (SceneCatalog 등록) |
-| 브랜치 | `main` |
+| 브랜치 | `codex/robotcontrol-v3-toolkit` |
 | Scale Mode | `Scale With Screen Size`, Ref 1920x1080, Match 0.5 |
 | 기본 속도 | 30% |
 | DryRun 기본 | Live 첫 연결 시 ON |
@@ -319,8 +319,8 @@
 | Phase | 범위 | 산출물 |
 |-------|------|--------|
 | **Pre** | 폴더 구조 + CLAUDE.md 인덱스 | 폴더별 CLAUDE.md, 루트 링크 추가 |
-| **Phase 0A** | 인프라 자산 | PanelSettings + TextSettings + SpriteAtlas + UIDocument |
-| **Phase 0B** | 루트 셸 뼈대 | `pendant-v3.uxml` + `pendant-v3.uss` 5영역 |
+| **Phase 0A** | 인프라 자산 | PanelSettings + TextSettings + SpriteAtlas + UIDocument + bootstrap 호출 경로 |
+| **Phase 0B** | 루트 셸 뼈대 | `pendant-v3.uxml` + `pendant-v3.uss` 5영역 + 최소 `RobotControlV3.unity` |
 | **Phase 0C** | 입력/포커스 계약 | EventSystem + InputModule + 기본 포커스 규칙 |
 | **Phase 1A** | Desktop 셸 | TopStatusBar + NavRail + BottomBar + ContextPanel |
 | **Phase 1B** | Tablet 셸 | BottomSheet + tablet 전환 + ★시안 리뷰 게이트 |
@@ -376,4 +376,4 @@
 - [AGENT-CONTRACT.md](./AGENT-CONTRACT.md) — V3 작업용 에이전트 계약 문서
 - [static-checks.md](./static-checks.md) — V3 정적 체크 기준
 - [unityctl-recipes.md](./unityctl-recipes.md) — V3 구현/검증용 `unityctl` 명령 레시피
-- [verify-v3.json](./verify-v3.json) — `workflow verify`용 기본 검증 번들
+- [verify-v3.json](./verify-v3.json) — `workflow verify`용 기본 검증 번들 (3C 종료 단독 대체 아님)

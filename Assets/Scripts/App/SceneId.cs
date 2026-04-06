@@ -13,5 +13,6 @@ namespace KineTutor3D.App
         RobotControl = 4,
         MathReadiness = 5,
         RobotControlV2 = 6,
+        RobotControlV3 = 7,
     }
 }

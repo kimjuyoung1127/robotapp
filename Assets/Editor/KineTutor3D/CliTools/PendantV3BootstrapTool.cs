@@ -1,5 +1,6 @@
 // Folder: Editor/CliTools - Pendant V3 Phase 0A asset bootstrap
 using Newtonsoft.Json.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEditor.U2D;
 using UnityCliConnector;
@@ -15,6 +16,7 @@ namespace KineTutor3D.Editor.CliTools
     [UnityCliTool(Description = "Ensure Pendant V3 Phase 0A UI Toolkit assets")]
     public static class PendantV3BootstrapTool
     {
+        private const string MenuPath = "KineTutor3D/RobotControl/Ensure V3 Phase 0A Assets";
         private const string RootFolder = "Assets/UI/PendantV3";
         private const string PanelSettingsFolder = RootFolder + "/PanelSettings";
         private const string IconsFolder = RootFolder + "/icons";
@@ -29,6 +31,13 @@ namespace KineTutor3D.Editor.CliTools
             {
                 ["message"] = EnsurePhase0Assets()
             };
+        }
+
+        [MenuItem(MenuPath, priority = 171)]
+        public static void EnsurePhase0AssetsMenu()
+        {
+            var message = EnsurePhase0Assets();
+            Debug.Log("[PendantV3BootstrapTool] " + message);
         }
 
         public static string EnsurePhase0Assets()
@@ -77,15 +86,15 @@ namespace KineTutor3D.Editor.CliTools
             return asset;
         }
 
-        private static TextSettings LoadOrCreateTextSettings()
+        private static TMP_Settings LoadOrCreateTextSettings()
         {
-            var asset = AssetDatabase.LoadAssetAtPath<TextSettings>(TextSettingsPath);
+            var asset = AssetDatabase.LoadAssetAtPath<TMP_Settings>(TextSettingsPath);
             if (asset != null)
             {
                 return asset;
             }
 
-            asset = ScriptableObject.CreateInstance<TextSettings>();
+            asset = ScriptableObject.CreateInstance<TMP_Settings>();
             AssetDatabase.CreateAsset(asset, TextSettingsPath);
             return asset;
         }
@@ -103,7 +112,7 @@ namespace KineTutor3D.Editor.CliTools
             return asset;
         }
 
-        private static void ApplyLockedPanelSettings(PanelSettings panelSettings, TextSettings textSettings)
+        private static void ApplyLockedPanelSettings(PanelSettings panelSettings, TMP_Settings textSettings)
         {
             var serialized = new SerializedObject(panelSettings);
             serialized.FindProperty("m_ScaleMode").intValue = 1;
@@ -116,10 +125,14 @@ namespace KineTutor3D.Editor.CliTools
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ApplyLockedTextSettings(TextSettings textSettings)
+        private static void ApplyLockedTextSettings(TMP_Settings textSettings)
         {
             var serialized = new SerializedObject(textSettings);
-            serialized.FindProperty("m_DisplayWarnings").boolValue = true;
+            var displayWarnings = serialized.FindProperty("m_DisplayWarnings");
+            if (displayWarnings != null)
+            {
+                displayWarnings.boolValue = true;
+            }
 
             var lineBreaking = serialized.FindProperty("m_UnicodeLineBreakingRules");
             if (lineBreaking != null)

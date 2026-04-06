@@ -37,6 +37,7 @@ V3를 구현하거나 수정하는 에이전트는 아래 순서로 읽고 시�
 - 서로 다른 실행 단위를 한 커밋에 섞지 않는다.
 - `Phase 4` 채택 결정 전에는 V3를 주 경로로 승격하지 않는다.
 - V3 작업 중 기존 V2/uGUI 경로를 임의로 폐기하지 않는다.
+- 실행 단위는 `implementation-plan.md`의 `Phase Loop Governance` 순서대로 닫는다.
 
 ---
 
@@ -44,7 +45,7 @@ V3를 구현하거나 수정하는 에이전트는 아래 순서로 읽고 시�
 
 - V3 관련 수정 후에는 [unityctl-recipes.md](./unityctl-recipes.md)의 해당 레시피를 반드시 실행한다.
 - 세션 시작은 항상 `Session Bootstrap`을 먼저 수행한다.
-- `3C` 완료를 주장하려면 [verify-v3.json](./verify-v3.json) 또는 동등한 수동 루프를 통과해야 한다.
+- `3C` 완료를 주장하려면 [verify-v3.json](./verify-v3.json) 기본 번들에 더해 `Recipe 3A-3C`, `Recipe 3D Viewport Verification`, desktop/tablet screenshot loop를 함께 통과해야 한다.
 - `Phase 4` 채택 평가 전에는 최소 `Preflight Recipe`를 통과해야 한다.
 
 ---
@@ -57,6 +58,7 @@ V3를 구현하거나 수정하는 에이전트는 아래 순서로 읽고 시�
 2. 해당 `unityctl` 레시피 실행 결과를 확인함
 3. 새 콘솔 치명적 에러가 없음
 4. 문서 변경이 발생했다면 같은 턴에 `docs/daily/MM-DD/` 로그를 남김
+5. parity review에서 문서/씬/빌드/검증 경로가 어긋나지 않음을 확인함
 
 ---
 

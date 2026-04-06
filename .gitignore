@@ -46,3 +46,6 @@ Thumbs.db
 # Docs automation locks
 docs/.docs-nightly.lock
 docs/status/.code-doc-align.lock
+
+# Generated validation artifacts
+Artifacts/

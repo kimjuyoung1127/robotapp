@@ -23,7 +23,7 @@
 
 ## Context
 V2(uGUI) 셸이 플레이스홀더 상태로 존재하는 `codex/robotcontrol-shell` 브랜치에서,
-UI Toolkit 기반 V3를 `main` 브랜치에 별도 구현한다.
+UI Toolkit 기반 V3를 `codex/robotcontrol-v3-toolkit` 브랜치에 별도 구현한다.
 초기 실행은 `Phase 0A~3C`의 잘게 쪼갠 단위로 진행하고, 그 결과를 바탕으로 Phase 4에서 채택 결정 → Phase 5~8에서 전체 기능 완성으로 이어간다.
 
 SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
@@ -143,8 +143,8 @@ SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
 
 | 실행 단위 | 목표 | 완료 기준 |
 |------|------|------|
-| `0A` | UI Toolkit 인프라 자산 고정 | PanelSettings/TextSettings/SpriteAtlas/UIDocument 생성 |
-| `0B` | 루트 셸 뼈대 작성 | `pendant-v3.uxml` + `pendant-v3.uss`로 5영역 구조 표시 |
+| `0A` | UI Toolkit 인프라 자산 고정 | PanelSettings/TextSettings/SpriteAtlas/UIDocument/호출 surface 생성 |
+| `0B` | 루트 셸 뼈대 작성 | `pendant-v3.uxml` + `pendant-v3.uss` + 최소 `RobotControlV3.unity` 확보 |
 | `0C` | 입력/포커스 계약 반영 | EventSystem/InputModule/기본 포커스 순서 점검 |
 | `1A` | Desktop 셸 고정 | TopStatusBar/NavRail/BottomBar/ContextPanel desktop 배치 |
 | `1B` | Tablet 셸 고정 | BottomSheet + tablet class 전환 + 시안 리뷰 |
@@ -161,6 +161,74 @@ SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
 | `3A` | Binder/Scene bootstrap | `PendantV3Binder` + `PendantV3SceneCoordinator` 완료 |
 | `3B` | 로컬 서비스 | Undo/Redo, LocalSettings, AutoReconnect 완료 |
 | `3C` | Mock 종단 검증 | Mock 연결부터 tablet 전환까지 e2e smoke 완료 |
+
+---
+
+## Phase Loop Governance
+
+V3는 각 실행 단위를 `SSOT 정합성 루프`로 닫는다.
+원칙은 `한 실행 단위 = 한 문서 기준선 = 한 검증 루프 = 한 커밋 후보`다.
+
+### 루프 순서
+
+1. **실행 단위 선언**
+   - 현재 작업이 `0A`, `0B`, `0C`, `1A`처럼 어느 실행 단위인지 먼저 고정한다.
+   - 서로 다른 실행 단위를 한 턴/한 커밋에 섞지 않는다.
+
+2. **SSOT 입력 잠금**
+   - 공통 입력: `README.md`, `AGENT-CONTRACT.md`, 이 문서, `unityctl-recipes.md`, `static-checks.md`
+   - 기능 입력: 현재 실행 단위와 직접 연결된 `feature-*.md`
+
+3. **범위 안 구현**
+   - 현재 실행 단위 종료 조건을 만족시키는 코드/자산만 추가한다.
+   - 다음 실행 단위 요구사항을 앞당겨 넣지 않는다.
+
+4. **정적 게이트**
+   - `pwsh -NoLogo -NoProfile -File ./docs/ref/product/pendant-v3/check-v3-static.ps1`
+   - Blocker가 하나라도 나오면 완료 주장 금지
+
+5. **컴파일 게이트**
+   - `unityctl check --type compile`
+   - compile green이 아니면 다음 증빙 단계로 넘어가지 않는다.
+
+6. **증빙 게이트**
+   - 실행 단위에 맞는 `unityctl` 레시피를 실행한다.
+   - 산출물은 가능하면 `Artifacts/V3/` 기준으로 모은다.
+
+7. **SSOT parity review**
+   - 문서 산출물이 실제 파일/씬/엔트리로 존재하는지 확인
+   - SceneCatalog / BuildSettings / validation recipe가 서로 맞는지 확인
+   - 콘솔 신규 치명 에러가 없는지 확인
+   - 다음 실행 단위 전제가 실제로 준비됐는지 확인
+
+8. **문서/로그 동기화**
+   - 문서 변경이 있었다면 같은 턴에 `docs/daily/MM-DD/` 로그를 남긴다.
+   - 로그만 남기고 멈추지 말고, 같은 턴에 최소 다음 실행 단위 1개를 착수한다.
+
+9. **커밋 후보 정리**
+   - 현재 실행 단위 범위만 묶는다.
+   - unrelated 변경은 섞지 않는다.
+
+### 실행 단위별 parity checklist
+
+| 실행 단위 | parity 기준 |
+|------|------|
+| `0A` | PanelSettings/TextSettings/SpriteAtlas/UIDocument/호출 surface 존재 |
+| `0B` | `pendant-v3.uxml`/`.uss` + `RobotControlV3.unity` + 최소 hierarchy 존재 |
+| `0C` | `EventSystem` 1개 + `InputSystemUIInputModule` + 기본 포커스 순서 + non-viewport 포인터 차단 + popup focus trap 기본형 |
+| `1A` | Desktop 셸 구조와 치수가 `shell-layout.md`와 일치 |
+| `1B` | Tablet 전환 구조와 시안 리뷰 증빙 확보 |
+| `1C` | `viewDataKey` / `LocalSettingsStore` 경계가 문서와 일치 |
+| `2A~2D` | 각 패널/팝업 산출물이 feature 문서와 일치 |
+| `3A~3C` | Binder/service/mock flow가 문서 종료 조건과 검증 번들을 모두 충족 |
+
+### 완료 보고 형식
+
+각 실행 단위 종료 보고는 아래 3줄을 최소로 포함한다.
+
+1. 문서 산출물과 실제 산출물이 어디까지 일치하는지
+2. 어떤 검증 레시피를 통과했는지
+3. 남은 불일치가 무엇인지
 
 ---
 
@@ -194,11 +262,13 @@ UI Toolkit 런타임 기반을 프로젝트에 확립한다.
 - `PendantV3TextSettings.asset`
 - `PendantV3.spriteatlas`
 - `PendantV3Document.cs`
+- `PendantV3BootstrapTool` 호출 경로 (`unityctl exec` + editor menu)
 
 ### `0B` 루트 셸 뼈대
 - `pendant-v3.uxml`
 - `pendant-v3.uss`
 - TopBar / NavRail / Main / Context / Bottom 5영역만 먼저 고정
+- 최소 `RobotControlV3.unity` 씬 생성 + `UIDocument` 연결
 
 ### `0C` 입력 / 포커스 계약
 - 단일 `EventSystem`
@@ -215,6 +285,7 @@ UI Toolkit 런타임 기반을 프로젝트에 확립한다.
 | `Assets/UI/PendantV3/PanelSettings/PendantV3TextSettings.asset` | UITK Text Settings — Noto Sans KR + fallback + line breaking |
 | `Assets/UI/PendantV3/icons/PendantV3.spriteatlas` | 정적 아이콘 Sprite Atlas |
 | `Assets/Scripts/UI/RobotControlV3/PendantV3Document.cs` | UIDocument MonoBehaviour — 씬 부트스트랩 |
+| `Assets/Scenes/RobotControlV3.unity` | `0B~1C` 레이아웃 검증용 최소 V3 씬 |
 | `Assets/UI/PendantV3/icons/` | 아이콘 에셋 폴더 + 기본 아이콘 세트 (U3) |
 
 ### SSOT 매핑
@@ -469,7 +540,7 @@ ViewState 바인딩 + Mock 전체 플로우 + Undo/Redo + 로컬 저장 + 자동
 ### `3A` Binder / Scene bootstrap
 - `PendantV3Binder.cs`
 - `PendantV3SceneCoordinator.cs`
-- `RobotControlV3.unity`
+- 기존 `RobotControlV3.unity`에 composition root 추가
 
 ### `3B` 로컬 서비스
 - `UndoRedoService.cs`
@@ -509,7 +580,7 @@ ViewState 바인딩 + Mock 전체 플로우 + Undo/Redo + 로컬 저장 + 자동
 |------|------|
 | `PendantV3Binder.cs` | ViewState ↔ VisualElement 일괄 바인딩 |
 | `PendantV3SceneCoordinator.cs` | V3 씬 부트스트랩 (V2 패턴 재현) |
-| `RobotControlV3.unity` | V3 전용 씬 |
+| `RobotControlV3.unity` | Phase 0B에 만든 최소 씬을 V3 composition root로 승격 |
 | `UndoRedoService.cs` | **Undo/Redo 스택** (U7) — 이동 명령 히스토리 50개 |
 | `LocalSettingsStore.cs` | **로컬 저장** (U6) — 마지막 속도/좌표계/증분/탭 선택 |
 | `AutoReconnectService.cs` | **자동 재연결** (A2) — 3초 간격 재시도 + 카운트다운 |
@@ -1007,7 +1078,7 @@ unityctl play start → console get-entries → screenshot → play stop
 | # | 항목 | 확정값 | 근거 |
 |---|------|--------|------|
 | 1 | 씬 이름 | `RobotControlV3.unity` | 주인님 확정 |
-| 2 | 브랜치 | `main` (메인 브랜치 사용) | 주인님 확정. 별도 브랜치 안 씀 |
+| 2 | 브랜치 | `codex/robotcontrol-v3-toolkit` | 현재 구현 브랜치 고정 |
 | 3 | 씬 진입 | 온보딩에서 버튼으로 이동 (다른 페이지와 동일) | 주인님 확정. SceneCatalog에 등록 |
 | 4 | PanelSettings Scale Mode | `Scale With Screen Size`, Ref 1920x1080, Match 0.5 | 패드 반응형 지원. 태블릿+데스크탑 양쪽 최적 |
 | 5 | 기본 속도 Preset | 30% | 주인님 확정 |
@@ -1107,7 +1178,7 @@ unityctl play start → console get-entries → screenshot → play stop
 
 ### 커밋 규칙
 - 각 Phase 범위만 포함, unrelated 변경 금지
-- 브랜치: `main`
+- 브랜치: `codex/robotcontrol-v3-toolkit`
 
 ### 페이즈 리뷰 규칙
 - **매 Phase 종료 시 주인님 확인 후 다음 Phase 진행**

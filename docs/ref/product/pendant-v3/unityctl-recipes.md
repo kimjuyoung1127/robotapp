@@ -45,14 +45,17 @@ $project = (Resolve-Path '.').Path
 
 ```powershell
 & $unityctl check --project $project --type compile --json
+& $unityctl exec --project $project --code "KineTutor3D.Editor.CliTools.PendantV3BootstrapTool.EnsurePhase0Assets()" --json
 & $unityctl project validate --project $project --json
 & $unityctl console get-entries --project $project --json
+pwsh -NoLogo -NoProfile -File ./docs/ref/product/pendant-v3/check-v3-static.ps1
 ```
 
 ### Expected
 - compile green
 - project validate가 치명적 오류 없이 반환
 - TextSettings, PanelSettings, SpriteAtlas 생성 후 콘솔 신규 에러 없음
+- bootstrap surface가 `unityctl exec`와 editor menu 둘 다로 고정됨
 
 ---
 
@@ -63,6 +66,7 @@ $artifacts = Join-Path 'Artifacts' 'V3'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
 & $unityctl check --project $project --type compile --json
+& $unityctl exec --project $project --code "KineTutor3D.EditorTools.PendantV3SceneBuilder.AuthorScene()" --json
 & $unityctl scene open --project $project --name RobotControlV3 --json
 & $unityctl scene hierarchy --project $project --json
 & $unityctl scene snapshot --project $project --json
@@ -76,6 +80,7 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
 ### Expected
 - 5영역 셸 계층 확인
+- `RobotControlV3.unity`가 없어서 레시피가 막히는 상태가 아님
 - Desktop/Tablet 전환 전후 screenshot 확보
 - Scene snapshot 기준 shell 이름과 구조가 문서와 일치
 
@@ -188,6 +193,7 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 ### Recommended Use
 - `3C` Mock 종단 검증 번들
 - `Phase 4` 비교 평가 증빙 수집
+- 기본 번들은 빠른 보수 게이트다. `3C` 종료 조건은 이 번들만으로 닫지 않는다.
 
 ### Suggested Bundle Contents
 - compile
@@ -200,3 +206,4 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 ### Default Bundle
 - [verify-v3.json](./verify-v3.json) 를 기본 검증 번들로 사용한다.
 - 이 번들은 `projectValidate`, `capture`, `consoleWatch`, `playSmoke`를 포함하는 보수적 기본 세트다.
+- `3C` 종료 주장은 이 번들 + `Recipe 3A-3C` + `Recipe 3D Viewport Verification` + desktop/tablet evidence를 모두 요구한다.
