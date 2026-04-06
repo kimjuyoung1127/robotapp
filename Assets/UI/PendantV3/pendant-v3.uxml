@@ -3,19 +3,41 @@
     <ui:Style src="pendant-v3.uss" />
     <ui:VisualElement name="PendantV3Root" class="rc-root">
         <ui:VisualElement name="TopStatusBar" class="rc-top-status-bar">
-            <ui:Label name="RobotNameLabel" text="Teaching Pendant V3" class="rc-title" />
-            <ui:Label name="TopStatusSummary" text="0B minimum shell" class="rc-meta" />
-            <ui:Button name="BtnPopupProbe" text="Focus Probe" class="rc-probe-button" />
+            <ui:VisualElement name="InfoSection" class="rc-top-info">
+                <ui:Label name="RobotNameLabel" text="FR5 Pendant V3" class="rc-title" />
+                <ui:VisualElement name="PrimaryStatusRow" class="rc-chip-row">
+                    <ui:Label name="ConnectionIndicator" text="연결: 미연결" class="rc-status-chip" />
+                    <ui:Label name="ModeLabel" text="모드: 수동" class="rc-status-chip" />
+                    <ui:Label name="SpeedLabel" text="속도: 30%" class="rc-status-chip" />
+                </ui:VisualElement>
+                <ui:VisualElement name="SecondaryStatusRow" class="rc-chip-row">
+                    <ui:Label name="CoordSystemLabel" text="좌표계: Base" class="rc-status-chip rc-status-chip--muted" />
+                    <ui:Label name="ToolLabel" text="Tool: 01" class="rc-status-chip rc-status-chip--muted" />
+                    <ui:Label name="UserLabel" text="User: 00" class="rc-status-chip rc-status-chip--muted" />
+                    <ui:Label name="SafetyLabel" text="안전: 정상" class="rc-status-chip rc-status-chip--success" />
+                    <ui:Label name="FaultLabel" text="Fault: 없음" class="rc-status-chip rc-status-chip--muted" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="ControlSection" class="rc-top-controls">
+                <ui:Button name="BtnServoEnable" text="서보ON" class="rc-top-button" />
+                <ui:Button name="BtnRun" text="시작" class="rc-top-button" />
+                <ui:Button name="BtnStop" text="정지" class="rc-top-button rc-top-button--danger" />
+                <ui:Button name="BtnPause" text="일시정지" class="rc-top-button" />
+                <ui:Button name="BtnSync" text="동기화" class="rc-top-button" />
+                <ui:Button name="BtnResetError" text="오류초기화" class="rc-top-button" />
+                <ui:Button name="BtnPopupProbe" text="Focus Probe" class="rc-probe-button" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="BodyRow" class="rc-body-row">
             <ui:VisualElement name="NavRail" class="rc-nav-rail">
-                <ui:Button name="NavHome" text="Home" class="rc-nav-item" />
-                <ui:Button name="NavMotion" text="조작" class="rc-nav-item" />
-                <ui:Button name="NavPoints" text="포인트" class="rc-nav-item" />
-                <ui:Button name="NavIo" text="I/O" class="rc-nav-item" />
-                <ui:Button name="NavStatus" text="상태" class="rc-nav-item" />
-                <ui:Button name="NavHelp" text="도움" class="rc-nav-item" />
+                <ui:Button name="NavHome" text="🏠&#10;Home" class="rc-nav-item" />
+                <ui:Button name="NavMotion" text="🔧&#10;조작" class="rc-nav-item rc-nav-item--active" />
+                <ui:Button name="NavPoints" text="📍&#10;포인트" class="rc-nav-item" />
+                <ui:Button name="NavIo" text="⚡&#10;I/O" class="rc-nav-item" />
+                <ui:Button name="NavStatus" text="📊&#10;상태" class="rc-nav-item" />
+                <ui:Button name="NavHelp" text="❓&#10;도움" class="rc-nav-item" />
             </ui:VisualElement>
 
             <ui:VisualElement name="MainContent" class="rc-main-content">
@@ -29,7 +51,7 @@
                 <ui:VisualElement name="MainSplit" class="rc-main-split">
                     <ui:VisualElement name="WorkPanel" class="rc-work-panel">
                         <ui:Label name="WorkPanelTitle" text="WorkPanel" class="rc-panel-title" />
-                        <ui:Label name="WorkPanelSummary" text="문서에 잠긴 45% 작업 패널 자리." class="rc-panel-copy" />
+                        <ui:Label name="WorkPanelSummary" text="문서에 잠긴 45% 작업 패널 자리. 1A에서는 데스크탑 셸 치수와 구획만 고정한다." class="rc-panel-copy" />
                     </ui:VisualElement>
 
                     <ui:VisualElement name="ViewportHost" class="rc-viewport-host">
@@ -42,19 +64,22 @@
             <ui:VisualElement name="ContextPanel" class="rc-context-panel">
                 <ui:VisualElement name="CoordStrip" class="rc-context-card">
                     <ui:Label text="CoordStrip" class="rc-panel-title" />
-                    <ui:Label text="Joint/TCP 동시 표기 자리" class="rc-panel-copy" />
+                    <ui:Label text="J1 0.0°   J2 -32.0°   J3 84.0°" class="rc-panel-copy" />
+                    <ui:Label text="J4 0.0°   J5 90.0°   J6 0.0°" class="rc-panel-copy" />
+                    <ui:Label text="TCP X -497.0 / Y -130.0 / Z 477.0" class="rc-panel-copy" />
                 </ui:VisualElement>
                 <ui:VisualElement name="StatusCard" class="rc-context-card">
                     <ui:Label text="StatusCard" class="rc-panel-title" />
-                    <ui:Label text="상태 요약 자리" class="rc-panel-copy" />
+                    <ui:Label text="상태: 정지" class="rc-panel-copy" />
+                    <ui:Label text="모드: 수동 / Safety: 정상 / Fault: 없음" class="rc-panel-copy" />
                 </ui:VisualElement>
                 <ui:VisualElement name="ActionHint" class="rc-context-card">
                     <ui:Label text="ActionHint" class="rc-panel-title" />
-                    <ui:Label text="Primary Next Action 자리" class="rc-panel-copy" />
+                    <ui:Label text="다음 행동 추천: Sync를 먼저 실행하세요." class="rc-panel-copy" />
                 </ui:VisualElement>
                 <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex">
                     <ui:Label text="WhyItMoved" class="rc-panel-title" />
-                    <ui:Label text="이동 이유 설명 자리" class="rc-panel-copy" />
+                    <ui:Label text="마지막 이동 설명이 여기에 들어온다. 1A에서는 자리와 높이만 고정한다." class="rc-panel-copy" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -65,8 +90,10 @@
             <ui:Button name="BtnDryRun" text="DryRun" class="rc-bottom-button" />
             <ui:Button name="BtnUndo" text="Undo" class="rc-bottom-button" />
             <ui:Button name="BtnRedo" text="Redo" class="rc-bottom-button" />
-            <ui:Button name="BtnStep" text="Step" class="rc-bottom-button" />
+            <ui:Button name="BtnStepBack" text="Step◀" class="rc-bottom-button" />
+            <ui:Button name="BtnStepForward" text="Step▶" class="rc-bottom-button" />
             <ui:Slider name="SpeedSlider" low-value="1" high-value="100" value="30" class="rc-speed-slider" />
+            <ui:Label name="SpeedValueLabel" text="30%" class="rc-speed-value" />
         </ui:VisualElement>
 
         <ui:VisualElement name="PopupLayer" class="rc-popup-layer" picking-mode="Ignore">

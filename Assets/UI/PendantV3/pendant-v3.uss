@@ -39,14 +39,61 @@
     background-color: var(--rc-card-alt);
 }
 
+.rc-top-info {
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.rc-top-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: 12px;
+}
+
 .rc-probe-button {
     min-height: 30px;
     min-width: 110px;
 }
 
+.rc-top-button {
+    min-height: 32px;
+    min-width: 72px;
+    margin-left: 6px;
+}
+
+.rc-top-button--danger {
+    background-color: rgba(255, 70, 70, 0.18);
+}
+
 .rc-title {
     font-size: 20px;
     unity-font-style: bold;
+}
+
+.rc-chip-row {
+    flex-direction: row;
+    margin-top: 4px;
+}
+
+.rc-status-chip {
+    margin-right: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 6px;
+    font-size: 12px;
+    background-color: var(--rc-card);
+}
+
+.rc-status-chip--muted {
+    color: var(--rc-muted-text);
+}
+
+.rc-status-chip--success {
+    color: var(--rc-success);
 }
 
 .rc-meta {
@@ -72,12 +119,18 @@
 }
 
 .rc-nav-item {
-    min-height: 44px;
+    min-height: 56px;
     margin-left: 4px;
     margin-right: 4px;
     margin-top: 4px;
     margin-bottom: 4px;
     border-radius: 6px;
+    unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.rc-nav-item--active {
+    background-color: rgba(80, 140, 255, 0.22);
 }
 
 .rc-main-content {
@@ -175,6 +228,13 @@
 .rc-speed-slider {
     flex-grow: 1;
     margin-left: 12px;
+}
+
+.rc-speed-value {
+    min-width: 36px;
+    margin-left: 8px;
+    font-size: 14px;
+    color: var(--rc-muted-text);
 }
 
 .rc-popup-layer {

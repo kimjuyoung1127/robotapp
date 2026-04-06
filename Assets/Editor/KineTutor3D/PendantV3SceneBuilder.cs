@@ -196,6 +196,18 @@ namespace KineTutor3D.EditorTools
                 inputContract = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3InputContract>();
             }
 
+            var layoutController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.PendantV3LayoutController>();
+            if (layoutController == null)
+            {
+                layoutController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3LayoutController>();
+            }
+
+            var navRailController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.NavRailController>();
+            if (navRailController == null)
+            {
+                navRailController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.NavRailController>();
+            }
+
             var panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(RootVisualTreePath);
             if (panelSettings == null)
@@ -212,6 +224,8 @@ namespace KineTutor3D.EditorTools
             uiDocument.visualTreeAsset = visualTree;
             documentBridge.enabled = true;
             inputContract.enabled = true;
+            layoutController.enabled = true;
+            navRailController.enabled = true;
         }
 
         private static void EnsureBuildSettingsScene()
