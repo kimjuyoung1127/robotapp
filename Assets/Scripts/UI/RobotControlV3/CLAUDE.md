@@ -18,4 +18,5 @@ Pendant V3 UI Toolkit controller 루트.
 - `PendantV3Document.cs` — 최소 UIDocument bootstrap
 - `PendantV3InputContract.cs` — 기본 포커스 순서와 non-viewport 입력 차단
 - `PendantV3LayoutController.cs` — desktop/tablet 루트 클래스 적용
+- `PendantV3ShellStateController.cs` — 1C 로컬 탭/레이아웃 상태 저장
 - `NavRailController.cs` — nav 선택 상태 최소 제어
