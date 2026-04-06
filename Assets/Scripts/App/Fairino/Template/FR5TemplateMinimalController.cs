@@ -451,7 +451,7 @@ namespace KineTutor3D.App
                 return;
             }
 
-            var components = controlRoot.GetComponents<MonoBehaviour>();
+            var components = controlRoot.GetComponentsInChildren<MonoBehaviour>(true);
             for (var i = 0; i < components.Length; i++)
             {
                 var component = components[i];

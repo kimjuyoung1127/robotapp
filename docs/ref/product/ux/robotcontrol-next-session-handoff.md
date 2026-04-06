@@ -22,12 +22,16 @@
 - `WorkTabBar`는 old 한 줄 overflow 구조가 아니라 3열 grid 구조로 정규화했다.
 - `TopStatusBar`, `WorkTabBar`, `EasyMotionPanel`은 compact 기준을 추가해 `16:9`와 `4:3`에서 모두 버티도록 조정했다.
 - `TcpJogPanel`, `JointJogPanel`, `PointMovePanel`, `TeachingPanel`은 authored child 구조까지 메모리 기준으로 새 V2 구조가 올라오도록 정리했다.
+- `TcpJogPanel`, `JointJogPanel`, `PointMovePanel`, `TeachingPanel`의 내부 섹션 rect는 이제 scene-authored 값을 우선한다. 패널 스크립트는 authored 구조가 있으면 bind-only로 동작하고, authoring bridge는 더 이상 네 패널 내부를 freeze 값으로 다시 덮지 않는다.
+- `RobotControlShellBinder`는 이미 존재하는 authored 부모 rect를 다시 stretch/anchor 하지 않고, 새로 만든 루트에만 기본값을 준다.
 - `MoveConfirmDialog`, `WarningDialog`, `RecoveryDialog`, `TabletWorkSheet`, `TabletStatusSheet`, `TabletModuleSheet`도 authored shell 하위 구조로 추가했다.
 
 ## SSOT
 - [fairino-simmachine-ia-map.md](./fairino-simmachine-ia-map.md)
 - [robotcontrol-scene-hierarchy.md](./robotcontrol-scene-hierarchy.md)
 - [robotcontrol-implementation-bridge.md](./robotcontrol-implementation-bridge.md)
+- [robotcontrol-v2-naming-ssot.md](./robotcontrol-v2-naming-ssot.md)
+- [robotcontrol-scene-authoring-contract.md](./robotcontrol-scene-authoring-contract.md)
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md)
 - [robotcontrol-soft-teaching-pad.md](./robotcontrol-soft-teaching-pad.md)
 
@@ -141,11 +145,14 @@
   - `point=[Header, TargetCard, PoseGrid, ActionRow]`
   - `teaching=[Header, QuickActionRow, PointListCard, TpdCard, SummaryCard]`
 - `scene snapshot` 기준으로 `BottomSheets`와 popup 3종의 authored child 계층도 확인했다.
+- `RobotControlV2.unity`에 네 패널의 2차 spacing polish rect 조정값을 저장했고, 이후 패딩/간격 조정은 scene에서 직접 수행하는 것을 기준선으로 본다.
+- `RobotControlShellBinderTests` EditMode 회귀 테스트를 추가해 authored `LeftRail -> WorkPanelHost -> JointJogPanel` rect가 binder 실행 뒤에도 유지되는 것을 검증했다.
 
 ## Next Unit
 - `Onboarding -> RobotLibrary -> RobotControlV2` 실제 진입 흐름에서 authored-lock 유지 여부 확인
 - `16:9` / `4:3` GameView 시각 점검
-- `TopStatusBar`, `WorkTabBar`, `TcpJogPanel`, `JointJogPanel`, `PointMovePanel`, `TeachingPanel` 최종 spacing polish
+- `TcpJogPanel`, `JointJogPanel`, `PointMovePanel`, `TeachingPanel` 탭별 3차 micro polish
+- panel section rect를 scene에서 직접 만질 때는 `robotcontrol-scene-authoring-contract.md`를 따른다
 
 ## Assumptions
 - 새 세션은 Plan 없이 바로 구현에 들어간다.

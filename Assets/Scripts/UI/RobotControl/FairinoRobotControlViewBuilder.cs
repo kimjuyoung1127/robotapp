@@ -182,6 +182,40 @@ namespace KineTutor3D.UI
             out Toggle gizmoToggle,
             out Button clearTrailButton)
         {
+            EnsureLayout(
+                canvas,
+                fallbackFont,
+                null,
+                out connectionPanel,
+                out jointControlPanel,
+                out statePanel,
+                out tcpPanel,
+                out diagnosticsDrawer,
+                out whyItMovedLabel,
+                out moveConfirmDialog,
+                out diagnosticsButton,
+                out gizmoToggle,
+                out clearTrailButton);
+        }
+
+        /// <summary>
+        /// 2탭 바와 전체 패널 레이아웃을 생성합니다.
+        /// </summary>
+        public static void EnsureLayout(
+            Canvas canvas,
+            Font fallbackFont,
+            string topBarModeText,
+            out FairinoConnectionPanel connectionPanel,
+            out FairinoJointControlPanel jointControlPanel,
+            out FairinoStatePanel statePanel,
+            out FairinoTcpControlPanel tcpPanel,
+            out RobotControlDiagnosticsDrawer diagnosticsDrawer,
+            out FairinoWhyItMovedLabel whyItMovedLabel,
+            out FairinoMoveConfirmDialog moveConfirmDialog,
+            out Button diagnosticsButton,
+            out Toggle gizmoToggle,
+            out Button clearTrailButton)
+        {
             var root = canvas.transform as RectTransform;
             var shellRoot = UiRuntimeStyle.EnsureRectChild(root, "RobotControlShell");
             UiRuntimeStyle.Stretch(shellRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -190,7 +224,7 @@ namespace KineTutor3D.UI
             overlay.raycastTarget = false;
             UiRuntimeStyle.Stretch((RectTransform)overlay.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            BuildTopBar(shellRoot, fallbackFont, out diagnosticsButton, out gizmoToggle, out clearTrailButton);
+            BuildTopBar(shellRoot, fallbackFont, topBarModeText, out diagnosticsButton, out gizmoToggle, out clearTrailButton);
 
             // Connection panel — compact horizontal layout below TopBar
             var connectionRoot = BuildPanelHost(shellRoot, "ConnectionPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(420f, 140f), new Vector2(16f, -78f));
@@ -294,7 +328,21 @@ namespace KineTutor3D.UI
             return panelRoot;
         }
 
-        private static void BuildTopBar(RectTransform parent, Font fallbackFont, out Button diagnosticsButton, out Toggle gizmoToggle, out Button clearTrailButton)
+        public static void ApplyTopBarModeText(Canvas canvas, string topBarModeText)
+        {
+            if (canvas == null || string.IsNullOrWhiteSpace(topBarModeText))
+            {
+                return;
+            }
+
+            var mode = canvas.transform.Find("RobotControlShell/TopBar/ModeText")?.GetComponent<Text>();
+            if (mode != null)
+            {
+                mode.text = topBarModeText;
+            }
+        }
+
+        private static void BuildTopBar(RectTransform parent, Font fallbackFont, string topBarModeText, out Button diagnosticsButton, out Toggle gizmoToggle, out Button clearTrailButton)
         {
             var topBar = UiRuntimeStyle.EnsureRectChild(parent, "TopBar");
             UiRuntimeStyle.Stretch(topBar, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -72f), new Vector2(-16f, -16f));
@@ -308,7 +356,7 @@ namespace KineTutor3D.UI
 
             var mode = UiRuntimeStyle.EnsureText(topBar, "ModeText", fallbackFont, UIDesignTokens.Type.Body, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.Colors.AccentSecondary);
             UiRuntimeStyle.Anchor(mode.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(240f, 20f), new Vector2(260f, 0f));
-            mode.text = "FR5 \u00b7 Mock by default";
+            mode.text = string.IsNullOrWhiteSpace(topBarModeText) ? "Robot · Mock by default" : topBarModeText;
 
             // 기즈모 토글
             gizmoToggle = topBar.Find("GizmoToggle")?.GetComponent<Toggle>();

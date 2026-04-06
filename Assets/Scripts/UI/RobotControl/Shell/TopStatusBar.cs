@@ -67,7 +67,7 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             if (modeText != null)
             {
-                modeText.text = string.IsNullOrWhiteSpace(value) ? "Mock" : value;
+                modeText.text = string.IsNullOrWhiteSpace(value) ? "모의 연결" : value;
             }
         }
 
@@ -93,7 +93,7 @@ namespace KineTutor3D.UI
         {
             EnsurePresentation();
 
-            SetModeText(state.ControllerMode.ToString());
+            SetModeText(FormatModeText(state.ControllerMode));
             SetConnectionStateText(state.IsConnected ? "연결됨" : "연결 안 됨");
             SetSpeedText(state.SpeedPreset);
 
@@ -105,8 +105,8 @@ namespace KineTutor3D.UI
             if (faultText != null)
             {
                 faultText.text = state.PreviewRiskSummary.HasBlockingRisk
-                    ? $"FAULT · {state.FaultSummary}"
-                    : $"SAFE · {state.FaultSummary}";
+                    ? $"주의 · {state.FaultSummary}"
+                    : $"안전 · {state.FaultSummary}";
             }
 
             StyleButton(servoEnableButton, state.IsEnabled ? UIDesignTokens.RobotControlV2.Colors.Success : UIDesignTokens.RobotControlV2.Colors.TopBarSecondary);
@@ -115,6 +115,7 @@ namespace KineTutor3D.UI
             StyleButton(pauseResumeButton, state.IsDragMode ? UIDesignTokens.RobotControlV2.Colors.Warning : UIDesignTokens.RobotControlV2.Colors.TopBarSecondary);
             StyleButton(syncButton, state.IsConnected ? UIDesignTokens.RobotControlV2.Colors.Accent : UIDesignTokens.RobotControlV2.Colors.CardAlt);
             StyleButton(resetErrorButton, state.PreviewRiskSummary.HasBlockingRisk ? UIDesignTokens.RobotControlV2.Colors.Danger : UIDesignTokens.RobotControlV2.Colors.TopBarSecondary);
+            UiRuntimeStyle.ForceTextHierarchySize(transform, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void EnsurePresentation()
@@ -141,10 +142,10 @@ namespace KineTutor3D.UI
             rightCluster.GetComponent<HorizontalLayoutGroup>().childControlWidth = false;
 
             titleText = EnsurePrimaryText(leftCluster, "Title", "로봇 제어 V2", compact ? 132f : 210f);
-            modeText = EnsurePillText(leftCluster, "ModeText", "Mock", UIDesignTokens.RobotControlV2.Colors.Accent, compact ? 72f : 84f);
+            modeText = EnsurePillText(leftCluster, "ModeText", "모의 연결", UIDesignTokens.RobotControlV2.Colors.Accent, compact ? 92f : 108f);
             connectionStateText = EnsurePillText(leftCluster, "ConnectionStateText", "연결 안 됨", UIDesignTokens.RobotControlV2.Colors.CardAlt, compact ? 88f : 112f);
             toolUserText = EnsureSecondaryText(leftCluster, "ToolUserText", "Tool 00 / User 00", compact ? 92f : 132f);
-            faultText = EnsurePillText(leftCluster, "FaultText", "SAFE · None", UIDesignTokens.RobotControlV2.Colors.CardAlt, compact ? 96f : 120f);
+            faultText = EnsurePillText(leftCluster, "FaultText", "안전 · 문제 없음", UIDesignTokens.RobotControlV2.Colors.CardAlt, compact ? 120f : 152f);
 
             servoEnableButton = EnsureButton(rightCluster, "BtnServoEnable", "서보", compact ? 56f : 72f, compact);
             runButton = EnsureButton(rightCluster, "BtnRun", "시작", compact ? 56f : 72f, compact);
@@ -155,7 +156,7 @@ namespace KineTutor3D.UI
             speedText = EnsureSecondaryText(rightCluster, "SpeedText", "속도 30%", compact ? 64f : 88f, TextAnchor.MiddleRight);
 
             titleText.color = UIDesignTokens.RobotControlV2.Colors.TitleText;
-            titleText.fontSize = compact ? 15 : 18;
+            titleText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             modeText.color = UIDesignTokens.RobotControlV2.Colors.Accent;
             connectionStateText.color = UIDesignTokens.RobotControlV2.Colors.MutedText;
             toolUserText.color = UIDesignTokens.RobotControlV2.Colors.MutedText;
@@ -168,6 +169,7 @@ namespace KineTutor3D.UI
             StyleButton(pauseResumeButton, UIDesignTokens.RobotControlV2.Colors.TopBarSecondary);
             StyleButton(syncButton, UIDesignTokens.RobotControlV2.Colors.Accent);
             StyleButton(resetErrorButton, UIDesignTokens.RobotControlV2.Colors.Danger);
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void NormalizeLegacyRootChildren(RectTransform root)
@@ -246,10 +248,7 @@ namespace KineTutor3D.UI
 
             var text = UiRuntimeStyle.EnsureText(root, "Label", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(8f, 4f), new Vector2(-8f, -4f));
-            if (string.IsNullOrWhiteSpace(text.text))
-            {
-                text.text = defaultText;
-            }
+            text.text = defaultText;
 
             return text;
         }
@@ -269,10 +268,10 @@ namespace KineTutor3D.UI
             var labelText = button.transform.Find("Label")?.GetComponent<Text>();
             if (labelText != null)
             {
-                labelText.fontSize = compact ? 10 : 12;
+                labelText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
                 labelText.resizeTextForBestFit = compact;
-                labelText.resizeTextMinSize = 9;
-                labelText.resizeTextMaxSize = compact ? 10 : 12;
+                labelText.resizeTextMinSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+                labelText.resizeTextMaxSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
             return button;
         }
@@ -288,7 +287,7 @@ namespace KineTutor3D.UI
             if (label != null)
             {
                 label.color = UIDesignTokens.RobotControlV2.Colors.TitleText;
-                label.fontSize = 12;
+                label.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
 
             var image = button.GetComponent<Image>();
@@ -304,6 +303,17 @@ namespace KineTutor3D.UI
             colors.selectedColor = colors.highlightedColor;
             colors.disabledColor = new Color(color.r, color.g, color.b, 0.32f);
             button.colors = colors;
+        }
+
+        private static string FormatModeText(ControllerModeViewState mode)
+        {
+            return mode switch
+            {
+                ControllerModeViewState.Mock => "모의 연결",
+                ControllerModeViewState.Manual => "수동",
+                ControllerModeViewState.Auto => "자동",
+                _ => "알 수 없음",
+            };
         }
 
         private static void RemoveDirectChild(RectTransform parent, string childName)

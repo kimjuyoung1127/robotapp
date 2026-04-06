@@ -17,9 +17,9 @@ namespace KineTutor3D.UI
         private const float OpenAnchorX = -409.2f;
         private const float OpenAnchorY = -86.7f;
         private const float ClosedAnchorX = 380f;
-        private const string DrawerTitleText = "Diagnostics";
-        private const string HandInputSectionTitle = "Hand Input";
-        private const string HandInputUnconfiguredText = "Hand Input: 미구성\n현재 씬에 hand input source가 연결되지 않았습니다.";
+        private const string DrawerTitleText = "진단";
+        private const string HandInputSectionTitle = "손 입력";
+        private const string HandInputUnconfiguredText = "손 입력: 미구성\n현재 씬에 hand input source가 연결되지 않았습니다.";
         private const string HandInputSuccessHintText = "Step 1 성공 기준: 여기 상태가 Fresh로 바뀌면 최소 연결 확인입니다.";
         private const string HandInputNoPacketText = "패킷이 아직 들어오지 않았습니다.";
         private const string HandInputStaleText = "최근 샘플은 있었지만 현재는 fresh 상태가 아닙니다.";
@@ -33,6 +33,7 @@ namespace KineTutor3D.UI
         [SerializeField] private Text retryHintLabel;
         [SerializeField] private Text handInputLabel;
         [SerializeField] private Button closeButton;
+        [SerializeField] private Button resetErrorButton;
         [SerializeField] private Font fallbackFont;
 
         private FairinoConnectionService connectionService;
@@ -199,6 +200,9 @@ namespace KineTutor3D.UI
             closeButton ??= UIComponentFactory.CreateSecondaryButton(drawerPanel, "BtnCloseDiagnostics", "닫기", fallbackFont, 72f);
             UiRuntimeStyle.Anchor((RectTransform)closeButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(72f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-16f, -10f));
 
+            resetErrorButton ??= UIComponentFactory.CreateSecondaryButton(drawerPanel, "BtnResetError", "오류 초기화", fallbackFont, 104f);
+            UiRuntimeStyle.Anchor((RectTransform)resetErrorButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(104f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(-96f, -10f));
+
             var sectionY = -48f;
             connectionSummaryLabel = EnsureSection(drawerPanel, "ConnectionSummary", "연결 상태", ref sectionY);
             versionSummaryLabel = EnsureSection(drawerPanel, "VersionSummary", "버전 / 환경", ref sectionY);
@@ -225,6 +229,7 @@ namespace KineTutor3D.UI
             retryHintLabel = drawerPanel?.Find("RetryHintBody")?.GetComponent<Text>();
             handInputLabel = drawerPanel?.Find("LogPlaceholderBody")?.GetComponent<Text>();
             closeButton = drawerPanel?.Find("BtnCloseDiagnostics")?.GetComponent<Button>();
+            resetErrorButton = drawerPanel?.Find("BtnResetError")?.GetComponent<Button>();
 
             if (backdrop == null
                 || drawerPanel == null
@@ -234,7 +239,8 @@ namespace KineTutor3D.UI
                 || errorSummaryLabel == null
                 || retryHintLabel == null
                 || handInputLabel == null
-                || closeButton == null)
+                || closeButton == null
+                || resetErrorButton == null)
             {
                 return false;
             }
@@ -267,7 +273,7 @@ namespace KineTutor3D.UI
             titleText.text = title;
 
             var bodyText = UiRuntimeStyle.EnsureText(parent, $"{key}Body", UiRuntimeStyle.ResolveFont(null), UIDesignTokens.Type.Body, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
-            UiRuntimeStyle.Anchor(bodyText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 40f), new Vector2(16f, currentY - 18f));
+            UiRuntimeStyle.Anchor(bodyText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 50f), new Vector2(16f, currentY - 18f));
 
             currentY -= 64f;
             return bodyText;
@@ -281,6 +287,7 @@ namespace KineTutor3D.UI
             }
 
             closeButton?.onClick.AddListener(Close);
+            resetErrorButton?.onClick.AddListener(OnResetErrorClicked);
             backdrop?.GetComponent<Button>()?.onClick.AddListener(Close);
             listenersBound = true;
         }
@@ -293,6 +300,7 @@ namespace KineTutor3D.UI
             }
 
             closeButton?.onClick.RemoveListener(Close);
+            resetErrorButton?.onClick.RemoveListener(OnResetErrorClicked);
             backdrop?.GetComponent<Button>()?.onClick.RemoveListener(Close);
             listenersBound = false;
         }
@@ -351,7 +359,7 @@ namespace KineTutor3D.UI
 
         private void HandleConnectionStateChanged(bool connected)
         {
-            lastServiceEventText = connected ? "Connect 성공" : "Disconnect 또는 연결 해제";
+            lastServiceEventText = connected ? "연결 성공" : "연결 해제 또는 종료";
             if (connected)
             {
                 FetchVersionInfo();
@@ -366,13 +374,13 @@ namespace KineTutor3D.UI
 
         private void HandleEnableStateChanged(bool enabled)
         {
-            lastServiceEventText = enabled ? "Servo Enable" : "Servo Disable";
+            lastServiceEventText = enabled ? "서보 활성화" : "서보 비활성화";
             RefreshContent();
         }
 
         private void HandleModeChanged(bool isMock)
         {
-            lastServiceEventText = isMock ? "Mock 모드 전환" : "Live 모드 전환";
+            lastServiceEventText = isMock ? "모의 연결 모드 전환" : "실기 연결 모드 전환";
             RefreshContent();
         }
 
@@ -402,7 +410,7 @@ namespace KineTutor3D.UI
 
             var versionResult = connectionService.Client.GetVersion();
             cachedVersionText = versionResult.IsSuccess
-                ? $"FW: {versionResult.Value.FirmwareVersion}\nSDK: {versionResult.Value.SdkVersion}\nSW: {versionResult.Value.SoftwareVersion}\nCTRL: {versionResult.Value.ControllerVersion}\nController: {(connectionService.IsMockMode ? "Mock" : "Live")}"
+                ? $"FW: {versionResult.Value.FirmwareVersion}\nSDK: {versionResult.Value.SdkVersion}\nSW: {versionResult.Value.SoftwareVersion}\nCTRL: {versionResult.Value.ControllerVersion}\n컨트롤러: {(connectionService.IsMockMode ? "모의 연결" : "실기 연결")}"
                 : versionResult.Message;
         }
 
@@ -415,26 +423,29 @@ namespace KineTutor3D.UI
 
             var isConnected = connectionService != null && connectionService.Client.IsConnected;
             var isEnabled = connectionService != null && connectionService.Client.IsEnabled;
-            var modeText = connectionService == null || connectionService.IsMockMode ? "Mock" : "Live";
+            var modeText = connectionService == null || connectionService.IsMockMode ? "모의 연결" : "실기 연결";
             var ipText = connectionPanel != null && !string.IsNullOrWhiteSpace(connectionPanel.CurrentIp)
                 ? connectionPanel.CurrentIp
                 : "IP 미지정";
             var state = connectionService != null ? connectionService.LastState : default;
+            var fault = connectionService != null ? connectionService.LastControllerFault : FairinoControllerFault.None();
+            var context = connectionService != null ? connectionService.LastCoordContext : FairinoCoordContext.Default();
             var samplePeriod = connectionService != null ? connectionService.LastRealtimeStateSamplePeriodMs : 0;
             var safetyCode = connectionService != null ? connectionService.LastSafetyCode : 0;
             connectionSummaryLabel.text =
-                $"Mode: {modeText}\n" +
-                $"Connected: {(isConnected ? "Yes" : "No")}\n" +
-                $"Enabled: {(isEnabled ? "Yes" : "No")}\n" +
+                $"모드: {modeText}\n" +
+                $"연결: {(isConnected ? "예" : "아니오")}\n" +
+                $"활성화: {(isEnabled ? "예" : "아니오")}\n" +
                 $"IP: {ipText}\n" +
-                $"RobotMode: {state.RobotMode}\n" +
-                $"Queue: {state.MotionQueueLength}\n" +
-                $"Safety: {safetyCode}\n" +
-                $"Sample: {samplePeriod} ms";
+                $"로봇 모드: {state.RobotMode} | 드래그: {(state.IsInDragTeach ? "켜짐" : "꺼짐")}\n" +
+                $"Tool/User: {context.ToolId}/{context.UserId}\n" +
+                $"큐: {state.MotionQueueLength} | 안전 코드: {safetyCode}\n" +
+                $"오류: {fault.MainCode}/{fault.SubCode} | 안전 정지: {(fault.IsSafetyStop ? "켜짐" : "꺼짐")}\n" +
+                $"샘플 주기: {samplePeriod} ms";
 
             versionSummaryLabel.text = !string.IsNullOrWhiteSpace(connectionPanel != null ? connectionPanel.CurrentVersionText : null)
                 ? connectionPanel.CurrentVersionText
-                : cachedVersionText;
+                : $"{cachedVersionText}\n재연결: {(modeText == "실기 연결" ? "사용 (30s / 500ms)" : "모의 연결")}";
 
             var jointFeedback = jointControlPanel != null ? jointControlPanel.CurrentFeedbackText : string.Empty;
             var tcpFeedback = tcpControlPanel != null ? tcpControlPanel.CurrentFeedbackText : string.Empty;
@@ -442,31 +453,41 @@ namespace KineTutor3D.UI
                 ? tcpFeedback
                 : !string.IsNullOrWhiteSpace(jointFeedback)
                     ? jointFeedback
-                    : $"Event: {lastServiceEventText}\nEmergencyStop: {(state.IsEmergencyStop ? "Yes" : "No")}\nCollision: {(state.IsCollisionDetected ? "Yes" : "No")}";
+                    : $"이벤트: {lastServiceEventText}\n비상 정지: {(state.IsEmergencyStop ? "예" : "아니오")}\n충돌 감지: {(state.IsCollisionDetected ? "예" : "아니오")}";
 
-            errorSummaryLabel.text = lastErrorText;
-            retryHintLabel.text = ResolveRetryHint(isConnected, isEnabled, modeText);
+            errorSummaryLabel.text = $"최근 오류: {lastErrorText}\n차단 오류: {(fault.HasBlockingFault ? "예" : "아니오")}";
+            retryHintLabel.text = ResolveRetryHint(isConnected, isEnabled, modeText, state.IsInDragTeach, fault.HasBlockingFault);
             handInputLabel.text = BuildHandInputSummary();
         }
 
-        private static string ResolveRetryHint(bool isConnected, bool isEnabled, string modeText)
+        private static string ResolveRetryHint(bool isConnected, bool isEnabled, string modeText, bool isInDragTeach, bool hasFault)
         {
             if (!isConnected)
             {
-                return "케이블/IP를 확인하고 Connect를 다시 시도하세요.";
+                return "1) IP/케이블 확인 2) Connect 재시도";
+            }
+
+            if (isInDragTeach)
+            {
+                return "1) Drag teach 종료 2) 자동 모드 확인 3) Enable";
+            }
+
+            if (hasFault)
+            {
+                return "1) 오류 초기화 2) 자동 모드 확인 3) Enable 후 재시도";
             }
 
             if (!isEnabled)
             {
-                return "실제 동작 전 Enable을 눌러 서보를 활성화하세요.";
+                return "1) 자동 모드 확인 2) Enable 3) Sync";
             }
 
-            if (modeText == "Mock")
+            if (modeText == "모의 연결")
             {
-                return "실기 검증 시 Mock을 끄고 DryRun으로 먼저 확인하세요.";
+                return "실기 검증 시 모의 연결을 끄고 DryRun으로 먼저 확인하세요.";
             }
 
-            return "Live 모드에서는 DryRun 확인 후 MoveJ/MoveL을 권장합니다.";
+            return "실기 연결 모드에서는 DryRun 확인 후 MoveJ/MoveL을 권장합니다.";
         }
 
         private string BuildHandInputSummary()
@@ -527,6 +548,23 @@ namespace KineTutor3D.UI
         private void Close()
         {
             SetVisible(false);
+        }
+
+        private void OnResetErrorClicked()
+        {
+            if (connectionService == null)
+            {
+                return;
+            }
+
+            var result = connectionService.ResetErrors();
+            lastServiceEventText = result.Message;
+            if (!result.IsSuccess)
+            {
+                lastErrorText = $"[{result.ErrorCode}] {result.Message}";
+            }
+
+            RefreshContent();
         }
     }
 }

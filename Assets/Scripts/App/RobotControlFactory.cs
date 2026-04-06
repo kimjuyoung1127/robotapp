@@ -54,6 +54,12 @@ namespace KineTutor3D.App
                 ConfigResourceName = string.Empty,
                 RuntimeRootName = "SandboxRuntimeRoot",
                 ControlRobotInstanceName = "SandboxRobot",
+                ConnectionTitleText = "Simulation Connection",
+                TopBarModeText = "2DOF RR · Mock by default",
+                PosePresetOptionsFactory = () => new[]
+                {
+                    new RobotControlPosePresetOption("Ready", "기본 준비 자세", new[] { 0d, 0d })
+                },
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     readyPoseFactory: () => new double[] { 0d, 0d },
                     updateCurrentPose: pose => CopyPose(pose, currentPose)),
@@ -75,6 +81,12 @@ namespace KineTutor3D.App
                 ConfigResourceName = string.Empty,
                 RuntimeRootName = "SandboxRuntimeRoot",
                 ControlRobotInstanceName = "SandboxRobot",
+                ConnectionTitleText = "SCARA Connection",
+                TopBarModeText = "SCARA · Mock by default",
+                PosePresetOptionsFactory = () => new[]
+                {
+                    new RobotControlPosePresetOption("Ready", "기본 준비 자세", new[] { 0d, 25d, 0d, 0d })
+                },
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     readyPoseFactory: () => new double[] { 0d, 25d, 0d, 0d },
                     updateCurrentPose: pose => CopyPose(pose, currentPose)),

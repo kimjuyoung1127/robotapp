@@ -6,7 +6,8 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// V2 관절 조그 패널의 플레이스홀더 레이아웃을 구성합니다.
+    /// V2 관절 조그 패널의 scene-authored 레이아웃을 우선 바인딩하고,
+    /// authored 구조가 없을 때만 fallback 레이아웃을 구성합니다.
     /// </summary>
     public sealed class JointJogPanel : MonoBehaviour, IVisibilityControllable
     {
@@ -64,7 +65,13 @@ namespace KineTutor3D.UI
                 background.type = Image.Type.Sliced;
             }
             background.color = UIDesignTokens.RobotControlV2.Colors.CardAlt;
-            UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            if (HasSceneAuthoredLayout(root))
+            {
+                BindSceneAuthoredReferences(root);
+                UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
+                return;
+            }
+
             var layout = UiRuntimeStyle.EnsureVerticalLayout(root.gameObject, compact ? UIDesignTokens.Space.Xs : UIDesignTokens.Space.Sm);
             layout.padding = new RectOffset(
                 compact ? (int)UIDesignTokens.Space.Sm : (int)UIDesignTokens.Space.Md,
@@ -76,6 +83,7 @@ namespace KineTutor3D.UI
             EnsureSingleAxisCard(root, compact);
             EnsureMultiAxisCard(root, compact);
             EnsureSummaryCard(root, compact);
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void NormalizeLegacyRootChildren(RectTransform root)
@@ -97,11 +105,11 @@ namespace KineTutor3D.UI
             var element = UiRuntimeStyle.EnsureLayoutElement(header);
             element.preferredHeight = compact ? 42f : 48f;
 
-            var titleText = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, compact ? 13 : 14, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
+            var titleText = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(240f, 22f), new Vector2(0f, 0f));
             titleText.text = "관절 조그";
 
-            var hintText = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var hintText = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(hintText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 20f), new Vector2(0f, -22f));
             hintText.text = "상단은 단일축 조그, 하단은 다축 연계와 적용 영역입니다.";
         }
@@ -159,7 +167,7 @@ namespace KineTutor3D.UI
         {
             var card = root.Find("SummaryCard") as RectTransform ?? UiRuntimeStyle.EnsureRectChild(root, "SummaryCard");
             SetupCard(card, compact ? 48f : 56f);
-            jointSummaryText = UiRuntimeStyle.EnsureText(card, "JointSummary", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            jointSummaryText = UiRuntimeStyle.EnsureText(card, "JointSummary", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Stretch(jointSummaryText.rectTransform, Vector2.zero, Vector2.one, new Vector2(12f, 8f), new Vector2(-12f, -8f));
             jointSummaryText.text = "J1 0.0 / J2 -32.0 / J3 84.0";
         }
@@ -209,14 +217,14 @@ namespace KineTutor3D.UI
 
         private void EnsureSectionTitle(RectTransform parent, string name, string label, bool compact)
         {
-            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, compact ? 11 : 12, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
+            var text = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
             UiRuntimeStyle.Anchor(text.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, 18f), new Vector2(12f, -12f));
             text.text = label;
         }
 
         private void EnsureFixedLabel(RectTransform parent, string name, string label, bool compact, float width)
         {
-            var text = parent.Find(name)?.GetComponent<Text>() ?? UiRuntimeStyle.EnsureText(parent, name, fallbackFont, compact ? 11 : 12, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            var text = parent.Find(name)?.GetComponent<Text>() ?? UiRuntimeStyle.EnsureText(parent, name, fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             var element = UiRuntimeStyle.EnsureLayoutElement(text);
             element.preferredWidth = width;
             element.minWidth = width;
@@ -225,7 +233,7 @@ namespace KineTutor3D.UI
 
         private void EnsureFixedValue(RectTransform parent, string name, string value, bool compact, float width)
         {
-            var text = parent.Find(name)?.GetComponent<Text>() ?? UiRuntimeStyle.EnsureText(parent, name, fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.MiddleRight, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var text = parent.Find(name)?.GetComponent<Text>() ?? UiRuntimeStyle.EnsureText(parent, name, fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.MiddleRight, UIDesignTokens.RobotControlV2.Colors.MutedText);
             var element = UiRuntimeStyle.EnsureLayoutElement(text);
             element.preferredWidth = width;
             element.minWidth = width;
@@ -247,7 +255,7 @@ namespace KineTutor3D.UI
             var labelText = button.transform.Find("Label")?.GetComponent<Text>();
             if (labelText != null)
             {
-                labelText.fontSize = compact ? 10 : 11;
+                labelText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
         }
 
@@ -290,6 +298,30 @@ namespace KineTutor3D.UI
             {
                 Object.DestroyImmediate(child.gameObject);
             }
+        }
+
+        private static bool HasSceneAuthoredLayout(RectTransform root)
+        {
+            return root.Find("Header") != null
+                && root.Find("Header/Title") != null
+                && root.Find("Header/Hint") != null
+                && root.Find("SingleAxisCard") != null
+                && root.Find("SingleAxisCard/Grid") != null
+                && root.Find("SingleAxisCard/Grid/SingleAxisRow_0") != null
+                && root.Find("SingleAxisCard/Grid/SingleAxisRow_5") != null
+                && root.Find("MultiAxisCard") != null
+                && root.Find("MultiAxisCard/SliderStack") != null
+                && root.Find("MultiAxisCard/SliderStack/MultiAxisRow_0") != null
+                && root.Find("MultiAxisCard/SliderStack/MultiAxisRow_5") != null
+                && root.Find("MultiAxisCard/ActionRow") != null
+                && root.Find("SummaryCard") != null
+                && root.Find("SummaryCard/JointSummary") != null
+                && root.GetComponent<VerticalLayoutGroup>() == null;
+        }
+
+        private void BindSceneAuthoredReferences(RectTransform root)
+        {
+            jointSummaryText = root.Find("SummaryCard/JointSummary")?.GetComponent<Text>();
         }
     }
 }

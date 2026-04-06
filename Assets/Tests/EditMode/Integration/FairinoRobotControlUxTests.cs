@@ -4,6 +4,7 @@ using KineTutor3D.UI;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.Tests.EditMode
 {
@@ -29,6 +30,7 @@ namespace KineTutor3D.Tests.EditMode
                 FairinoRobotControlViewBuilder.EnsureLayout(
                     canvas,
                     null,
+                    "FR5 · Mock by default",
                     out _,
                     out _,
                     out _,
@@ -40,9 +42,11 @@ namespace KineTutor3D.Tests.EditMode
                     out _,
                     out _);
 
+                diagnosticsDrawer.SetVisible(false);
                 Assert.That(diagnosticsDrawer, Is.Not.Null);
                 Assert.That(diagnosticsDrawer.gameObject.activeSelf, Is.False);
                 Assert.That(diagnosticsButton, Is.Not.Null);
+                Assert.That(diagnosticsDrawer.transform.Find("DrawerPanel/BtnResetError"), Is.Not.Null);
             }
             finally
             {
@@ -66,6 +70,7 @@ namespace KineTutor3D.Tests.EditMode
                 FairinoRobotControlViewBuilder.EnsureLayout(
                     canvas,
                     null,
+                    "FR5 · Mock by default",
                     out _,
                     out _,
                     out _,
@@ -102,6 +107,7 @@ namespace KineTutor3D.Tests.EditMode
                 FairinoRobotControlViewBuilder.EnsureLayout(
                     canvas,
                     null,
+                    "FR5 · Mock by default",
                     out var connectionPanel,
                     out var jointPanel,
                     out var statePanel,
@@ -141,6 +147,50 @@ namespace KineTutor3D.Tests.EditMode
             finally
             {
                 Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        [Test]
+        public void JointPanel_LiveMode_DisablesServoJButton()
+        {
+            var root = new GameObject("JointPanelHost", typeof(RectTransform));
+            var panel = root.AddComponent<FairinoJointControlPanel>();
+            var service = new FairinoConnectionService();
+            service.SetMockMode(false);
+
+            try
+            {
+                panel.Inject(service, FairinoRobotConfig.Load());
+                var servoButton = root.transform.Find("BtnServoJ")?.GetComponent<Button>();
+
+                Assert.That(servoButton, Is.Not.Null);
+                Assert.That(servoButton.interactable, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void TcpPanel_LiveMode_DisablesServoCartButton()
+        {
+            var root = new GameObject("TcpPanelHost", typeof(RectTransform));
+            var panel = root.AddComponent<FairinoTcpControlPanel>();
+            var service = new FairinoConnectionService();
+            service.SetMockMode(false);
+
+            try
+            {
+                panel.Inject(service, FairinoRobotConfig.Load(), null);
+                var servoButton = root.transform.Find("BtnServoCart")?.GetComponent<Button>();
+
+                Assert.That(servoButton, Is.Not.Null);
+                Assert.That(servoButton.interactable, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
             }
         }
     }

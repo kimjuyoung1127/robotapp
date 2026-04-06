@@ -6,7 +6,8 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// V2 Teaching 최소 패널의 플레이스홀더 레이아웃을 구성합니다.
+    /// V2 Teaching 최소 패널의 scene-authored 레이아웃을 우선 바인딩하고,
+    /// authored 구조가 없을 때만 fallback 레이아웃을 구성합니다.
     /// </summary>
     public sealed class TeachingPanel : MonoBehaviour, IVisibilityControllable
     {
@@ -64,7 +65,13 @@ namespace KineTutor3D.UI
                 background.type = Image.Type.Sliced;
             }
             background.color = UIDesignTokens.RobotControlV2.Colors.CardAlt;
-            UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            if (HasSceneAuthoredLayout(root))
+            {
+                BindSceneAuthoredReferences(root);
+                UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
+                return;
+            }
+
             var layout = UiRuntimeStyle.EnsureVerticalLayout(root.gameObject, compact ? UIDesignTokens.Space.Xs : UIDesignTokens.Space.Sm);
             layout.padding = new RectOffset(
                 compact ? (int)UIDesignTokens.Space.Sm : (int)UIDesignTokens.Space.Md,
@@ -77,6 +84,7 @@ namespace KineTutor3D.UI
             EnsurePointListCard(root, compact);
             EnsureTpdCard(root, compact);
             EnsureSummaryCard(root, compact);
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void NormalizeLegacyRootChildren(RectTransform root)
@@ -92,11 +100,11 @@ namespace KineTutor3D.UI
             var element = UiRuntimeStyle.EnsureLayoutElement(header);
             element.preferredHeight = compact ? 42f : 48f;
 
-            var title = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, compact ? 13 : 14, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
+            var title = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(240f, 22f), new Vector2(0f, 0f));
-            title.text = "Teaching";
+            title.text = "티칭";
 
-            var hint = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var hint = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(hint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 20f), new Vector2(0f, -22f));
             hint.text = "Points + Motion Sequence + Preview의 최소 티칭 UX를 제공합니다.";
         }
@@ -143,7 +151,7 @@ namespace KineTutor3D.UI
             SetupCard(card, compact ? 96f : 108f);
             EnsureSectionTitle(card, "Title", "TPD", compact);
 
-            var body = UiRuntimeStyle.EnsureText(card, "Body", fallbackFont, compact ? 10 : 11, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var body = UiRuntimeStyle.EnsureText(card, "Body", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(body.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(12f, -34f), new Vector2(-12f, -52f));
             body.text = "기록 / 중지 / 재생 UI만 먼저 제공합니다.";
 
@@ -159,9 +167,9 @@ namespace KineTutor3D.UI
         {
             var card = root.Find("SummaryCard") as RectTransform ?? UiRuntimeStyle.EnsureRectChild(root, "SummaryCard");
             SetupCard(card, compact ? 52f : 60f);
-            summaryText = UiRuntimeStyle.EnsureText(card, "SummaryText", fallbackFont, compact ? 10 : 11, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            summaryText = UiRuntimeStyle.EnsureText(card, "SummaryText", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Stretch(summaryText.rectTransform, Vector2.zero, Vector2.one, new Vector2(12f, 8f), new Vector2(-12f, -8f));
-            summaryText.text = "No command issued";
+            summaryText.text = "아직 실행한 명령이 없습니다";
         }
 
         private void EnsurePointListRow(RectTransform parent, string name, string label, bool compact)
@@ -169,20 +177,20 @@ namespace KineTutor3D.UI
             var row = parent.Find(name) as RectTransform ?? UiRuntimeStyle.EnsureRectChild(parent, name);
             ConfigureRow(row, 8f, compact ? 24f : 26f);
             PaintCard(row, UIDesignTokens.RobotControlV2.Colors.CardAlt);
-            var nameText = UiRuntimeStyle.EnsureText(row, "Name", fallbackFont, compact ? 10 : 11, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            var nameText = UiRuntimeStyle.EnsureText(row, "Name", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             var nameElement = UiRuntimeStyle.EnsureLayoutElement(nameText);
             nameElement.flexibleWidth = 1f;
             nameText.text = label;
-            var poseText = UiRuntimeStyle.EnsureText(row, "Pose", fallbackFont, compact ? 10 : 11, FontStyle.Normal, TextAnchor.MiddleRight, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var poseText = UiRuntimeStyle.EnsureText(row, "Pose", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.MiddleRight, UIDesignTokens.RobotControlV2.Colors.MutedText);
             var poseElement = UiRuntimeStyle.EnsureLayoutElement(poseText);
             poseElement.preferredWidth = compact ? 92f : 108f;
             poseElement.minWidth = compact ? 80f : 92f;
-            poseText.text = "Ready pose";
+            poseText.text = "Ready 포즈";
         }
 
         private void EnsureSectionTitle(RectTransform parent, string name, string label, bool compact)
         {
-            var title = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, compact ? 11 : 12, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
+            var title = UiRuntimeStyle.EnsureText(parent, name, fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, 18f), new Vector2(12f, -12f));
             title.text = label;
         }
@@ -201,10 +209,10 @@ namespace KineTutor3D.UI
             var text = button.transform.Find("Label")?.GetComponent<Text>();
             if (text != null)
             {
-                text.fontSize = compact ? 10 : 11;
+                text.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
                 text.resizeTextForBestFit = true;
-                text.resizeTextMinSize = 9;
-                text.resizeTextMaxSize = compact ? 10 : 11;
+                text.resizeTextMinSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+                text.resizeTextMaxSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
         }
 
@@ -264,6 +272,30 @@ namespace KineTutor3D.UI
             {
                 Object.DestroyImmediate(child.gameObject);
             }
+        }
+
+        private static bool HasSceneAuthoredLayout(RectTransform root)
+        {
+            return root.Find("Header") != null
+                && root.Find("Header/Title") != null
+                && root.Find("Header/Hint") != null
+                && root.Find("QuickActionRow") != null
+                && root.Find("QuickActionRow/BtnQuickSave") != null
+                && root.Find("QuickActionRow/BtnNamedSave") != null
+                && root.Find("PointListCard") != null
+                && root.Find("PointListCard/List") != null
+                && root.Find("PointListCard/List/PointRow_0") != null
+                && root.Find("PointListCard/ActionRow") != null
+                && root.Find("TpdCard") != null
+                && root.Find("TpdCard/ActionRow") != null
+                && root.Find("SummaryCard") != null
+                && root.Find("SummaryCard/SummaryText") != null
+                && root.GetComponent<VerticalLayoutGroup>() == null;
+        }
+
+        private void BindSceneAuthoredReferences(RectTransform root)
+        {
+            summaryText = root.Find("SummaryCard/SummaryText")?.GetComponent<Text>();
         }
     }
 }

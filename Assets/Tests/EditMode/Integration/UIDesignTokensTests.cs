@@ -260,5 +260,11 @@ namespace KineTutor3D.Tests.EditMode
             Assert.AreEqual(FontStyle.Normal, UITypography.GetLegacyStyle(TypographyPreset.Body));
             Assert.AreEqual(FontStyle.Normal, UITypography.GetLegacyStyle(TypographyPreset.Caption));
         }
+
+        [Test]
+        public void RobotControlV2_UniformText_Is15()
+        {
+            Assert.AreEqual(15, UIDesignTokens.RobotControlV2.Type.UniformText);
+        }
     }
 }

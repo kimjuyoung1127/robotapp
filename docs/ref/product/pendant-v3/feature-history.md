@@ -7,8 +7,14 @@
 ## Parent Doc
 - [README.md](./README.md)
 
+## Related Docs
+- [implementation-plan.md](./implementation-plan.md)
+- [unityctl-recipes.md](./unityctl-recipes.md)
+- [feature-connection-status.md](./feature-connection-status.md)
+- [feature-user-modes.md](./feature-user-modes.md)
+
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-06 (KST)
 
 ## SSOT 상태
 - Replay/history는 Roadmap P1
@@ -39,10 +45,36 @@
 │  └───────────────────────────────────────┘    │
 │                                               │
 │  오늘 수정한 포인트: 2개                       │
+│  오늘 해본 동작: Joint Jog / MoveJ / Sync      │
+│  아직 안 해본 것: TCP Jog / 포인트 저장        │
 │  [히스토리 전체 보기]                         │
 │                                               │
 └───────────────────────────────────────────────┘
 ```
+
+### 1시간 사용 요약 카드 (사용자 피드백 반영)
+
+히스토리 패널에는 단순 로그 외에, 사용자가 "내가 지금 어디까지 해봤는지" 바로 이해할 수 있는 요약 카드를 둔다.
+
+```text
+┌─ 오늘 사용 요약 ─────────────────────────────┐
+│  오늘 해본 것:                               │
+│  ✓ 연결                                      │
+│  ✓ 서보 ON                                   │
+│  ✓ Joint Jog                                 │
+│  ✓ Preview                                   │
+│                                              │
+│  다음 추천:                                  │
+│  → TCP Jog를 한 번 시도해보세요              │
+│                                              │
+│  마지막 성공 동작: MoveJ → Ready             │
+│  마지막 주의 항목: J3 한계 근접              │
+└──────────────────────────────────────────────┘
+```
+
+- 요약 카드는 최근 1시간 세션을 기준으로 만든다.
+- 초보자 모드에서는 이 카드를 기본 펼침 상태로 보여준다.
+- 전문가 모드에서는 접힌 요약 형태로 시작할 수 있다.
 
 ---
 

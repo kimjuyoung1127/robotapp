@@ -22,6 +22,10 @@ namespace KineTutor3D.App.UniversalRobots
                 ConfigResourceName = "LearningTabs/UR5e",
                 RuntimeRootName = "UR5e_RuntimeRoot",
                 ControlRobotInstanceName = "UR5e_UrdfInstance",
+                ConnectionTitleText = "UR5e Connection",
+                TopBarModeText = "UR5e · Mock by default",
+                BaseLinkName = "base_link",
+                PosePresetOptionsFactory = CreatePosePresetOptions,
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     () => UR5ePosePresets.Home.JointAnglesDeg,
                     UR5ePosePresets.UpdateCurrent),
@@ -51,6 +55,21 @@ namespace KineTutor3D.App.UniversalRobots
                     }
                 }
             };
+        }
+
+        private static RobotControlPosePresetOption[] CreatePosePresetOptions()
+        {
+            var presets = UR5ePosePresets.All;
+            var options = new RobotControlPosePresetOption[presets.Length];
+            for (var i = 0; i < presets.Length; i++)
+            {
+                options[i] = new RobotControlPosePresetOption(
+                    presets[i].Name,
+                    presets[i].Description,
+                    presets[i].JointAnglesDeg);
+            }
+
+            return options;
         }
     }
 }

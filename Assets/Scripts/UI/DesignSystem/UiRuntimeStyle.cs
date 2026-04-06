@@ -1,5 +1,6 @@
 ﻿// Folder: UI - HUD/view components only; no kinematics logic.
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 #if UNITY_EDITOR
@@ -310,6 +311,46 @@ namespace KineTutor3D.UI
             button.colors = colors;
 
             return labelText;
+        }
+
+        public static void ForceTextHierarchySize(Transform root, int fontSize)
+        {
+            if (root == null || fontSize <= 0)
+            {
+                return;
+            }
+
+            var legacyTexts = root.GetComponentsInChildren<Text>(true);
+            for (var i = 0; i < legacyTexts.Length; i++)
+            {
+                var text = legacyTexts[i];
+                if (text == null)
+                {
+                    continue;
+                }
+
+                text.fontSize = fontSize;
+                if (text.resizeTextForBestFit)
+                {
+                    text.resizeTextMinSize = fontSize;
+                    text.resizeTextMaxSize = fontSize;
+                }
+            }
+
+            var tmpTexts = root.GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (var i = 0; i < tmpTexts.Length; i++)
+            {
+                var text = tmpTexts[i];
+                if (text == null)
+                {
+                    continue;
+                }
+
+                text.enableAutoSizing = false;
+                text.fontSize = fontSize;
+                text.fontSizeMin = fontSize;
+                text.fontSizeMax = fontSize;
+            }
         }
 
         private static Sprite ResolveDefaultSprite()

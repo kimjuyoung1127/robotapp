@@ -7,8 +7,14 @@
 ## Parent Doc
 - [README.md](./README.md)
 
+## Related Docs
+- [implementation-plan.md](./implementation-plan.md)
+- [unityctl-recipes.md](./unityctl-recipes.md)
+- [feature-history.md](./feature-history.md)
+- [feature-jog-motion.md](./feature-jog-motion.md)
+
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-06 (KST)
 
 ---
 
@@ -98,6 +104,16 @@
 - **첫 실행**: FirstRunGuide 후 모드 선택
 - **설정**: NavRail > 도움 > 설정 > 사용 수준
 - **빠른 전환**: TopStatusBar 장 누르기 (숨겨진 기능)
+
+### 기본값 잠금
+- 첫 실행 기본 추천은 `초보자 모드`다.
+- 사용자가 직접 `전문가 모드`를 선택하기 전까지는 초보자 보호 규칙을 유지한다.
+- 초보자 모드의 첫 1시간은 아래 기본값을 강제한다.
+  - `DryRun` ON
+  - 속도 상한 20%
+  - `쉬운 조작` 탭 기본 선택
+  - `다음 행동 추천` 카드 기본 표시
+  - 위험 버튼 결과 설명 기본 표시
 
 ---
 

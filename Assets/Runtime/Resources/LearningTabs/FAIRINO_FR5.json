@@ -38,5 +38,11 @@
     { "id": "connection", "label": "연결", "icon": "icon-settings" },
     { "id": "joint_control", "label": "관절 제어", "icon": "icon-edit" },
     { "id": "state_monitor", "label": "상태 모니터", "icon": "icon-info" }
-  ]
+  ],
+  "liveDefaults": {
+    "realtimeSampleMs": 100,
+    "reconnectEnabled": true,
+    "reconnectTimeoutMs": 30000,
+    "reconnectPeriodMs": 500
+  }
 }

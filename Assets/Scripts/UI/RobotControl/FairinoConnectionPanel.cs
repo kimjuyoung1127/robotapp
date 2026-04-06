@@ -23,6 +23,7 @@ namespace KineTutor3D.UI
 
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
+        private string connectionTitleText = "Robot Connection";
         private bool listenersBound;
 
         /// <summary>
@@ -48,11 +49,14 @@ namespace KineTutor3D.UI
         /// <summary>
         /// 연결 서비스를 주입합니다.
         /// </summary>
-        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig)
+        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig, string titleText = null)
         {
             UnsubscribeService();
             connectionService = service;
             config = robotConfig;
+            connectionTitleText = !string.IsNullOrWhiteSpace(titleText)
+                ? titleText
+                : BuildDefaultTitle(robotConfig);
             EnsurePresentation();
 
             if (ipInput != null && config != null && !string.IsNullOrWhiteSpace(config.defaultIp))
@@ -107,7 +111,7 @@ namespace KineTutor3D.UI
 
             var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.Type.HeadingLg, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextPrimary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(200f, 20f), new Vector2(16f, -10f));
-            title.text = "FR5 Connection";
+            title.text = connectionTitleText;
 
             // Row 1: IP input + Connect
             ipInput ??= UIComponentFactory.CreateInputField(root, "IpInput", "192.168.58.2", fallbackFont);
@@ -133,10 +137,10 @@ namespace KineTutor3D.UI
 
             // Bottom: status + version
             statusLabel = UiRuntimeStyle.EnsureText(root, "StatusLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 18f), new Vector2(16f, 20f));
+            UiRuntimeStyle.Anchor(statusLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 34f), new Vector2(16f, 34f));
 
             versionLabel = UiRuntimeStyle.EnsureText(root, "VersionLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextMuted);
-            UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 14f), new Vector2(16f, 4f));
+            UiRuntimeStyle.Anchor(versionLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(390f, 28f), new Vector2(16f, 4f));
             versionLabel.text = string.Empty;
         }
 
@@ -163,7 +167,7 @@ namespace KineTutor3D.UI
             var title = root.Find("Title")?.GetComponent<Text>();
             if (title != null)
             {
-                title.text = "FR5 Connection";
+                title.text = connectionTitleText;
             }
 
             var mockLabel = mockToggle.transform.Find("Label")?.GetComponent<Text>();
@@ -251,7 +255,7 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            var ip = ipInput != null ? ipInput.text : "192.168.58.2";
+            var ip = ipInput != null ? ipInput.text : (config != null ? config.defaultIp : string.Empty);
             var port = config != null ? config.defaultPort : 8080;
             var result = connectionService.Connect(ip, port);
 
@@ -300,6 +304,16 @@ namespace KineTutor3D.UI
             RefreshUI(result.Message);
         }
 
+        private static string BuildDefaultTitle(FairinoRobotConfig robotConfig)
+        {
+            if (robotConfig != null && !string.IsNullOrWhiteSpace(robotConfig.displayName))
+            {
+                return $"{robotConfig.displayName} RPC Connection";
+            }
+
+            return "Robot RPC Connection";
+        }
+
         private void RefreshUI(string overrideMessage = null)
         {
             if (connectionService == null)
@@ -317,12 +331,15 @@ namespace KineTutor3D.UI
             var mode = connectionService.IsMockMode ? "Mock" : "Live";
             var conn = isConnected ? "연결됨" : "미연결";
             var servo = isEnabled ? "활성" : "비활성";
+            var state = connectionService.LastState;
+            var fault = connectionService.LastControllerFault;
+            var context = connectionService.LastCoordContext;
 
             if (statusLabel != null)
             {
                 statusLabel.text = string.IsNullOrWhiteSpace(overrideMessage)
-                    ? $"[{mode}] {conn} | 서보: {servo}"
-                    : $"[{mode}] {conn} | {overrideMessage}";
+                    ? $"[{mode}] {conn} | 서보:{servo} | Mode:{state.RobotMode} | Drag:{(state.IsInDragTeach ? "On" : "Off")}\nTool:{context.ToolId} User:{context.UserId} | Safety:{state.SafetyCode} | Err:{fault.MainCode}/{fault.SubCode}"
+                    : $"[{mode}] {conn} | {overrideMessage}\nTool:{context.ToolId} User:{context.UserId} | Drag:{(state.IsInDragTeach ? "On" : "Off")} | Safety:{state.SafetyCode}";
                 statusLabel.color = isConnected
                     ? UIDesignTokens.Colors.AccentSuccess
                     : UIDesignTokens.Colors.TextMuted;
@@ -351,6 +368,14 @@ namespace KineTutor3D.UI
             {
                 mockToggle.SetIsOnWithoutNotify(connectionService.IsMockMode);
             }
+
+            if (versionLabel != null
+                && isConnected
+                && !connectionService.IsMockMode
+                && string.IsNullOrWhiteSpace(versionLabel.text))
+            {
+                versionLabel.text = $"RPC IP: {CurrentIp}\n현재 컨트롤러 기준 TCP/User 문맥 사용 (Tool {context.ToolId}, User {context.UserId})";
+            }
         }
 
         /// <summary>
@@ -360,7 +385,7 @@ namespace KineTutor3D.UI
         {
             if (statusLabel != null)
             {
-                statusLabel.text = "연결 끊김 \u2014 재연결하세요";
+                statusLabel.text = "연결 끊김 \u2014 IP 확인 후 Connect, 자동모드/Drag/Fault를 순서대로 점검하세요.";
                 statusLabel.color = UIDesignTokens.Colors.AccentDanger;
             }
 
@@ -389,9 +414,12 @@ namespace KineTutor3D.UI
             }
 
             var versionResult = connectionService.Client.GetVersion();
+            var context = connectionService.LastCoordContext;
             if (versionResult.IsSuccess)
             {
-                versionLabel.text = $"FW: {versionResult.Value.FirmwareVersion} | SDK: {versionResult.Value.SdkVersion}";
+                versionLabel.text =
+                    $"FW: {versionResult.Value.FirmwareVersion} | SDK: {versionResult.Value.SdkVersion}\n" +
+                    $"RPC IP: {CurrentIp} | Tool {context.ToolId} / User {context.UserId}";
             }
             else
             {

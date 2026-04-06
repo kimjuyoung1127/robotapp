@@ -24,23 +24,23 @@ namespace KineTutor3D.App.Fairino
 
         public int UserId { get; set; }
 
-        public string FaultSummary { get; set; } = "None";
+        public string FaultSummary { get; set; } = "문제 없음";
 
-        public string SafetySummary { get; set; } = "Preview gate enabled";
+        public string SafetySummary { get; set; } = "미리보기 안전 확인 사용 중";
 
         public string SpeedPreset { get; set; } = "30%";
 
-        public string SpeedPolicySummary { get; set; } = "Slow teaching-safe preset";
+        public string SpeedPolicySummary { get; set; } = "저속 교육 안전 프리셋";
 
         public double[] CurrentJointValuesDeg { get; set; } = new double[] { 0d, -32d, 84d, 0d, 90d, 0d };
 
         public string CurrentTcpPose { get; set; } = "X -497 / Y -130 / Z 477 / RX 180 / RY 0 / RZ 90";
 
-        public string PreviewTarget { get; set; } = "Ready pose";
+        public string PreviewTarget { get; set; } = "Ready 포즈";
 
         public PreviewRiskSummary PreviewRiskSummary { get; set; } = PreviewRiskSummary.CreateDefault();
 
-        public string LastCommandSummary { get; set; } = "No command issued";
+        public string LastCommandSummary { get; set; } = "아직 실행한 명령이 없습니다";
 
         public RecoveryHintViewState LastRecoveryHint { get; set; } = RecoveryHintViewState.CreateDefault();
 
@@ -152,7 +152,7 @@ namespace KineTutor3D.App.Fairino
                 throw new UnityEngine.MissingReferenceException("RobotControlV2 scene is missing a Canvas.");
             }
 
-            var shell = KineTutor3D.UI.RobotControlShell.EnsureV2Shell(canvas, null, "로봇 제어 V2", "Mock shell");
+            var shell = KineTutor3D.UI.RobotControlShell.EnsureV2Shell(canvas, null, "로봇 제어 V2", "모의 연결");
             shell.Bind(CreateDefault());
 
             markSceneDirty.Invoke(null, new object[] { scene });

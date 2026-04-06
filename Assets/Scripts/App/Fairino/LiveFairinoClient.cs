@@ -14,11 +14,18 @@ namespace KineTutor3D.App.Fairino
     {
         private const byte CurrentStateFlag = 0;
         private const int DefaultRealtimeStatePeriodMs = 100;
+        private const int DefaultLiveMoveLSpeedPercent = 10;
 
         private readonly FairinoErrorTranslator errorTranslator;
         private bool connected;
         private bool enabled;
         private object sdkRobot;
+        private FairinoCoordContext lastCoordContext = FairinoCoordContext.Default();
+        private FairinoControllerFault lastControllerFault = FairinoControllerFault.None();
+        private bool lastDragTeachActive;
+        private int lastRobotMode;
+        private int lastSafetyCode;
+        private int lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
 
         public bool IsConnected => connected;
         public bool IsEnabled => enabled;
@@ -57,7 +64,12 @@ namespace KineTutor3D.App.Fairino
 
                 connected = true;
                 enabled = false;
-                TrySetRealtimeStateSamplePeriod(DefaultRealtimeStatePeriodMs);
+                lastCoordContext = FairinoCoordContext.Default();
+                lastControllerFault = FairinoControllerFault.None();
+                lastDragTeachActive = false;
+                lastRobotMode = 0;
+                lastSafetyCode = 0;
+                lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
                 return FairinoResult.Ok($"연결 성공: {ip}:{port}");
             }
             catch (Exception ex)
@@ -85,6 +97,12 @@ namespace KineTutor3D.App.Fairino
             }
 
             sdkRobot = null;
+            lastCoordContext = FairinoCoordContext.Default();
+            lastControllerFault = FairinoControllerFault.None();
+            lastDragTeachActive = false;
+            lastRobotMode = 0;
+            lastSafetyCode = 0;
+            lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
             return FairinoResult.Ok("연결 해제");
         }
 
@@ -93,6 +111,12 @@ namespace KineTutor3D.App.Fairino
             if (!connected)
             {
                 return errorTranslator.ToResult(-1);
+            }
+
+            var preflight = BestEffortPrepareForLiveMotion();
+            if (!preflight.IsSuccess)
+            {
+                return preflight;
             }
 
             var result = InvokeSdk("RobotEnable", (byte)1);
@@ -122,18 +146,19 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult MoveJ(double[] jointPosDeg, int speedPercent, int accPercent)
         {
-            if (!connected) return errorTranslator.ToResult(-1);
-            if (!enabled) return errorTranslator.ToResult(-2);
+            var preflight = EnsureReadyForLiveMotion();
+            if (!preflight.IsSuccess) return preflight;
             if (jointPosDeg == null || jointPosDeg.Length != 6)
             {
                 return FairinoResult.Fail(-3, "6축 관절 값이 필요합니다.");
             }
 
+            var context = EnsureCoordContext();
             return InvokeSdk(
                 "MoveJ",
                 CreateSdkJointPos(jointPosDeg),
-                0,
-                0,
+                context.ToolId,
+                context.UserId,
                 (float)speedPercent,
                 (float)accPercent,
                 100f,
@@ -145,23 +170,7 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult ServoJ(double[] jointPosDeg)
         {
-            if (!connected) return errorTranslator.ToResult(-1);
-            if (!enabled) return errorTranslator.ToResult(-2);
-            if (jointPosDeg == null || jointPosDeg.Length != 6)
-            {
-                return FairinoResult.Fail(-3, "6축 관절 값이 필요합니다.");
-            }
-
-            return InvokeSdk(
-                "ServoJ",
-                CreateSdkJointPos(jointPosDeg),
-                CreateSdkExaxisPos(),
-                0f,
-                0f,
-                0.008f,
-                0f,
-                0f,
-                0);
+            return FairinoResult.Fail(-6, "Live ServoJ는 v1 하드웨어 bring-up 범위에서 비활성화되어 있습니다.");
         }
 
         public FairinoResult<FairinoRobotState> ReadState()
@@ -180,7 +189,7 @@ namespace KineTutor3D.App.Fairino
 
                 var joints = ReadJointPositionsFallback();
                 var tcpPose = ReadTcpPoseFallback();
-                return FairinoResult<FairinoRobotState>.Ok(new FairinoRobotState(joints, tcpPose), "기본 상태 읽기 성공");
+                return FairinoResult<FairinoRobotState>.Ok(CreateState(joints, tcpPose), "기본 상태 읽기 성공");
             }
             catch (Exception ex)
             {
@@ -191,18 +200,19 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult MoveL(double[] tcpPose, int speedPercent, int accPercent)
         {
-            if (!connected) return errorTranslator.ToResult(-1);
-            if (!enabled) return errorTranslator.ToResult(-2);
+            var preflight = EnsureReadyForLiveMotion();
+            if (!preflight.IsSuccess) return preflight;
             if (tcpPose == null || tcpPose.Length != 6)
             {
                 return FairinoResult.Fail(-3, "6축 TCP 포즈가 필요합니다.");
             }
 
+            var context = EnsureCoordContext();
             return InvokeSdk(
                 "MoveL",
                 CreateSdkDescPose(tcpPose),
-                0,
-                0,
+                context.ToolId,
+                context.UserId,
                 (float)speedPercent,
                 (float)accPercent,
                 100f,
@@ -212,10 +222,10 @@ namespace KineTutor3D.App.Fairino
                 (byte)0,
                 (byte)0,
                 CreateSdkDescPose(new double[6]),
+                -1,
                 0,
                 0,
-                0,
-                speedPercent);
+                DefaultLiveMoveLSpeedPercent);
         }
 
         public FairinoResult StopMotion()
@@ -299,7 +309,9 @@ namespace KineTutor3D.App.Fairino
             try
             {
                 var code = InvokeSdkRaw("GetSafetyCode", Array.Empty<object>());
-                return FairinoResult<int>.Ok(ConvertSdkReturnCode(code, "GetSafetyCode"));
+            var safetyCode = ConvertSdkReturnCode(code, "GetSafetyCode");
+            lastSafetyCode = safetyCode;
+            return FairinoResult<int>.Ok(safetyCode);
             }
             catch (Exception ex)
             {
@@ -325,7 +337,9 @@ namespace KineTutor3D.App.Fairino
                     return FairinoResult<int>.Fail(errCode, errorTranslator.Translate(errCode));
                 }
 
-                return FairinoResult<int>.Ok(Convert.ToInt32(args[0]));
+                var period = Convert.ToInt32(args[0]);
+                lastRealtimeStatePeriodMs = period;
+                return FairinoResult<int>.Ok(period);
             }
             catch (Exception ex)
             {
@@ -341,7 +355,13 @@ namespace KineTutor3D.App.Fairino
                 return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
             }
 
-            return InvokeSdk("SetRobotRealtimeStateSamplePeriod", periodMs);
+            var result = InvokeSdk("SetRobotRealtimeStateSamplePeriod", periodMs);
+            if (result.IsSuccess)
+            {
+                lastRealtimeStatePeriodMs = periodMs;
+            }
+
+            return result;
         }
 
         public FairinoResult ClearMotionQueue()
@@ -362,6 +382,109 @@ namespace KineTutor3D.App.Fairino
             }
 
             return InvokeSdk("Mode", mode);
+        }
+
+        public FairinoResult SetReconnect(bool enable, int timeoutMs, int periodMs)
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            if (HasMethod("SetReConnectParam"))
+            {
+                return InvokeSdk("SetReConnectParam", enable, timeoutMs, periodMs);
+            }
+
+            if (HasMethod("SetReconnectParam"))
+            {
+                return InvokeSdk("SetReconnectParam", enable, timeoutMs, periodMs);
+            }
+
+            return FairinoResult.Ok("SDK reconnect API unavailable");
+        }
+
+        public FairinoResult ExitDragTeach()
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            var result = InvokeSdk("DragTeachSwitch", (byte)0);
+            if (result.IsSuccess)
+            {
+                lastDragTeachActive = false;
+            }
+
+            return result;
+        }
+
+        public FairinoResult EnsureAutoMode()
+        {
+            var result = SetMode(0);
+            if (result.IsSuccess)
+            {
+                lastRobotMode = 0;
+            }
+
+            return result;
+        }
+
+        public FairinoResult<FairinoCoordContext> ReadCoordContext()
+        {
+            if (!connected)
+            {
+                return FairinoResult<FairinoCoordContext>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            try
+            {
+                var context = ReadCoordContextCore();
+                lastCoordContext = context;
+                return FairinoResult<FairinoCoordContext>.Ok(context);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LiveFairinoClient] 좌표 문맥 읽기 실패: {ex.Message}");
+                return FairinoResult<FairinoCoordContext>.Fail(-6, ex.Message);
+            }
+        }
+
+        public FairinoResult<FairinoControllerFault> ReadControllerFault()
+        {
+            if (!connected)
+            {
+                return FairinoResult<FairinoControllerFault>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            try
+            {
+                var fault = ReadControllerFaultCore();
+                lastControllerFault = fault;
+                return FairinoResult<FairinoControllerFault>.Ok(fault);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LiveFairinoClient] fault 읽기 실패: {ex.Message}");
+                return FairinoResult<FairinoControllerFault>.Fail(-6, ex.Message);
+            }
+        }
+
+        public FairinoResult ResetErrors()
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            var result = InvokeSdk("ResetAllError");
+            if (result.IsSuccess)
+            {
+                lastControllerFault = FairinoControllerFault.None();
+            }
+
+            return result;
         }
 
         private FairinoResult InvokeSdk(string methodName, params object[] args)
@@ -468,19 +591,69 @@ namespace KineTutor3D.App.Fairino
             return sdkRobot != null && sdkRobot.GetType().GetMethods().Any(m => m.Name == methodName);
         }
 
-        private void TrySetRealtimeStateSamplePeriod(int periodMs)
+        private FairinoResult EnsureReadyForLiveMotion()
         {
-            try
+            if (!connected)
             {
-                if (HasMethod("SetRobotRealtimeStateSamplePeriod"))
-                {
-                    InvokeSdk("SetRobotRealtimeStateSamplePeriod", periodMs);
-                }
+                return errorTranslator.ToResult(-1);
             }
-            catch (Exception ex)
+
+            if (!enabled)
             {
-                Debug.LogWarning($"[LiveFairinoClient] 상태 주기 설정 실패: {ex.Message}");
+                return errorTranslator.ToResult(-2);
             }
+
+            var stateResult = ReadState();
+            if (!stateResult.IsSuccess)
+            {
+                return new FairinoResult(stateResult.ErrorCode, stateResult.Message);
+            }
+
+            var state = stateResult.Value;
+            if (state.IsInDragTeach)
+            {
+                return errorTranslator.ToResult(-8);
+            }
+
+            if (state.RobotMode != 0)
+            {
+                return errorTranslator.ToResult(-7);
+            }
+
+            if (state.IsEmergencyStop || state.IsSafetyStop || state.SafetyCode != 0)
+            {
+                return errorTranslator.ToResult(-4);
+            }
+
+            if (state.MainErrorCode != 0 || state.SubErrorCode != 0)
+            {
+                return errorTranslator.ToResult(-9);
+            }
+
+            return FairinoResult.Ok();
+        }
+
+        private FairinoResult BestEffortPrepareForLiveMotion()
+        {
+            var dragResult = ExitDragTeach();
+            if (!dragResult.IsSuccess && HasMethod("IsInDragTeach"))
+            {
+                return dragResult;
+            }
+
+            var modeResult = EnsureAutoMode();
+            if (!modeResult.IsSuccess)
+            {
+                return modeResult;
+            }
+
+            return FairinoResult.Ok();
+        }
+
+        private FairinoCoordContext EnsureCoordContext()
+        {
+            var result = ReadCoordContext();
+            return result.IsSuccess ? result.Value : lastCoordContext;
         }
 
         private bool TryReadRealtimeState(out FairinoRobotState state)
@@ -509,29 +682,43 @@ namespace KineTutor3D.App.Fairino
             var payload = args[0];
             var joints = ReadDoubleArrayField(payload, "jt_cur_pos", 6);
             var tcp = ReadDoubleArrayField(payload, "tl_cur_pos", 6);
-            state = new FairinoRobotState(
+            lastRobotMode = Convert.ToInt32(GetFieldValue(payload, "robot_mode"));
+            lastDragTeachActive = ReadDragTeachStateOrDefault();
+            state = CreateState(
                 joints,
                 tcp,
-                robotMode: Convert.ToInt32(GetFieldValue(payload, "robot_mode")),
+                robotMode: lastRobotMode,
                 motionQueueLength: Convert.ToInt32(GetFieldValue(payload, "mc_queue_len")),
-                safetyCode: ReadSafetyCodeOrDefault(),
-                realtimeStateSamplePeriodMs: ReadRealtimeStatePeriodOrDefault(),
                 isEmergencyStop: Convert.ToByte(GetFieldValue(payload, "EmergencyStop")) != 0,
                 isCollisionDetected: Convert.ToByte(GetFieldValue(payload, "collisionState")) != 0,
-                isRobotEnabled: Convert.ToInt32(GetFieldValue(payload, "rbtEnableState")) != 0);
+                isRobotEnabled: Convert.ToInt32(GetFieldValue(payload, "rbtEnableState")) != 0,
+                isInDragTeach: lastDragTeachActive);
             return true;
         }
 
-        private int ReadSafetyCodeOrDefault()
+        private bool ReadDragTeachStateOrDefault()
         {
-            var result = GetSafetyCode();
-            return result.IsSuccess ? result.Value : 0;
-        }
+            if (!HasMethod("IsInDragTeach"))
+            {
+                return lastDragTeachActive;
+            }
 
-        private int ReadRealtimeStatePeriodOrDefault()
-        {
-            var result = GetRealtimeStateSamplePeriod();
-            return result.IsSuccess ? result.Value : DefaultRealtimeStatePeriodMs;
+            try
+            {
+                var args = new object[] { 0 };
+                var code = InvokeSdkRaw("IsInDragTeach", args);
+                var errCode = ConvertSdkReturnCode(code, "IsInDragTeach");
+                if (errCode != 0)
+                {
+                    return lastDragTeachActive;
+                }
+
+                return Convert.ToInt32(args[0]) != 0;
+            }
+            catch
+            {
+                return lastDragTeachActive;
+            }
         }
 
         private double[] ReadJointPositionsFallback()
@@ -560,6 +747,64 @@ namespace KineTutor3D.App.Fairino
             }
 
             return ReadPoseFromDescPose(args[1]);
+        }
+
+        private FairinoCoordContext ReadCoordContextCore()
+        {
+            var toolId = ReadIntByRef("GetActualTCPNum", CurrentStateFlag, lastCoordContext.ToolId);
+            var userId = ReadIntByRef("GetActualWObjNum", CurrentStateFlag, lastCoordContext.UserId);
+            var toolPose = ReadPoseByRef("GetCurToolCoord");
+            var wObjPose = ReadPoseByRef("GetCurWObjCoord");
+            return new FairinoCoordContext(toolId, userId, toolPose, wObjPose);
+        }
+
+        private FairinoControllerFault ReadControllerFaultCore()
+        {
+            var args = new object[] { 0, 0 };
+            var result = InvokeSdkRaw("GetRobotErrorCode", args);
+            var errCode = ConvertSdkReturnCode(result, "GetRobotErrorCode");
+            if (errCode != 0)
+            {
+                throw new InvalidOperationException(errorTranslator.Translate(errCode));
+            }
+
+            var safetyArgs = new object[] { (byte)0, (byte)0 };
+            var safetyResult = InvokeSdkRaw("GetSafetyStopState", safetyArgs);
+            var safetyErr = ConvertSdkReturnCode(safetyResult, "GetSafetyStopState");
+            var isSafetyStop = false;
+            if (safetyErr == 0)
+            {
+                isSafetyStop = Convert.ToByte(safetyArgs[0]) != 0 || Convert.ToByte(safetyArgs[1]) != 0;
+            }
+
+            return new FairinoControllerFault(Convert.ToInt32(args[0]), Convert.ToInt32(args[1]), isSafetyStop);
+        }
+
+        private int ReadIntByRef(string methodName, object firstArg, int defaultValue)
+        {
+            var args = new[] { firstArg, (object)defaultValue };
+            var result = InvokeSdkRaw(methodName, args);
+            var errCode = ConvertSdkReturnCode(result, methodName);
+            if (errCode != 0)
+            {
+                return defaultValue;
+            }
+
+            return Convert.ToInt32(args[1]);
+        }
+
+        private double[] ReadPoseByRef(string methodName)
+        {
+            var pose = CreateSdkDescPose(new double[6]);
+            var args = new[] { pose };
+            var result = InvokeSdkRaw(methodName, args);
+            var errCode = ConvertSdkReturnCode(result, methodName);
+            if (errCode != 0)
+            {
+                return new double[6];
+            }
+
+            return ReadPoseFromDescPose(args[0]);
         }
 
         private string ReadSingleStringByRef(string methodName)
@@ -699,6 +944,36 @@ namespace KineTutor3D.App.Fairino
             }
 
             throw new InvalidOperationException($"{methodName} returned unsupported result type '{sdkResult?.GetType().FullName ?? "null"}'.");
+        }
+
+        private FairinoRobotState CreateState(
+            double[] joints,
+            double[] tcp,
+            int robotMode = 0,
+            int motionQueueLength = 0,
+            bool isEmergencyStop = false,
+            bool isCollisionDetected = false,
+            bool isRobotEnabled = false,
+            bool isInDragTeach = false)
+        {
+            var coordContext = lastCoordContext;
+            var controllerFault = lastControllerFault;
+            return new FairinoRobotState(
+                joints,
+                tcp,
+                robotMode: robotMode,
+                motionQueueLength: motionQueueLength,
+                safetyCode: lastSafetyCode,
+                realtimeStateSamplePeriodMs: lastRealtimeStatePeriodMs,
+                mainErrorCode: controllerFault.MainCode,
+                subErrorCode: controllerFault.SubCode,
+                toolId: coordContext.ToolId,
+                userId: coordContext.UserId,
+                isEmergencyStop: isEmergencyStop,
+                isCollisionDetected: isCollisionDetected,
+                isRobotEnabled: isRobotEnabled,
+                isInDragTeach: isInDragTeach,
+                isSafetyStop: controllerFault.IsSafetyStop);
         }
 
         private static string JoinNonEmpty(params string[] values)

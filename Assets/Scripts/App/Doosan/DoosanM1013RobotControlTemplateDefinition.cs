@@ -22,6 +22,10 @@ namespace KineTutor3D.App.Doosan
                 ConfigResourceName = "LearningTabs/DoosanM1013",
                 RuntimeRootName = "DoosanM1013_RuntimeRoot",
                 ControlRobotInstanceName = "DoosanM1013_UrdfInstance",
+                ConnectionTitleText = "Doosan M1013 Connection",
+                TopBarModeText = "Doosan M1013 · Mock by default",
+                BaseLinkName = "base_link",
+                PosePresetOptionsFactory = CreatePosePresetOptions,
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     () => DoosanM1013PosePresets.Home.JointAnglesDeg,
                     DoosanM1013PosePresets.UpdateCurrent),
@@ -51,6 +55,21 @@ namespace KineTutor3D.App.Doosan
                     }
                 }
             };
+        }
+
+        private static RobotControlPosePresetOption[] CreatePosePresetOptions()
+        {
+            var presets = DoosanM1013PosePresets.All;
+            var options = new RobotControlPosePresetOption[presets.Length];
+            for (var i = 0; i < presets.Length; i++)
+            {
+                options[i] = new RobotControlPosePresetOption(
+                    presets[i].Name,
+                    presets[i].Description,
+                    presets[i].JointAnglesDeg);
+            }
+
+            return options;
         }
     }
 }

@@ -8,11 +8,11 @@ namespace KineTutor3D.App.Fairino
     {
         public bool HasBlockingRisk { get; set; }
 
-        public string SeverityLabel { get; set; } = "SAFE";
+        public string SeverityLabel { get; set; } = "안전";
 
-        public string Summary { get; set; } = "Preview gate enabled";
+        public string Summary { get; set; } = "미리보기 안전 확인 사용 중";
 
-        public string Detail { get; set; } = "Run preview before live motion.";
+        public string Detail { get; set; } = "실제 이동 전에 미리보기를 먼저 확인하세요.";
 
         public static PreviewRiskSummary CreateDefault()
         {

@@ -47,6 +47,7 @@ namespace KineTutor3D.UI
         private readonly UnityAction<float>[] sliderListeners = new UnityAction<float>[6];
         private FairinoConnectionService connectionService;
         private FairinoRobotConfig config;
+        private Func<RobotControlPosePresetOption[]> presetOptionsFactory;
         private FairinoMoveConfirmDialog moveConfirmDialog;
         private Button[] presetButtons;
         private Button[] speedButtons;
@@ -55,6 +56,7 @@ namespace KineTutor3D.UI
         private bool listenersBound;
         private bool serviceSubscribed;
         private bool dryRun = true;
+        private bool controlsEnabled = true;
 
         /// <summary>
         /// 슬라이더 프리뷰 이벤트입니다.
@@ -120,15 +122,17 @@ namespace KineTutor3D.UI
         /// <summary>
         /// 연결 서비스와 설정을 주입합니다.
         /// </summary>
-        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig)
+        public void Inject(FairinoConnectionService service, FairinoRobotConfig robotConfig, Func<RobotControlPosePresetOption[]> posePresetOptionsFactory = null)
         {
             UnsubscribeService();
             connectionService = service;
             config = robotConfig;
+            presetOptionsFactory = posePresetOptionsFactory;
             EnsurePresentation();
             InitSliders();
             SubscribeService();
             RefreshModeIndicator();
+            RefreshActionAvailability();
         }
 
         /// <summary>
@@ -227,6 +231,7 @@ namespace KineTutor3D.UI
             BindListeners();
             SubscribeService();
             RefreshModeIndicator();
+            RefreshActionAvailability();
         }
 
         private void OnDisable()
@@ -375,11 +380,16 @@ namespace KineTutor3D.UI
                 jointSliders[i] = root.Find($"JointRow_{i + 1}/Slider")?.GetComponent<Slider>();
             }
 
-            var presets = FR5PosePresets.All;
+            var presets = GetPosePresetOptions();
             presetButtons = new Button[presets.Length];
             for (var i = 0; i < presets.Length; i++)
             {
                 presetButtons[i] = root.Find($"BtnPreset_{presets[i].Name}")?.GetComponent<Button>();
+                var label = presetButtons[i] != null ? presetButtons[i].GetComponentInChildren<Text>() : null;
+                if (label != null)
+                {
+                    label.text = presets[i].Name;
+                }
             }
 
             speedButtons = new Button[SpeedPresetNames.Length];
@@ -511,7 +521,7 @@ namespace KineTutor3D.UI
 
         private void EnsurePresetButtons(RectTransform root)
         {
-            var presets = FR5PosePresets.All;
+            var presets = GetPosePresetOptions();
             presetButtons = new Button[presets.Length];
 
             for (var i = 0; i < presets.Length; i++)
@@ -520,6 +530,11 @@ namespace KineTutor3D.UI
                 var existing = root.Find(btnName)?.GetComponent<Button>();
                 presetButtons[i] = existing ?? UIComponentFactory.CreateSecondaryButton(root, btnName, presets[i].Name, fallbackFont, 90f);
                 UiRuntimeStyle.Anchor((RectTransform)presetButtons[i].transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(90f, UIDesignTokens.Size.ButtonHeightSm), new Vector2(16f + (i * 100f), 316f));
+                var label = presetButtons[i].GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.text = presets[i].Name;
+                }
             }
         }
 
@@ -620,12 +635,11 @@ namespace KineTutor3D.UI
 
             if (presetButtons != null)
             {
-                var presets = FR5PosePresets.All;
-                for (var i = 0; i < presetButtons.Length && i < presets.Length; i++)
+                for (var i = 0; i < presetButtons.Length; i++)
                 {
                     if (presetButtons[i] == null) continue;
-                    var capturedPreset = presets[i];
-                    presetButtons[i].onClick.AddListener(() => OnPresetClicked(capturedPreset));
+                    var capturedIndex = i;
+                    presetButtons[i].onClick.AddListener(() => OnPresetClicked(capturedIndex));
                 }
             }
 
@@ -729,6 +743,7 @@ namespace KineTutor3D.UI
         private void HandleModeChanged(bool isMock)
         {
             RefreshModeIndicator();
+            RefreshActionAvailability();
         }
 
         private void RefreshModeIndicator()
@@ -746,15 +761,35 @@ namespace KineTutor3D.UI
             else if (dryRun)
             {
                 modeBannerBg.color = UIDesignTokens.Colors.AccentWarning;
-                modeBannerText.text = "Live 연결, DryRun ON";
+                modeBannerText.text = "Live 연결, DryRun ON — MoveJ/MoveL만 허용";
             }
             else
             {
                 modeBannerBg.color = UIDesignTokens.Colors.AccentDanger;
-                modeBannerText.text = "LIVE — 실제 로봇 동작";
+                modeBannerText.text = "LIVE — 실제 로봇 동작 (ServoJ 비활성)";
             }
 
             RefreshCompactSummary();
+        }
+
+        private void RefreshActionAvailability()
+        {
+            var liveUnsupported = connectionService != null && !connectionService.IsMockMode;
+
+            if (moveJButton != null)
+            {
+                moveJButton.interactable = controlsEnabled;
+            }
+
+            if (servoJButton != null)
+            {
+                servoJButton.interactable = controlsEnabled && !liveUnsupported;
+            }
+
+            if (stopButton != null)
+            {
+                stopButton.interactable = controlsEnabled;
+            }
         }
 
         private void InitSliders()
@@ -859,6 +894,12 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            if (!connectionService.IsMockMode)
+            {
+                ShowFeedback("ServoJ는 Live 모드에서 비활성화되어 있습니다. v1 bring-up에서는 MoveJ만 사용하세요.");
+                return;
+            }
+
             var result = connectionService.Client.ServoJ(target);
             ShowFeedback(result.Message);
         }
@@ -905,8 +946,15 @@ namespace KineTutor3D.UI
             RefreshCompactSummary();
         }
 
-        private void OnPresetClicked(FR5PosePresets.Preset preset)
+        private void OnPresetClicked(int presetIndex)
         {
+            var presets = GetPosePresetOptions();
+            if (presetIndex < 0 || presetIndex >= presets.Length)
+            {
+                return;
+            }
+
+            var preset = presets[presetIndex];
             currentPoseSummary = preset.Name;
             RefreshCompactSummary();
             OnPresetApplied?.Invoke(preset.JointAnglesDeg);
@@ -948,6 +996,30 @@ namespace KineTutor3D.UI
             return selectedSpeedPreset;
         }
 
+        private RobotControlPosePresetOption[] GetPosePresetOptions()
+        {
+            var options = presetOptionsFactory != null
+                ? presetOptionsFactory()
+                : Array.Empty<RobotControlPosePresetOption>();
+
+            if (options != null && options.Length > 0)
+            {
+                return options;
+            }
+
+            var fallback = FR5PosePresets.All;
+            var fallbackOptions = new RobotControlPosePresetOption[fallback.Length];
+            for (var i = 0; i < fallback.Length; i++)
+            {
+                fallbackOptions[i] = new RobotControlPosePresetOption(
+                    fallback[i].Name,
+                    fallback[i].Description,
+                    fallback[i].JointAnglesDeg);
+            }
+
+            return fallbackOptions;
+        }
+
         private static Color ResolveJointColor(int jointIndex)
         {
             switch (jointIndex)
@@ -966,6 +1038,7 @@ namespace KineTutor3D.UI
         /// </summary>
         public void SetControlsEnabled(bool enabled)
         {
+            controlsEnabled = enabled;
             for (var i = 0; i < jointSliders.Length; i++)
             {
                 if (jointSliders[i] != null)
@@ -973,10 +1046,6 @@ namespace KineTutor3D.UI
                     jointSliders[i].interactable = enabled;
                 }
             }
-
-            if (moveJButton != null) moveJButton.interactable = enabled;
-            if (servoJButton != null) servoJButton.interactable = enabled;
-            if (stopButton != null) stopButton.interactable = enabled;
 
             if (speedButtons != null)
             {
@@ -993,6 +1062,8 @@ namespace KineTutor3D.UI
                     if (presetButtons[i] != null) presetButtons[i].interactable = enabled;
                 }
             }
+
+            RefreshActionAvailability();
         }
 
         /// <summary>

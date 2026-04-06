@@ -69,5 +69,19 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(disableResult.IsSuccess, Is.True);
             Assert.That(enableChanged, Is.False);
         }
+
+        [Test]
+        public void Connect_CachesCoordContextAndFaultState()
+        {
+            var service = new FairinoConnectionService();
+
+            var result = service.Connect("192.168.58.2", 8080);
+
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(service.LastCoordContext.ToolId, Is.EqualTo(0));
+            Assert.That(service.LastCoordContext.UserId, Is.EqualTo(0));
+            Assert.That(service.LastControllerFault.MainCode, Is.EqualTo(0));
+            Assert.That(service.LastControllerFault.SubCode, Is.EqualTo(0));
+        }
     }
 }

@@ -20,6 +20,10 @@ namespace KineTutor3D.App.Fairino
                 ConfigResourceName = "LearningTabs/FAIRINO_FR5",
                 RuntimeRootName = "FR5_RuntimeRoot",
                 ControlRobotInstanceName = "FR5_UrdfInstance",
+                ConnectionTitleText = "FR5 Connection",
+                TopBarModeText = "FR5 · Mock by default",
+                BaseLinkName = "base_link",
+                PosePresetOptionsFactory = CreatePosePresetOptions,
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     () => FR5PosePresets.Ready.JointAnglesDeg,
                     FR5PosePresets.UpdateCurrent),
@@ -49,6 +53,21 @@ namespace KineTutor3D.App.Fairino
                     }
                 }
             };
+        }
+
+        private static RobotControlPosePresetOption[] CreatePosePresetOptions()
+        {
+            var presets = FR5PosePresets.All;
+            var options = new RobotControlPosePresetOption[presets.Length];
+            for (var i = 0; i < presets.Length; i++)
+            {
+                options[i] = new RobotControlPosePresetOption(
+                    presets[i].Name,
+                    presets[i].Description,
+                    presets[i].JointAnglesDeg);
+            }
+
+            return options;
         }
     }
 }

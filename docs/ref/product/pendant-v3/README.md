@@ -11,7 +11,7 @@
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md) — V1 백로그
 
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-06 (KST)
 
 ---
 
@@ -102,18 +102,18 @@
 
 | 기능 | 문서 | Phase |
 |------|------|-------|
-| 그리퍼 개폐 (쉬운 조작 탭) | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
-| 인풋 수정 시 0 자동선택 + 즉시 반영 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
-| 데카르트 3D 화살표 방향 기기조작 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B |
-| 속도 오버라이드 실시간 슬라이더 | [shell-layout.md](./shell-layout.md) | 2B |
+| 그리퍼 개폐 (쉬운 조작 탭) | [feature-jog-motion.md](./feature-jog-motion.md) | 2B-1 |
+| 인풋 수정 시 0 자동선택 + 즉시 반영 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B-2 |
+| 데카르트 3D 화살표 방향 기기조작 | [feature-jog-motion.md](./feature-jog-motion.md) | 2B-3 |
+| 속도 오버라이드 실시간 슬라이더 | [shell-layout.md](./shell-layout.md) | 1A |
 | 버튼 클릭 시 확인 팝업 모달 | [feature-safety-controls.md](./feature-safety-controls.md) | 2D |
 | 수정/삭제/창닫기 시 확인 팝업 | [feature-safety-controls.md](./feature-safety-controls.md) | 2D |
 | 가독성 아이콘 → 함수별 매핑 | 전체 | 0~ |
-| 작업공간 경계 시각화 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C |
-| 경로 충돌 사전 검출 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C |
-| Undo/Redo (BottomBar 상시) | [feature-history.md](./feature-history.md) | 3 |
-| 로컬스토리지 임시 값 저장 | 신규 | 3 |
-| 자동 재연결 (3초 재시도) | [feature-connection-status.md](./feature-connection-status.md) | 3 |
+| 작업공간 경계 시각화 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C-2 |
+| 경로 충돌 사전 검출 | [feature-3d-viewport.md](./feature-3d-viewport.md) | 2C-2 |
+| Undo/Redo (BottomBar 상시) | [feature-history.md](./feature-history.md) | 3B |
+| 로컬스토리지 임시 값 저장 | 신규 | 3B |
+| 자동 재연결 (3초 재시도) | [feature-connection-status.md](./feature-connection-status.md) | 3B |
 
 ### P1 추가 확정
 
@@ -183,6 +183,50 @@
 - `itemsSource` + `makeItem` + `bindItem` 3요소 필수
 - `FixedHeight` 가상화 필수
 - `fixedItemHeight` 명시
+
+### PanelSettings / Panel Topology 잠금
+- V3 런타임 SSOT는 `Assets/UI/PendantV3/PanelSettings/PendantV3PanelSettings.asset` 하나로 시작한다.
+- `TopStatusBar`, `NavRail`, `MainContent`, `ContextPanel`, `BottomBar`, `Popups`, `BottomSheet`는 Phase 4 채택 결정 전까지 **같은 PanelSettings**를 공유한다.
+- 별도 PanelSettings 분리는 `정량 성능 프로파일` 또는 `입력 우선순위 충돌`이 확인된 경우에만 허용한다.
+- 다중 패널을 도입할 경우 `Sort Order`, 포커스 handoff, pointer 우선순위를 같은 턴에 문서화해야 한다.
+
+### 입력 시스템 잠금
+- V3는 `Input System Package` 기준으로 구현한다.
+- V3 코드에서 `UnityEngine.Input` 직접 사용은 금지한다.
+- 런타임 `EventSystem`은 씬당 1개만 허용하고, `InputSystemUIInputModule`을 단일 기준으로 사용한다.
+- uGUI 공존 구간도 입력은 같은 EventSystem 경로로 통일한다.
+- `ViewportHost`를 제외한 V3 UI 위 포인터 입력은 3D로 관통시키지 않는다.
+
+### 포커스 / 네비게이션 잠금
+- 장식 요소는 `focusable = false`, `tabIndex = -1`을 기본으로 한다.
+- 기본 포커스 순서는 `TopStatusBar -> NavRail -> WorkTabBar -> WorkPanel -> ContextPanel -> BottomBar -> Popup`으로 고정한다.
+- 팝업이 열리면 포커스를 팝업 내부에 가두고, 닫힐 때 호출 버튼으로 포커스를 복원한다.
+- `Escape = 취소/닫기`, `Enter = 기본 확인`, 방향키/D-pad = 같은 레벨 이동을 기본 규칙으로 한다.
+
+### 바인딩 소유권 잠금
+- 구조와 기본 스타일은 `UXML/USS`, 런타임 상태는 `C# Binder`가 소유한다.
+- 같은 요소에 대해 `Runtime Data Binding`과 수동 `C# write`를 동시에 사용하지 않는다.
+- 로봇 상태, 연결 상태, 모션 상태는 `RobotControlViewState`와 `PendantV3LocalState`를 통해서만 공급한다.
+- 탭 선택, split 비율, 시트 확장 상태 같은 UI-로컬 값만 `viewDataKey` 또는 `LocalSettingsStore`에 저장한다.
+
+### 텍스트 설정 잠금
+- `Assets/UI/PendantV3/PanelSettings/PendantV3TextSettings.asset`를 만들고 `PendantV3PanelSettings.asset`에 직접 연결한다.
+- 기본 폰트는 `Noto Sans KR`, 누락 글리프 대비용 fallback font 목록을 별도 지정한다.
+- 한국어 UI이므로 `Korean Line Breaking Rules`를 켠다.
+- 개발 중에는 missing glyph 경고를 끄지 않는다.
+- Text/Sprite/Custom Style path는 모두 `Resources` 하위 경로로 고정한다.
+
+### 리스트 / 탭 지속성 잠금
+- 10개 이상 반복 항목, 재정렬 가능 목록, 가상화가 필요한 목록은 `ScrollView` 대신 `ListView`를 우선 사용한다.
+- 기본 가상화 방식은 `FixedHeight`, `fixedItemHeight` 명시는 필수다. 가변 높이 콘텐츠일 때만 `DynamicHeight`를 허용한다.
+- 목록 갱신은 `RefreshItems`/`RefreshItem`을 기본으로 하고, `Rebuild`는 item template 또는 타입 변경 때만 허용한다.
+- 작업자용 주 탭(`NavRail`, `WorkTabBar`)은 재정렬을 허용하지 않는다.
+
+### 성능 / 그래픽 자산 잠금
+- 패널/시트/팝업 애니메이션은 `translate`, `scale`, `opacity` 중심으로 구현하고 `width`, `height`, `top`, `left` 애니메이션은 금지한다.
+- 중첩 마스크는 최대 1단계만 허용한다. popup dim + card 조합 이상은 별도 승인 없이는 금지한다.
+- 정적 pendant 아이콘은 `Sprite Atlas`로 묶고, 동적 생성 이미지에만 `dynamic atlas`를 의존한다.
+- 자주 움직이는 컨테이너는 `usageHints`를 검토하고, 재생성 대신 `display`/`visibility` 토글을 우선 사용한다.
 
 ### 잠금 변수 (확정)
 
@@ -256,7 +300,16 @@
 - [Runtime UI 시작](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-with-runtime-ui.html)
 - [Flexbox 레이아웃](https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/layouts.html)
 - [이벤트 처리](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-Events-Handling.html)
+- [Runtime Event System](https://docs.unity3d.com/Manual/UIE-Runtime-Event-System.html)
+- [Focus Order](https://docs.unity3d.com/Manual/UIE-focus-order.html)
+- [Navigation Events](https://docs.unity3d.com/Manual/UIE-Navigation-Events.html)
 - [ListView](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-uxml-element-ListView.html)
+- [UITK Text Settings](https://docs.unity3d.com/Manual/UIE-text-setting-asset.html)
+- [Data Binding](https://docs.unity3d.com/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/data-binding.html)
+- [Performance](https://docs.unity3d.com/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/optimizing-performance.html)
+- [Graphic and Font Assets](https://docs.unity3d.com/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/graphic-and-font-assets-preparation.html)
+- [Create a Panel](https://docs.unity3d.com/Manual/UIE-create-panel.html)
+- [Configure Runtime UI](https://docs.unity3d.com/Manual/UIE-render-runtime-ui.html)
 - [USS 속성](https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-USS-Properties-Reference.html)
 
 ---
@@ -266,13 +319,24 @@
 | Phase | 범위 | 산출물 |
 |-------|------|--------|
 | **Pre** | 폴더 구조 + CLAUDE.md 인덱스 | 폴더별 CLAUDE.md, 루트 링크 추가 |
-| **Phase 0** | UI Toolkit 인프라 | PanelSettings, USS 토큰, UIDocument 패턴, 아이콘 폴더, PendantLocalization.asset |
-| **Phase 1** | 셸 + 탭 + BottomBar | 빈 셸 Desktop/Tablet + ★시안 리뷰 게이트 |
-| **Phase 2A** | 연결/상태 패널 UI | TopStatusBar + 연결홈 + StatusCard |
-| **Phase 2B** | 조그/모션 패널 UI | 쉬운조작+그리퍼 + 관절 + TCP+3D화살표 + 포인트이동 + 속도슬라이더 |
-| **Phase 2C** | 안전/좌표/3D UI | 배너 + 에러3단 + CoordStrip + 뷰포트툴바 + 작업공간경계 + 충돌검출 |
+| **Phase 0A** | 인프라 자산 | PanelSettings + TextSettings + SpriteAtlas + UIDocument |
+| **Phase 0B** | 루트 셸 뼈대 | `pendant-v3.uxml` + `pendant-v3.uss` 5영역 |
+| **Phase 0C** | 입력/포커스 계약 | EventSystem + InputModule + 기본 포커스 규칙 |
+| **Phase 1A** | Desktop 셸 | TopStatusBar + NavRail + BottomBar + ContextPanel |
+| **Phase 1B** | Tablet 셸 | BottomSheet + tablet 전환 + ★시안 리뷰 게이트 |
+| **Phase 1C** | 탭 지속성 | `viewDataKey` + `LocalSettingsStore` |
+| **Phase 2A-1** | 연결 홈 | 연결 카드 + 빠른 상태 + 행동 추천 |
+| **Phase 2A-2** | 상태/좌표 패널 | StatusCard + CoordStrip |
+| **Phase 2B-1** | 쉬운 조작 | 프리셋 + 그리퍼 |
+| **Phase 2B-2** | 관절 조그 | 슬라이더 + 단일축 + 숫자입력 |
+| **Phase 2B-3** | TCP 조그 | 좌표계 + XYZ/RPY + 3D 화살표 |
+| **Phase 2B-4** | 포인트 이동 | 좌표입력 + IK + MoveJ/L/C 선택 |
+| **Phase 2C-1** | 안전/진단 UI | 배너 + fault overlay + diagnostics |
+| **Phase 2C-2** | 뷰포트 보조 UI | toolbar + 작업공간경계 + 충돌검출 |
 | **Phase 2D** | 팝업/도움말 UI | 전체 팝업 시스템 + 컨텍스트 도움말 + WhyItMoved |
-| **Phase 3** | ViewState 바인딩 + Mock | 바인딩 + Undo/Redo + 로컬저장 + 자동재연결 |
+| **Phase 3A** | Binder/씬 부트스트랩 | Binder + SceneCoordinator + V3 씬 |
+| **Phase 3B** | 로컬 서비스 | Undo/Redo + 로컬저장 + 자동재연결 |
+| **Phase 3C** | Mock 종단 검증 | Mock 연결부터 tablet 전환까지 e2e smoke |
 | **Phase 4** | V2 vs V3 비교 평가 | 평가 매트릭스 → 채택 결정 |
 | **Phase 5** | 포인트/티칭/블록 에디터 | 블록(이동/IO/논리) + 루프 + MoveC + 다중경로 미리보기 |
 | **Phase 6** | IO/그리퍼/진단/캡처 | DI/DO/AI/AO + 그리퍼 + 세션리포트 + 스크린샷캡처 |
@@ -308,4 +372,8 @@
 
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
-- [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 82개, 잠금 규칙 A~L)
+- [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 + 운영 규칙 A~R)
+- [AGENT-CONTRACT.md](./AGENT-CONTRACT.md) — V3 작업용 에이전트 계약 문서
+- [static-checks.md](./static-checks.md) — V3 정적 체크 기준
+- [unityctl-recipes.md](./unityctl-recipes.md) — V3 구현/검증용 `unityctl` 명령 레시피
+- [verify-v3.json](./verify-v3.json) — `workflow verify`용 기본 검증 번들

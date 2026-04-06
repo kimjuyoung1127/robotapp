@@ -133,7 +133,7 @@ namespace KineTutor3D.UI
 
             var title = UiRuntimeStyle.EnsureText(root, "WhyTitle", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.Colors.AccentSecondary);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 14f), new Vector2(10f, -8f));
-            title.text = "Why It Moved";
+            title.text = "움직임 해설";
 
             explanationLabel = UiRuntimeStyle.EnsureText(root, "WhyLabel", fallbackFont, UIDesignTokens.Type.Caption, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.Colors.TextSecondary);
             UiRuntimeStyle.Anchor(explanationLabel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(340f, 84f), new Vector2(10f, -26f));
@@ -151,7 +151,7 @@ namespace KineTutor3D.UI
             var title = root.Find("WhyTitle")?.GetComponent<Text>();
             if (title != null)
             {
-                title.text = "Why It Moved";
+                title.text = "움직임 해설";
             }
 
             if (string.IsNullOrWhiteSpace(explanationLabel.text))

@@ -33,7 +33,7 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             if (bodyText != null)
             {
-                bodyText.text = $"Why It Moved placeholder\nLast command: {state.LastCommandSummary}";
+                bodyText.text = $"움직임 해설 자리 표시자\n최근 명령: {state.LastCommandSummary}";
             }
         }
 
@@ -53,13 +53,14 @@ namespace KineTutor3D.UI
             var bg = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             bg.color = UIDesignTokens.RobotControlV2.Colors.Card;
 
-            var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, 14, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
+            var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(240f, 24f), new Vector2(16f, -16f));
-            title.text = "Why It Moved";
+            title.text = "움직임 해설";
 
-            bodyText = UiRuntimeStyle.EnsureText(root, "Body", fallbackFont, 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            bodyText = UiRuntimeStyle.EnsureText(root, "Body", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Anchor(bodyText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(300f, 64f), new Vector2(16f, -46f));
-            bodyText.text = "Why It Moved placeholder";
+            bodyText.text = "움직임 해설 자리 표시자";
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
     }
 }

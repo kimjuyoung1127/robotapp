@@ -39,6 +39,26 @@ namespace KineTutor3D.App.Fairino
         public int RealtimeStateSamplePeriodMs { get; }
 
         /// <summary>
+        /// 메인 에러 코드입니다.
+        /// </summary>
+        public int MainErrorCode { get; }
+
+        /// <summary>
+        /// 서브 에러 코드입니다.
+        /// </summary>
+        public int SubErrorCode { get; }
+
+        /// <summary>
+        /// 현재 활성 tool ID입니다.
+        /// </summary>
+        public int ToolId { get; }
+
+        /// <summary>
+        /// 현재 활성 user/workobject ID입니다.
+        /// </summary>
+        public int UserId { get; }
+
+        /// <summary>
         /// Emergency stop 상태 여부입니다.
         /// </summary>
         public bool IsEmergencyStop { get; }
@@ -54,6 +74,16 @@ namespace KineTutor3D.App.Fairino
         public bool IsRobotEnabled { get; }
 
         /// <summary>
+        /// Drag teach 상태 여부입니다.
+        /// </summary>
+        public bool IsInDragTeach { get; }
+
+        /// <summary>
+        /// Safety stop 상태 여부입니다.
+        /// </summary>
+        public bool IsSafetyStop { get; }
+
+        /// <summary>
         /// 로봇 상태를 생성합니다.
         /// </summary>
         public FairinoRobotState(
@@ -63,9 +93,15 @@ namespace KineTutor3D.App.Fairino
             int motionQueueLength = 0,
             int safetyCode = 0,
             int realtimeStateSamplePeriodMs = 0,
+            int mainErrorCode = 0,
+            int subErrorCode = 0,
+            int toolId = 0,
+            int userId = 0,
             bool isEmergencyStop = false,
             bool isCollisionDetected = false,
-            bool isRobotEnabled = false)
+            bool isRobotEnabled = false,
+            bool isInDragTeach = false,
+            bool isSafetyStop = false)
         {
             JointPosDeg = jointPosDeg != null
                 ? (double[])jointPosDeg.Clone()
@@ -79,9 +115,15 @@ namespace KineTutor3D.App.Fairino
             MotionQueueLength = motionQueueLength;
             SafetyCode = safetyCode;
             RealtimeStateSamplePeriodMs = realtimeStateSamplePeriodMs;
+            MainErrorCode = mainErrorCode;
+            SubErrorCode = subErrorCode;
+            ToolId = toolId;
+            UserId = userId;
             IsEmergencyStop = isEmergencyStop;
             IsCollisionDetected = isCollisionDetected;
             IsRobotEnabled = isRobotEnabled;
+            IsInDragTeach = isInDragTeach;
+            IsSafetyStop = isSafetyStop;
         }
 
         /// <summary>

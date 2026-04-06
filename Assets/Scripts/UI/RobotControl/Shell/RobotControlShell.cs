@@ -57,12 +57,14 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             binder?.Bind(state);
             topStatusBar = binder != null ? binder.TopStatusBar : topStatusBar;
+            ApplyUniformTextSize();
         }
 
         public void ApplyLayoutMode(bool tabletLayout)
         {
             EnsurePresentation();
             binder?.ApplyLayoutMode(tabletLayout);
+            ApplyUniformTextSize();
         }
 
         public void SetPopupCopy(string moveConfirmBody, string warningBody, string recoveryBody)
@@ -75,6 +77,55 @@ namespace KineTutor3D.UI
             SetPopupBody(root, "MoveConfirmDialog", moveConfirmBody);
             SetPopupBody(root, "WarningDialog", warningBody);
             SetPopupBody(root, "RecoveryDialog", recoveryBody);
+        }
+
+        public void SetPopupBody(string popupName, string body)
+        {
+            if (transform is not RectTransform root)
+            {
+                return;
+            }
+
+            SetPopupBody(root, popupName, body);
+        }
+
+        public void ShowPopup(string popupName)
+        {
+            if (transform is not RectTransform root)
+            {
+                return;
+            }
+
+            HideAllPopups();
+            SetPopupVisible(root, popupName, true);
+        }
+
+        public void HidePopup(string popupName)
+        {
+            if (transform is not RectTransform root)
+            {
+                return;
+            }
+
+            SetPopupVisible(root, popupName, false);
+        }
+
+        public void HideAllPopups()
+        {
+            if (transform is not RectTransform root)
+            {
+                return;
+            }
+
+            SetPopupVisible(root, "MoveConfirmDialog", false);
+            SetPopupVisible(root, "WarningDialog", false);
+            SetPopupVisible(root, "RecoveryDialog", false);
+            SetPopupVisible(root, "FirstRunGuideDialog", false);
+        }
+
+        public Button FindButton(string relativePath)
+        {
+            return transform.Find(relativePath)?.GetComponent<Button>();
         }
 
         public static RobotControlShell EnsureV2Shell(Canvas canvas, Font fallbackFont, string titleText, string modeText)
@@ -126,6 +177,13 @@ namespace KineTutor3D.UI
             {
                 topStatusBar.SetFallbackFont(fallbackFont);
             }
+
+            ApplyUniformTextSize();
+        }
+
+        private void ApplyUniformTextSize()
+        {
+            UiRuntimeStyle.ForceTextHierarchySize(transform, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private static void SetPopupBody(RectTransform root, string popupName, string body)
@@ -135,6 +193,15 @@ namespace KineTutor3D.UI
             if (text != null)
             {
                 text.text = body;
+            }
+        }
+
+        private static void SetPopupVisible(RectTransform root, string popupName, bool visible)
+        {
+            var popup = root.Find($"SafeArea/Popups/{popupName}");
+            if (popup != null)
+            {
+                popup.gameObject.SetActive(visible);
             }
         }
 

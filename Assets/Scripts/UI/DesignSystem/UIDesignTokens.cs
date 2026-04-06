@@ -201,6 +201,11 @@ namespace KineTutor3D.UI
         /// </summary>
         public static class RobotControlV2
         {
+            public static class Type
+            {
+                public const int UniformText = 15;
+            }
+
             public static class Colors
             {
                 public static readonly Color Backdrop         = new Color(0.08f, 0.09f, 0.11f, 1f);

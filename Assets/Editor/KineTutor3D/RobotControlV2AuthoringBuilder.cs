@@ -81,6 +81,7 @@ namespace KineTutor3D.EditorTools
             var shell = RobotControlShell.EnsureV2Shell(canvas, null, "로봇 제어 V2", "Mock shell");
             shell.Bind(RobotControlViewState.CreateDefault());
             ForceRefreshShellPanels(shell);
+            Canvas.ForceUpdateCanvases();
             NormalizeSceneAuthoredShell(canvas.transform);
 
             EditorSceneManager.MarkSceneDirty(scene);
@@ -322,6 +323,175 @@ namespace KineTutor3D.EditorTools
                     ?? Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
                 image.type = Image.Type.Sliced;
             }
+        }
+
+        private static void FreezeWorkPanelLayouts(Transform canvasRoot)
+        {
+            FreezeTcpJogPanel(canvasRoot.Find("RobotControlShell/SafeArea/LeftRail/WorkPanelHost/TcpJogPanel") as RectTransform);
+            FreezeJointJogPanel(canvasRoot.Find("RobotControlShell/SafeArea/LeftRail/WorkPanelHost/JointJogPanel") as RectTransform);
+            FreezePointMovePanel(canvasRoot.Find("RobotControlShell/SafeArea/LeftRail/WorkPanelHost/PointMovePanel") as RectTransform);
+            FreezeTeachingPanel(canvasRoot.Find("RobotControlShell/SafeArea/LeftRail/WorkPanelHost/TeachingPanel") as RectTransform);
+        }
+
+        private static void FreezeTcpJogPanel(RectTransform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            FreezeLayoutGroupsRecursively(root);
+            var compact = root.rect.width < 340f;
+            var side = compact ? 12f : 16f;
+            var top = compact ? 12f : 16f;
+            var gap = compact ? 8f : 10f;
+            var width = Mathf.Max(0f, root.rect.width - (side * 2f));
+            var headerHeight = compact ? 42f : 48f;
+            var coordinateHeight = compact ? 30f : 32f;
+            var incrementHeight = compact ? 42f : 48f;
+            var axisHeight = compact ? 234f : 268f;
+            var actionHeight = compact ? 36f : 40f;
+            var infoHeight = compact ? 52f : 58f;
+            var y = top;
+            AnchorTopSection(root, "Header", side, y, width, headerHeight);
+            y += headerHeight + gap;
+            AnchorTopSection(root, "CoordinateRow", side, y, width, coordinateHeight);
+            y += coordinateHeight + gap;
+            AnchorTopSection(root, "IncrementCard", side, y, width, incrementHeight);
+            y += incrementHeight + gap;
+            AnchorTopSection(root, "AxisGrid", side, y, width, axisHeight);
+            y += axisHeight + gap;
+            AnchorTopSection(root, "ActionRow", side, y, width, actionHeight);
+            y += actionHeight + gap;
+            AnchorTopSection(root, "InfoCard", side, y, width, infoHeight);
+        }
+
+        private static void FreezeJointJogPanel(RectTransform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            FreezeLayoutGroupsRecursively(root);
+            var compact = root.rect.width < 340f;
+            var side = compact ? 12f : 16f;
+            var top = compact ? 12f : 16f;
+            var gap = compact ? 8f : 10f;
+            var width = Mathf.Max(0f, root.rect.width - (side * 2f));
+            var headerHeight = compact ? 42f : 48f;
+            var singleAxisHeight = compact ? 188f : 204f;
+            var multiAxisHeight = compact ? 258f : 286f;
+            var summaryHeight = compact ? 48f : 56f;
+            var y = top;
+            AnchorTopSection(root, "Header", side, y, width, headerHeight);
+            y += headerHeight + gap;
+            AnchorTopSection(root, "SingleAxisCard", side, y, width, singleAxisHeight);
+            y += singleAxisHeight + gap;
+            AnchorTopSection(root, "MultiAxisCard", side, y, width, multiAxisHeight);
+            y += multiAxisHeight + gap;
+            AnchorTopSection(root, "SummaryCard", side, y, width, summaryHeight);
+        }
+
+        private static void FreezePointMovePanel(RectTransform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            FreezeLayoutGroupsRecursively(root);
+            var compact = root.rect.width < 340f;
+            var side = compact ? 12f : 16f;
+            var top = compact ? 12f : 16f;
+            var gap = compact ? 8f : 10f;
+            var width = Mathf.Max(0f, root.rect.width - (side * 2f));
+            var headerHeight = compact ? 42f : 48f;
+            var targetHeight = compact ? 68f : 76f;
+            var poseHeight = compact ? 126f : 142f;
+            var actionHeight = compact ? 38f : 42f;
+            var y = top;
+            AnchorTopSection(root, "Header", side, y, width, headerHeight);
+            y += headerHeight + gap;
+            AnchorTopSection(root, "TargetCard", side, y, width, targetHeight);
+            y += targetHeight + gap;
+            AnchorTopSection(root, "PoseGrid", side, y, width, poseHeight);
+            y += poseHeight + gap;
+            AnchorTopSection(root, "ActionRow", side, y, width, actionHeight);
+        }
+
+        private static void FreezeTeachingPanel(RectTransform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            FreezeLayoutGroupsRecursively(root);
+            var compact = root.rect.width < 340f;
+            var side = compact ? 12f : 16f;
+            var top = compact ? 12f : 16f;
+            var gap = compact ? 8f : 10f;
+            var width = Mathf.Max(0f, root.rect.width - (side * 2f));
+            var headerHeight = compact ? 42f : 48f;
+            var quickActionHeight = compact ? 38f : 42f;
+            var pointListHeight = compact ? 162f : 176f;
+            var tpdHeight = compact ? 96f : 108f;
+            var summaryHeight = compact ? 52f : 60f;
+            var y = top;
+            AnchorTopSection(root, "Header", side, y, width, headerHeight);
+            y += headerHeight + gap;
+            AnchorTopSection(root, "QuickActionRow", side, y, width, quickActionHeight);
+            y += quickActionHeight + gap;
+            AnchorTopSection(root, "PointListCard", side, y, width, pointListHeight);
+            y += pointListHeight + gap;
+            AnchorTopSection(root, "TpdCard", side, y, width, tpdHeight);
+            y += tpdHeight + gap;
+            AnchorTopSection(root, "SummaryCard", side, y, width, summaryHeight);
+        }
+
+        private static void FreezeLayoutGroupsRecursively(RectTransform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            Canvas.ForceUpdateCanvases();
+
+            var groups = root.GetComponentsInChildren<LayoutGroup>(true);
+            for (var i = groups.Length - 1; i >= 0; i--)
+            {
+                if (groups[i] != null)
+                {
+                    Object.DestroyImmediate(groups[i], true);
+                }
+            }
+
+            var fitters = root.GetComponentsInChildren<ContentSizeFitter>(true);
+            for (var i = fitters.Length - 1; i >= 0; i--)
+            {
+                if (fitters[i] != null)
+                {
+                    Object.DestroyImmediate(fitters[i], true);
+                }
+            }
+        }
+
+        private static void AnchorTopSection(RectTransform parent, string childName, float x, float y, float width, float height)
+        {
+            var child = parent.Find(childName) as RectTransform;
+            if (child == null)
+            {
+                return;
+            }
+
+            child.anchorMin = new Vector2(0f, 1f);
+            child.anchorMax = new Vector2(0f, 1f);
+            child.pivot = new Vector2(0f, 1f);
+            child.sizeDelta = new Vector2(width, height);
+            child.anchoredPosition = new Vector2(x, -y);
         }
     }
 }

@@ -14,6 +14,9 @@ namespace KineTutor3D.App.Mecademic
         private double[] currentTcpPose = new double[6];
         private int currentMode;
         private int stateSamplePeriodMs = 100;
+        private bool inDragTeach;
+        private FairinoCoordContext coordContext = FairinoCoordContext.Default();
+        private FairinoControllerFault controllerFault = FairinoControllerFault.None();
 
         /// <summary>
         /// 현재 연결 상태입니다.
@@ -117,9 +120,15 @@ namespace KineTutor3D.App.Mecademic
                 motionQueueLength: 0,
                 safetyCode: 0,
                 realtimeStateSamplePeriodMs: stateSamplePeriodMs,
+                mainErrorCode: controllerFault.MainCode,
+                subErrorCode: controllerFault.SubCode,
+                toolId: coordContext.ToolId,
+                userId: coordContext.UserId,
                 isEmergencyStop: false,
                 isCollisionDetected: false,
-                isRobotEnabled: IsEnabled);
+                isRobotEnabled: IsEnabled,
+                isInDragTeach: inDragTeach,
+                isSafetyStop: controllerFault.IsSafetyStop);
             return FairinoResult<FairinoRobotState>.Ok(state, "Mock Meca500 상태 읽기 성공");
         }
 
@@ -200,6 +209,60 @@ namespace KineTutor3D.App.Mecademic
 
             currentMode = mode;
             return FairinoResult.Ok($"Mock Meca500 모드 전환: {mode}");
+        }
+
+        public FairinoResult SetReconnect(bool enable, int timeoutMs, int periodMs)
+        {
+            return !IsConnected
+                ? FairinoResult.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult.Ok("Mock Meca500 재연결 정책 적용");
+        }
+
+        public FairinoResult ExitDragTeach()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            inDragTeach = false;
+            return FairinoResult.Ok("Mock Meca500 drag teach 종료");
+        }
+
+        public FairinoResult EnsureAutoMode()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            currentMode = 0;
+            return FairinoResult.Ok("Mock Meca500 자동 모드 전환");
+        }
+
+        public FairinoResult<FairinoCoordContext> ReadCoordContext()
+        {
+            return !IsConnected
+                ? FairinoResult<FairinoCoordContext>.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult<FairinoCoordContext>.Ok(coordContext);
+        }
+
+        public FairinoResult<FairinoControllerFault> ReadControllerFault()
+        {
+            return !IsConnected
+                ? FairinoResult<FairinoControllerFault>.Fail(-1, "연결되지 않은 상태입니다.")
+                : FairinoResult<FairinoControllerFault>.Ok(controllerFault);
+        }
+
+        public FairinoResult ResetErrors()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            controllerFault = FairinoControllerFault.None();
+            return FairinoResult.Ok("Mock Meca500 fault reset 완료");
         }
     }
 }

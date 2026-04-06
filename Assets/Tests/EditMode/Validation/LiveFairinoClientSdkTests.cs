@@ -44,7 +44,13 @@ namespace KineTutor3D.Tests.EditMode
                 "SetRobotRealtimeStateSamplePeriod",
                 "GetRobotRealtimeStateSamplePeriod",
                 "MotionQueueClear",
-                "StopMotion"
+                "StopMotion",
+                "DragTeachSwitch",
+                "IsInDragTeach",
+                "GetRobotErrorCode",
+                "ResetAllError",
+                "GetActualTCPNum",
+                "GetActualWObjNum"
             };
 
             var methodNames = robotType.GetMethods().Select(m => m.Name).ToHashSet();
@@ -52,6 +58,11 @@ namespace KineTutor3D.Tests.EditMode
             {
                 Assert.That(methodNames.Contains(methodName), Is.True, $"Method '{methodName}' should exist in fairino.Robot");
             }
+
+            Assert.That(
+                methodNames.Contains("SetReConnectParam") || methodNames.Contains("SetReconnectParam") || methodNames.Contains("GetReconnectState"),
+                Is.True,
+                "Reconnect-related API should exist in fairino.Robot");
         }
 
         private static Assembly LoadSdkAssembly()

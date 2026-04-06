@@ -7,6 +7,8 @@
 ## Parent Doc
 - [fairino-simmachine-ia-map.md](./fairino-simmachine-ia-map.md)
 - [robotcontrol-scene-hierarchy.md](./robotcontrol-scene-hierarchy.md)
+- [robotcontrol-v2-naming-ssot.md](./robotcontrol-v2-naming-ssot.md)
+- [robotcontrol-scene-authoring-contract.md](./robotcontrol-scene-authoring-contract.md)
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md)
 
 ## When To Read
@@ -34,15 +36,19 @@
 - old shell 잔재와 old FR5 panel authored 오브젝트는 V2 scene 계층에서 제거 완료로 본다.
 - 현재 focus는 “shell 존재 여부”가 아니라 “Onboarding 경유 진입에서 authored-lock 유지 + compact layout polish”다.
 - `TcpJogPanel`, `JointJogPanel`, `PointMovePanel`, `TeachingPanel`, popup 3종, `BottomSheets` authored child 구조는 구현 완료로 본다.
+- 네 work panel은 이제 authored 내부 섹션 rect를 scene source of truth로 본다. bridge/builder는 패널 내부 rect를 더 이상 고정값으로 재배치하지 않고, 패널 스크립트는 authored 구조가 있으면 bind-only로 빠진다.
+- `RobotControlShellBinder`는 authored 부모 rect를 덮지 않고 새로 만든 루트에만 기본 anchor/stretch를 준다.
 
 ## 사용 원칙
 - 통합 IA는 `무엇을 만들지`
 - 씬 계층 문서는 `어디에 둘지`
+- 이름 기준 문서는 `무엇이라고 부를지`
 - 이 문서는 `어떤 순서로 붙이고 검증할지`
 - 기존 로직은 최대한 재사용하고, UI 셸과 패널 구조를 먼저 재조립한다
 - `UI 먼저`는 shell-only mockup을 오래 끈다는 뜻이 아니다. 셸을 고정한 뒤 상태 계약을 만들고 Mock 연결로 먼저 루프를 닫는다.
 - 기존 `RobotControl`의 MoveJ / MoveL / 연결 코어는 재사용하되, old panel composition은 그대로 들고 오지 않는다.
 - Live 연결은 셸, 상태 계약, Mock 조작, preview 흐름이 먼저 닫힌 뒤 마지막에 붙인다.
+- 이름 관련 해석이 헷갈리면 이 문서보다 먼저 `robotcontrol-v2-naming-ssot.md`의 `status` 열을 본다.
 
 ## 잠근 결정
 - V2는 별도 composition root를 사용한다.
@@ -148,6 +154,9 @@
 5. `16:9` / `4:3` 공통 검증
 
 이 단계가 끝나면 authored shell이 두 대표 비율에서 모두 읽히고, 버튼 overflow나 겹침이 없어야 한다.
+현재 추가 메모:
+- 2차 spacing polish는 scene rect 값으로 반영했다.
+- 후속 조정은 bridge 숫자 수정보다 `RobotControlV2.unity` 직접 authoring을 우선한다.
 
 ### Phase 3B. authored-lock verification
 1. `play 시작 1회 authored-lock` 훅 유지
@@ -236,6 +245,8 @@ $project = 'C:\Users\ezen601\Desktop\Jason\robotapp2'
 - `Onboarding -> RobotLibrary -> RobotControlV2` 진입 흐름에서 authored-lock 유지 확인
 - GameView `16:9` 실제 시각 점검
 - GameView `4:3` 실제 시각 점검
+- 탭별 단독 노출 기준 3차 micro polish
+- scene 직접 수정 후 Play 진입에서도 authored 값이 유지되는지 수동 확인
 
 ### Phase 4 Done
 - Unity다운 시각 차별화가 보이기 시작

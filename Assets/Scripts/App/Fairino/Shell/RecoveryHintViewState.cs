@@ -6,11 +6,11 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     public sealed class RecoveryHintViewState
     {
-        public string Title { get; set; } = "NEXT ACTION";
+        public string Title { get; set; } = "다음 안내";
 
-        public string Body { get; set; } = "Bind shell state, choose a work tab, then preview before live motion.";
+        public string Body { get; set; } = "셸 상태를 먼저 바인딩하고, 작업 탭을 고른 뒤, 실제 이동 전에 미리보기를 확인하세요.";
 
-        public string ActionLabel { get; set; } = "Preview first";
+        public string ActionLabel { get; set; } = "미리보기 먼저";
 
         public static RecoveryHintViewState CreateDefault()
         {

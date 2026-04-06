@@ -7,9 +7,9 @@ namespace KineTutor3D.UI
     public enum RobotControlWorkTab
     {
         EasyMotion = 0,
-        Tcp = 1,
-        Joint = 2,
-        Point = 3,
+        TcpJog = 1,
+        JointJog = 2,
+        PointMove = 3,
         Teaching = 4,
     }
 }

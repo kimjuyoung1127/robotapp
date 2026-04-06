@@ -1,9 +1,30 @@
 # V3 티칭패드 구현 플랜
 
+## Purpose
+- V3 티칭패드의 구현 순서, 잠금 규칙, 종료 조건, 검증 루프를 한 문서에 고정한다.
+- 실제 구현은 이 문서의 실행 단위와 `unityctl` 레시피를 기준으로 진행한다.
+
+## Parent Docs
+- [README.md](./README.md)
+- [migration-strategy.md](./migration-strategy.md)
+- [unityctl-recipes.md](./unityctl-recipes.md)
+- [AGENT-CONTRACT.md](./AGENT-CONTRACT.md)
+
+## Related Docs
+- [shell-layout.md](./shell-layout.md)
+- [feature-connection-status.md](./feature-connection-status.md)
+- [feature-safety-controls.md](./feature-safety-controls.md)
+- [feature-3d-viewport.md](./feature-3d-viewport.md)
+- [static-checks.md](./static-checks.md)
+- [verify-v3.json](./verify-v3.json)
+
+## Last Updated
+- 2026-04-06 (KST)
+
 ## Context
 V2(uGUI) 셸이 플레이스홀더 상태로 존재하는 `codex/robotcontrol-shell` 브랜치에서,
 UI Toolkit 기반 V3를 `main` 브랜치에 별도 구현한다.
-Phase 0~3에서 V2와 비교 평가 → Phase 4에서 채택 결정 → Phase 5~8에서 전체 기능 완성.
+초기 실행은 `Phase 0A~3C`의 잘게 쪼갠 단위로 진행하고, 그 결과를 바탕으로 Phase 4에서 채택 결정 → Phase 5~8에서 전체 기능 완성으로 이어간다.
 
 SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
 주인님 추가 요구 13개 + 제안 채택 10개 = **총 140개 항목** 누락 없이 매핑.
@@ -12,28 +33,62 @@ SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
 
 | ID | 기능 | Phase |
 |----|------|-------|
-| U1 | 그리퍼 개폐 (쉬운 조작 탭) | 2B |
+| U1 | 그리퍼 개폐 (쉬운 조작 탭) | 2B-1 |
 | U2 | 블록 추가 + 단계별 루프 생성 (논리/이동 블록) | 5 |
 | U3 | 가독성 아이콘 → 함수별 매핑 | 전체 |
 | U4 | 버튼 클릭 시 확인 팝업 모달 | 2D |
-| U5 | 인풋 수정 시 0 자동선택 + 즉시 반영 | 2B |
-| U6 | 로컬스토리지 임시 값 저장 (PlayerPrefs/JSON) | 3 |
-| U7 | Undo/Redo (BottomBar 상시 표시) | 3 |
-| U8 | Phase 1 후 디자인 시안 리뷰 게이트 | 1 |
+| U5 | 인풋 수정 시 0 자동선택 + 즉시 반영 | 2B-2 |
+| U6 | 로컬스토리지 임시 값 저장 (PlayerPrefs/JSON) | 3B |
+| U7 | Undo/Redo (BottomBar 상시 표시) | 3B |
+| U8 | Phase 1 후 디자인 시안 리뷰 게이트 | 1B |
 | U9 | UI Toolkit 공식문서/스킬 참조 필수 | 전체 |
 | U10 | 수정/삭제/창닫기 시 확인 팝업 | 2D |
 | U11 | 논리명령(IF/ELSE/LOOP) + 이동명령(MoveJ/L/C) 블록 | 5 |
-| U12 | 데카르트 3D 화살표 방향 기기조작 | 2B |
+| U12 | 데카르트 3D 화살표 방향 기기조작 | 2B-3 |
 | U13 | MoveC (원호 이동) 블록 | 5 |
-| A1 | 작업공간 경계 시각화 (도달 범위 구체) | 2C |
-| A2 | 자동 재연결 (3초 재시도 + 카운트다운) | 3 |
-| A3 | 속도 오버라이드 실시간 슬라이더 (BottomBar) | 2B |
-| A4 | 경로 충돌 사전 검출 (빨간 하이라이트) | 2C |
+| A1 | 작업공간 경계 시각화 (도달 범위 구체) | 2C-2 |
+| A2 | 자동 재연결 (3초 재시도 + 카운트다운) | 3B |
+| A3 | 속도 오버라이드 실시간 슬라이더 (BottomBar) | 1A |
+| A4 | 경로 충돌 사전 검출 (빨간 하이라이트) | 2C-2 |
 | A5 | 스크린샷/상태 캡처 버튼 (PNG+JSON) | 6 |
 | A6 | 드래그 티칭 모드 통합 → 블록 자동 변환 | 7 |
 | A7 | 다중 포인트 경로 전체 미리보기 | 5 |
 | A8 | 조그 감도 설정 (모드별 자동 적용) | 7 |
 | A9 | 연결 QR 코드 (태블릿 스캔 연결) | 8 |
+
+---
+
+## 선행 잠금 결정 (공식문서 기준)
+
+### 1. Panel topology
+- V3는 `Assets/UI/PendantV3/PanelSettings/PendantV3PanelSettings.asset` 하나를 메인 SSOT로 사용한다.
+- `TopStatusBar`, `NavRail`, `MainContent`, `ContextPanel`, `BottomBar`, `Popups`, `BottomSheet`는 채택 결정 전까지 같은 PanelSettings를 공유한다.
+- 다중 PanelSettings는 `Sort Order`, 입력 우선순위, 포커스 handoff까지 같은 턴에 문서화할 수 있을 때만 허용한다.
+
+### 2. 입력 시스템
+- V3는 `Input System Package`를 기준으로 구현한다.
+- V3 범위에서 `UnityEngine.Input` 직접 사용은 금지한다.
+- 런타임 `EventSystem`은 씬당 1개만 허용하고 `InputSystemUIInputModule`을 단일 기준으로 쓴다.
+
+### 3. 포커스 / 네비게이션
+- 기본 포커스 순서는 `TopStatusBar -> NavRail -> WorkTabBar -> WorkPanel -> ContextPanel -> BottomBar -> Popup`으로 고정한다.
+- 장식 요소는 `focusable = false`, `tabIndex = -1`을 기본으로 한다.
+- 팝업은 포커스를 내부에 가두고 닫힐 때 호출자에게 복원한다.
+
+### 4. 바인딩 소유권
+- 구조/스타일은 `UXML/USS`, 런타임 상태 쓰기는 `C# Binder`가 소유한다.
+- 동일 요소에 `Runtime Data Binding`과 수동 `C# write`를 동시에 사용하지 않는다.
+- 로봇/연결/모션 상태는 `RobotControlViewState`, V3 전용 UI 상태는 `PendantV3LocalState`로 분리한다.
+
+### 5. 텍스트 / 그래픽 자산
+- `PendantV3TextSettings.asset`를 별도 생성해 PanelSettings에 연결한다.
+- 기본 폰트는 `Noto Sans KR`, fallback font 목록을 명시하고 `Korean Line Breaking Rules`를 켠다.
+- 정적 아이콘은 `Sprite Atlas`로 묶고, 동적 생성 이미지에만 `dynamic atlas`를 의존한다.
+
+### 6. 리스트 / 성능
+- 10개 이상 반복 항목, 재정렬 목록, 로그 목록은 `ListView` 우선으로 구현한다.
+- 기본 가상화는 `FixedHeight`, `fixedItemHeight` 명시는 필수다.
+- 팝업/시트/패널 전환은 `translate`, `scale`, `opacity` 중심으로 애니메이션하고 layout 속성 애니메이션은 금지한다.
 
 ---
 
@@ -80,10 +135,76 @@ SSOT 3개 문서(V1 백로그 117항목, Feature Matrix, Soft Teaching Pad UX) +
 
 ---
 
-## Phase 0: UI Toolkit 인프라 (1세션)
+## 세분화된 실행 순서 (권장)
+
+초기 V3 구현은 큰 Phase 이름보다 아래 실행 단위를 기준으로 커밋한다.
+원칙은 `한 단위 = 한 검증 루프 = 한 커밋 후보`다.
+각 실행 단위에서 사용할 실제 `unityctl` 명령은 [unityctl-recipes.md](./unityctl-recipes.md)를 SSOT로 본다.
+
+| 실행 단위 | 목표 | 완료 기준 |
+|------|------|------|
+| `0A` | UI Toolkit 인프라 자산 고정 | PanelSettings/TextSettings/SpriteAtlas/UIDocument 생성 |
+| `0B` | 루트 셸 뼈대 작성 | `pendant-v3.uxml` + `pendant-v3.uss`로 5영역 구조 표시 |
+| `0C` | 입력/포커스 계약 반영 | EventSystem/InputModule/기본 포커스 순서 점검 |
+| `1A` | Desktop 셸 고정 | TopStatusBar/NavRail/BottomBar/ContextPanel desktop 배치 |
+| `1B` | Tablet 셸 고정 | BottomSheet + tablet class 전환 + 시안 리뷰 |
+| `1C` | 탭 지속성/로컬 레이아웃 상태 | `viewDataKey`/`LocalSettingsStore` 적용 |
+| `2A-1` | 연결 홈 | ConnectionHome 레이아웃 완료 |
+| `2A-2` | 상태/좌표 우측 패널 | StatusCard/CoordStrip 완료 |
+| `2B-1` | 쉬운 조작 | Preset + 그리퍼 버튼 완료 |
+| `2B-2` | 관절 조그 | Slider/숫자입력/0 자동선택 완료 |
+| `2B-3` | TCP 조그 | Base/Tool/User + 3D 화살표 오버레이 완료 |
+| `2B-4` | 포인트 이동 | 좌표 입력 + IK + MoveJ/L/C 선택 UI 완료 |
+| `2C-1` | 안전/진단 | 배너 + Fault overlay + diagnostics 완료 |
+| `2C-2` | 3D 뷰포트 툴바 | toolbar + 작업공간 경계 + 충돌 표시 완료 |
+| `2D` | 팝업/도움말 | 모든 확인/복구/도움말 팝업 완료 |
+| `3A` | Binder/Scene bootstrap | `PendantV3Binder` + `PendantV3SceneCoordinator` 완료 |
+| `3B` | 로컬 서비스 | Undo/Redo, LocalSettings, AutoReconnect 완료 |
+| `3C` | Mock 종단 검증 | Mock 연결부터 tablet 전환까지 e2e smoke 완료 |
+
+---
+
+## Phase별 unityctl 레시피 매핑
+
+| 실행 단위 | 기본 레시피 |
+|------|------|
+| `0A` | `Session Bootstrap` + `Recipe 0A: Infrastructure Assets` |
+| `0B`, `0C`, `1A`, `1B`, `1C` | `Recipe 0B-1C: Shell And Layout` |
+| `2A-1`, `2A-2`, `2B-1`, `2B-2`, `2B-3`, `2B-4`, `2C-1`, `2C-2`, `2D` | `Recipe 2A-2D: Panel UI` |
+| `3A`, `3B`, `3C` | `Recipe 3A-3C: Binder And Mock Flow` |
+| `2C-2`, `3C`, `4` | `Recipe 3D Viewport Verification` |
+| compile/입력/포커스 이상 조사 | `Diagnostics Recipe` |
+| `4` 전 최종 확인 | `Preflight Recipe` |
+
+### 명령 작성 원칙
+- 명령은 가능하면 `--json`으로 실행해 에이전트와 사람이 같은 산출물을 본다.
+- 세션 시작 시 `editor select`와 `editor current`로 현재 프로젝트 선택 상태를 먼저 확인한다.
+- 검증용 스크린샷은 `Artifacts/V3/` 아래에 모은다.
+- 반복 검증이 굳어지면 `workflow verify --file ...`로 번들화한다.
+
+---
+
+## Phase 0 묶음: 인프라와 셸 기반 (0A~0C)
 
 ### 목표
 UI Toolkit 런타임 기반을 프로젝트에 확립한다.
+
+### `0A` 인프라 자산
+- `PendantV3PanelSettings.asset`
+- `PendantV3TextSettings.asset`
+- `PendantV3.spriteatlas`
+- `PendantV3Document.cs`
+
+### `0B` 루트 셸 뼈대
+- `pendant-v3.uxml`
+- `pendant-v3.uss`
+- TopBar / NavRail / Main / Context / Bottom 5영역만 먼저 고정
+
+### `0C` 입력 / 포커스 계약
+- 단일 `EventSystem`
+- `InputSystemUIInputModule`
+- 기본 포커스 순서
+- popup focus trap 기본 구현
 
 ### 산출물
 | 파일 | 설명 |
@@ -91,6 +212,8 @@ UI Toolkit 런타임 기반을 프로젝트에 확립한다.
 | `Assets/UI/PendantV3/pendant-v3.uss` | 루트 USS — `--rc-*` 디자인 토큰 변수 정의 |
 | `Assets/UI/PendantV3/pendant-v3.uxml` | 루트 UXML — 빈 셸 5영역 (TopBar/NavRail/Main/Context/Bottom) |
 | `Assets/UI/PendantV3/PanelSettings/PendantV3PanelSettings.asset` | PanelSettings ScriptableObject |
+| `Assets/UI/PendantV3/PanelSettings/PendantV3TextSettings.asset` | UITK Text Settings — Noto Sans KR + fallback + line breaking |
+| `Assets/UI/PendantV3/icons/PendantV3.spriteatlas` | 정적 아이콘 Sprite Atlas |
 | `Assets/Scripts/UI/RobotControlV3/PendantV3Document.cs` | UIDocument MonoBehaviour — 씬 부트스트랩 |
 | `Assets/UI/PendantV3/icons/` | 아이콘 에셋 폴더 + 기본 아이콘 세트 (U3) |
 
@@ -100,6 +223,9 @@ UI Toolkit 런타임 기반을 프로젝트에 확립한다.
 - #98 UILayoutProfile → C# 클래스 토글 방식으로 대체
 - U3 가독성 아이콘 폴더 구조 확립
 - U9 UI Toolkit 공식문서/스킬 참조 — `/ui-toolkit-verify` 실행으로 시작
+- Panel topology 단일 SSOT 확정
+- Input System / EventSystem 계약 확정
+- Text Settings / Sprite Atlas 계약 확정
 
 ### 검증
 ```bash
@@ -109,11 +235,24 @@ unityctl check --type compile
 
 ---
 
-## Phase 1: 빈 셸 + 탭 네비게이션 (1세션)
+## Phase 1 묶음: 반응형 셸 (1A~1C)
 
 ### 목표
 5영역 셸이 Desktop/Tablet 양쪽에서 동작하는 빈 레이아웃을 만든다.
 **★ 완료 후 주인님 디자인 시안 리뷰 (U8)**
+
+### `1A` Desktop 셸
+- Desktop 기준 TopStatusBar, NavRail, MainContent, ContextPanel, BottomBar 배치 고정
+- 속도 슬라이더, Undo/Redo 위치만 먼저 고정
+
+### `1B` Tablet 셸 + 시안 리뷰
+- BottomSheet 구조
+- Desktop ↔ Tablet class 전환
+- 이 단위 완료 후 디자인 시안 리뷰
+
+### `1C` 탭 지속성 / 로컬 레이아웃 상태
+- `viewDataKey` 적용 범위 고정
+- `LocalSettingsStore`에 탭 선택/시트 확장/split 비율 저장
 
 ### 산출물
 | 파일 | 설명 |
@@ -156,6 +295,18 @@ unityctl screenshot capture
 ### 목표
 TopStatusBar + 연결 홈 + StatusCard 레이아웃 완성. 데이터 바인딩 없음.
 
+### `2A-1` 연결 홈
+- `connection-home.uxml`
+- 빠른 상태
+- 다음 행동 추천
+- 상태별 `Primary Next Action` 1개만 강조
+- "왜 이걸 먼저 해야 하는지" 보조 설명 포함
+
+### `2A-2` 상태/좌표 우측 패널
+- `StatusCardController.cs`
+- `CoordStrip` 레이아웃
+- 연결 요약과 좌표 요약 분리
+
 ### 산출물
 | 파일 | 설명 |
 |------|------|
@@ -182,6 +333,25 @@ unityctl screenshot capture
 
 ### 목표
 4개 조작 탭 + 그리퍼 개폐 + 3D 화살표 조작의 레이아웃 완성.
+
+### `2B-1` 쉬운 조작
+- Home / Ready / Folded / Zero
+- 그리퍼 열기 / 닫기
+
+### `2B-2` 관절 조그
+- Joint slider
+- 단일축 조그
+- 숫자 입력 0 자동선택
+
+### `2B-3` TCP 조그
+- Base / Tool / User 선택
+- XYZ / RPY 조그
+- 3D 화살표 오버레이
+
+### `2B-4` 포인트 이동
+- 좌표 입력
+- IK 결과 표시
+- MoveJ / MoveL / MoveC 선택 UI
 
 ### 산출물
 | 파일 | 설명 |
@@ -217,6 +387,18 @@ unityctl screenshot capture
 
 ### 목표
 안전 배너, 좌표 표시, 3D 뷰포트 툴바 + 작업공간 경계 + 충돌 사전 검출.
+
+### `2C-1` 안전 / 진단
+- `safety-banner`
+- `fault-overlay`
+- `diagnostics-panel`
+- 위험 버튼 결과 설명 문구
+- `정지 = E-Stop 아님` 상시 안내
+
+### `2C-2` 뷰포트 툴바 / 경계 / 충돌
+- `viewport-toolbar`
+- 작업공간 경계 토글
+- 충돌 사전 검출 강조
 
 ### 산출물
 | 파일 | 설명 |
@@ -279,10 +461,48 @@ unityctl check --type compile
 
 ---
 
-## Phase 3: ViewState 바인딩 + Mock 동작 (1~2세션)
+## Phase 3 묶음: ViewState 바인딩 + Mock 동작 (3A~3C, 1~2세션)
 
 ### 목표
 ViewState 바인딩 + Mock 전체 플로우 + Undo/Redo + 로컬 저장 + 자동 재연결.
+
+### `3A` Binder / Scene bootstrap
+- `PendantV3Binder.cs`
+- `PendantV3SceneCoordinator.cs`
+- `RobotControlV3.unity`
+
+### `3B` 로컬 서비스
+- `UndoRedoService.cs`
+- `LocalSettingsStore.cs`
+- `AutoReconnectService.cs`
+
+### `3C` Mock 종단 검증
+- 연결 → 서보 → 조그 → 미리보기 → 적용 → Undo
+- TCP / 3D 화살표 / Fault / 재연결 / Tablet 전환까지 종단 확인
+
+### `3C` 종료 조건
+- 아래 시나리오를 **3회 연속** 재현할 수 있어야 한다.
+  1. 연결 → 서보 ON → 관절 조그 → 미리보기 → 적용 → Undo
+  2. TCP 조그 → 좌표계 전환 → 3D 화살표 조작
+  3. 쉬운 조작 → Home / Ready → 그리퍼 열기 / 닫기
+  4. Fault 발생 → 배너 표시 → 오류 초기화
+  5. Desktop ↔ Tablet 전환 → 포커스 / 탭 상태 유지
+  6. 연결 끊김 → 자동 재연결 카운트다운 → 복귀
+- 허용 종료 조건:
+  - compile green
+  - EditMode green 또는 문서화된 기존 실패만 존재
+  - 치명적 콘솔 에러 0건
+  - 입력 경합 0건
+  - popup focus trap 실패 0건
+  - `현재 로봇`, `목표 고스트`, `예상 경로`가 시각적으로 명확히 구분됨
+  - `미리보기`, `적용`, `동기화`, `복원`의 의미 차이가 화면에서 드러남
+  - `3D viewport`, `desktop shell`, `tablet shell` 스크린샷 각 1장 이상 확보
+- 비허용 종료 조건:
+  - `UnityEngine.Input` 관련 예외
+  - 포인터 입력이 UI와 3D에 동시에 전달되는 현상
+  - popup open 상태에서 배경 포커스 이동
+  - tablet 전환 후 탭/시트 상태 유실
+  - 현재 상태와 목표 상태를 사용자가 구분하기 어려운 시각 충돌
 
 ### 산출물
 | 파일 | 설명 |
@@ -686,6 +906,72 @@ listView.itemsChosen += OnItemChosen; // 더블클릭
 | ListView | https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-uxml-element-ListView.html |
 | 바인딩 콜백 | https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-create-a-binding-callback-any-properties.html |
 | 런타임 UI 예제 | https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-HowTo-CreateRuntimeUI.html |
+
+### M. Panel topology 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 메인 PanelSettings | `PendantV3PanelSettings.asset` 단일 SSOT |
+| 공유 범위 | `TopStatusBar`, `NavRail`, `MainContent`, `ContextPanel`, `BottomBar`, `Popups`, `BottomSheet` |
+| 다중 패널 허용 조건 | 성능 프로파일 또는 입력 우선순위 문제를 수치로 확인한 경우만 |
+| 도입 시 필수 문서화 | `Sort Order`, 포커스 handoff, pointer 우선순위, 렌더 순서 |
+
+### N. 입력 시스템 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| Active Input Handling | `Input System Package` 기준 |
+| V3 금지 API | `UnityEngine.Input` 직접 호출 금지 |
+| EventSystem | 씬당 1개 |
+| UI 입력 모듈 | `InputSystemUIInputModule` 단일 기준 |
+| 입력 관통 | `ViewportHost` 외 V3 UI 위 포인터 입력은 3D로 관통 금지 |
+
+### O. 포커스 / 네비게이션 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 기본 포커스 순서 | `TopStatusBar -> NavRail -> WorkTabBar -> WorkPanel -> ContextPanel -> BottomBar -> Popup` |
+| 장식 요소 | `focusable = false`, `tabIndex = -1` |
+| 팝업 포커스 | 오픈 시 내부에 가두고, 닫힐 때 호출자로 복원 |
+| 기본 키 동작 | `Escape=닫기/취소`, `Enter=기본 확인`, 방향키/D-pad=동레벨 이동 |
+| 포커스 시각 | `2px solid AccentPrimary` 유지 |
+
+### P. 바인딩 / 지속성 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 구조/스타일 | `UXML/USS` 소유 |
+| 런타임 상태 쓰기 | `C# Binder` 소유 |
+| 이중 바인딩 | 동일 요소에 `Runtime Data Binding` + 수동 `C# write` 동시 사용 금지 |
+| 공유 상태 | 로봇/연결/모션은 `RobotControlViewState` |
+| V3 전용 상태 | UI-로컬 파생 상태는 `PendantV3LocalState` |
+| 저장 대상 | 탭 선택, split 비율, 시트 확장 상태만 `viewDataKey` 또는 `LocalSettingsStore` |
+
+### Q. 텍스트 / 리스트 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| Text Settings asset | `PendantV3TextSettings.asset`를 PanelSettings에 연결 |
+| 기본 폰트 | `Noto Sans KR` |
+| fallback | 심볼/이모지/누락 글리프 대비 fallback font 목록 유지 |
+| 한국어 줄바꿈 | `Korean Line Breaking Rules` 사용 |
+| 경고 정책 | 개발 중 missing glyph 경고 비활성화 금지 |
+| 리스트 기본 | 10개 이상 반복 항목은 `ListView` 우선 |
+| 가상화 기본 | `FixedHeight` + `fixedItemHeight` 명시 |
+| 갱신 API | `RefreshItems`/`RefreshItem` 우선, `Rebuild`는 구조 변경 시만 |
+| 재정렬 허용 | 포인트/티칭 시퀀스만 허용, `NavRail`/`WorkTabBar`는 금지 |
+
+### R. 성능 / 그래픽 자산 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 애니메이션 허용 속성 | `translate`, `scale`, `opacity` |
+| 애니메이션 금지 속성 | `width`, `height`, `top`, `left` |
+| 중첩 마스크 | 최대 1단계 |
+| 정적 아이콘 | `Sprite Atlas`로 패킹 |
+| 동적 이미지 | 필요 시 `dynamic atlas` 사용 |
+| usageHints | 이동 패널/시트/팝업 컨테이너에 검토 |
+| 표시/숨김 | 재생성보다 `display`/`visibility` 토글 우선 |
 
 ---
 

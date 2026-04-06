@@ -23,6 +23,9 @@ namespace KineTutor3D.App.Fairino
             messages[-4] = "비상 정지 활성 상태입니다. 해제 후 재시도하세요.";
             messages[-5] = "모션 충돌 감지: 이전 동작이 완료되지 않았습니다.";
             messages[-6] = "통신 타임아웃: 네트워크 연결을 확인하세요.";
+            messages[-7] = "자동 모드 전환에 실패했습니다. 수동/티칭 상태를 확인하세요.";
+            messages[-8] = "드래그 티칭이 활성화되어 있습니다. 종료 후 재시도하세요.";
+            messages[-9] = "컨트롤러 fault가 남아 있습니다. Reset Error 후 다시 시도하세요.";
         }
 
         /// <summary>

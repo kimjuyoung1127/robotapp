@@ -14,6 +14,111 @@
 - 병행 작업: **Phase 3 Student-Friendly UX 런타임 연결/데이터 실체화** 완료
 - 병행 작업: **GameLab-style Product Docs Governance** 진행 중
 
+## 이번 턴 반영 내용 (FAIRINO 소프트 티칭패드 기획 문서화)
+1. 제조사 티칭패드/WebApp 기능을 현재 `RobotControl` 구현과 1대1로 대조한 `docs/ref/product/robots/fairino-teaching-pad-feature-matrix.md`를 추가했다.
+2. 한국어 초보자용 `나만의 티칭패드` 목표를 기준으로 `docs/ref/product/ux/robotcontrol-soft-teaching-pad.md`를 추가했다.
+3. 문서에는 `있음 / 부분 구현 / 없음 / 실기 검증 필요` 4단계 매트릭스, authored-first / 디자인 토큰 / 태블릿 / 프리뷰 / 차별화 포인트를 함께 정리했다.
+
+## 이번 턴 반영 내용 (FAIRINO 소프트 티칭패드 V1 backlog 고정)
+1. `docs/ref/product/roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md`를 추가해 V1 범위를 실제 작업 순서표로 잘랐다.
+2. V1 목표를 `연결 -> 동기화 -> 프리뷰 -> 안전 확인 -> 작은 MoveJ/MoveL`로 고정했다.
+3. `실기 핵심 + 초보자 가치 + 태블릿 대응`만 V1 범위에 넣고, `Program/TPD/I/O/Gripper/Servo Live`는 V1 범위 밖으로 명시했다.
+
+## 이번 턴 반영 내용 (SimMachine 구조 분석)
+1. 로컬 `FAIRINO_SimMachine_v3.9.3` VM 이미지와 `FAIRINO SimMachine Software-V3.9.3-20260210` 패키지를 기준으로 SimMachine 화면 구조 초안 문서를 추가했다.
+2. `web/frontend/index.html`, `routeConfigFn`, `pages/*.html`, `ko.json`을 바탕으로 메인 route, 메뉴 구조, TPD/I/O/Gripper 관련 화면 축을 정리했다.
+3. 현재 세션에서는 VMware 실행 파일이 확인되지 않아 VM 직접 부팅은 보류했고, 대신 수동 실행 체크리스트를 문서에 남겼다.
+
+## 이번 턴 반영 내용 (공식 기능 1:1 와이어프레임 설계)
+1. 실제 SimMachine 캡처와 공식 문서 기능을 1대1로 매칭해 `RobotControl` Desktop/Tablet 와이어프레임을 구체화했다.
+2. `docs/ref/product/ux/robotcontrol-soft-teaching-pad.md`에 공식 기능 매칭 표, Desktop/Tablet 와이어프레임, 패널별 버튼 이름, 라벨 표준을 추가했다.
+3. `docs/ref/product/robots/fairino-simmachine-screen-structure-draft.md`에 실제 캡처 검증 메모를 추가해 추정 구조를 보정했다.
+
+## 이번 턴 반영 내용 (RobotControl 씬 계층 구조 설계 + SimMachine 한글 점검 메모)
+1. `docs/ref/product/ux/robotcontrol-scene-hierarchy.md`를 추가해 새 `RobotControl.unity` 권장 씬 계층 구조를 문서화했다.
+2. 문서에는 `SceneBootstrap`, `RuntimeRoot`, `RobotControlShell`, `BottomSheets`, `Popups` 기준의 authored-first 계층과 기존 컴포넌트 매핑을 함께 정리했다.
+3. `fairino-simmachine-screen-structure-draft.md`에는 SimMachine 한국어 리소스/언어 전환 구조 점검 메모를 추가했다.
+
+## 이번 턴 반영 내용 (소프트 티칭패드 범위 컷 정리)
+1. `robotcontrol-soft-teaching-pad.md`에 `필수 / 선택 / 제외` 범위를 추가해 SimMachine 전체 기능을 그대로 가져오지 않는 기준을 명시했다.
+2. `robotcontrol-soft-teaching-pad-v1-backlog.md`에도 같은 분류를 반영해 V1 범위를 더 분명하게 고정했다.
+3. 제외 항목에는 설치형 상세 설정, 안전 상세 설정, 산업별 주변장치, Program/Graphical/Node editor 계열을 명시했다.
+
+## 이번 턴 반영 내용 (Unity 전용 Program 탭 설계)
+1. `robotcontrol-soft-teaching-pad.md`에 Unity 전용 Program 탭 상세 설계를 추가했다.
+2. Program 탭은 SimMachine의 `Coding / Graphical / Node Graph`를 복제하지 않고, `3D 기반 동작 시퀀서 + 교육형 디버거`로 재해석하는 방향으로 고정했다.
+3. V1 backlog에는 `포인트 기반 동작 시퀀스 + 시뮬레이션 + 선택 블록 상세 편집`만 선택 범위로 추가했다.
+
+## 이번 턴 반영 내용 (Unity 전용 Status 탭 설계)
+1. `robotcontrol-soft-teaching-pad.md`에 Unity 전용 Status 탭 설계를 추가했다.
+2. Status 탭은 SimMachine의 `Log / Query`를 그대로 복제하지 않고, `상태 요약 + 최근 이벤트 + 세션 리포트` 중심으로 축소하는 방향으로 정리했다.
+3. V1 backlog에는 `Status 탭 최소 버전`을 선택 범위로 추가하고, 전문 로그/파형 조회기 복제는 제외 항목으로 명시했다.
+
+## 이번 턴 반영 내용 (Unity 전용 Application 탭 해석)
+1. `robotcontrol-soft-teaching-pad.md`에 Application 탭 해석을 추가했다.
+2. Application은 `Tool App + Process Package` 성격의 산업 확장 기능으로 보고, 메인 소프트 티칭패드 V1에서는 전체 제외로 정리했다.
+3. 단, `Data recording`, `Drag locking`, `Intersection Generation`, `Palletization`, `Conveyor Tracking`은 후속 후보로만 메모했다.
+
+## 이번 턴 반영 내용 (SimMachine 전체 IA 통합 문서화)
+1. `docs/ref/product/ux/fairino-simmachine-ia-map.md`를 추가해 `Initial / Program / Status / Application / System` 전체 구조를 하나의 문서로 묶었다.
+2. 각 카테고리별로 기능 트리, 공식 근거, 캡처 근거, Unity 반영 위치, `필수 / 선택 / 제외` 판단을 함께 정리했다.
+3. 이 문서를 기준으로 SimMachine 전체 복제가 아니라 `Unity 최종 컷`을 한 번에 볼 수 있게 만들었다.
+
+## 이번 턴 반영 내용 (IA → 씬 계층 → 구현 브리지)
+1. `docs/ref/product/ux/robotcontrol-implementation-bridge.md`를 추가해 통합 IA, 씬 계층, 실제 구현 순서를 연결했다.
+2. 각 IA 항목별로 씬 위치, 패널/오브젝트 이름, 담당 스크립트, 재사용 여부, `unityctl` 검증 루프를 표로 정리했다.
+3. 구현 순서를 `셸 -> 필수 패널 -> 3D 차별화 -> UX 보강 -> Tablet`으로 고정했다.
+
+## 이번 턴 반영 내용 (새 세션 인수인계 문서)
+1. `docs/ref/product/ux/robotcontrol-next-session-handoff.md`를 추가해 새 세션 구현용 실행 인덱스를 만들었다.
+2. 문서에는 SSOT 링크, 브랜치 전략, 먼저 만들 폴더 구조, 구현 순서, 검증 루프, V1 제외 범위를 한 번에 정리했다.
+3. 새 세션에서는 이 문서와 기존 SSOT만 읽고 바로 폴더 생성부터 시작하도록 기준을 고정했다.
+
+## 이번 턴 반영 내용 (온보딩 네비 정리 + RobotControl 이중 진입)
+1. `SceneId`/`SceneCatalog`를 확장해 기존 `RobotControl`과 새 `RobotControlV2`를 동시에 내비게이션에 노출하도록 정리했다.
+2. `Onboarding.unity`에서 비활성 legacy `TopBarBackground`와 `SceneNavButtons`를 삭제했다.
+3. `SceneNavigationBar.cs`에서 legacy 숨김/호환 코드를 제거하고 `TopBarRect` 기반 hosted 네비만 사용하도록 단순화했다.
+
+## 이번 턴 반영 내용 (구현 규율 보정)
+1. `App/Fairino` 폴더 구조를 `Template` 단일 폴더 기준으로 다시 정리했다.
+2. `SceneNavigationBar`는 child index 재사용 대신 엔트리 이름 기반 버튼 생성으로 수정했다.
+3. `TopStatusBar`의 기본 표시 문자열을 한국어 우선 기준으로 맞췄다.
+
+## 이번 턴 반영 내용 (문서 업데이트 후 진행 반복 규칙)
+1. `AGENTS.md`, `CLAUDE.md`, `robotcontrol-next-session-handoff.md`에 공통 규칙을 추가했다.
+2. 문서 업데이트는 종료 조건이 아니라 다음 구현/검증 단위로 넘어가는 트리거로 명시했다.
+3. 문서 업데이트가 발생한 턴에는 최소 `다음 실행 단위 1개`를 바로 진행하도록 기준을 고정했다.
+
+## 이번 턴 반영 내용 (Onboarding 전역 네비 중복 제거 + RobotControl 라우팅 검증)
+1. `SceneNavigationBar`가 `SceneNavButtons` 하위 버튼을 재생성하기 전에 즉시 비우도록 수정해, 플레이 중 `Sandbox` 등 전역 네비 버튼이 중복으로 보이던 현상을 제거했다.
+2. 버튼 이름은 표시 문자열 기준 공백 제거 규칙(`NavRobotControl`, `NavRobotControlV2`)으로 정리해 stale name 재사용을 줄였다.
+3. PlayMode에서 `Onboarding` 기준 전역 네비 버튼이 `Math Readiness`, `Robot Library`, `Sandbox`, `Robot Control`, `Robot Control V2` 5개만 보이는 상태를 확인했다.
+4. PlayMode 실클릭 검증 결과:
+   - `Robot Control V2` -> `Assets/Scenes/RobotControlV2.unity`
+   - `Robot Control` -> `Assets/Scenes/RobotControl.unity`
+5. 남은 작업은 라우팅이 아니라 `RobotControlV2` 셸 본체를 새 구조에 맞게 연결하는 것이다.
+
+## 이번 턴 반영 내용 (RobotControlV2 최소 셸 전환)
+1. `RobotControlSceneCoordinator`는 `SceneId.RobotControlV2`에서 legacy `FairinoRobotControlViewBuilder` 경로를 타지 않고, 새 `RobotControlShell` 최소 구조만 띄우도록 분기했다.
+2. `RobotControlShell.EnsureV2Shell(...)`를 추가해 V2 씬 진입 시 old `ConnectionPanel`, `JointControlPanel`, `StatePanel`, `TopBar` 등 legacy 자식을 숨기고 제거한 뒤 `SafeArea/TopStatusBar/LeftRail/CenterViewport/RightRail/BottomSheets/Popups/DebugOnly` 루트만 보장하게 했다.
+3. PlayMode 검증 결과 `Robot Control V2` 클릭 후 old 버튼은 사라지고, `TopStatusBar`의 6개 버튼(`서보`, `시작`, `정지`, `일시정지`, `Sync`, `오류 초기화`)만 보이는 최소 셸 상태를 확인했다.
+
+## 이번 턴 반영 내용 (URDF legacy Input 예외 방어)
+1. `Assets/Scripts/App/UrdfLegacyControllerGuard.cs`를 추가해 씬 로드 직후 `Unity.Robotics.UrdfImporter.Control.Controller`를 전역으로 찾아 비활성화하도록 했다.
+2. `RobotControlSceneCoordinator`와 `FR5TemplateMinimalController`의 개별 방어 코드도 루트 오브젝트만 보지 않고 `GetComponentsInChildren<MonoBehaviour>(true)`로 자식 전체를 훑도록 보강했다.
+3. 최신 콘솔 루프에서는 기존 `InvalidOperationException: You are trying to read Input using the UnityEngine.Input class...`가 재현되지 않았다.
+4. 현재 남은 콘솔 노이즈는 `SceneNavigationBar`가 편집 단계에서 버튼을 재생성할 때 생기는 `SendMessage ... Awake/OnValidate` 계열이며, 이는 별도 정리 대상으로 남는다.
+
+## 이번 턴 반영 내용 (RobotControlV2 정식 디자인 토큰 승격)
+1. `UIDesignTokens.cs`에 `UIDesignTokens.RobotControlV2` 섹션을 추가해 `Colors`와 `Size` 기준 토큰을 정식 정의했다.
+2. `RobotControlShell`과 `TopStatusBar`는 더 이상 로컬 색 상수를 사용하지 않고 `UIDesignTokens.RobotControlV2.*`를 직접 읽도록 정리했다.
+3. 시안 방향은 `Taupe + Slate` 기반의 연한 갈색 계열이다.
+   - 다크 베이스 유지
+   - 따뜻한 샌드/토프 accent
+   - muted text / border / card tone도 같은 계열로 통일
+4. `RobotControlV2`는 authored-first 최소 셸 위에 좌측 `COMMAND CENTER`, 중앙 `WORKSPACE`, 우측 `INSPECTOR`, 하단 `MODULE STRIP` 시안 레이아웃을 갖도록 확장했다.
+5. 마지막 자동 compile 검증은 Unity `domain reload / IPC not ready` 상태 때문에 완료하지 못했고, 다음 세션 첫 루프에서 재검증이 필요하다.
+
 ## 이번 턴 반영 내용 (구조 정리 + realvirtual 의존 축소 1차)
 1. `Assets/Scripts/App`, `Assets/Scripts/UI`, `Assets/Scripts/Visualization`를 역할/페이지 기준 하위 폴더 구조로 재정리했다.
    - `App`: `Runtime/`, `Session/`, `Lessons/`, `Fairino/Template/`

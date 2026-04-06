@@ -29,6 +29,7 @@ namespace KineTutor3D.Tests.EditMode
             Assert.That(json, Does.Contain("speedPresets"), "speedPresets field");
             Assert.That(json, Does.Contain("errorMessages"), "errorMessages field");
             Assert.That(json, Does.Contain("uiTabs"), "uiTabs field");
+            Assert.That(json, Does.Contain("liveDefaults"), "liveDefaults field");
         }
 
         [Test]
@@ -122,6 +123,19 @@ namespace KineTutor3D.Tests.EditMode
             var info = new FairinoVersionInfo(null, null);
             Assert.AreEqual(string.Empty, info.FirmwareVersion);
             Assert.AreEqual(string.Empty, info.SdkVersion);
+        }
+
+        [Test]
+        public void JsonFile_ContainsLiveDefaults()
+        {
+            var config = FairinoRobotConfig.Load();
+
+            Assert.That(config, Is.Not.Null);
+            Assert.That(config.liveDefaults, Is.Not.Null);
+            Assert.That(config.liveDefaults.realtimeSampleMs, Is.EqualTo(100));
+            Assert.That(config.liveDefaults.reconnectEnabled, Is.True);
+            Assert.That(config.liveDefaults.reconnectTimeoutMs, Is.EqualTo(30000));
+            Assert.That(config.liveDefaults.reconnectPeriodMs, Is.EqualTo(500));
         }
     }
 }

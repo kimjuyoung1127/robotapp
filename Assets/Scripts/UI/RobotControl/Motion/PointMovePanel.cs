@@ -6,7 +6,8 @@ using UnityEngine.UI;
 namespace KineTutor3D.UI
 {
     /// <summary>
-    /// V2 포인트 이동 패널의 플레이스홀더 레이아웃을 구성합니다.
+    /// V2 포인트 이동 패널의 scene-authored 레이아웃을 우선 바인딩하고,
+    /// authored 구조가 없을 때만 fallback 레이아웃을 구성합니다.
     /// </summary>
     public sealed class PointMovePanel : MonoBehaviour, IVisibilityControllable
     {
@@ -34,7 +35,7 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             if (targetText != null)
             {
-                targetText.text = $"Preview target: {state.PreviewTarget}";
+                targetText.text = $"미리보기 목표: {state.PreviewTarget}";
             }
 
             if (currentPoseText != null)
@@ -70,7 +71,13 @@ namespace KineTutor3D.UI
                 background.type = Image.Type.Sliced;
             }
             background.color = UIDesignTokens.RobotControlV2.Colors.Card;
-            UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            if (HasSceneAuthoredLayout(root))
+            {
+                BindSceneAuthoredReferences(root);
+                UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
+                return;
+            }
+
             var layout = UiRuntimeStyle.EnsureVerticalLayout(root.gameObject, compact ? UIDesignTokens.Space.Xs : UIDesignTokens.Space.Sm);
             layout.padding = new RectOffset(
                 compact ? (int)UIDesignTokens.Space.Sm : (int)UIDesignTokens.Space.Md,
@@ -82,6 +89,7 @@ namespace KineTutor3D.UI
             EnsureTargetCard(root, compact);
             EnsurePoseGrid(root, compact);
             EnsureActionRow(root, compact);
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void NormalizeLegacyRootChildren(RectTransform root)
@@ -100,11 +108,11 @@ namespace KineTutor3D.UI
             var element = UiRuntimeStyle.EnsureLayoutElement(header);
             element.preferredHeight = compact ? 42f : 48f;
 
-            var title = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, compact ? 13 : 14, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
+            var title = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(240f, 22f), new Vector2(0f, 0f));
             title.text = "포인트 이동";
 
-            var hint = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var hint = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(hint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 20f), new Vector2(0f, -22f));
             hint.text = "Cartesian 입력을 기준으로 관절 계산과 이동 CTA를 제공합니다.";
         }
@@ -114,13 +122,13 @@ namespace KineTutor3D.UI
             var card = root.Find("TargetCard") as RectTransform ?? UiRuntimeStyle.EnsureRectChild(root, "TargetCard");
             SetupCard(card, compact ? 68f : 76f);
 
-            currentPoseText = UiRuntimeStyle.EnsureText(card, "CurrentPose", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            currentPoseText = UiRuntimeStyle.EnsureText(card, "CurrentPose", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Anchor(currentPoseText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(12f, -8f), new Vector2(-12f, -28f));
             currentPoseText.text = "현재 TCP · X -497 / Y -130 / Z 477 / RX 180 / RY 0 / RZ 90";
 
-            targetText = UiRuntimeStyle.EnsureText(card, "TargetText", fallbackFont, compact ? 10 : 11, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            targetText = UiRuntimeStyle.EnsureText(card, "TargetText", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(targetText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(12f, 8f), new Vector2(-12f, 28f));
-            targetText.text = "Preview target: Ready pose";
+            targetText.text = "미리보기 목표: Ready 포즈";
         }
 
         private void EnsurePoseGrid(RectTransform root, bool compact)
@@ -166,7 +174,7 @@ namespace KineTutor3D.UI
             var row = parent.Find($"{label}Card") as RectTransform ?? UiRuntimeStyle.EnsureRectChild(parent, $"{label}Card");
             SetupCard(row, compact ? 38f : 42f);
 
-            var labelText = UiRuntimeStyle.EnsureText(row, "Label", fallbackFont, compact ? 11 : 12, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            var labelText = UiRuntimeStyle.EnsureText(row, "Label", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Anchor(labelText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(28f, 18f), new Vector2(10f, 0f));
             labelText.text = label;
 
@@ -188,10 +196,10 @@ namespace KineTutor3D.UI
             var text = button.transform.Find("Label")?.GetComponent<Text>();
             if (text != null)
             {
-                text.fontSize = compact ? 10 : 11;
+                text.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
                 text.resizeTextForBestFit = true;
-                text.resizeTextMinSize = 9;
-                text.resizeTextMaxSize = compact ? 10 : 11;
+                text.resizeTextMinSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+                text.resizeTextMaxSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
         }
 
@@ -233,6 +241,30 @@ namespace KineTutor3D.UI
             {
                 Object.DestroyImmediate(child.gameObject);
             }
+        }
+
+        private static bool HasSceneAuthoredLayout(RectTransform root)
+        {
+            return root.Find("Header") != null
+                && root.Find("Header/Title") != null
+                && root.Find("Header/Hint") != null
+                && root.Find("TargetCard") != null
+                && root.Find("TargetCard/CurrentPose") != null
+                && root.Find("TargetCard/TargetText") != null
+                && root.Find("PoseGrid") != null
+                && root.Find("PoseGrid/XCard") != null
+                && root.Find("PoseGrid/RZCard") != null
+                && root.Find("ActionRow") != null
+                && root.Find("ActionRow/BtnCalculate") != null
+                && root.Find("ActionRow/BtnMove") != null
+                && root.Find("ActionRow/BtnRestore") != null
+                && root.GetComponent<VerticalLayoutGroup>() == null;
+        }
+
+        private void BindSceneAuthoredReferences(RectTransform root)
+        {
+            currentPoseText = root.Find("TargetCard/CurrentPose")?.GetComponent<Text>();
+            targetText = root.Find("TargetCard/TargetText")?.GetComponent<Text>();
         }
     }
 }

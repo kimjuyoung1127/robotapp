@@ -7,8 +7,14 @@
 ## Parent Doc
 - [README.md](./README.md)
 
+## Related Docs
+- [implementation-plan.md](./implementation-plan.md)
+- [unityctl-recipes.md](./unityctl-recipes.md)
+- [feature-coordinates.md](./feature-coordinates.md)
+- [feature-safety-controls.md](./feature-safety-controls.md)
+
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-06 (KST)
 
 ---
 
@@ -99,6 +105,24 @@
 - **MoveL**: 직선 경로 (실선)
 - **색상**: 안전 = `AccentPrimary`, 위험 구간 = `AccentDanger`
 
+### 현재 상태 / 목표 상태 / 경로 구분 잠금
+
+사용자는 1시간 사용 시점에도 `지금 로봇`, `내가 만들려는 목표`, `예상 경로`를 절대 헷갈리지 않아야 한다.
+따라서 아래 시각 규칙을 고정한다.
+
+| 요소 | 시각 규칙 | 사용자가 이해해야 하는 의미 |
+|------|------|------|
+| 현재 로봇 | 불투명 100%, 기본 재질 | "지금 실제 상태" |
+| 목표 고스트 | 반투명 30%, 와이어 오버레이 | "아직 적용 전 목표 상태" |
+| 예상 경로 | 점선 또는 반투명 선 | "적용하면 지나갈 경로" |
+| 위험 구간 | 빨강 발광 + 빨강 구간 표시 | "그대로 실행하면 위험" |
+| 선택 좌표축 | 100% 불투명 | "현재 조작 기준 좌표계" |
+| 비선택 좌표축 | 30% 불투명 | "지금 기준은 아님" |
+
+- 현재 로봇과 목표 고스트는 같은 색/투명도로 표시하지 않는다.
+- 현재 상태가 변하지 않았는데 목표 상태만 바뀐 경우, 반드시 고스트만 움직여야 한다.
+- `미리보기 해제` 시 고스트와 예상 경로는 즉시 사라지고 현재 로봇만 남는다.
+
 ---
 
 ## 카메라 프리셋
@@ -153,3 +177,27 @@
 
 > 3D 시각화 레이어는 uGUI 기반이 아니므로 UI Toolkit 전환에 영향 없음.
 > 이것이 V3 하이브리드 전략의 핵심 이점.
+
+---
+
+## V3 경계 잠금
+
+### UI Toolkit / 3D 역할 분리
+- V3의 2D 셸은 `UI Toolkit`이 소유한다.
+- 로봇 메시, 프레임 기즈모, 트레일, 고스트, 충돌 하이라이트, 타깃 마커는 기존 `Visualization/` 계층이 소유한다.
+- `ViewportHost`는 3D 카메라가 그려지는 빈 UI 컨테이너다. UI Toolkit 요소를 World Space로 직접 렌더링하지 않는다.
+
+### 렌더 경계
+- 메인 카메라는 기존 `SceneCameraDirector` 기준으로 유지한다.
+- V3는 `ViewportHost`의 rect를 기준으로 카메라 viewport 또는 RenderTexture 표시 영역만 제어한다.
+- `TopStatusBar`, `NavRail`, `ContextPanel`, `BottomBar`, popup은 3D 위 오버레이로 취급하고 3D가 이를 침범하지 않는다.
+
+### 입력 경계
+- `ViewportHost` 내부 포인터 입력만 카메라 조작과 3D hit-test에 전달한다.
+- `ViewportHost` 외의 V3 UI 입력은 3D에 전달하지 않는다.
+- TCP 화살표, 툴바 버튼, 카메라 프리셋 버튼은 모두 UI 이벤트로 처리하고, 3D 조작 명령은 presenter를 통해 visualization 계층에 전달한다.
+
+### 채택 전 금지사항
+- UI Toolkit World Space UI를 V3 주 경로에 도입하지 않는다.
+- 3D 카메라 입력과 UI Toolkit 포인터 입력을 같은 요소에서 동시에 처리하지 않는다.
+- V3 2D UI 안에서 3D 상태를 직접 계산하지 않는다. 3D 파생 상태는 `RobotControlViewState` 또는 preview state를 통해서만 소비한다.

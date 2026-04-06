@@ -16,10 +16,13 @@ namespace KineTutor3D.App.Fairino
         private float pollInterval = 0.1f;
         private float pollTimer;
         private FairinoRobotState lastState;
+        private FairinoCoordContext lastCoordContext = FairinoCoordContext.Default();
+        private FairinoControllerFault lastControllerFault = FairinoControllerFault.None();
         private int consecutiveErrors;
         private bool useMock = true;
         private int lastSafetyCode;
         private int lastRealtimeStateSamplePeriodMs;
+        private FairinoRobotConfig.LiveDefaultsBlock liveDefaults = new FairinoRobotConfig.LiveDefaultsBlock();
 
         /// <summary>
         /// 현재 사용 중인 클라이언트입니다.
@@ -45,6 +48,16 @@ namespace KineTutor3D.App.Fairino
         /// 마지막으로 읽은 실시간 상태 주기(ms)입니다.
         /// </summary>
         public int LastRealtimeStateSamplePeriodMs => lastRealtimeStateSamplePeriodMs;
+
+        /// <summary>
+        /// 마지막으로 읽은 tool/user 좌표 문맥입니다.
+        /// </summary>
+        public FairinoCoordContext LastCoordContext => lastCoordContext;
+
+        /// <summary>
+        /// 마지막으로 읽은 컨트롤러 fault 상태입니다.
+        /// </summary>
+        public FairinoControllerFault LastControllerFault => lastControllerFault;
 
         /// <summary>
         /// 상태가 갱신될 때 발생하는 이벤트입니다.
@@ -96,6 +109,17 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// Live 연결 기본 정책을 적용합니다.
+        /// </summary>
+        public void ApplyLiveDefaults(FairinoRobotConfig.LiveDefaultsBlock defaults)
+        {
+            if (defaults != null)
+            {
+                liveDefaults = defaults;
+            }
+        }
+
+        /// <summary>
         /// Mock↔Live 모드를 전환합니다.
         /// </summary>
         public void SetMockMode(bool mock)
@@ -115,6 +139,8 @@ namespace KineTutor3D.App.Fairino
                 ? (IFairinoRobotClient)new MockFairinoClient()
                 : new LiveFairinoClient(errorTranslator);
             lastState = FairinoRobotState.Zero();
+            lastCoordContext = FairinoCoordContext.Default();
+            lastControllerFault = FairinoControllerFault.None();
             lastSafetyCode = 0;
             lastRealtimeStateSamplePeriodMs = 0;
             pollTimer = 0f;
@@ -139,6 +165,18 @@ namespace KineTutor3D.App.Fairino
             }
 
             consecutiveErrors = 0;
+            if (!useMock)
+            {
+                BestEffortInvoke(() => client.SetReconnect(
+                    liveDefaults.reconnectEnabled,
+                    liveDefaults.reconnectTimeoutMs,
+                    liveDefaults.reconnectPeriodMs));
+                BestEffortInvoke(() => client.SetRealtimeStateSamplePeriod(liveDefaults.realtimeSampleMs));
+                BestEffortInvoke(client.ExitDragTeach);
+                BestEffortInvoke(client.EnsureAutoMode);
+            }
+
+            RefreshAuxiliaryState();
             OnConnectionStateChanged?.Invoke(client.IsConnected);
             OnEnableStateChanged?.Invoke(client.IsEnabled);
             EmitCurrentState();
@@ -152,6 +190,10 @@ namespace KineTutor3D.App.Fairino
         {
             var result = client.Disconnect();
             lastState = FairinoRobotState.Zero();
+            lastCoordContext = FairinoCoordContext.Default();
+            lastControllerFault = FairinoControllerFault.None();
+            lastSafetyCode = 0;
+            lastRealtimeStateSamplePeriodMs = 0;
             OnConnectionStateChanged?.Invoke(client.IsConnected);
             OnEnableStateChanged?.Invoke(client.IsEnabled);
             OnStateUpdated?.Invoke(lastState);
@@ -167,6 +209,10 @@ namespace KineTutor3D.App.Fairino
             if (!result.IsSuccess)
             {
                 OnError?.Invoke(result);
+            }
+            else
+            {
+                RefreshAuxiliaryState();
             }
 
             OnEnableStateChanged?.Invoke(client.IsEnabled);
@@ -285,6 +331,22 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 컨트롤러 fault를 리셋합니다.
+        /// </summary>
+        public FairinoResult ResetErrors()
+        {
+            var result = client.ResetErrors();
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+                return result;
+            }
+
+            RefreshAuxiliaryState();
+            return result;
+        }
+
+        /// <summary>
         /// 현재 로봇 상태를 읽어 반환합니다. Live 모드에서 관절 동기화용입니다.
         /// </summary>
         public FairinoResult<FairinoRobotState> SyncCurrentState()
@@ -300,6 +362,8 @@ namespace KineTutor3D.App.Fairino
                 lastState = result.Value;
                 lastSafetyCode = result.Value.SafetyCode;
                 lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
+                lastCoordContext = new FairinoCoordContext(result.Value.ToolId, result.Value.UserId, lastCoordContext.ToolPose, lastCoordContext.WObjPose);
+                lastControllerFault = new FairinoControllerFault(result.Value.MainErrorCode, result.Value.SubErrorCode, result.Value.IsSafetyStop);
                 OnStateUpdated?.Invoke(lastState);
             }
             else
@@ -336,6 +400,8 @@ namespace KineTutor3D.App.Fairino
                 lastState = result.Value;
                 lastSafetyCode = result.Value.SafetyCode;
                 lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
+                lastCoordContext = new FairinoCoordContext(result.Value.ToolId, result.Value.UserId, lastCoordContext.ToolPose, lastCoordContext.WObjPose);
+                lastControllerFault = new FairinoControllerFault(result.Value.MainErrorCode, result.Value.SubErrorCode, result.Value.IsSafetyStop);
                 OnStateUpdated?.Invoke(lastState);
             }
             else
@@ -347,8 +413,15 @@ namespace KineTutor3D.App.Fairino
                 {
                     consecutiveErrors = 0;
                     client.Disconnect();
+                    lastState = FairinoRobotState.Zero();
+                    lastCoordContext = FairinoCoordContext.Default();
+                    lastControllerFault = FairinoControllerFault.None();
+                    lastSafetyCode = 0;
+                    lastRealtimeStateSamplePeriodMs = 0;
                     OnConnectionLost?.Invoke();
                     OnConnectionStateChanged?.Invoke(false);
+                    OnEnableStateChanged?.Invoke(false);
+                    OnStateUpdated?.Invoke(lastState);
                 }
             }
         }
@@ -361,11 +434,56 @@ namespace KineTutor3D.App.Fairino
                 lastState = result.Value;
                 lastSafetyCode = result.Value.SafetyCode;
                 lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
+                lastCoordContext = new FairinoCoordContext(result.Value.ToolId, result.Value.UserId, lastCoordContext.ToolPose, lastCoordContext.WObjPose);
+                lastControllerFault = new FairinoControllerFault(result.Value.MainErrorCode, result.Value.SubErrorCode, result.Value.IsSafetyStop);
                 OnStateUpdated?.Invoke(lastState);
                 return;
             }
 
             OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+        }
+
+        private void RefreshAuxiliaryState()
+        {
+            var safetyResult = client.GetSafetyCode();
+            if (safetyResult.IsSuccess)
+            {
+                lastSafetyCode = safetyResult.Value;
+            }
+
+            var periodResult = client.GetRealtimeStateSamplePeriod();
+            if (periodResult.IsSuccess)
+            {
+                lastRealtimeStateSamplePeriodMs = periodResult.Value;
+            }
+
+            var contextResult = client.ReadCoordContext();
+            if (contextResult.IsSuccess)
+            {
+                lastCoordContext = contextResult.Value;
+            }
+
+            var faultResult = client.ReadControllerFault();
+            if (faultResult.IsSuccess)
+            {
+                lastControllerFault = faultResult.Value;
+            }
+        }
+
+        private void BestEffortInvoke(System.Func<FairinoResult> action)
+        {
+            try
+            {
+                var result = action.Invoke();
+                if (!result.IsSuccess)
+                {
+                    OnError?.Invoke(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke(FairinoResult.Fail(-6, ex.Message));
+            }
         }
     }
 }

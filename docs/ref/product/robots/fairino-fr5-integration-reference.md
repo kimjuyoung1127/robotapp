@@ -19,10 +19,16 @@
 - `RobotControl.unity`, `FairinoConnectionService`, FR5 config/template, preview/control prefab split까지는 코드 반영됨
 - 남은 핵심 이슈는 `RobotControl`에서 URDF control prefab의 최종 visible state와 FR5 state -> 3D joint mirror 경로다
 - 2026-03-17 기준 공식 C# SDK ZIP에서 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`을 로컬 `Assets/Plugins/Fairino/`에 staging 완료
-- 현재는 실기 컨트롤러 IP 미확정 상태라 `Live Connect -> GetVersion -> ReadState -> Enable -> small MoveJ` 순의 현장 검증만 남아 있다
+- 2026-03-31 기준 `LiveFairinoClient` / `FairinoConnectionService`에 아래 bring-up hardening이 반영되었다.
+  - tool/user context cache
+  - controller fault / safety stop cache
+  - drag teach 종료 + auto mode 준비
+  - reconnect / realtime sample defaults
+  - Live v1에서 `ServoJ` / `ServoCart` 비활성화
+- 현재는 현장 네트워크 응답과 실제 FR5 컨트롤러 상태 검증만 남아 있다.
 
 ## Last Updated
-- 2026-03-13 (KST)
+- 2026-03-31 (KST)
 
 ## Collection Verdict
 - `가능`: FR5 관련 공식 자료는 FAIRINO Read the Docs, FAIRINO 공식 제품 페이지, 공식 GitHub SDK 링크에서 수집할 수 있다.
@@ -95,29 +101,36 @@
 - `Robot.RPC(ip)`로 controller 통신 세션을 연다.
 - `RobotEnable(1)` / `RobotEnable(0)`로 enable/disable을 제어한다.
 - `Mode(mode)`로 manual/automatic mode 전환을 다룬다.
+- `DragTeachSwitch(0)` / `IsInDragTeach(...)`로 drag teach 상태를 정리/확인한다.
+- `SetReConnectParam(...)` 계열 API는 reconnect 정책을 명시적으로 설정할 때 사용한다.
 
 ### Point-to-point motion
 - `MoveJ(...)`: joint target 기반의 기본 PTP 이동
 - `MoveL(...)`: Cartesian linear move
 - UI에 joint 숫자를 직접 입력하는 모드는 `MoveJ`에 먼저 매핑하는 편이 안전하다.
 - UI에 pose 숫자를 입력하는 모드는 `MoveL` 또는 IK 선행 후 `MoveJ`로 분기하는 것이 좋다.
+- 현재 저장소의 Live v1 경로는 `MoveJ` / `MoveL`만 실기 조작 대상으로 본다.
+- `MoveJ` / `MoveL`은 controller의 현재 활성 `tool/user` 문맥을 읽어 그대로 사용한다.
 
 ### Streaming / teleop style motion
 - `ServoMoveStart()`로 servo streaming 세션을 시작한다.
 - `ServoJ(...)`는 joint space servo 입력에 대응한다.
 - `ServoCart(...)`는 Cartesian servo 입력에 대응한다.
 - slider/joystick/drag-style 조작은 일반 `MoveJ/MoveL`보다 servo API 경로가 더 자연스럽다.
+- 다만 현재 KineTutor3D의 FR5 실기 bring-up 경로에서는 `ServoJ` / `ServoCart`를 일반 사용자 동작에서 의도적으로 막고, 이후 연속 제어 단계에서만 다시 검토한다.
 
 ### Status / feedback
 - `GetActualJointPosDegree(...)`로 실제 joint 값을 읽는다.
 - `GetRobotRealTimeState(...)`로 실시간 상태 구조체를 읽는다.
 - `ROBOT_STATE_PKG` 구조체에는 frame header, robot state, joint positions, TCP pose, IO 등 화면 바인딩에 유용한 상태가 포함된다.
 - `SetStatePeriod(period_ms)` / `GetStatePeriod(...)`는 20004 port feedback cycle 관리에 사용된다.
+- `GetActualTCPNum(...)`, `GetActualWObjNum(...)`, `GetCurToolCoord(...)`, `GetCurWObjCoord(...)`는 현재 controller가 사용하는 좌표 문맥을 화면/명령과 맞추는 데 중요하다.
 
 ### Diagnostics / recovery
 - Error code table이 별도 공식 문서로 존재한다.
   - 특히 `-3 xmlrpc communication failed`, `-4 xmlrpc interface execution failed`, `4 Interface parameter value exception`, `129 The given pose cannot be reached`는 UI 메시지 매핑 가치가 높다.
 - `GetSafetyCode()`는 safety stop trigger 상태를 읽는 데 유용하다.
+- `GetRobotErrorCode(...)`, `GetSafetyStopState(...)`, `ResetAllError()`는 bring-up 단계에서 가장 먼저 연결해야 할 진단/복구 API다.
 - `MotionQueueClear()`는 queue 누적 상태를 정리할 때 유용하다.
 - `SingularAvoidStart(...)` / `SingularAvoidEnd()`는 특이점 접근 제어를 런타임 옵션으로 붙일 여지가 있다.
 - `RbLogDownload(savePath)`, `AllDataSourceDownload(savePath)`, `DataPackageDownload(savePath)`, `RobotMCULogCollect()`는 현장 이슈 재현/수집에 유용하다.
@@ -147,12 +160,20 @@
 - `LiveFairinoClient`는 현재 아래 SDK 경로를 직접 다루도록 보강되었다.
   - `RPC`
   - `RobotEnable`
+  - `Mode`
+  - `DragTeachSwitch`
   - `MoveJ`
   - `MoveL`
-  - `ServoJ`
   - `GetRobotRealTimeState`
   - `GetActualJointPosDegree`
   - `GetActualTCPPose`
+  - `GetActualTCPNum`
+  - `GetActualWObjNum`
+  - `GetCurToolCoord`
+  - `GetCurWObjCoord`
+  - `GetRobotErrorCode`
+  - `GetSafetyStopState`
+  - `ResetAllError`
   - `GetSDKVersion`
   - `GetSoftwareVersion`
   - `GetFirmwareVersion`
@@ -160,6 +181,10 @@
   - control prefab 로드 성공
   - runtime gravity 낙하 방지 적용
   - URDF 기본 `Controller` 비활성화로 Input System 예외 제거
+  - 연결 패널/진단 서랍에 `Mode`, `Drag`, `Tool/User`, `Safety`, `Fault`, `Reset Error` 표시 추가
+  - Live v1에서는 `ServoJ` / `ServoCart` 비활성화
+- 폴링 정책은 `ReadState()` 경량화가 기준이다.
+  - 상세 `coord/fault/safety/sample` 조회는 `Connect`, `Enable`, `Sync`, `ResetErrors` 같은 명시적 시점에만 갱신한다.
 - SDK 추가 후 드러난 Unity compile blocker는 수정 완료했고, compile 기준선은 다시 회복되었다.
 - `Assets/Editor/KineTutor3D/FairinoLiveSmokeTools.cs`를 통해 `Connect -> GetVersion -> ReadState` smoke test를 바로 실행할 수 있다.
 - 하지만 `FairinoConnectionService` 상태를 3D joint pose로 반영하는 전용 visual adapter는 아직 없다.
@@ -176,10 +201,14 @@
   - `CONNECT_FAIL`
 - 즉 현재 로컬 프로젝트는 Live SDK 로드와 호출 준비가 되었지만, 테스트 머신에서 실제 컨트롤러 응답이 없다.
 - 다음 현장 검증 순서는 아래 순서를 권장한다.
-  1. Live 모드에서 `Connect`만 확인
-  2. `GetVersion`, `ReadState` 같은 읽기 API 확인
-  3. `Enable`
-  4. 아주 작은 범위의 `MoveJ`
+  1. Live 모드에서 `Connect`
+  2. `GetVersion`, `ReadState`, `tool/user`, `fault` 확인
+  3. `Drag=Off`, `Mode=Auto` 확인
+  4. `Enable`
+  5. `Sync`
+  6. 아주 작은 범위의 `MoveJ`
+  7. 아주 작은 범위의 `MoveL`
+  8. `Reset Error`, `StopMotion`, reconnect UI 확인
 
 ## Live Smoke Test Entry
 

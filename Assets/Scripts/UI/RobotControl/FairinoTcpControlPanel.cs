@@ -43,6 +43,8 @@ namespace KineTutor3D.UI
         private readonly UnityAction<string>[] inputChangedListeners = new UnityAction<string>[6];
         private bool listenersBound;
         private bool dryRun = true;
+        private bool controlsEnabled = true;
+        private bool serviceSubscribed;
 
         /// <summary>
         /// 현재 패널 피드백 텍스트입니다.
@@ -75,6 +77,9 @@ namespace KineTutor3D.UI
                 kinematicsFacade.OnKinematicsUpdated += OnKinematicsUpdated;
                 RefreshCurrentTcp();
             }
+
+            SubscribeService();
+            RefreshActionAvailability();
         }
 
         /// <summary>
@@ -95,11 +100,14 @@ namespace KineTutor3D.UI
         {
             EnsurePresentation();
             BindListeners();
+            SubscribeService();
+            RefreshActionAvailability();
         }
 
         private void OnDisable()
         {
             UnbindListeners();
+            UnsubscribeService();
         }
 
         private void OnDestroy()
@@ -205,6 +213,33 @@ namespace KineTutor3D.UI
             }
 
             RefreshPredictionSummary();
+        }
+
+        private void SubscribeService()
+        {
+            if (serviceSubscribed || connectionService == null)
+            {
+                return;
+            }
+
+            connectionService.OnModeChanged += HandleModeChanged;
+            serviceSubscribed = true;
+        }
+
+        private void UnsubscribeService()
+        {
+            if (!serviceSubscribed || connectionService == null)
+            {
+                return;
+            }
+
+            connectionService.OnModeChanged -= HandleModeChanged;
+            serviceSubscribed = false;
+        }
+
+        private void HandleModeChanged(bool _)
+        {
+            RefreshActionAvailability();
         }
 
         private bool TryBindExistingPresentation(RectTransform root)
@@ -329,6 +364,31 @@ namespace KineTutor3D.UI
                 {
                     label.color = isSelected ? UIDesignTokens.Colors.TextOnAccent : UIDesignTokens.Colors.TextSecondary;
                 }
+            }
+        }
+
+        private void RefreshActionAvailability()
+        {
+            var liveUnsupported = connectionService != null && !connectionService.IsMockMode;
+
+            if (moveLButton != null)
+            {
+                moveLButton.interactable = controlsEnabled;
+            }
+
+            if (servoCartButton != null)
+            {
+                servoCartButton.interactable = controlsEnabled && !liveUnsupported;
+            }
+
+            if (stopButton != null)
+            {
+                stopButton.interactable = controlsEnabled;
+            }
+
+            if (fillCurrentButton != null)
+            {
+                fillCurrentButton.interactable = controlsEnabled;
             }
         }
 
@@ -510,7 +570,7 @@ namespace KineTutor3D.UI
                 return;
             }
 
-            ShowFeedback("ServoCart는 Live 모드에서만 사용할 수 있습니다.");
+            ShowFeedback("ServoCart는 v1 하드웨어 bring-up 범위에서 비활성화되어 있습니다. Live에서는 MoveL만 사용하세요.");
         }
 
         private void OnStopClicked()
@@ -647,6 +707,7 @@ namespace KineTutor3D.UI
         /// </summary>
         public void SetControlsEnabled(bool enabled)
         {
+            controlsEnabled = enabled;
             for (var i = 0; i < tcpInputs.Length; i++)
             {
                 if (tcpInputs[i] != null)
@@ -655,11 +716,6 @@ namespace KineTutor3D.UI
                 }
             }
 
-            if (moveLButton != null) moveLButton.interactable = enabled;
-            if (servoCartButton != null) servoCartButton.interactable = enabled;
-            if (stopButton != null) stopButton.interactable = enabled;
-            if (fillCurrentButton != null) fillCurrentButton.interactable = enabled;
-
             if (speedButtons != null)
             {
                 for (var i = 0; i < speedButtons.Length; i++)
@@ -667,6 +723,8 @@ namespace KineTutor3D.UI
                     if (speedButtons[i] != null) speedButtons[i].interactable = enabled;
                 }
             }
+
+            RefreshActionAvailability();
         }
 
         private void ShowFeedback(string text)

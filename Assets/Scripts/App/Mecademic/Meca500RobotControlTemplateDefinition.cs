@@ -21,6 +21,10 @@ namespace KineTutor3D.App.Mecademic
                 ConfigResourceName = "LearningTabs/Meca500",
                 RuntimeRootName = "Meca500_RuntimeRoot",
                 ControlRobotInstanceName = "Meca500_UrdfInstance",
+                ConnectionTitleText = "Meca500 Connection",
+                TopBarModeText = "Meca500 · Mock by default",
+                BaseLinkName = "base_link",
+                PosePresetOptionsFactory = CreatePosePresetOptions,
                 PosePresetProvider = new RobotControlPosePresetProvider(
                     () => Meca500PosePresets.Home.JointAnglesDeg,
                     Meca500PosePresets.UpdateCurrent),
@@ -50,6 +54,21 @@ namespace KineTutor3D.App.Mecademic
                     }
                 }
             };
+        }
+
+        private static RobotControlPosePresetOption[] CreatePosePresetOptions()
+        {
+            var presets = Meca500PosePresets.All;
+            var options = new RobotControlPosePresetOption[presets.Length];
+            for (var i = 0; i < presets.Length; i++)
+            {
+                options[i] = new RobotControlPosePresetOption(
+                    presets[i].Name,
+                    presets[i].Description,
+                    presets[i].JointAnglesDeg);
+            }
+
+            return options;
         }
     }
 }

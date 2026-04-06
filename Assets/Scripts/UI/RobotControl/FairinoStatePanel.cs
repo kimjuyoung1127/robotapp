@@ -188,12 +188,15 @@ namespace KineTutor3D.UI
                 tcpPoseLabel.text = $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisX)}>X:{t[0]:F2}</color> "
                     + $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisY)}>Y:{t[1]:F2}</color> "
                     + $"<color=#{ColorUtility.ToHtmlStringRGB(ColorAxisZ)}>Z:{t[2]:F2}</color>\n"
-                    + $"Rx:{t[3]:F2} Ry:{t[4]:F2} Rz:{t[5]:F2}";
+                    + $"Rx:{t[3]:F2} Ry:{t[4]:F2} Rz:{t[5]:F2}\n"
+                    + $"Mode:{state.RobotMode} Tool:{state.ToolId} User:{state.UserId} Drag:{(state.IsInDragTeach ? "On" : "Off")}";
             }
 
             if (errorLabel != null)
             {
-                errorLabel.text = string.Empty;
+                errorLabel.text = state.MainErrorCode != 0 || state.SubErrorCode != 0 || state.IsSafetyStop
+                    ? $"Fault {state.MainErrorCode}/{state.SubErrorCode} | SafetyStop:{(state.IsSafetyStop ? "On" : "Off")}"
+                    : string.Empty;
             }
         }
 

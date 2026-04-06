@@ -20,6 +20,7 @@ namespace KineTutor3D.App.Fairino
         public SpeedPresetsBlock speedPresets;
         public ErrorMessageEntry[] errorMessages;
         public UiTabEntry[] uiTabs;
+        public LiveDefaultsBlock liveDefaults;
 
         /// <summary>
         /// Resources/LearningTabs/ 경로에서 JSON 설정을 로드합니다.
@@ -184,6 +185,18 @@ namespace KineTutor3D.App.Fairino
             public string id;
             public string label;
             public string icon;
+        }
+
+        /// <summary>
+        /// Live 연결 기본 정책입니다.
+        /// </summary>
+        [Serializable]
+        public sealed class LiveDefaultsBlock
+        {
+            public int realtimeSampleMs = 100;
+            public bool reconnectEnabled = true;
+            public int reconnectTimeoutMs = 30000;
+            public int reconnectPeriodMs = 500;
         }
     }
 }

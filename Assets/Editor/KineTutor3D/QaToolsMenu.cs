@@ -337,6 +337,7 @@ namespace KineTutor3D.Editor
             KineTutor3D.UI.FairinoRobotControlViewBuilder.EnsureLayout(
                 canvas,
                 null,
+                "FR5 · Mock by default",
                 out var connectionPanel,
                 out var jointControlPanel,
                 out var statePanel,

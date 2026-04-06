@@ -1,0 +1,28 @@
+{
+  "name": "pendant-v3-core-verify",
+  "steps": [
+    {
+      "id": "project-validate",
+      "kind": "projectValidate"
+    },
+    {
+      "id": "scene-shell-capture",
+      "kind": "capture",
+      "view": "scene",
+      "width": 1920,
+      "height": 1080,
+      "format": "png"
+    },
+    {
+      "id": "edit-console-watch",
+      "kind": "consoleWatch",
+      "durationSeconds": 2
+    },
+    {
+      "id": "play-smoke",
+      "kind": "playSmoke",
+      "durationSeconds": 2,
+      "settleTimeoutSeconds": 10
+    }
+  ]
+}

@@ -33,7 +33,7 @@ namespace KineTutor3D.UI
             EnsurePresentation();
             if (stateText != null)
             {
-                stateText.text = $"{(state.IsMockMode ? "Mock" : "Live")} · Tool {state.ToolId:00} · User {state.UserId:00}";
+                stateText.text = $"{(state.IsMockMode ? "모의 연결" : "실기 연결")} · Tool {state.ToolId:00} · User {state.UserId:00}";
             }
         }
 
@@ -59,7 +59,6 @@ namespace KineTutor3D.UI
                 background.type = Image.Type.Sliced;
             }
             background.color = UIDesignTokens.RobotControlV2.Colors.Card;
-            UiRuntimeStyle.Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var layout = UiRuntimeStyle.EnsureVerticalLayout(root.gameObject, compact ? UIDesignTokens.Space.Xs : UIDesignTokens.Space.Sm);
             layout.padding = new RectOffset(
                 compact ? (int)UIDesignTokens.Space.Sm : (int)UIDesignTokens.Space.Md,
@@ -83,17 +82,18 @@ namespace KineTutor3D.UI
             var infoElement = UiRuntimeStyle.EnsureLayoutElement(infoCard);
             infoElement.preferredHeight = compact ? 52f : 64f;
 
-            EnsureActionButton(presetGrid, "BtnHome", "HOME", compact);
-            EnsureActionButton(presetGrid, "BtnReady", "READY", compact);
-            EnsureActionButton(presetGridBottom, "BtnFolded", "FOLDED", compact);
-            EnsureActionButton(presetGridBottom, "BtnZero", "ZERO", compact);
+            EnsureActionButton(presetGrid, "BtnHome", "Home", compact);
+            EnsureActionButton(presetGrid, "BtnReady", "Ready", compact);
+            EnsureActionButton(presetGridBottom, "BtnFolded", "Folded", compact);
+            EnsureActionButton(presetGridBottom, "BtnZero", "Zero", compact);
             EnsureActionButton(actionRow, "BtnPreview", "미리보기", compact, UIDesignTokens.RobotControlV2.Colors.Success);
             EnsureActionButton(actionRow, "BtnApply", "실제 이동", compact, UIDesignTokens.RobotControlV2.Colors.Danger);
 
-            stateText = UiRuntimeStyle.EnsureText(infoCard, "StateText", fallbackFont, 12, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
+            stateText = UiRuntimeStyle.EnsureText(infoCard, "StateText", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.MiddleLeft, UIDesignTokens.RobotControlV2.Colors.TitleText);
             UiRuntimeStyle.Stretch(stateText.rectTransform, Vector2.zero, Vector2.one, new Vector2(12f, 6f), new Vector2(-12f, -6f));
-            stateText.text = "Mock · Tool 00 · User 00";
-            stateText.fontSize = compact ? 11 : 12;
+            stateText.text = "모의 연결 · Tool 00 · User 00";
+            stateText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void NormalizeLegacyRootChildren(RectTransform root)
@@ -115,11 +115,11 @@ namespace KineTutor3D.UI
             var headerElement = UiRuntimeStyle.EnsureLayoutElement(header);
             headerElement.preferredHeight = compact ? 40f : 48f;
 
-            var titleText = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, compact ? 13 : 14, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
+            var titleText = UiRuntimeStyle.EnsureText(header, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Accent);
             UiRuntimeStyle.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(280f, 22f), new Vector2(0f, 0f));
             titleText.text = title;
 
-            var hintText = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, compact ? 11 : 12, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var hintText = UiRuntimeStyle.EnsureText(header, "Hint", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(hintText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(320f, 20f), new Vector2(0f, -22f));
             hintText.text = hint;
         }
@@ -154,10 +154,10 @@ namespace KineTutor3D.UI
             var labelText = button.transform.Find("Label")?.GetComponent<Text>();
             if (labelText != null)
             {
-                labelText.fontSize = compact ? 11 : 12;
+                labelText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
                 labelText.resizeTextForBestFit = true;
-                labelText.resizeTextMinSize = 9;
-                labelText.resizeTextMaxSize = compact ? 11 : 12;
+                labelText.resizeTextMinSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+                labelText.resizeTextMaxSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
         }
 

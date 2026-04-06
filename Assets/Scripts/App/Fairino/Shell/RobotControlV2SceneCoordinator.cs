@@ -36,7 +36,7 @@ namespace KineTutor3D.App.Fairino
 
         private void EnsureShell()
         {
-            shell = RobotControlShell.EnsureV2Shell(canvas, fallbackFont, "로봇 제어 V2", "Mock shell");
+            shell = RobotControlShell.EnsureV2Shell(canvas, fallbackFont, "로봇 제어 V2", "모의 연결");
         }
 
         private void EnsureState()
@@ -63,6 +63,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             shell.Bind(viewState);
+            popupCoordinator?.Bind(shell);
             layoutCoordinator?.SetTabletLayout(viewState.IsTabletLayout);
             popupCoordinator?.ApplyState(viewState);
         }

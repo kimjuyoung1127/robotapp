@@ -9,7 +9,7 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-06 (KST)
 
 ---
 
@@ -130,6 +130,30 @@ Phase 5 (미채택 시): V3 브랜치 보존, V2 계속 개발
 
 ---
 
+## SOLID 보강 메모
+
+### SRP
+- `PendantV3Binder`는 화면 간 배선 책임만 가진다. 상태 계산, 위험도 계산, 도메인 규칙 해석을 넣지 않는다.
+- 각 Controller는 자기 패널의 입력/표시 바인딩만 담당하고, 다른 패널 상태를 직접 계산하지 않는다.
+
+### OCP
+- V3 추가는 기존 `RobotControlViewState`, `IFairinoRobotClient`, `FairinoConnectionService`, `Visualization` 코어를 바꾸지 않고 확장하는 방향을 유지한다.
+- V3 전용 파생 상태는 `PendantV3LocalState`로 분리해 기존 공용 상태 타입의 변경을 최소화한다.
+
+### LSP
+- `MockFairinoClient`와 `LiveFairinoClient`는 `IFairinoRobotClient` 계약을 같은 의미로 구현해야 한다.
+- 같은 명령에 대해 성공/실패/취소 가능성/timeout 의미가 크게 달라지면 안 된다.
+
+### ISP
+- 전체 `RobotControlViewState`를 모든 패널이 다 소비하지 않는다.
+- 각 패널은 필요한 상태만 읽는 `slice view model` 또는 projection 계층을 두는 방향을 우선한다.
+
+### DIP
+- UI 계층은 concrete renderer, concrete popup, concrete robot client 직접 호출보다 interface / facade / state contract를 통해 의존한다.
+- `PendantV3Binder`와 각 Controller는 `IFairinoRobotClient`나 `RobotControlViewState` 같은 추상 경계에 기대고, specific 구현 타입으로 고정하지 않는다.
+
+---
+
 ## 비교 평가 기준표
 
 ### Phase 4에서 사용할 비교 매트릭스
@@ -148,6 +172,16 @@ Phase 5 (미채택 시): V3 브랜치 보존, V2 계속 개발
 - V3 총점이 V2보다 **20% 이상** 높으면 → V3 채택, V2 폐기
 - V3 총점이 V2보다 **20% 미만** 차이면 → V2 유지, V3 참고용 보존
 - V3가 특정 기준에서 **치명적 문제** 발견 시 → V2 유지
+
+### 강제 탈락 조건
+- `성능` 항목에서 V3가 V2 대비 **20% 이상 느리면** 총점과 무관하게 채택 보류
+- `반응형 레이아웃` 또는 `데이터 바인딩`이 V2보다 낮으면 채택 불가
+- `3D 통합`에서 입력 충돌, 포커스 손실, viewport 상호작용 실패가 재현되면 채택 불가
+
+### 채택 최소 조건
+- `반응형 레이아웃`, `데이터 바인딩`, `스타일 유지보수` 3개 중 **최소 2개 이상** V3 우세
+- `Mock 기준 핵심 사용자 흐름`이 `3회 연속` 재현 가능
+- `치명적 콘솔 에러 0건`, `입력 경합 0건`, `포커스 트랩 실패 0건`
 
 ---
 

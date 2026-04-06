@@ -37,13 +37,14 @@ namespace KineTutor3D.UI
             var bg = root.GetComponent<Image>() ?? root.gameObject.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.18f);
 
-            var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, 12, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
+            var title = UiRuntimeStyle.EnsureText(root, "Title", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Bold, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.Warning);
             UiRuntimeStyle.Anchor(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(180f, 20f), new Vector2(16f, -16f));
-            title.text = "DEBUG ONLY";
+            title.text = "디버그 전용";
 
-            var body = UiRuntimeStyle.EnsureText(root, "Body", fallbackFont, 11, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
+            var body = UiRuntimeStyle.EnsureText(root, "Body", fallbackFont, UIDesignTokens.RobotControlV2.Type.UniformText, FontStyle.Normal, TextAnchor.UpperLeft, UIDesignTokens.RobotControlV2.Colors.MutedText);
             UiRuntimeStyle.Anchor(body.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, 36f), new Vector2(16f, -40f));
-            body.text = "Diagnostics drawer and layout bounds overlay land here.";
+            body.text = "진단 서랍과 레이아웃 경계 오버레이가 이 영역에 표시됩니다.";
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
     }
 }

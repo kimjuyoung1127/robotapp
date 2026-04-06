@@ -98,5 +98,35 @@ namespace KineTutor3D.App.Fairino
         /// 컨트롤러 모드를 설정합니다.
         /// </summary>
         FairinoResult SetMode(int mode);
+
+        /// <summary>
+        /// SDK 재연결 정책을 설정합니다.
+        /// </summary>
+        FairinoResult SetReconnect(bool enable, int timeoutMs, int periodMs);
+
+        /// <summary>
+        /// Drag teach 모드를 종료합니다.
+        /// </summary>
+        FairinoResult ExitDragTeach();
+
+        /// <summary>
+        /// 자동 모드로 전환합니다.
+        /// </summary>
+        FairinoResult EnsureAutoMode();
+
+        /// <summary>
+        /// 현재 tool/user 좌표 문맥을 읽어옵니다.
+        /// </summary>
+        FairinoResult<FairinoCoordContext> ReadCoordContext();
+
+        /// <summary>
+        /// 현재 컨트롤러 fault 상태를 읽어옵니다.
+        /// </summary>
+        FairinoResult<FairinoControllerFault> ReadControllerFault();
+
+        /// <summary>
+        /// 컨트롤러 fault를 리셋합니다.
+        /// </summary>
+        FairinoResult ResetErrors();
     }
 }

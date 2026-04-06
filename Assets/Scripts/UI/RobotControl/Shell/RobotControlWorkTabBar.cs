@@ -86,19 +86,20 @@ namespace KineTutor3D.UI
             ConfigureGridLayout(root, compact);
 
             easyMotionButton = EnsureTabButton(root, easyMotionButton, "BtnEasyMotion", "쉬운 조작", compact, 0);
-            tcpButton = EnsureTabButton(root, tcpButton, "BtnTcp", "TCP", compact, 1);
-            jointButton = EnsureTabButton(root, jointButton, "BtnJoint", "관절", compact, 2);
-            pointButton = EnsureTabButton(root, pointButton, "BtnPoint", "포인트", compact, 3);
+            tcpButton = EnsureTabButton(root, tcpButton, "BtnTcp", "TCP 조그", compact, 1);
+            jointButton = EnsureTabButton(root, jointButton, "BtnJoint", "관절 조그", compact, 2);
+            pointButton = EnsureTabButton(root, pointButton, "BtnPoint", "포인트 이동", compact, 3);
             teachingButton = EnsureTabButton(root, teachingButton, "BtnTeaching", "티칭", compact, 4);
 
             buttons.Clear();
             buttons[RobotControlWorkTab.EasyMotion] = easyMotionButton;
-            buttons[RobotControlWorkTab.Tcp] = tcpButton;
-            buttons[RobotControlWorkTab.Joint] = jointButton;
-            buttons[RobotControlWorkTab.Point] = pointButton;
+            buttons[RobotControlWorkTab.TcpJog] = tcpButton;
+            buttons[RobotControlWorkTab.JointJog] = jointButton;
+            buttons[RobotControlWorkTab.PointMove] = pointButton;
             buttons[RobotControlWorkTab.Teaching] = teachingButton;
 
             RefreshButtonStyles();
+            UiRuntimeStyle.ForceTextHierarchySize(root, UIDesignTokens.RobotControlV2.Type.UniformText);
         }
 
         private void ConfigureGridLayout(RectTransform root, bool compact)
@@ -151,10 +152,10 @@ namespace KineTutor3D.UI
             var labelText = button.transform.Find("Label")?.GetComponent<Text>();
             if (labelText != null)
             {
-                labelText.fontSize = compact ? 11 : 12;
+                labelText.fontSize = UIDesignTokens.RobotControlV2.Type.UniformText;
                 labelText.resizeTextForBestFit = true;
-                labelText.resizeTextMinSize = 9;
-                labelText.resizeTextMaxSize = compact ? 11 : 12;
+                labelText.resizeTextMinSize = UIDesignTokens.RobotControlV2.Type.UniformText;
+                labelText.resizeTextMaxSize = UIDesignTokens.RobotControlV2.Type.UniformText;
             }
             return button;
         }
@@ -197,9 +198,9 @@ namespace KineTutor3D.UI
             }
 
             SetPanelVisible("EasyMotionPanel", activeTab == RobotControlWorkTab.EasyMotion);
-            SetPanelVisible("TcpJogPanel", activeTab == RobotControlWorkTab.Tcp);
-            SetPanelVisible("JointJogPanel", activeTab == RobotControlWorkTab.Joint);
-            SetPanelVisible("PointMovePanel", activeTab == RobotControlWorkTab.Point);
+            SetPanelVisible("TcpJogPanel", activeTab == RobotControlWorkTab.TcpJog);
+            SetPanelVisible("JointJogPanel", activeTab == RobotControlWorkTab.JointJog);
+            SetPanelVisible("PointMovePanel", activeTab == RobotControlWorkTab.PointMove);
             SetPanelVisible("TeachingPanel", activeTab == RobotControlWorkTab.Teaching);
         }
 
@@ -253,11 +254,11 @@ namespace KineTutor3D.UI
 
         private void OnEasyMotionClicked() => SelectTab(RobotControlWorkTab.EasyMotion);
 
-        private void OnTcpClicked() => SelectTab(RobotControlWorkTab.Tcp);
+        private void OnTcpClicked() => SelectTab(RobotControlWorkTab.TcpJog);
 
-        private void OnJointClicked() => SelectTab(RobotControlWorkTab.Joint);
+        private void OnJointClicked() => SelectTab(RobotControlWorkTab.JointJog);
 
-        private void OnPointClicked() => SelectTab(RobotControlWorkTab.Point);
+        private void OnPointClicked() => SelectTab(RobotControlWorkTab.PointMove);
 
         private void OnTeachingClicked() => SelectTab(RobotControlWorkTab.Teaching);
     }
