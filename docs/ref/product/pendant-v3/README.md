@@ -11,7 +11,7 @@
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md) — V1 백로그
 
 ## Last Updated
-- 2026-04-06 (KST)
+- 2026-04-14 (KST)
 
 ---
 
@@ -22,6 +22,14 @@
 2. **V1/V2와 병행 평가**: V3 셸을 먼저 만들고, 동일 기능으로 비교 후 채택 결정
 3. **UI 먼저, 기능 나중에**: 셸 + 패널 레이아웃 완성 → V1에서 로직 가져오거나 새로 추가
 4. **모듈식 문서**: 기능별 와이어프레임을 별도 파일로 분리, 이 README가 인덱스
+
+### 현재 실행 스냅샷 (2026-04-14)
+- `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, action/policy wiring 후속
+- `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, visualization 실데이터 연동 후속
+- 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
+- 오늘 구현 로그:
+  - `docs/daily/04-13/pendant-v3-safety-diagnostics-scaffold.md`
+  - `docs/daily/04-13/pendant-v3-viewport-toolbar-boundary-collision-scaffold.md`
 
 ### 기술 선택 근거
 
@@ -83,7 +91,7 @@
 | 셸 레이아웃 | [shell-layout.md](./shell-layout.md) | 신규 |
 | 연결/상태 표시 | [feature-connection-status.md](./feature-connection-status.md) | V2 셸에 있음 |
 | 조인트 조그 | [feature-jog-motion.md](./feature-jog-motion.md) | V2 플레이스홀더 |
-| TCP 조그 | [feature-jog-motion.md](./feature-jog-motion.md) | V2 플레이스홀더 |
+| TCP 조그 | [feature-jog-motion.md](./feature-jog-motion.md) | V3 first slice kickoff |
 | 좌표 표시 | [feature-coordinates.md](./feature-coordinates.md) | ViewState에 정의 |
 | E-stop/정지 계열 | [feature-safety-controls.md](./feature-safety-controls.md) | V2 버튼 있음 |
 | 에러 진단/복구 | [feature-diagnostics.md](./feature-diagnostics.md) | V2 플레이스홀더 |
@@ -373,6 +381,8 @@
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
 - [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 + 운영 규칙 A~R)
+- [progress-checklist.md](./progress-checklist.md) — **현재 진행률 체크리스트**
+- [Daily Log Index](../../../daily/INDEX.md) — 일일 로그 통합 목차
 - [AGENT-CONTRACT.md](./AGENT-CONTRACT.md) — V3 작업용 에이전트 계약 문서
 - [static-checks.md](./static-checks.md) — V3 정적 체크 기준
 - [unityctl-recipes.md](./unityctl-recipes.md) — V3 구현/검증용 `unityctl` 명령 레시피
