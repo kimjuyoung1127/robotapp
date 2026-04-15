@@ -6,7 +6,7 @@
 - daily log와 달리 "지금 어디까지 왔는지"만 짧게 유지한다.
 
 ## Last Updated
-- 2026-04-14 (KST)
+- 2026-04-15 (KST)
 
 ## Current Phase Snapshot
 
@@ -28,6 +28,9 @@
 | `2C-2` 뷰포트 보조 UI | in_progress | viewport toolbar + workspace boundary/collision visual scaffold 완료, visualization 실데이터/정책 연동은 후속 |
 | `2D` 팝업/도움말 | in_progress | popup coordinator + confirm/unsaved + move/warning/recovery scaffold + help-panel·WhyItMoved 최소 scaffold 완료, policy 연동/도움말 심화 후속 |
 | `3A` binder / scene bootstrap | done | binder/coordinator scaffold + authoring/summary/play smoke 완료 |
+| `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
+| `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
+| `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
 | `3B` 로컬 서비스 | pending | Undo/Redo, autoreconnect 미착수 |
 | `3C` mock e2e | pending | 미착수 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
@@ -53,7 +56,7 @@
 - [x] direct path stale local state 제거
 - [x] WorkPanel / BottomSheet 헤더 슬롯 추가
 - [x] 우측 `ActionHint` / `WhyItMoved` placeholder 교체
-- [ ] `StatusCard / CoordStrip / ActionHint` 시각 완성도 최종 확인
+- [x] `StatusCard / CoordStrip / ActionHint / WhyItMoved` 텍스트 잘림 visual smoke 확인
 - [ ] placeholder 잔여 텍스트 제거 최종 확인
 
 ### `2B-2` 관절 조그 kickoff
@@ -237,6 +240,20 @@
 - `AuthorSceneSafe()` + `GetPanelControllerSummary()`: pass
   - `coordinator=bootstrapped=True`
   - `binder=initialized=True; subscriptions=True`
+- `CoordStrip` context density quick relief (`3A-1`)
+  - `AuthorSceneSafe()` + `scene open RobotControlV3`: pass
+  - `BtnCoordStripToggle` actual UITK click after `SceneNavigator.LoadByName("RobotControlV3")`: pass
+  - toggle text `접기 -> 펼치기` 전환 확인
+- `Status/Safety` rebalance (`3A-2`)
+  - `StatusCard` summaryTitle=`정상 대기`, summaryBody 갱신 확인
+  - `SafetyDiagnostics` normal 상태에서 `hostHidden=True` 확인
+  - `BtnPresetFault` actual UITK click 후 `safety.hostHidden=False`, `overlayVisible=True`, `status.summaryTitle=Fault 복구 우선` 확인
+  - `ConnectedServoOff` 복귀 후 `safety.hostHidden=True`, `status.summaryTitle=정상 대기` 재확인
+- `ContextPanel` tab split + scroll fix (`3A-3`)
+  - `GetPanelControllerSummary()`: `contextTabs mode=Status`, `mode=Coordinate` 전환 확인
+  - `GetContextPanelScrollSummary()`: `viewportHeight=554.7`, `contentHeight=728.0~821.3`, bottom scroll offset 확인
+  - `status-bottom-controlled-right.png`: `다음 행동 추천` 카드 본문 전체 노출 확인
+  - `coordinate-bottom-controlled-verified-right.png`: `최근 조작 메모` 카드 제목/본문 노출 확인
 - `play start` -> `console get-entries` -> `play stop`: pass
   - console 1건: `[unityctl] IPC connection error: Pipe closed before full message was read.`
 - note: short-name 필터(`--filter RobotControlMotionRuntimeTests`)는 현재 `0 total`로 떨어져 신뢰도가 낮다.

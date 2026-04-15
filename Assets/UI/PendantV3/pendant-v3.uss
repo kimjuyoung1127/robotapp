@@ -280,10 +280,45 @@
     min-width: var(--rc-context-panel-width);
     max-width: var(--rc-context-panel-width);
     flex-direction: column;
+    min-height: 0;
+}
+
+.rc-context-tab-bar {
+    flex-direction: row;
+    margin-bottom: var(--rc-gap);
+    background-color: var(--rc-card-alt);
+    border-radius: var(--rc-radius);
+    padding: 4px;
+}
+
+.rc-context-tab {
+    flex-grow: 1;
+    min-height: 30px;
+    margin-right: 4px;
+}
+
+.rc-context-tab:last-child {
+    margin-right: 0;
+}
+
+.rc-context-tab--active {
+    background-color: rgba(80, 140, 255, 0.22);
 }
 
 .rc-context-host {
     flex-direction: column;
+}
+
+.rc-context-scroll {
+    flex-grow: 1;
+    min-height: 0;
+    flex-shrink: 1;
+    background-color: transparent;
+}
+
+.rc-context-scroll .unity-scroll-view__content-container {
+    flex-direction: column;
+    padding-bottom: 8px;
 }
 
 .rc-context-card {
@@ -291,10 +326,11 @@
     border-radius: var(--rc-radius);
     padding: var(--rc-card-padding);
     margin-bottom: var(--rc-gap);
+    flex-shrink: 0;
 }
 
 .rc-context-flex {
-    flex-grow: 1;
+    flex-grow: 0;
 }
 
 .rc-panel-title {

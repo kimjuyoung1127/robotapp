@@ -80,21 +80,27 @@
             </ui:VisualElement>
 
             <ui:VisualElement name="ContextPanel" class="rc-context-panel">
-                <ui:VisualElement name="CoordStripHost" class="rc-context-host" />
-                <ui:VisualElement name="StatusCardHost" class="rc-context-host" />
-                <ui:VisualElement name="SafetyDiagnosticsHost" class="rc-context-host" />
-                <ui:VisualElement name="ActionHint" class="rc-context-card">
-                    <ui:Label name="ActionHintTitle" text="다음 행동 추천" class="rc-panel-title" />
-                    <ui:Label name="ActionHintPrimary" text="다음 행동: 동기화 먼저" class="rc-panel-copy rc-panel-copy--compact" />
-                    <ui:Label name="ActionHintSummary" text="첫 조작 전 현재 자세를 읽어두면 덜 위험하다." class="rc-panel-copy" />
+                <ui:VisualElement name="ContextPanelTabBar" class="rc-context-tab-bar">
+                    <ui:Button name="BtnContextTabStatus" text="상태" class="rc-context-tab rc-context-tab--active" />
+                    <ui:Button name="BtnContextTabCoordinate" text="좌표" class="rc-context-tab" />
                 </ui:VisualElement>
-                <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex rc-hidden">
-                    <ui:Label name="WhyItMovedTitle" text="조작 메모" class="rc-panel-title" />
-                    <ui:Label
-                        name="WhyItMovedSummary"
-                        text="작은 포즈부터 확인하고 실제 이동은 마지막에 보내는 흐름을 권장한다."
-                        class="rc-panel-copy" />
-                </ui:VisualElement>
+                <ui:ScrollView name="ContextPanelScroll" mode="Vertical" class="rc-context-scroll">
+                    <ui:VisualElement name="CoordStripHost" class="rc-context-host" />
+                    <ui:VisualElement name="StatusCardHost" class="rc-context-host" />
+                    <ui:VisualElement name="SafetyDiagnosticsHost" class="rc-context-host" />
+                    <ui:VisualElement name="ActionHint" class="rc-context-card">
+                        <ui:Label name="ActionHintTitle" text="다음 행동 추천" class="rc-panel-title" />
+                        <ui:Label name="ActionHintPrimary" text="다음 행동: 동기화 먼저" class="rc-panel-copy rc-panel-copy--compact" />
+                        <ui:Label name="ActionHintSummary" text="첫 조작 전 현재 자세를 읽어두면 덜 위험하다." class="rc-panel-copy" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex rc-hidden">
+                        <ui:Label name="WhyItMovedTitle" text="조작 메모" class="rc-panel-title" />
+                        <ui:Label
+                            name="WhyItMovedSummary"
+                            text="작은 포즈부터 확인하고 실제 이동은 마지막에 보내는 흐름을 권장한다."
+                            class="rc-panel-copy" />
+                    </ui:VisualElement>
+                </ui:ScrollView>
             </ui:VisualElement>
         </ui:VisualElement>
 

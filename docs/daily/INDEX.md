@@ -119,5 +119,9 @@
 - [pendant-v3-popup-copy-and-hardcoding-guard-cleanup.md](./04-14/pendant-v3-popup-copy-and-hardcoding-guard-cleanup.md)
 
 ### 04-15
+- [pendant-v3-context-panel-density-phase-plan.md](./04-15/pendant-v3-context-panel-density-phase-plan.md)
+- [pendant-v3-context-panel-density-phase-2-status-safety-rebalance.md](./04-15/pendant-v3-context-panel-density-phase-2-status-safety-rebalance.md)
+- [pendant-v3-context-panel-phase-3-tab-split.md](./04-15/pendant-v3-context-panel-phase-3-tab-split.md)
+- [pendant-v3-context-panel-scroll-fix.md](./04-15/pendant-v3-context-panel-scroll-fix.md)
 - [pendant-v3-phase-3a-binder-scene-bootstrap-lock.md](./04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md)
 

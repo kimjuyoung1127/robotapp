@@ -11,7 +11,7 @@
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md) — V1 백로그
 
 ## Last Updated
-- 2026-04-14 (KST)
+- 2026-04-15 (KST)
 
 ---
 
@@ -29,8 +29,13 @@
 - `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved 최소 scaffold 완료, `first-run guide`와 정책 심화 후속
 - tablet help 경로: `BottomTabHelp` actual smoke까지 확인 완료
 - `3A` 1차 잠금: 표시 패널 5개 binder화 + scene bootstrap 순서 고정
+- `3A-3` 우측 컬럼: `상태 / 좌표` 탭 분리 + `ContextPanelScroll` 도입으로 하단 카드 텍스트 잘림 해소
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
 - 오늘 구현 로그:
+  - `docs/daily/04-15/pendant-v3-context-panel-scroll-fix.md`
+  - `docs/daily/04-15/pendant-v3-context-panel-phase-3-tab-split.md`
+  - `docs/daily/04-15/pendant-v3-context-panel-density-phase-2-status-safety-rebalance.md`
+  - `docs/daily/04-15/pendant-v3-context-panel-density-phase-plan.md`
   - `docs/daily/04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md`
   - `docs/daily/04-13/pendant-v3-safety-diagnostics-scaffold.md`
   - `docs/daily/04-13/pendant-v3-viewport-toolbar-boundary-collision-scaffold.md`
@@ -394,6 +399,7 @@
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
 - [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 + 운영 규칙 A~R)
+- [context-panel-density-remediation-plan.md](./context-panel-density-remediation-plan.md) — 오른쪽 컬럼 과밀 원인과 페이즈별 해결 계획
 - [phase-3a-binder-scene-bootstrap-lock.md](./phase-3a-binder-scene-bootstrap-lock.md) — 3A 1차 범위 잠금과 책임 분리
 - [progress-checklist.md](./progress-checklist.md) — **현재 진행률 체크리스트**
 - [Daily Log Index](../../../daily/INDEX.md) — 일일 로그 통합 목차

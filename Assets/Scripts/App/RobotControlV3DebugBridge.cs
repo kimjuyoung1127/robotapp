@@ -360,6 +360,8 @@ namespace KineTutor3D.App
             var tcpJog = Object.FindFirstObjectByType<TcpJogController>(FindObjectsInactive.Include);
             var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
             var status = Object.FindFirstObjectByType<StatusCardController>(FindObjectsInactive.Include);
+            var safety = Object.FindFirstObjectByType<SafetyDiagnosticsController>(FindObjectsInactive.Include);
+            var contextTabs = Object.FindFirstObjectByType<ContextPanelTabController>(FindObjectsInactive.Include);
             var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
             var binder = Object.FindFirstObjectByType<PendantV3Binder>(FindObjectsInactive.Include);
             var coordinator = Object.FindFirstObjectByType<PendantV3SceneCoordinator>(FindObjectsInactive.Include);
@@ -376,15 +378,20 @@ namespace KineTutor3D.App
             tcpJog?.ForceInitialize();
             pointMove?.ForceInitialize();
             status?.ForceInitialize();
+            safety?.ForceInitialize();
+            contextTabs?.ForceInitialize();
             var homeSummary = home != null ? home.GetDebugSummary() : "ConnectionHomeController missing";
             var easySummary = easy != null ? easy.GetDebugSummary() : "EasyMotionController missing";
             var jointJogSummary = jointJog != null ? jointJog.GetDebugSummary() : "JointJogController missing";
             var tcpJogSummary = tcpJog != null ? tcpJog.GetDebugSummary() : "TcpJogController missing";
             var pointMoveSummary = pointMove != null ? pointMove.GetDebugSummary() : "PointMoveController missing";
+            var statusSummary = status != null ? status.GetDebugSummary() : "StatusCardController missing";
+            var safetySummary = safety != null ? safety.GetDebugSummary() : "SafetyDiagnosticsController missing";
+            var contextTabsSummary = contextTabs != null ? contextTabs.GetDebugSummary() : "ContextPanelTabController missing";
             var shellSummary = shell != null ? shell.GetDebugSummary() : "PendantV3ShellStateController missing";
             var binderSummary = binder != null ? binder.GetDebugSummary() : "PendantV3Binder missing";
             var coordinatorSummary = coordinator != null ? coordinator.GetDebugSummary() : "PendantV3SceneCoordinator missing";
-            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | binder=[{binderSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
+            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | binder=[{binderSummary}] | contextTabs=[{contextTabsSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | status=[{statusSummary}] | safety=[{safetySummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
         }
 
         public static string SetPreferV3Route(bool value)
@@ -433,6 +440,28 @@ namespace KineTutor3D.App
             var bottomSheetBodyHidden = bottomSheetBody?.ClassListContains("rc-hidden") ?? false;
             var whyCardHidden = whyCard?.ClassListContains("rc-hidden") ?? false;
             return $"panel={panelName}; tree={treeName}; rootChildren={childCount}; rootName={(root?.name ?? "null")}; bridge={bridgeName}; robotName={robotName}; easyHome={easyHome}; homeHost={homePanel}; easyHost={easyPanel}; context={contextPanel}; homeHostChildren={homeHost?.childCount ?? -1}; easyHostChildren={easyHost?.childCount ?? -1}; homeHostHidden={homeHostHidden}; easyHostHidden={easyHostHidden}; workPanelBodyHidden={workPanelBodyHidden}; homeSheetChildren={homeSheet?.childCount ?? -1}; easySheetChildren={easySheet?.childCount ?? -1}; easySheetHidden={easySheetHidden}; bottomSheetBodyHidden={bottomSheetBodyHidden}; whyCardHidden={whyCardHidden}; descendants={descendantCount}";
+        }
+
+        public static string ScrollContextPanelToTopForDebug()
+        {
+            var scrollView = GetContextPanelScrollView();
+            scrollView.scrollOffset = Vector2.zero;
+            return GetContextPanelScrollSummary();
+        }
+
+        public static string ScrollContextPanelToBottomForDebug()
+        {
+            var scrollView = GetContextPanelScrollView();
+            scrollView.scrollOffset = new Vector2(0f, 100000f);
+            return GetContextPanelScrollSummary();
+        }
+
+        public static string GetContextPanelScrollSummary()
+        {
+            var scrollView = GetContextPanelScrollView();
+            var viewportHeight = scrollView.contentViewport.layout.height;
+            var contentHeight = scrollView.contentContainer.layout.height;
+            return $"offsetY={scrollView.scrollOffset.y:F1}; viewportHeight={viewportHeight:F1}; contentHeight={contentHeight:F1}";
         }
 
         private static PendantV3InputContract GetInputContract()
@@ -515,6 +544,18 @@ namespace KineTutor3D.App
             }
 
             return total;
+        }
+
+        private static ScrollView GetContextPanelScrollView()
+        {
+            var contract = GetInputContract();
+            var scrollView = contract.GetComponent<UIDocument>()?.rootVisualElement?.Q<ScrollView>("ContextPanelScroll");
+            if (scrollView == null)
+            {
+                throw new MissingReferenceException("ContextPanelScroll not found in RobotControlV3 document.");
+            }
+
+            return scrollView;
         }
     }
 }
