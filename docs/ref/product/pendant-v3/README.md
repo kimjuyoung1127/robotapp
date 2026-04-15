@@ -23,13 +23,20 @@
 3. **UI 먼저, 기능 나중에**: 셸 + 패널 레이아웃 완성 → V1에서 로직 가져오거나 새로 추가
 4. **모듈식 문서**: 기능별 와이어프레임을 별도 파일로 분리, 이 README가 인덱스
 
-### 현재 실행 스냅샷 (2026-04-14)
+### 현재 실행 스냅샷 (2026-04-15)
 - `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, action/policy wiring 후속
 - `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, visualization 실데이터 연동 후속
+- `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved 최소 scaffold 완료, `first-run guide`와 정책 심화 후속
+- tablet help 경로: `BottomTabHelp` actual smoke까지 확인 완료
+- `3A` 1차 잠금: 표시 패널 5개 binder화 + scene bootstrap 순서 고정
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
 - 오늘 구현 로그:
+  - `docs/daily/04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md`
   - `docs/daily/04-13/pendant-v3-safety-diagnostics-scaffold.md`
   - `docs/daily/04-13/pendant-v3-viewport-toolbar-boundary-collision-scaffold.md`
+  - `docs/daily/04-14/pendant-v3-phase-2d-popup-scaffold-and-smoke.md`
+  - `docs/daily/04-14/pendant-v3-help-panel-and-why-it-moved-scaffold.md`
+  - `docs/daily/04-14/pendant-v3-help-panel-tablet-route-followup.md`
 
 ### 기술 선택 근거
 
@@ -217,6 +224,12 @@
 - 로봇 상태, 연결 상태, 모션 상태는 `RobotControlViewState`와 `PendantV3LocalState`를 통해서만 공급한다.
 - 탭 선택, split 비율, 시트 확장 상태 같은 UI-로컬 값만 `viewDataKey` 또는 `LocalSettingsStore`에 저장한다.
 
+### 실기 연동 literal 예외
+- 기본 원칙은 `preview/demo` 문자열과 임시 sample 숫자를 runtime controller에 직접 박지 않는 것이다.
+- 다만 이 저장소의 현재 RobotControl 실기 목표가 `FAIRINO_FR5` 중심으로 잠겨 있는 동안에는 `FAIRINO_FR5`, live endpoint IP/port, 현재 연결 계약을 표현하는 literal은 예외로 허용한다.
+- 이런 literal은 임시 데모 하드코딩이 아니라 **앱-실기기 연동 계약**으로 취급한다.
+- 반대로 포즈 예시값, 임시 경고 문구, 미리보기용 숫자, 화면 설명 카피는 계속 preview/demo asset이나 state SSOT로 분리한다.
+
 ### 텍스트 설정 잠금
 - `Assets/UI/PendantV3/PanelSettings/PendantV3TextSettings.asset`를 만들고 `PendantV3PanelSettings.asset`에 직접 연결한다.
 - 기본 폰트는 `Noto Sans KR`, 누락 글리프 대비용 fallback font 목록을 별도 지정한다.
@@ -381,6 +394,7 @@
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
 - [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 + 운영 규칙 A~R)
+- [phase-3a-binder-scene-bootstrap-lock.md](./phase-3a-binder-scene-bootstrap-lock.md) — 3A 1차 범위 잠금과 책임 분리
 - [progress-checklist.md](./progress-checklist.md) — **현재 진행률 체크리스트**
 - [Daily Log Index](../../../daily/INDEX.md) — 일일 로그 통합 목차
 - [AGENT-CONTRACT.md](./AGENT-CONTRACT.md) — V3 작업용 에이전트 계약 문서

@@ -1,0 +1,31 @@
+<!-- Pendant V3 - Safety Diagnostics: Phase 2C-1 minimum safety/diagnostics panel -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="safety-diagnostics-panel.uss" />
+    <ui:VisualElement name="SafetyDiagnosticsRoot" class="rc-context-card rc-safety-root">
+        <ui:Label text="안전/진단" class="rc-panel-title" />
+
+        <ui:VisualElement name="SafetyBanner" class="rc-safety-banner rc-safety-banner--safe">
+            <ui:Label name="SafetyBannerText" text="안전 상태: 정상" class="rc-safety-banner-text" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-safety-chip-row">
+            <ui:Label name="SafetyStateValue" text="Safety: 정상" class="rc-safety-chip rc-safety-chip--safe" />
+            <ui:Label name="FaultStateValue" text="Fault: 없음" class="rc-safety-chip rc-safety-chip--muted" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-safety-recovery-card">
+            <ui:Label text="복구 안내" class="rc-safety-subtitle" />
+            <ui:Label name="RecoveryNow" text="지금 상태: 정상 대기" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="RecoveryPrimary" text="다음 행동: 조작 시작" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="RecoveryWhy" text="왜 먼저 하냐면 작은 동작부터 확인하는 흐름이 안전하다." class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Button name="BtnRecoveryPrimary" text="실행" class="rc-safety-action" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-safety-event-card">
+            <ui:Label text="최근 이벤트" class="rc-safety-subtitle" />
+            <ui:Label name="EventLogLine1" text="--" class="rc-safety-event-line" />
+            <ui:Label name="EventLogLine2" text="--" class="rc-safety-event-line" />
+            <ui:Label name="EventLogLine3" text="--" class="rc-safety-event-line" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

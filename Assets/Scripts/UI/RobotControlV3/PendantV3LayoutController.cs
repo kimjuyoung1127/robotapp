@@ -17,7 +17,7 @@ namespace KineTutor3D.UI.RobotControlV3
             Tablet = 2,
         }
 
-        [SerializeField] private PreviewMode previewMode = PreviewMode.Auto;
+        [SerializeField] private PreviewMode previewMode = PreviewMode.Desktop;
         [SerializeField] private float tabletBreakpoint = 1366f;
 
         private UIDocument document;

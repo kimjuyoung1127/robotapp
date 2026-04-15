@@ -1,0 +1,67 @@
+/* Pendant V3 - Status Card: Phase 2A-2 right-side status summary */
+.rc-status-card-root {
+    margin-bottom: var(--rc-gap);
+}
+
+.rc-status-card-section {
+    margin-top: 10px;
+}
+
+.rc-status-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 28px;
+    margin-bottom: 4px;
+}
+
+.rc-status-key {
+    font-size: 13px;
+    color: var(--rc-muted-text);
+}
+
+.rc-status-value {
+    font-size: 14px;
+    color: var(--rc-title-text);
+    -unity-font-style: bold;
+}
+
+.rc-status-value--default {
+    color: var(--rc-title-text);
+}
+
+.rc-status-value--muted {
+    color: var(--rc-muted-text);
+}
+
+.rc-status-value--success {
+    color: var(--rc-success);
+}
+
+.rc-status-value--warning {
+    color: var(--rc-warning);
+}
+
+.rc-status-value--danger {
+    color: var(--rc-danger);
+}
+
+.rc-status-divider {
+    height: 1px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.rc-status-inline-actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rc-status-inline-button {
+    min-height: 24px;
+    margin-left: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 11px;
+}

@@ -1,0 +1,15 @@
+<!-- Pendant V3 Popup: Phase 2D reset confirmation scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="ActionResetConfirmBody" class="rc-popup-template-body">
+        <ui:VisualElement name="PopupMetaBank" class="rc-hidden">
+            <ui:Label name="PopupMetaTitle" text="오류 초기화 확인" />
+            <ui:Label name="PopupMetaSummary" text="Fault 원인을 확인했는지 먼저 점검하고 진행해라." />
+            <ui:Label name="PopupMetaConfirm" text="오류 초기화" />
+            <ui:Label name="PopupMetaCancel" text="취소" />
+            <ui:Label name="PopupMetaDanger" text="true" />
+        </ui:VisualElement>
+        <ui:Label name="ActionResetConfirmTitle" text="원인 확인 후 초기화" class="rc-popup-template-title" />
+        <ui:Label name="ActionResetConfirmLine1" text="Fault를 먼저 읽고 같은 상황을 다시 밟지 않는 게 우선임." class="rc-popup-template-line" />
+        <ui:Label name="ActionResetConfirmLine2" text="확인을 누르면 reset 요청을 보내고, 취소하면 현재 상태를 유지함." class="rc-popup-template-line" />
+    </ui:VisualElement>
+</ui:UXML>

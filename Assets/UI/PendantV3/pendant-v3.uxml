@@ -1,16 +1,16 @@
 <!-- Pendant V3 - Root Shell: Phase 0B minimum five-region shell -->
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Style src="pendant-v3.uss" />
-    <ui:VisualElement name="PendantV3Root" class="rc-root">
+    <ui:VisualElement name="PendantV3Root" class="rc-root" view-data-key="pendant-v3-root">
         <ui:VisualElement name="TopStatusBar" class="rc-top-status-bar">
             <ui:VisualElement name="InfoSection" class="rc-top-info">
                 <ui:Label name="RobotNameLabel" text="FR5 Pendant V3" class="rc-title" />
-                <ui:VisualElement name="PrimaryStatusRow" class="rc-chip-row">
+                <ui:VisualElement name="PrimaryStatusRow" class="rc-chip-row rc-chip-row--primary">
                     <ui:Label name="ConnectionIndicator" text="연결: 미연결" class="rc-status-chip" />
                     <ui:Label name="ModeLabel" text="모드: 수동" class="rc-status-chip" />
                     <ui:Label name="SpeedLabel" text="속도: 30%" class="rc-status-chip" />
                 </ui:VisualElement>
-                <ui:VisualElement name="SecondaryStatusRow" class="rc-chip-row">
+                <ui:VisualElement name="SecondaryStatusRow" class="rc-chip-row rc-chip-row--secondary">
                     <ui:Label name="CoordSystemLabel" text="좌표계: Base" class="rc-status-chip rc-status-chip--muted" />
                     <ui:Label name="ToolLabel" text="Tool: 01" class="rc-status-chip rc-status-chip--muted" />
                     <ui:Label name="UserLabel" text="User: 00" class="rc-status-chip rc-status-chip--muted" />
@@ -26,12 +26,12 @@
                 <ui:Button name="BtnPause" text="일시정지" class="rc-top-button" />
                 <ui:Button name="BtnSync" text="동기화" class="rc-top-button" />
                 <ui:Button name="BtnResetError" text="오류초기화" class="rc-top-button" />
-                <ui:Button name="BtnPopupProbe" text="Focus Probe" class="rc-probe-button" />
+                <ui:Button name="BtnPopupProbe" text="포커스 점검" class="rc-probe-button" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="BodyRow" class="rc-body-row">
-            <ui:VisualElement name="NavRail" class="rc-nav-rail">
+            <ui:VisualElement name="NavRail" class="rc-nav-rail" view-data-key="pendant-v3-nav-rail">
                 <ui:Button name="NavHome" text="🏠&#10;Home" class="rc-nav-item" />
                 <ui:Button name="NavMotion" text="🔧&#10;조작" class="rc-nav-item rc-nav-item--active" />
                 <ui:Button name="NavPoints" text="📍&#10;포인트" class="rc-nav-item" />
@@ -41,68 +41,91 @@
             </ui:VisualElement>
 
             <ui:VisualElement name="MainContent" class="rc-main-content">
-                <ui:VisualElement name="WorkTabBar" class="rc-work-tab-bar">
+                <ui:VisualElement name="WorkTabBar" class="rc-work-tab-bar" view-data-key="pendant-v3-work-tab-bar">
                     <ui:Button name="TabEasyMotion" text="쉬운 조작" class="rc-tab" />
                     <ui:Button name="TabJointJog" text="관절" class="rc-tab" />
                     <ui:Button name="TabTcpJog" text="TCP" class="rc-tab" />
                     <ui:Button name="TabPointMove" text="포인트 이동" class="rc-tab" />
                 </ui:VisualElement>
 
-                <ui:VisualElement name="MainSplit" class="rc-main-split">
-                    <ui:VisualElement name="WorkPanel" class="rc-work-panel">
-                        <ui:Label name="WorkPanelTitle" text="WorkPanel" class="rc-panel-title" />
-                        <ui:Label name="WorkPanelSummary" text="문서에 잠긴 45% 작업 패널 자리. 1A에서는 데스크탑 셸 치수와 구획만 고정한다." class="rc-panel-copy" />
+                <ui:VisualElement name="MainSplit" class="rc-main-split" view-data-key="pendant-v3-main-split">
+                    <ui:VisualElement name="WorkPanel" class="rc-work-panel" view-data-key="pendant-v3-work-panel">
+                        <ui:VisualElement name="WorkPanelHeader" class="rc-panel-header">
+                            <ui:Label name="WorkPanelTitle" text="쉬운 조작 패널" class="rc-panel-title" />
+                            <ui:Label
+                                name="WorkPanelSummary"
+                                text="자주 쓰는 포즈와 작은 이동부터 시작하는 데스크탑 메인 패널."
+                                class="rc-panel-copy rc-panel-copy--compact" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="WorkPanelBody" class="rc-work-panel-body rc-hidden">
+                            <ui:VisualElement name="HomePanelHost" class="rc-panel-host rc-hidden" />
+                            <ui:VisualElement name="HelpPanelHost" class="rc-panel-host rc-hidden" />
+                            <ui:VisualElement name="EasyMotionPanelHost" class="rc-panel-host rc-hidden" />
+                            <ui:VisualElement name="JointJogPanelHost" class="rc-panel-host rc-hidden" />
+                            <ui:VisualElement name="TcpJogPanelHost" class="rc-panel-host rc-hidden" />
+                            <ui:VisualElement name="PointMovePanelHost" class="rc-panel-host rc-hidden" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
+                    <ui:VisualElement name="MainSplitHandle" class="rc-split-handle" view-data-key="pendant-v3-main-split-handle" />
 
-                    <ui:VisualElement name="ViewportHost" class="rc-viewport-host">
-                        <ui:Label name="ViewportTitle" text="ViewportHost" class="rc-panel-title" />
-                        <ui:Label name="ViewportSummary" text="기존 3D 코어를 붙일 55% 뷰포트 자리." class="rc-panel-copy" />
+                    <ui:VisualElement name="ViewportHost" class="rc-viewport-host" view-data-key="pendant-v3-viewport-host">
+                        <ui:VisualElement name="ViewportToolbarHost" class="rc-viewport-toolbar-host" />
                         <ui:VisualElement name="CoordOverlay" class="rc-coord-overlay">
-                            <ui:Label name="CoordOverlayTitle" text="CoordOverlay" class="rc-overlay-title" />
                             <ui:Label name="CoordOverlayRowA" text="J1 0.0  J2 -32.0  J3 84.0" class="rc-overlay-copy" />
                             <ui:Label name="CoordOverlayRowB" text="X -497  Y -130  Z 477" class="rc-overlay-copy" />
                         </ui:VisualElement>
+                        <ui:VisualElement name="CartesianArrowsOverlayHost" class="rc-cartesian-overlay-host rc-hidden" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement name="ContextPanel" class="rc-context-panel">
-                <ui:VisualElement name="CoordStrip" class="rc-context-card">
-                    <ui:Label text="CoordStrip" class="rc-panel-title" />
-                    <ui:Label text="J1 0.0°   J2 -32.0°   J3 84.0°" class="rc-panel-copy" />
-                    <ui:Label text="J4 0.0°   J5 90.0°   J6 0.0°" class="rc-panel-copy" />
-                    <ui:Label text="TCP X -497.0 / Y -130.0 / Z 477.0" class="rc-panel-copy" />
-                </ui:VisualElement>
-                <ui:VisualElement name="StatusCard" class="rc-context-card">
-                    <ui:Label text="StatusCard" class="rc-panel-title" />
-                    <ui:Label text="상태: 정지" class="rc-panel-copy" />
-                    <ui:Label text="모드: 수동 / Safety: 정상 / Fault: 없음" class="rc-panel-copy" />
-                </ui:VisualElement>
+                <ui:VisualElement name="CoordStripHost" class="rc-context-host" />
+                <ui:VisualElement name="StatusCardHost" class="rc-context-host" />
+                <ui:VisualElement name="SafetyDiagnosticsHost" class="rc-context-host" />
                 <ui:VisualElement name="ActionHint" class="rc-context-card">
-                    <ui:Label text="ActionHint" class="rc-panel-title" />
-                    <ui:Label text="다음 행동 추천: Sync를 먼저 실행하세요." class="rc-panel-copy" />
+                    <ui:Label name="ActionHintTitle" text="다음 행동 추천" class="rc-panel-title" />
+                    <ui:Label name="ActionHintPrimary" text="다음 행동: 동기화 먼저" class="rc-panel-copy rc-panel-copy--compact" />
+                    <ui:Label name="ActionHintSummary" text="첫 조작 전 현재 자세를 읽어두면 덜 위험하다." class="rc-panel-copy" />
                 </ui:VisualElement>
-                <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex">
-                    <ui:Label text="WhyItMoved" class="rc-panel-title" />
-                    <ui:Label text="마지막 이동 설명이 여기에 들어온다. 1A에서는 자리와 높이만 고정한다." class="rc-panel-copy" />
+                <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex rc-hidden">
+                    <ui:Label name="WhyItMovedTitle" text="조작 메모" class="rc-panel-title" />
+                    <ui:Label
+                        name="WhyItMovedSummary"
+                        text="작은 포즈부터 확인하고 실제 이동은 마지막에 보내는 흐름을 권장한다."
+                        class="rc-panel-copy" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="BottomSheet" class="rc-bottom-sheet">
-            <ui:VisualElement name="BottomTabBar" class="rc-bottom-tab-bar">
+        <ui:VisualElement name="BottomSheet" class="rc-bottom-sheet" view-data-key="pendant-v3-bottom-sheet">
+            <ui:VisualElement name="BottomSheetHeader" class="rc-bottom-sheet-header">
+                <ui:VisualElement name="BottomSheetHeaderInfo" class="rc-sheet-header-info">
+                    <ui:Label name="BottomSheetTitle" text="쉬운 조작" class="rc-sheet-title" />
+                    <ui:Label name="BottomSheetSummary" text="태블릿에서는 하단 시트로 같은 패널을 연다." class="rc-sheet-copy" />
+                </ui:VisualElement>
+                <ui:Button name="BtnSheetToggle" text="시트 접기" class="rc-sheet-toggle" view-data-key="pendant-v3-sheet-toggle" />
+            </ui:VisualElement>
+            <ui:VisualElement name="BottomTabBar" class="rc-bottom-tab-bar" view-data-key="pendant-v3-bottom-tab-bar">
                 <ui:Button name="BottomTabEasyMotion" text="쉬운조작" class="rc-bottom-tab rc-bottom-tab--active" />
                 <ui:Button name="BottomTabJointJog" text="관절" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabTcpJog" text="TCP" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabPointMove" text="포인트" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabIo" text="I/O" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabStatus" text="상태" class="rc-bottom-tab" />
+                <ui:Button name="BottomTabHelp" text="도움" class="rc-bottom-tab" />
             </ui:VisualElement>
-            <ui:VisualElement name="BottomSheetContent" class="rc-bottom-sheet-content">
-                <ui:Label name="BottomSheetTitle" text="BottomSheet" class="rc-panel-title" />
-                <ui:Label name="BottomSheetSummary" text="Tablet에서는 WorkPanel이 여기로 내려온다. 1B는 구조와 전환 클래스만 고정한다." class="rc-panel-copy" />
+                <ui:VisualElement name="BottomSheetContent" class="rc-bottom-sheet-content" view-data-key="pendant-v3-bottom-sheet-content">
+                    <ui:VisualElement name="BottomSheetBody" class="rc-bottom-sheet-body rc-hidden">
+                        <ui:VisualElement name="HomeSheetHost" class="rc-panel-host rc-hidden" />
+                        <ui:VisualElement name="HelpSheetHost" class="rc-panel-host rc-hidden" />
+                        <ui:VisualElement name="EasyMotionSheetHost" class="rc-panel-host rc-hidden" />
+                        <ui:VisualElement name="JointJogSheetHost" class="rc-panel-host rc-hidden" />
+                        <ui:VisualElement name="TcpJogSheetHost" class="rc-panel-host rc-hidden" />
+                        <ui:VisualElement name="PointMoveSheetHost" class="rc-panel-host rc-hidden" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
             </ui:VisualElement>
-        </ui:VisualElement>
 
         <ui:VisualElement name="BottomBar" class="rc-bottom-bar">
             <ui:Button name="BtnRunBottom" text="실행" class="rc-bottom-button" />
@@ -112,23 +135,26 @@
             <ui:Button name="BtnRedo" text="Redo" class="rc-bottom-button" />
             <ui:Button name="BtnStepBack" text="Step◀" class="rc-bottom-button" />
             <ui:Button name="BtnStepForward" text="Step▶" class="rc-bottom-button" />
-            <ui:Slider name="SpeedSlider" low-value="1" high-value="100" value="30" class="rc-speed-slider" />
+            <ui:Button name="BtnCoordSystem" text="좌표 Base" class="rc-bottom-chip" view-data-key="pendant-v3-coord-system" />
+            <ui:Button name="BtnIncrement" text="증분 5" class="rc-bottom-chip" view-data-key="pendant-v3-increment" />
+            <ui:Slider name="SpeedSlider" low-value="1" high-value="100" value="30" class="rc-speed-slider" view-data-key="pendant-v3-speed-slider" />
             <ui:Label name="SpeedValueLabel" text="30%" class="rc-speed-value" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="PopupLayer" class="rc-popup-layer" picking-mode="Ignore">
-            <ui:VisualElement name="PopupCard" class="rc-popup-card rc-hidden">
-                <ui:Label name="PopupCardTitle" text="0C Focus Trap Probe" class="rc-panel-title" />
-                <ui:Label
-                    name="PopupCardSummary"
-                    text="이 카드는 0C 입력 계약 검증용이다. 열리면 포커스가 여기 안에만 머물러야 한다."
-                    class="rc-panel-copy" />
-                <ui:VisualElement name="PopupActionRow" class="rc-popup-action-row">
-                    <ui:Button name="BtnPopupCancel" text="취소" class="rc-popup-button" />
-                    <ui:Button name="BtnPopupConfirm" text="확인" class="rc-popup-button rc-popup-button--primary" />
+            <ui:VisualElement name="PopupLayer" class="rc-popup-layer" picking-mode="Ignore">
+                <ui:VisualElement name="FaultOverlayHost" class="rc-overlay-layer-host rc-hidden" picking-mode="Position" />
+                <ui:VisualElement name="PopupCard" class="rc-popup-card rc-hidden">
+                    <ui:Label name="PopupCardTitle" text="포커스 점검" class="rc-panel-title" />
+                    <ui:Label
+                        name="PopupCardSummary"
+                        text="팝업이 열린 동안 포커스가 이 카드 안에서만 움직이는지 확인하는 점검 카드."
+                        class="rc-panel-copy" />
+                    <ui:VisualElement name="PopupTemplateHost" class="rc-popup-template-host" />
+                    <ui:VisualElement name="PopupActionRow" class="rc-popup-action-row">
+                        <ui:Button name="BtnPopupCancel" text="취소" class="rc-popup-button" />
+                        <ui:Button name="BtnPopupConfirm" text="확인" class="rc-popup-button rc-popup-button--primary" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:Label name="PopupPlaceholder" text="PopupLayer" class="rc-popup-placeholder" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

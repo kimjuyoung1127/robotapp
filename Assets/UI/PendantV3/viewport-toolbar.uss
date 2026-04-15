@@ -1,0 +1,58 @@
+/* Pendant V3 - Viewport Toolbar: Phase 2C-2 workspace/collision helper scaffold */
+.rc-viewport-toolbar-root {
+    border-radius: 10px;
+    padding: 10px;
+    background-color: rgba(18, 20, 28, 0.86);
+    border-width: 1px;
+    border-color: rgba(80, 140, 255, 0.18);
+}
+
+.rc-viewport-toolbar-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.rc-viewport-toolbar-button {
+    min-height: 30px;
+    min-width: 64px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.rc-viewport-toolbar-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-viewport-toolbar-status {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.rc-viewport-toolbar-status-line {
+    font-size: 11px;
+    color: var(--rc-title-text);
+    margin-bottom: 2px;
+}
+
+.rc-viewport-toolbar-status-line--muted {
+    color: var(--rc-muted-text);
+}
+
+.rc-viewport-toolbar-status-line--warning {
+    color: var(--rc-warning);
+}
+
+.rc-viewport-toolbar-status-line--danger {
+    color: var(--rc-danger);
+}
+
+.rc-viewport-toolbar-hint {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--rc-muted-text);
+    white-space: normal;
+}

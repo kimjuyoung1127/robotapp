@@ -1,0 +1,82 @@
+/* Pendant V3 - Cartesian Arrows Overlay: Phase 2B-3 first slice */
+.rc-cartesian-root {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(18, 18, 24, 0.86);
+}
+
+.rc-cartesian-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rc-cartesian-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.rc-cartesian-badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: rgb(91, 155, 255);
+    background-color: rgba(80, 140, 255, 0.16);
+    font-size: 11px;
+}
+
+.rc-cartesian-grid {
+    margin-top: 8px;
+}
+
+.rc-cartesian-axis {
+    margin-top: 6px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: rgba(30, 30, 40, 0.82);
+}
+
+.rc-cartesian-axis--active {
+    background-color: rgba(80, 140, 255, 0.2);
+}
+
+.rc-cartesian-axis--x {
+    border-left-width: 3px;
+    border-left-color: rgb(255, 104, 104);
+}
+
+.rc-cartesian-axis--y {
+    border-left-width: 3px;
+    border-left-color: rgb(92, 215, 138);
+}
+
+.rc-cartesian-axis--z {
+    border-left-width: 3px;
+    border-left-color: rgb(91, 155, 255);
+}
+
+.rc-cartesian-axis--r {
+    border-left-width: 3px;
+    border-left-color: rgb(255, 196, 88);
+}
+
+.rc-cartesian-axis-value {
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.rc-cartesian-button-row {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.rc-cartesian-button {
+    flex-grow: 1;
+    min-height: 30px;
+    margin-right: 6px;
+}
+
+.rc-cartesian-summary {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--rc-muted-text);
+}

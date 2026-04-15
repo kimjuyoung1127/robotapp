@@ -8,10 +8,12 @@ Pendant V3 팝업 마크업 폴더.
 3. 버튼 순서는 `취소 -> 확인` 고정이다.
 4. 위험 동작, 삭제, 미저장 닫기만 팝업을 강제한다.
 
-## 예정 파일
-- `move-confirm.uxml`
-- `warning-dialog.uxml`
-- `recovery-dialog.uxml`
-- `first-run-guide.uxml`
-- `unsaved-confirm.uxml`
-- `action-confirm.uxml`
+## 현재/예정 파일
+- `action-confirm.uxml` (서보 확인 body + meta copy)
+- `action-reset-confirm.uxml` (오류 초기화 확인 body + meta copy)
+- `action-run-confirm.uxml` (실행 확인 body + meta copy)
+- `move-confirm.uxml` (이동 실행 확인 body + meta copy)
+- `warning-dialog.uxml` (정지/경고 안내 body + meta copy)
+- `recovery-dialog.uxml` (복구 순서 안내 body + meta copy)
+- `unsaved-confirm.uxml` (2D kickoff 완료)
+- `first-run-guide.uxml` (예정)

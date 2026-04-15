@@ -1,0 +1,15 @@
+<!-- Pendant V3 Popup: Phase 2D warning dialog scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="WarningDialogBody" class="rc-popup-template-body">
+        <ui:VisualElement name="PopupMetaBank" class="rc-hidden">
+            <ui:Label name="PopupMetaTitle" text="정지 안내" />
+            <ui:Label name="PopupMetaSummary" text="정지는 E-Stop이 아니라 감속 정지다. 멈춘 뒤 다시 시작 절차가 필요할 수 있음." />
+            <ui:Label name="PopupMetaConfirm" text="확인" />
+            <ui:Label name="PopupMetaCancel" text="취소" />
+            <ui:Label name="PopupMetaDanger" text="false" />
+        </ui:VisualElement>
+        <ui:Label name="WarningDialogTitle" text="정지 동작 안내" class="rc-popup-template-title" />
+        <ui:Label name="WarningDialogLine1" text="정지는 현재 동작을 감속 정지시키는 소프트 동작임." class="rc-popup-template-line" />
+        <ui:Label name="WarningDialogLine2" text="물리 E-Stop은 별도이며, 여기서는 상태 안내와 재확인만 제공함." class="rc-popup-template-line" />
+    </ui:VisualElement>
+</ui:UXML>

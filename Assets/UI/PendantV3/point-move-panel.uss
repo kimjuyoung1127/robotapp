@@ -1,0 +1,128 @@
+.rc-point-root {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.rc-point-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rc-point-motion-row {
+    flex-direction: row;
+}
+
+.rc-point-motion-button {
+    min-width: 72px;
+    min-height: 30px;
+    margin-left: 6px;
+}
+
+.rc-point-motion-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-name-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.rc-point-name-label {
+    min-width: 72px;
+    font-size: 14px;
+    color: var(--rc-muted-text);
+}
+
+.rc-point-name-input {
+    flex-grow: 1;
+    min-height: 32px;
+}
+
+.rc-point-name-input--danger {
+    background-color: rgba(255, 70, 70, 0.16);
+}
+
+.rc-point-coord-row {
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.rc-point-coord-button {
+    min-width: 72px;
+    min-height: 30px;
+    margin-right: 6px;
+}
+
+.rc-point-coord-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.rc-point-cell {
+    width: 48%;
+    min-height: 44px;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 2%;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.rc-point-cell-label {
+    min-width: 34px;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.rc-point-cell-input {
+    flex-grow: 1;
+    min-height: 30px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.rc-point-cell-input--danger {
+    background-color: rgba(255, 70, 70, 0.16);
+}
+
+.rc-point-cell-unit {
+    min-width: 28px;
+    font-size: 12px;
+    color: var(--rc-muted-text);
+}
+
+.rc-point-footer-card {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.rc-point-action-row {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.rc-point-action-button {
+    min-width: 92px;
+    min-height: 34px;
+    margin-left: 8px;
+}
+
+.rc-point-action-button--primary {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-action-button--danger {
+    background-color: rgba(255, 70, 70, 0.18);
+}

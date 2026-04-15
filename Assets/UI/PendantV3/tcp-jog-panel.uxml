@@ -1,0 +1,80 @@
+<!-- Pendant V3 - TCP Jog: Phase 2B-3 first slice -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="tcp-jog-panel.uss" />
+    <ui:VisualElement name="TcpJogRoot" class="rc-tcp-root">
+        <ui:VisualElement class="rc-tcp-header">
+            <ui:Label text="TCP 조그" class="rc-panel-title" />
+            <ui:VisualElement class="rc-tcp-coord-row">
+                <ui:Button name="BtnTcpCoordBase" text="Base" class="rc-tcp-coord-button rc-tcp-coord-button--active" />
+                <ui:Button name="BtnTcpCoordTool" text="Tool" class="rc-tcp-coord-button" />
+                <ui:Button name="BtnTcpCoordUser" text="User" class="rc-tcp-coord-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label
+            name="TcpJogHint"
+            text="Base는 베이스 기준, Tool은 공구 끝 기준, User는 작업 좌표 기준으로 미세 이동 감각을 맞춘다."
+            class="rc-panel-copy rc-panel-copy--compact" />
+
+        <ui:VisualElement class="rc-tcp-section">
+            <ui:Label text="직선 이동 (mm)" class="rc-tcp-section-title" />
+            <ui:VisualElement name="TcpRow1" class="rc-tcp-row">
+                <ui:Label text="X" class="rc-tcp-axis-label rc-tcp-axis-label--x" />
+                <ui:Button name="BtnTcp1Minus" text="X-" class="rc-tcp-step-button rc-tcp-step-button--x" />
+                <ui:Label name="TcpValue1" text="-497.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp1Plus" text="X+" class="rc-tcp-step-button rc-tcp-step-button--x" />
+                <ui:Label text="mm" class="rc-tcp-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement name="TcpRow2" class="rc-tcp-row">
+                <ui:Label text="Y" class="rc-tcp-axis-label rc-tcp-axis-label--y" />
+                <ui:Button name="BtnTcp2Minus" text="Y-" class="rc-tcp-step-button rc-tcp-step-button--y" />
+                <ui:Label name="TcpValue2" text="-130.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp2Plus" text="Y+" class="rc-tcp-step-button rc-tcp-step-button--y" />
+                <ui:Label text="mm" class="rc-tcp-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement name="TcpRow3" class="rc-tcp-row">
+                <ui:Label text="Z" class="rc-tcp-axis-label rc-tcp-axis-label--z" />
+                <ui:Button name="BtnTcp3Minus" text="Z-" class="rc-tcp-step-button rc-tcp-step-button--z" />
+                <ui:Label name="TcpValue3" text="477.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp3Plus" text="Z+" class="rc-tcp-step-button rc-tcp-step-button--z" />
+                <ui:Label text="mm" class="rc-tcp-unit" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-tcp-section">
+            <ui:Label text="회전 이동 (deg)" class="rc-tcp-section-title" />
+            <ui:VisualElement name="TcpRow4" class="rc-tcp-row">
+                <ui:Label text="RX" class="rc-tcp-axis-label rc-tcp-axis-label--r" />
+                <ui:Button name="BtnTcp4Minus" text="RX-" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label name="TcpValue4" text="180.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp4Plus" text="RX+" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label text="deg" class="rc-tcp-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement name="TcpRow5" class="rc-tcp-row">
+                <ui:Label text="RY" class="rc-tcp-axis-label rc-tcp-axis-label--r" />
+                <ui:Button name="BtnTcp5Minus" text="RY-" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label name="TcpValue5" text="0.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp5Plus" text="RY+" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label text="deg" class="rc-tcp-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement name="TcpRow6" class="rc-tcp-row">
+                <ui:Label text="RZ" class="rc-tcp-axis-label rc-tcp-axis-label--r" />
+                <ui:Button name="BtnTcp6Minus" text="RZ-" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label name="TcpValue6" text="90.0" class="rc-tcp-value" />
+                <ui:Button name="BtnTcp6Plus" text="RZ+" class="rc-tcp-step-button rc-tcp-step-button--r" />
+                <ui:Label text="deg" class="rc-tcp-unit" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-tcp-footer-card">
+            <ui:Label name="TcpIncrementSummary" text="증분: 5 mm / 5°" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="TcpSpeedSummary" text="속도: 30%" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="TcpOverlaySummary" text="같은 축을 오른쪽 3D 오버레이에서 바로 이어서 조작할 수 있다." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-tcp-action-row">
+            <ui:Button name="BtnTcpPreview" text="미리보기" class="rc-tcp-action-button rc-tcp-action-button--primary" />
+            <ui:Button name="BtnTcpApply" text="적용(MoveL)" class="rc-tcp-action-button rc-tcp-action-button--danger" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,17 @@
+/* Pendant V3 - Help Panel: Phase 2D minimum context help scaffold */
+.rc-help-root {
+    flex-grow: 1;
+}
+
+.rc-help-card {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.rc-help-subtitle {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--rc-title-text);
+}

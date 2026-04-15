@@ -1,0 +1,15 @@
+<!-- Pendant V3 Popup: Phase 2D action confirmation scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="ActionConfirmBody" class="rc-popup-template-body">
+        <ui:VisualElement name="PopupMetaBank" class="rc-hidden">
+            <ui:Label name="PopupMetaTitle" text="서보 활성화 확인" />
+            <ui:Label name="PopupMetaSummary" text="서보를 켜면 실제 이동 가능 상태로 바뀜." />
+            <ui:Label name="PopupMetaConfirm" text="서보 켜기" />
+            <ui:Label name="PopupMetaCancel" text="취소" />
+            <ui:Label name="PopupMetaDanger" text="false" />
+        </ui:VisualElement>
+        <ui:Label name="ActionConfirmTitle" text="이 작업을 실행할지 확인해라." class="rc-popup-template-title" />
+        <ui:Label name="ActionConfirmLine1" text="실제 로봇 상태를 바꿀 수 있는 동작임." class="rc-popup-template-line" />
+        <ui:Label name="ActionConfirmLine2" text="확인을 누르면 실행되고, 취소하면 현재 상태를 유지함." class="rc-popup-template-line" />
+    </ui:VisualElement>
+</ui:UXML>

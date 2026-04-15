@@ -1,0 +1,108 @@
+/* Pendant V3 - Joint Jog: Phase 2B-2 first slice */
+.rc-joint-root {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.rc-joint-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rc-joint-mode-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rc-joint-mode-button {
+    min-height: 32px;
+    margin-left: 6px;
+}
+
+.rc-joint-mode-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-joint-list {
+    margin-top: 12px;
+}
+
+.rc-joint-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: rgba(18, 18, 24, 0.38);
+}
+
+.rc-joint-axis-label {
+    min-width: 28px;
+    margin-right: 8px;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.rc-joint-step-button {
+    min-width: 52px;
+    min-height: 36px;
+    margin-right: 8px;
+}
+
+.rc-joint-slider-group {
+    flex-grow: 1;
+    margin-right: 8px;
+}
+
+.rc-joint-slider {
+    flex-grow: 1;
+}
+
+.rc-joint-limit {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--rc-muted-text);
+}
+
+.rc-joint-input {
+    width: 84px;
+    min-width: 84px;
+    margin-right: 8px;
+}
+
+.rc-joint-value {
+    min-width: 60px;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.rc-joint-value--warning {
+    color: var(--rc-warning);
+}
+
+.rc-joint-footer-card {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: rgba(18, 18, 24, 0.55);
+}
+
+.rc-joint-action-row {
+    flex-direction: row;
+    margin-top: 12px;
+}
+
+.rc-joint-action-button {
+    flex-grow: 1;
+    min-height: 42px;
+    margin-right: 8px;
+}
+
+.rc-joint-action-button--primary {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-joint-action-button--danger {
+    background-color: rgba(255, 70, 70, 0.18);
+}

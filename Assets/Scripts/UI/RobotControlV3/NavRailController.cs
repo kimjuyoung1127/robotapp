@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace KineTutor3D.UI.RobotControlV3
 {
     /// <summary>
-    /// Desktop NavRail의 최소 선택 상태를 유지합니다.
+    /// Desktop NavRail 버튼 참조를 캐시하고 활성 클래스를 적용합니다.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class NavRailController : MonoBehaviour
@@ -30,15 +30,11 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(root, "NavIo");
             AddButton(root, "NavStatus");
             AddButton(root, "NavHelp");
+        }
 
-            for (var index = 0; index < navButtons.Count; index++)
-            {
-                var button = navButtons[index];
-                var capturedIndex = index;
-                button.clicked += () => SetActive(capturedIndex);
-            }
-
-            SetActive(1);
+        private void OnDisable()
+        {
+            navButtons.Clear();
         }
 
         private void AddButton(VisualElement root, string name)
@@ -50,11 +46,11 @@ namespace KineTutor3D.UI.RobotControlV3
             }
         }
 
-        private void SetActive(int activeIndex)
+        public void SetActive(string activeButtonName)
         {
-            for (var index = 0; index < navButtons.Count; index++)
+            foreach (var button in navButtons)
             {
-                navButtons[index].EnableInClassList("rc-nav-item--active", index == activeIndex);
+                button.EnableInClassList("rc-nav-item--active", button.name == activeButtonName);
             }
         }
     }

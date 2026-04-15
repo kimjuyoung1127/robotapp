@@ -1,0 +1,52 @@
+<!-- Pendant V3 - Connection Home: Phase 2A-1 connection overview and next action -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="connection-home.uss" />
+    <ui:VisualElement name="ConnectionHomeRoot" class="rc-home-root">
+        <ui:VisualElement name="ConnectionCard" class="rc-home-card">
+            <ui:Label text="연결 카드" class="rc-panel-title" />
+            <ui:Label name="ConnectionRobot" text="FAIRINO FR5" class="rc-home-headline" />
+            <ui:Label name="ConnectionIp" text="IP: 192.168.58.2" class="rc-panel-copy" />
+            <ui:Label name="ConnectionStatus" text="상태: ● 연결됨" class="rc-panel-copy" />
+            <ui:Label text="연결/해제는 아직 mock 시안만 돈다." class="rc-home-note" />
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnConnect" text="연결" class="rc-home-button" />
+                <ui:Button name="BtnDisconnect" text="연결 해제" class="rc-home-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="QuickStatusCard" class="rc-home-card">
+            <ui:Label text="빠른 상태" class="rc-panel-title" />
+            <ui:Label name="QuickServo" text="서보: OFF → [서보 켜기]" class="rc-panel-copy" />
+            <ui:Label name="QuickMode" text="모드: 수동" class="rc-panel-copy" />
+            <ui:Label name="QuickSync" text="마지막 동기화: 12초 전" class="rc-panel-copy" />
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnQuickAction" text="서보 켜기" class="rc-home-button rc-home-button--primary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="NextActionCard" class="rc-home-card rc-home-card--accent">
+            <ui:Label text="다음 행동 추천" class="rc-panel-title" />
+            <ui:Label name="ActionNow" text="지금 상태: 연결됨 / 서보 OFF" class="rc-home-now" />
+            <ui:Label name="ActionPrimary" text="다음 행동: 서보를 먼저 켜기" class="rc-home-primary" />
+            <ui:Label name="ActionWhy" text="왜 먼저 하냐면 서보가 살아야 실제 이동을 보낼 수 있음." class="rc-panel-copy" />
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnPrimaryAction" text="서보 켜기 →" class="rc-home-button rc-home-button--primary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="PreviewPresetCard" class="rc-home-card rc-home-card--muted">
+            <ui:Label text="시안 프리셋" class="rc-panel-title" />
+            <ui:Label text="실데이터 바인딩 전이라 연결 흐름 시안만 돌려본다." class="rc-panel-copy" />
+            <ui:VisualElement class="rc-home-state-row">
+                <ui:Button name="BtnPresetDisconnected" text="미연결" class="rc-home-state-button" />
+                <ui:Button name="BtnPresetServoOff" text="서보OFF" class="rc-home-state-button" />
+                <ui:Button name="BtnPresetUnsynced" text="미동기화" class="rc-home-state-button" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-home-state-row">
+                <ui:Button name="BtnPresetReady" text="준비완료" class="rc-home-state-button" />
+                <ui:Button name="BtnPresetFault" text="Fault" class="rc-home-state-button" />
+                <ui:Button name="BtnPresetReconnect" text="재연결" class="rc-home-state-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

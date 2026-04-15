@@ -26,8 +26,8 @@
 | `2B-4` 포인트 이동 | in_progress | 최소 scaffold + App motion runtime facade + desktop/tablet actual `BtnPointApply` MoveL dispatch 확인 완료, invalid-input smoke 완료, MoveJ hold UX lock 완료 / MoveJ dispatch pending |
 | `2C-1` 안전/진단 | in_progress | safety diagnostics panel/fault overlay scaffold + scene wiring + actual preview-state smoke 완료, action wiring/policy 연동은 후속 |
 | `2C-2` 뷰포트 보조 UI | in_progress | viewport toolbar + workspace boundary/collision visual scaffold 완료, visualization 실데이터/정책 연동은 후속 |
-| `2D` 팝업/도움말 | pending | 미착수 |
-| `3A` binder / scene bootstrap | pending | 미착수 |
+| `2D` 팝업/도움말 | in_progress | popup coordinator + confirm/unsaved + move/warning/recovery scaffold + help-panel·WhyItMoved 최소 scaffold 완료, policy 연동/도움말 심화 후속 |
+| `3A` binder / scene bootstrap | done | binder/coordinator scaffold + authoring/summary/play smoke 완료 |
 | `3B` 로컬 서비스 | pending | Undo/Redo, autoreconnect 미착수 |
 | `3C` mock e2e | pending | 미착수 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
@@ -133,6 +133,36 @@
 - [ ] visualization 실데이터(경계 볼륨/충돌 세그먼트) 연동
 - [ ] toolbar 토글을 `RobotControlViewState`/policy와 단일 소스로 통합
 
+### `2D` 팝업/도움말 scaffold
+- [x] `PopupCoordinatorV3.cs` 생성
+- [x] `action-confirm.uxml` meta copy 분리
+- [x] `action-reset-confirm.uxml` 생성
+- [x] `action-run-confirm.uxml` 생성
+- [x] `unsaved-confirm.uxml` meta copy 분리
+- [x] `move-confirm.uxml` 생성
+- [x] `warning-dialog.uxml` 생성
+- [x] `recovery-dialog.uxml` 생성
+- [x] popup copy literal을 runtime controller에서 asset 쪽으로 이동
+- [x] hardcoding guard에 popup/viewport UI copy 검사 추가
+- [x] actual play popup smoke (`Escape/Enter`, focus trap, confirm/cancel) 1차 닫기
+  - debug `warning` popup open -> title `정지 안내`
+  - `BtnPopupConfirm` actual click -> `popupActive=False`, focus 복귀 확인
+  - debug `move` / `recovery` popup open -> title/confirm text 확인
+- [x] `help-panel.uxml` / `.uss` 생성
+- [x] `HelpPanelController.cs` 생성
+- [x] `WhyItMovedController.cs` 생성
+- [x] `NavHelp` actual click -> help panel visible / work tab bar hidden
+- [x] `WhyItMovedSummary` 별도 controller 전담으로 분리
+- [x] `BottomTabHelp` tablet 진입 경로 authored 반영
+- [x] `BottomTabHelp` actual tablet smoke
+  - `HelpSheetHost` visible + childCount=1
+  - `BottomSheetTitle=BottomSheet · 도움말`
+  - `BottomTabTcpJog` 복귀 시 `BottomSheetTitle=BottomSheet · TCP`
+- [x] help-panel 카피 1차 심화
+  - preview state + coord/increment/speed 기반 안내 문구 보강
+- [ ] `first-run-guide` popup/도움말 연계
+- [ ] help-panel 탭별 세분화 2차 polish
+
 ## Policy Checklist
 
 - [x] Onboarding direct path -> `FreshStart`
@@ -149,7 +179,8 @@
 6. `PointMove` MoveJ hold UX (`Apply` disable + 라벨) 회귀
 7. 필요 시 `RobotLibrary -> RobotControlV3` resume 회귀만 짧게 재확인
 8. `2C-2` scaffold 이후 visualization 실데이터 연동 범위 잠금(경계/충돌 계산은 Visualization 소유 유지)
-9. `2D` 팝업/도움말 최소 착수 전 위험 버튼/확인 팝업 스코프 재잠금
+9. `2D` popup actual play smoke (`서보ON/오류초기화/실행/미저장`) 닫기
+10. `help-panel / WhyItMoved` 카피 심화 + 실제 policy 연결 후 2D 마감
 
 ## Latest Test Result
 
@@ -201,9 +232,19 @@
     - `BtnPresetReady` click: `ViewportCollisionStatus=충돌 예측: 안전`, `BtnViewportCollision` enabled + `충돌 OFF`, `ViewportHost`에서 `rc-viewport-host--collision` 해제
 - `unityctl test --mode edit`: `439 passed / 18 failed / 0 skipped` (`total=457`)
 - `unityctl test --mode edit --filter KineTutor3D.Tests.EditMode.RobotControlMotionRuntimeTests`: `2 passed / 0 failed / 0 skipped`
+- `unityctl test --mode edit --filter KineTutor3D.Tests.EditMode.RobotControlV3HardcodingGuardTests`: `1 passed / 0 failed / 0 skipped`
+- `unityctl check --type compile`: pass
+- `AuthorSceneSafe()` + `GetPanelControllerSummary()`: pass
+  - `coordinator=bootstrapped=True`
+  - `binder=initialized=True; subscriptions=True`
+- `play start` -> `console get-entries` -> `play stop`: pass
+  - console 1건: `[unityctl] IPC connection error: Pipe closed before full message was read.`
 - note: short-name 필터(`--filter RobotControlMotionRuntimeTests`)는 현재 `0 total`로 떨어져 신뢰도가 낮다.
 - note: full EditMode 기준으로는 기존 red 묶음 외에 `MathReadinessPanelTests`/`OnboardingManagerTests`/`UIInventoryValidatorTests` 계열 실패가 같이 보였다.
 - note: play 검증 콘솔에는 gameplay 에러 없이 `unityctl` IPC 재연결 로그만 반복 관측됐다.
+- note: popup smoke 기준 `BtnPopupConfirm` actual click 뒤 `popupActive=False`, focus=`BtnPopupProbe` 복귀를 재확인했다.
+- note: `NavHelp` actual click 기준 `HelpPanelHost` visible, `WorkTabBar` hidden, `WhyItMovedSummary` 갱신까지 확인했다.
+- note: `BottomTabHelp` actual click 기준 `HelpSheetHost` visible, `BottomSheetTitle=BottomSheet · 도움말`, `BottomTabTcpJog` 복귀 시 `BottomSheetTitle=BottomSheet · TCP` 원복까지 확인했다.
 
 ## Source Docs
 

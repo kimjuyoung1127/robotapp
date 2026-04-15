@@ -113,4 +113,11 @@
 
 ### 04-14
 - [pendant-v3-docs-refresh-and-handoff-gate.md](./04-14/pendant-v3-docs-refresh-and-handoff-gate.md)
+- [pendant-v3-help-panel-and-why-it-moved-scaffold.md](./04-14/pendant-v3-help-panel-and-why-it-moved-scaffold.md)
+- [pendant-v3-help-panel-tablet-route-followup.md](./04-14/pendant-v3-help-panel-tablet-route-followup.md)
+- [pendant-v3-phase-2d-popup-scaffold-and-smoke.md](./04-14/pendant-v3-phase-2d-popup-scaffold-and-smoke.md)
+- [pendant-v3-popup-copy-and-hardcoding-guard-cleanup.md](./04-14/pendant-v3-popup-copy-and-hardcoding-guard-cleanup.md)
+
+### 04-15
+- [pendant-v3-phase-3a-binder-scene-bootstrap-lock.md](./04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md)
 

@@ -1,0 +1,26 @@
+<!-- Pendant V3 - Help Panel: Phase 2D minimum context help scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="help-panel.uss" />
+    <ui:VisualElement name="HelpPanelRoot" class="rc-help-root">
+        <ui:Label name="HelpPanelTitle" text="도움말" class="rc-panel-title" />
+        <ui:Label
+            name="HelpPanelSummary"
+            text="현재 탭에서 뭘 먼저 확인해야 하는지 빠르게 읽는 컨텍스트 도움말."
+            class="rc-panel-copy rc-panel-copy--compact" />
+
+        <ui:VisualElement class="rc-help-card">
+            <ui:Label name="HelpPrimaryTitle" text="지금 먼저 볼 것" class="rc-help-subtitle" />
+            <ui:Label name="HelpPrimaryBody" text="연결, 좌표계, 증분, 속도부터 확인해라." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-help-card">
+            <ui:Label name="HelpSafetyTitle" text="안전 메모" class="rc-help-subtitle" />
+            <ui:Label name="HelpSafetyBody" text="실제 이동 전에 현재 상태와 목표 상태를 먼저 분리해서 봐야 함." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-help-card">
+            <ui:Label name="HelpActionTitle" text="바로 다음 행동" class="rc-help-subtitle" />
+            <ui:Label name="HelpActionBody" text="작은 이동이나 미리보기부터 시작하는 게 덜 위험함." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

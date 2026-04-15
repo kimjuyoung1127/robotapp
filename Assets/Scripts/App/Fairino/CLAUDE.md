@@ -5,6 +5,7 @@ Fairino FR5 중심 RobotControl 런타임과 연결 서비스를 담는 폴더�
 ## 주요 역할
 - `RobotControlSceneCoordinator.cs` — RobotControl 씬 오케스트레이션
 - `FairinoConnectionService.cs` — Mock/Live 연결, 상태 동기화, 초기 bring-up 정책 적용
+- `Motion/RobotControlMotionRuntime.cs` — V3 UI가 쓰는 최소 motion facade, 선택 로봇 기준 connect/enable/move 정책 집약
 - `LiveFairinoClient.cs` — FAIRINO C# SDK reflection wrapper + 실기 preflight
 - `RobotControlTemplateDefinition.cs` — 로봇별 RobotControl 구성 정의
 - `FairinoCoordContext.cs` / `FairinoControllerFault.cs` — tool/user 문맥과 fault 상태 캐시 DTO

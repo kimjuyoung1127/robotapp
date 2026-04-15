@@ -1,0 +1,103 @@
+<!-- Pendant V3 - Joint Jog: Phase 2B-2 first slice -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="joint-jog-panel.uss" />
+    <ui:VisualElement name="JointJogRoot" class="rc-joint-root">
+        <ui:VisualElement class="rc-joint-header">
+            <ui:Label text="관절 조그" class="rc-panel-title" />
+            <ui:VisualElement class="rc-joint-mode-row">
+                <ui:Button name="BtnJointModeSlider" text="슬라이더" class="rc-joint-mode-button rc-joint-mode-button--active" />
+                <ui:Button name="BtnJointModeSingleAxis" text="단일축 조그" class="rc-joint-mode-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label
+            name="JointJogHint"
+            text="슬라이더로 목표값을 바꾸고, 입력칸을 누르면 기존 숫자가 바로 전체 선택된다."
+            class="rc-panel-copy rc-panel-copy--compact" />
+
+        <ui:VisualElement class="rc-joint-list">
+            <ui:VisualElement name="JointRow1" class="rc-joint-row">
+                <ui:Label text="J1" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint1Minus" text="J1-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup1" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider1" low-value="-170" high-value="170" value="0" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit1" text="-170° ~ +170°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint1Plus" text="J1+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput1" value="0.0" class="rc-joint-input" />
+                <ui:Label name="JointValue1" text="0.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="JointRow2" class="rc-joint-row">
+                <ui:Label text="J2" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint2Minus" text="J2-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup2" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider2" low-value="-120" high-value="120" value="-32" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit2" text="-120° ~ +120°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint2Plus" text="J2+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput2" value="-32.0" class="rc-joint-input" />
+                <ui:Label name="JointValue2" text="-32.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="JointRow3" class="rc-joint-row">
+                <ui:Label text="J3" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint3Minus" text="J3-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup3" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider3" low-value="-225" high-value="225" value="84" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit3" text="-225° ~ +225°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint3Plus" text="J3+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput3" value="84.0" class="rc-joint-input" />
+                <ui:Label name="JointValue3" text="84.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="JointRow4" class="rc-joint-row">
+                <ui:Label text="J4" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint4Minus" text="J4-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup4" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider4" low-value="-360" high-value="360" value="0" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit4" text="-360° ~ +360°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint4Plus" text="J4+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput4" value="0.0" class="rc-joint-input" />
+                <ui:Label name="JointValue4" text="0.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="JointRow5" class="rc-joint-row">
+                <ui:Label text="J5" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint5Minus" text="J5-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup5" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider5" low-value="-360" high-value="360" value="90" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit5" text="-360° ~ +360°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint5Plus" text="J5+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput5" value="90.0" class="rc-joint-input" />
+                <ui:Label name="JointValue5" text="90.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="JointRow6" class="rc-joint-row">
+                <ui:Label text="J6" class="rc-joint-axis-label" />
+                <ui:Button name="BtnJoint6Minus" text="J6-" class="rc-joint-step-button" />
+                <ui:VisualElement name="JointSliderGroup6" class="rc-joint-slider-group">
+                    <ui:Slider name="JointSlider6" low-value="-360" high-value="360" value="0" class="rc-joint-slider" />
+                    <ui:Label name="JointLimit6" text="-360° ~ +360°" class="rc-joint-limit" />
+                </ui:VisualElement>
+                <ui:Button name="BtnJoint6Plus" text="J6+" class="rc-joint-step-button" />
+                <ui:TextField name="JointInput6" value="0.0" class="rc-joint-input" />
+                <ui:Label name="JointValue6" text="0.0°" class="rc-joint-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-joint-footer-card">
+            <ui:Label name="JointIncrementSummary" text="증분: 5°" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="JointSpeedSummary" text="속도: 30%" class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-joint-action-row">
+            <ui:Button name="BtnJointRestore" text="복원" class="rc-joint-action-button" />
+            <ui:Button name="BtnJointPreview" text="미리보기" class="rc-joint-action-button rc-joint-action-button--primary" />
+            <ui:Button name="BtnJointApply" text="적용(MoveJ)" class="rc-joint-action-button rc-joint-action-button--danger" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

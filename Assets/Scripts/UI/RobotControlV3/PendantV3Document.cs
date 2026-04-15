@@ -8,6 +8,7 @@ namespace KineTutor3D.UI.RobotControlV3
     /// Owns the minimal Phase 0A UIDocument wiring for the V3 shell.
     /// Visual tree content is attached in later phases.
     /// </summary>
+    [DefaultExecutionOrder(-1000)]
     [RequireComponent(typeof(UIDocument))]
     public sealed class PendantV3Document : MonoBehaviour
     {
@@ -35,6 +36,12 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 document.visualTreeAsset = rootVisualTree;
             }
+        }
+
+        internal bool IsReadyForSceneBootstrap()
+        {
+            document ??= GetComponent<UIDocument>();
+            return document != null && document.rootVisualElement != null;
         }
     }
 }

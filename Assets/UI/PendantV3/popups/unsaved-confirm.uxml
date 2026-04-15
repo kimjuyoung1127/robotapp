@@ -1,0 +1,15 @@
+<!-- Pendant V3 Popup: Phase 2D unsaved confirmation scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="UnsavedConfirmBody" class="rc-popup-template-body">
+        <ui:VisualElement name="PopupMetaBank" class="rc-hidden">
+            <ui:Label name="PopupMetaTitle" text="미저장 변경 확인" />
+            <ui:Label name="PopupMetaSummary" text="저장하지 않은 변경이 있을 수 있음. 이동 전에 확인해라." />
+            <ui:Label name="PopupMetaConfirm" text="이동" />
+            <ui:Label name="PopupMetaCancel" text="취소" />
+            <ui:Label name="PopupMetaDanger" text="false" />
+        </ui:VisualElement>
+        <ui:Label name="UnsavedConfirmTitle" text="저장하지 않은 변경이 남아 있음." class="rc-popup-template-title" />
+        <ui:Label name="UnsavedConfirmLine1" text="지금 이동하면 입력 중인 값이 사라질 수 있음." class="rc-popup-template-line" />
+        <ui:Label name="UnsavedConfirmLine2" text="취소 후 값을 확인하거나 저장한 다음 다시 시도하면 됨." class="rc-popup-template-line" />
+    </ui:VisualElement>
+</ui:UXML>

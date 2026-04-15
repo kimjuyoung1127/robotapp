@@ -1,0 +1,35 @@
+<!-- Pendant V3 - Easy Motion: Phase 2B-1 preset poses and gripper shortcuts -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="easy-motion-panel.uss" />
+    <ui:VisualElement name="EasyMotionRoot" class="rc-easy-root">
+        <ui:VisualElement class="rc-easy-header">
+            <ui:Label text="쉬운 조작" class="rc-panel-title" />
+            <ui:Label name="EasyModeBadge" text="초보자 시작" class="rc-easy-badge" />
+        </ui:VisualElement>
+        <ui:Label name="EasyStateSummary" text="모의 연결 · Tool 01 · User 00" class="rc-panel-copy" />
+
+        <ui:Label text="프리셋 포즈" class="rc-easy-section-title" />
+        <ui:VisualElement class="rc-easy-preset-grid">
+            <ui:Button name="BtnEasyHome" text="🏠&#10;Home&#10;(원점)" class="rc-easy-preset-button" />
+            <ui:Button name="BtnEasyReady" text="✋&#10;Ready&#10;(대기)" class="rc-easy-preset-button" />
+            <ui:Button name="BtnEasyFolded" text="📦&#10;Folded&#10;(접힘)" class="rc-easy-preset-button" />
+            <ui:Button name="BtnEasyZero" text="⭕&#10;Zero&#10;(영점)" class="rc-easy-preset-button" />
+        </ui:VisualElement>
+
+        <ui:Label text="그리퍼" class="rc-easy-section-title rc-easy-section-title--spaced" />
+        <ui:VisualElement class="rc-easy-gripper-row">
+            <ui:Button name="BtnGripperOpen" text="그리퍼 열기" class="rc-easy-action-button" />
+            <ui:Button name="BtnGripperClose" text="그리퍼 닫기" class="rc-easy-action-button" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-easy-option-card">
+            <ui:Label name="EasyDryRunLabel" text="미리보기 먼저 (DryRun ON)" class="rc-panel-copy" />
+            <ui:Label name="EasyActionHint" text="Home나 Ready 같은 작은 이동부터 확인하는 게 덜 위험함." class="rc-easy-hint" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-easy-exec-row">
+            <ui:Button name="BtnEasyPreview" text="미리보기" class="rc-easy-action-button rc-easy-action-button--primary" />
+            <ui:Button name="BtnEasyApply" text="실제 이동" class="rc-easy-action-button rc-easy-action-button--danger" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

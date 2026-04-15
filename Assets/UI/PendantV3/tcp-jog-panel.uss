@@ -1,0 +1,136 @@
+/* Pendant V3 - TCP Jog: Phase 2B-3 first slice */
+.rc-tcp-root {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.rc-tcp-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rc-tcp-coord-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rc-tcp-coord-button {
+    min-height: 32px;
+    min-width: 58px;
+    margin-left: 6px;
+}
+
+.rc-tcp-coord-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-tcp-section {
+    margin-top: 12px;
+}
+
+.rc-tcp-section-title {
+    margin-bottom: 6px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--rc-muted-text);
+}
+
+.rc-tcp-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 18, 24, 0.38);
+}
+
+.rc-tcp-row--active {
+    background-color: rgba(80, 140, 255, 0.18);
+}
+
+.rc-tcp-axis-label {
+    min-width: 30px;
+    margin-right: 8px;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.rc-tcp-axis-label--x {
+    color: rgb(255, 104, 104);
+}
+
+.rc-tcp-axis-label--y {
+    color: rgb(92, 215, 138);
+}
+
+.rc-tcp-axis-label--z {
+    color: rgb(91, 155, 255);
+}
+
+.rc-tcp-axis-label--r {
+    color: rgb(255, 196, 88);
+}
+
+.rc-tcp-step-button {
+    min-width: 56px;
+    min-height: 36px;
+}
+
+.rc-tcp-step-button--x {
+    background-color: rgba(255, 104, 104, 0.18);
+}
+
+.rc-tcp-step-button--y {
+    background-color: rgba(92, 215, 138, 0.18);
+}
+
+.rc-tcp-step-button--z {
+    background-color: rgba(91, 155, 255, 0.18);
+}
+
+.rc-tcp-step-button--r {
+    background-color: rgba(255, 196, 88, 0.18);
+}
+
+.rc-tcp-value {
+    flex-grow: 1;
+    margin-left: 10px;
+    margin-right: 10px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.rc-tcp-unit {
+    min-width: 30px;
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--rc-muted-text);
+}
+
+.rc-tcp-footer-card {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: rgba(18, 18, 24, 0.55);
+}
+
+.rc-tcp-action-row {
+    flex-direction: row;
+    margin-top: 12px;
+}
+
+.rc-tcp-action-button {
+    flex-grow: 1;
+    min-height: 42px;
+    margin-right: 8px;
+}
+
+.rc-tcp-action-button--primary {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-tcp-action-button--danger {
+    background-color: rgba(255, 70, 70, 0.18);
+}

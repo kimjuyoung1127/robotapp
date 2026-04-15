@@ -1,0 +1,75 @@
+/* Pendant V3 - Coord Strip: Phase 2A-2 right-side coordinate summary */
+.rc-coord-strip-root {
+    margin-bottom: var(--rc-gap);
+}
+
+.rc-coord-strip-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rc-coord-badge {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-radius: 999px;
+    background-color: rgba(80, 140, 255, 0.18);
+    color: var(--rc-title-text);
+    font-size: 12px;
+}
+
+.rc-coord-section-title {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--rc-muted-text);
+    -unity-font-style: bold;
+}
+
+.rc-coord-section-title--spaced {
+    margin-top: 14px;
+}
+
+.rc-coord-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.rc-coord-cell {
+    width: 30%;
+    min-width: 86px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: rgba(18, 18, 24, 0.55);
+}
+
+.rc-coord-cell-label {
+    font-size: 11px;
+    color: var(--rc-muted-text);
+}
+
+.rc-coord-cell-value {
+    margin-top: 4px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--rc-title-text);
+}
+
+.rc-coord-mode-row {
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.rc-coord-mode-button {
+    flex-grow: 1;
+    min-height: 32px;
+    margin-right: 6px;
+}
+
+.rc-coord-mode-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}

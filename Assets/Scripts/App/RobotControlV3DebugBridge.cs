@@ -2,6 +2,7 @@
 using KineTutor3D.UI.RobotControlV3;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace KineTutor3D.App
 {
@@ -30,6 +31,410 @@ namespace KineTutor3D.App
             return contract.GetDebugStateSummary();
         }
 
+        public static string GetLocalSettingsSummary()
+        {
+            return LocalSettingsStore.LoadOrDefault().ToDebugSummary();
+        }
+
+        public static string ClearLocalSettings()
+        {
+            LocalSettingsStore.Clear();
+            return LocalSettingsStore.LoadOrDefault().ToDebugSummary();
+        }
+
+        public static string SetLocalNavSection(string navSection)
+        {
+            var state = LocalSettingsStore.LoadOrDefault();
+            state.ActiveNavSection = navSection;
+            LocalSettingsStore.Save(state);
+            return LocalSettingsStore.LoadOrDefault().ToDebugSummary();
+        }
+
+        public static string SetShellSelection(string navSection, string workTab, string tabletTab)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            if (shell == null)
+            {
+                throw new MissingReferenceException("PendantV3ShellStateController not found in RobotControlV3 scene.");
+            }
+
+            var localState = LocalSettingsStore.LoadOrDefault();
+            localState.ActiveNavSection = navSection;
+            localState.ActiveWorkTab = workTab;
+            localState.ActiveTabletTab = tabletTab;
+            LocalSettingsStore.Save(localState);
+            shell.SetDebugSelection(navSection, workTab, tabletTab);
+            return shell.GetDebugSummary();
+        }
+
+        public static string ClickVisualButtonForDebug(string buttonName)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            if (document == null || shell == null)
+            {
+                return "UIDocument or shell missing";
+            }
+
+            var button = document.rootVisualElement?.Q<Button>(buttonName);
+            if (button == null)
+            {
+                return $"button={buttonName}; found=False";
+            }
+
+            var state = shell.GetStateSnapshot();
+            switch (buttonName)
+            {
+                case "NavHome":
+                case "NavMotion":
+                case "NavPoints":
+                case "NavIo":
+                case "NavStatus":
+                case "NavHelp":
+                    shell.SetDebugSelection(buttonName, state.ActiveWorkTab, state.ActiveTabletTab);
+                    return $"button={buttonName}; found=True; action=nav; {shell.GetDebugSummary()}";
+                case "TabEasyMotion":
+                case "TabJointJog":
+                case "TabTcpJog":
+                case "TabPointMove":
+                    shell.SetDebugSelection(state.ActiveNavSection, buttonName, state.ActiveTabletTab);
+                    return $"button={buttonName}; found=True; action=work-tab; {shell.GetDebugSummary()}";
+                case "BottomTabEasyMotion":
+                case "BottomTabJointJog":
+                case "BottomTabTcpJog":
+                case "BottomTabPointMove":
+                case "BottomTabIo":
+                case "BottomTabStatus":
+                    shell.SetDebugSelection(state.ActiveNavSection, state.ActiveWorkTab, buttonName);
+                    return $"button={buttonName}; found=True; action=bottom-tab; {shell.GetDebugSummary()}";
+                case "BtnTcpCoordBase":
+                    return $"button={buttonName}; found=True; action=coord; {SetTcpCoordSystemForDebug("Base")}";
+                case "BtnTcpCoordTool":
+                    return $"button={buttonName}; found=True; action=coord; {SetTcpCoordSystemForDebug("Tool")}";
+                case "BtnTcpCoordUser":
+                    return $"button={buttonName}; found=True; action=coord; {SetTcpCoordSystemForDebug("User")}";
+                default:
+                    return $"button={buttonName}; found=True; action=unmapped";
+            }
+        }
+
+        public static string GetSceneRouteSummary()
+        {
+            return RobotControlScenePreference.GetDebugSummary();
+        }
+
+        public static string GetShellControllerSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            return shell == null
+                ? "PendantV3ShellStateController missing"
+                : $"instanceId={shell.GetInstanceID()}; {shell.GetDebugSummary()}";
+        }
+
+        public static string GetSceneCoordinatorSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var coordinator = Object.FindFirstObjectByType<PendantV3SceneCoordinator>(FindObjectsInactive.Include);
+            if (coordinator == null)
+            {
+                return "PendantV3SceneCoordinator missing";
+            }
+
+            coordinator.ForceBootstrap();
+            return $"instanceId={coordinator.GetInstanceID()}; {coordinator.GetDebugSummary()}";
+        }
+
+        public static string GetBinderSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var binder = Object.FindFirstObjectByType<PendantV3Binder>(FindObjectsInactive.Include);
+            if (binder == null)
+            {
+                return "PendantV3Binder missing";
+            }
+
+            return $"instanceId={binder.GetInstanceID()}; {binder.RefreshFromSourcesForDebug()}";
+        }
+
+        public static string GetJointJogControllerSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var jointJog = Object.FindFirstObjectByType<JointJogController>(FindObjectsInactive.Include);
+            if (jointJog == null)
+            {
+                return "JointJogController missing";
+            }
+
+            jointJog.ForceInitialize();
+            return $"instanceId={jointJog.GetInstanceID()}; {jointJog.GetDebugSummary()}";
+        }
+
+        public static string GetTcpJogControllerSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var tcpJog = Object.FindFirstObjectByType<TcpJogController>(FindObjectsInactive.Include);
+            if (tcpJog == null)
+            {
+                return "TcpJogController missing";
+            }
+
+            tcpJog.ForceInitialize();
+            return $"instanceId={tcpJog.GetInstanceID()}; {tcpJog.GetDebugSummary()}";
+        }
+
+        public static string GetPointMoveControllerSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
+            if (pointMove == null)
+            {
+                return "PointMoveController missing";
+            }
+
+            pointMove.ForceInitialize();
+            return $"instanceId={pointMove.GetInstanceID()}; {pointMove.GetDebugSummary()}";
+        }
+
+        public static string GetPopupCoordinatorSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var popupCoordinator = Object.FindFirstObjectByType<PopupCoordinatorV3>(FindObjectsInactive.Include);
+            if (popupCoordinator == null)
+            {
+                return "PopupCoordinatorV3 missing";
+            }
+
+            popupCoordinator.ForceInitialize();
+            return $"instanceId={popupCoordinator.GetInstanceID()}; {popupCoordinator.GetDebugSummary()}";
+        }
+
+        public static string OpenPopupForDebug(string popupKind)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var popupCoordinator = Object.FindFirstObjectByType<PopupCoordinatorV3>(FindObjectsInactive.Include);
+            if (popupCoordinator == null)
+            {
+                throw new MissingReferenceException("PopupCoordinatorV3 not found in RobotControlV3 scene.");
+            }
+
+            popupCoordinator.ForceInitialize();
+            return popupCoordinator.OpenPopupForDebug(popupKind);
+        }
+
+        public static string SetPointMoveMotionKindForDebug(string motionKind)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetMotionKindForDebug(motionKind);
+        }
+
+        public static string PreviewPointMoveForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.PreviewForDebug();
+        }
+
+        public static string ApplyPointMoveForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ApplyForDebug();
+        }
+
+        public static string SetJointJogShellState(string navSection, string workTab, string tabletTab)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var jointJog = Object.FindFirstObjectByType<JointJogController>(FindObjectsInactive.Include);
+            if (jointJog == null)
+            {
+                throw new MissingReferenceException("JointJogController not found in RobotControlV3 scene.");
+            }
+
+            jointJog.SetShellState(navSection, workTab, tabletTab);
+            return jointJog.GetDebugSummary();
+        }
+
+        public static string NudgeTcpAxisForDebug(string axisLabel, int direction)
+        {
+            var tcpJog = GetTcpJogController();
+            return tcpJog.NudgeAxisForDebug(axisLabel, direction);
+        }
+
+        public static string SetTcpCoordSystemForDebug(string coordSystem)
+        {
+            var tcpJog = GetTcpJogController();
+            return tcpJog.SetCoordSystemForDebug(coordSystem);
+        }
+
+        public static string GetJointRowSummary(int axisNumber)
+        {
+            var jointJog = GetJointJogController();
+            return jointJog.GetJointRowDebugSummary(axisNumber);
+        }
+
+        public static string FocusJointInputForDebug(int axisNumber)
+        {
+            var jointJog = GetJointJogController();
+            return jointJog.FocusJointInputForDebug(axisNumber);
+        }
+
+        public static string SetJointSliderForDebug(int axisNumber, float value)
+        {
+            var jointJog = GetJointJogController();
+            return jointJog.SetJointSliderForDebug(axisNumber, value);
+        }
+
+        public static string SetJointInputForDebug(int axisNumber, string rawValue)
+        {
+            var jointJog = GetJointJogController();
+            return jointJog.SetJointInputForDebug(axisNumber, rawValue);
+        }
+
+        public static string GetPanelControllerSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var home = Object.FindFirstObjectByType<ConnectionHomeController>(FindObjectsInactive.Include);
+            var easy = Object.FindFirstObjectByType<EasyMotionController>(FindObjectsInactive.Include);
+            var jointJog = Object.FindFirstObjectByType<JointJogController>(FindObjectsInactive.Include);
+            var tcpJog = Object.FindFirstObjectByType<TcpJogController>(FindObjectsInactive.Include);
+            var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
+            var status = Object.FindFirstObjectByType<StatusCardController>(FindObjectsInactive.Include);
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            var binder = Object.FindFirstObjectByType<PendantV3Binder>(FindObjectsInactive.Include);
+            var coordinator = Object.FindFirstObjectByType<PendantV3SceneCoordinator>(FindObjectsInactive.Include);
+            var shellCount = Object.FindObjectsByType<PendantV3ShellStateController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var easyCount = Object.FindObjectsByType<EasyMotionController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var jointCount = Object.FindObjectsByType<JointJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var tcpCount = Object.FindObjectsByType<TcpJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var pointCount = Object.FindObjectsByType<PointMoveController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            coordinator?.ForceBootstrap();
+            binder?.ForceInitialize();
+            home?.ForceInitialize();
+            easy?.ForceInitialize();
+            jointJog?.ForceInitialize();
+            tcpJog?.ForceInitialize();
+            pointMove?.ForceInitialize();
+            status?.ForceInitialize();
+            var homeSummary = home != null ? home.GetDebugSummary() : "ConnectionHomeController missing";
+            var easySummary = easy != null ? easy.GetDebugSummary() : "EasyMotionController missing";
+            var jointJogSummary = jointJog != null ? jointJog.GetDebugSummary() : "JointJogController missing";
+            var tcpJogSummary = tcpJog != null ? tcpJog.GetDebugSummary() : "TcpJogController missing";
+            var pointMoveSummary = pointMove != null ? pointMove.GetDebugSummary() : "PointMoveController missing";
+            var shellSummary = shell != null ? shell.GetDebugSummary() : "PendantV3ShellStateController missing";
+            var binderSummary = binder != null ? binder.GetDebugSummary() : "PendantV3Binder missing";
+            var coordinatorSummary = coordinator != null ? coordinator.GetDebugSummary() : "PendantV3SceneCoordinator missing";
+            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | binder=[{binderSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
+        }
+
+        public static string SetPreferV3Route(bool value)
+        {
+            RobotControlScenePreference.SetPreferV3(value);
+            return RobotControlScenePreference.GetDebugSummary();
+        }
+
+        public static string GetDocumentDebugSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var bridge = Object.FindFirstObjectByType<PendantV3Document>(FindObjectsInactive.Include);
+            if (document == null)
+            {
+                return "UIDocument missing";
+            }
+
+            var root = document.rootVisualElement;
+            var childCount = root != null ? root.childCount : -1;
+            var panelName = document.panelSettings != null ? document.panelSettings.name : "null";
+            var treeName = document.visualTreeAsset != null ? document.visualTreeAsset.name : "null";
+            var bridgeName = bridge != null ? bridge.GetType().Name : "null";
+            var robotName = root.Q<Label>("RobotNameLabel")?.text ?? "missing";
+            var easyHome = root.Q<Button>("BtnEasyHome") != null;
+            var homePanel = root.Q<VisualElement>("HomePanelHost") != null;
+            var easyPanel = root.Q<VisualElement>("EasyMotionPanelHost") != null;
+            var homeSheet = root.Q<VisualElement>("HomeSheetHost");
+            var easySheet = root.Q<VisualElement>("EasyMotionSheetHost");
+            var homeHost = root.Q<VisualElement>("HomePanelHost");
+            var easyHost = root.Q<VisualElement>("EasyMotionPanelHost");
+            var workPanelBody = root.Q<VisualElement>("WorkPanelBody");
+            var bottomSheetBody = root.Q<VisualElement>("BottomSheetBody");
+            var whyCard = root.Q<VisualElement>("WhyItMoved");
+            var contextPanel = root.Q<VisualElement>("ContextPanel") != null;
+            var descendantCount = CountDescendants(root);
+            var homeHostHidden = homeHost?.ClassListContains("rc-hidden") ?? false;
+            var easyHostHidden = easyHost?.ClassListContains("rc-hidden") ?? false;
+            var easySheetHidden = easySheet?.ClassListContains("rc-hidden") ?? false;
+            var workPanelBodyHidden = workPanelBody?.ClassListContains("rc-hidden") ?? false;
+            var bottomSheetBodyHidden = bottomSheetBody?.ClassListContains("rc-hidden") ?? false;
+            var whyCardHidden = whyCard?.ClassListContains("rc-hidden") ?? false;
+            return $"panel={panelName}; tree={treeName}; rootChildren={childCount}; rootName={(root?.name ?? "null")}; bridge={bridgeName}; robotName={robotName}; easyHome={easyHome}; homeHost={homePanel}; easyHost={easyPanel}; context={contextPanel}; homeHostChildren={homeHost?.childCount ?? -1}; easyHostChildren={easyHost?.childCount ?? -1}; homeHostHidden={homeHostHidden}; easyHostHidden={easyHostHidden}; workPanelBodyHidden={workPanelBodyHidden}; homeSheetChildren={homeSheet?.childCount ?? -1}; easySheetChildren={easySheet?.childCount ?? -1}; easySheetHidden={easySheetHidden}; bottomSheetBodyHidden={bottomSheetBodyHidden}; whyCardHidden={whyCardHidden}; descendants={descendantCount}";
+        }
+
         private static PendantV3InputContract GetInputContract()
         {
             var scene = SceneManager.GetActiveScene();
@@ -45,6 +450,71 @@ namespace KineTutor3D.App
             }
 
             return contract;
+        }
+
+        private static JointJogController GetJointJogController()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var jointJog = Object.FindFirstObjectByType<JointJogController>(FindObjectsInactive.Include);
+            if (jointJog == null)
+            {
+                throw new MissingReferenceException("JointJogController not found in RobotControlV3 scene.");
+            }
+
+            return jointJog;
+        }
+
+        private static TcpJogController GetTcpJogController()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var tcpJog = Object.FindFirstObjectByType<TcpJogController>(FindObjectsInactive.Include);
+            if (tcpJog == null)
+            {
+                throw new MissingReferenceException("TcpJogController not found in RobotControlV3 scene.");
+            }
+
+            return tcpJog;
+        }
+
+        private static PointMoveController GetPointMoveController()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
+            if (pointMove == null)
+            {
+                throw new MissingReferenceException("PointMoveController not found in RobotControlV3 scene.");
+            }
+
+            return pointMove;
+        }
+
+        private static int CountDescendants(VisualElement root)
+        {
+            var total = 0;
+            using var iterator = root.Children().GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                var child = iterator.Current;
+                total++;
+                total += CountDescendants(child);
+            }
+
+            return total;
         }
     }
 }

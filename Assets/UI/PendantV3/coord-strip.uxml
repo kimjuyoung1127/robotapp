@@ -1,0 +1,72 @@
+<!-- Pendant V3 - Coord Strip: Phase 2A-2 right-side coordinate summary -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="coord-strip.uss" />
+    <ui:VisualElement name="CoordStripRoot" class="rc-context-card rc-coord-strip-root">
+        <ui:VisualElement class="rc-coord-strip-header">
+            <ui:Label text="현재 좌표" class="rc-panel-title" />
+            <ui:Label name="CoordSystemBadge" text="좌표계: Base" class="rc-coord-badge" />
+        </ui:VisualElement>
+
+        <ui:Label text="관절 (deg)" class="rc-coord-section-title" />
+        <ui:VisualElement class="rc-coord-grid">
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J1" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue1" text="0.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J2" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue2" text="-32.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J3" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue3" text="84.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J4" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue4" text="0.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J5" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue5" text="90.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="J6" class="rc-coord-cell-label" />
+                <ui:Label name="JointValue6" text="0.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label text="TCP (mm, deg)" class="rc-coord-section-title rc-coord-section-title--spaced" />
+        <ui:VisualElement class="rc-coord-grid">
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="X" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueX" text="-497.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="Y" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueY" text="-130.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="Z" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueZ" text="477.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="RX" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueRx" text="180.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="RY" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueRy" text="0.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-coord-cell">
+                <ui:Label text="RZ" class="rc-coord-cell-label" />
+                <ui:Label name="TcpValueRz" text="90.0" class="rc-coord-cell-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-coord-mode-row">
+            <ui:Button name="BtnCoordModeJoint" text="Joint" class="rc-coord-mode-button" />
+            <ui:Button name="BtnCoordModeTcp" text="TCP" class="rc-coord-mode-button" />
+            <ui:Button name="BtnCoordModeBoth" text="Both" class="rc-coord-mode-button rc-coord-mode-button--active" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

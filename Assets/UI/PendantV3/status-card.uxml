@@ -1,0 +1,62 @@
+<!-- Pendant V3 - Status Card: Phase 2A-2 right-side status summary -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="status-card.uss" />
+    <ui:VisualElement name="StatusCardRoot" class="rc-context-card rc-status-card-root">
+        <ui:Label text="장비 상태" class="rc-panel-title" />
+
+        <ui:VisualElement class="rc-status-card-section">
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="연결" class="rc-status-key" />
+                <ui:Label name="StatusConnectionValue" text="● 연결됨" class="rc-status-value rc-status-value--success" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="모드" class="rc-status-key" />
+                <ui:Label name="StatusModeValue" text="수동" class="rc-status-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="서보" class="rc-status-key" />
+                <ui:Label name="StatusServoValue" text="ON" class="rc-status-value rc-status-value--success" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="상태" class="rc-status-key" />
+                <ui:Label name="StatusMotionValue" text="정지" class="rc-status-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-status-divider" />
+
+        <ui:VisualElement class="rc-status-card-section">
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="Fault" class="rc-status-key" />
+                <ui:VisualElement class="rc-status-inline-actions">
+                    <ui:Label name="StatusFaultValue" text="없음" class="rc-status-value rc-status-value--muted" />
+                    <ui:Button name="BtnFaultDetail" text="상세▶" class="rc-status-inline-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="Safety" class="rc-status-key" />
+                <ui:VisualElement class="rc-status-inline-actions">
+                    <ui:Label name="StatusSafetyValue" text="정상" class="rc-status-value rc-status-value--success" />
+                    <ui:Button name="BtnSafetyDetail" text="상세▶" class="rc-status-inline-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-status-divider" />
+
+        <ui:VisualElement class="rc-status-card-section">
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="Tool" class="rc-status-key" />
+                <ui:Label name="StatusToolValue" text="01" class="rc-status-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="User" class="rc-status-key" />
+                <ui:Label name="StatusUserValue" text="00" class="rc-status-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-status-row">
+                <ui:Label text="Speed" class="rc-status-key" />
+                <ui:Label name="StatusSpeedValue" text="30%" class="rc-status-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

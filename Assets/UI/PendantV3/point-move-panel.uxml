@@ -1,0 +1,75 @@
+<!-- Pendant V3 - Point Move: Phase 2B-4 minimum scaffold -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="point-move-panel.uss" />
+    <ui:VisualElement name="PointMoveRoot" class="rc-point-root">
+        <ui:VisualElement class="rc-point-header">
+            <ui:Label text="포인트 이동" class="rc-panel-title" />
+            <ui:VisualElement class="rc-point-motion-row">
+                <ui:Button name="BtnPointMoveJ" text="MoveJ" class="rc-point-motion-button rc-point-motion-button--active" />
+                <ui:Button name="BtnPointMoveL" text="MoveL" class="rc-point-motion-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label
+            name="PointMoveHint"
+            text="현재 TCP를 기준으로 목표 좌표를 다듬고, 적용 전 미리보기로 방향을 먼저 확인한다."
+            class="rc-panel-copy rc-panel-copy--compact" />
+
+        <ui:VisualElement class="rc-point-name-row">
+            <ui:Label text="포인트 이름" class="rc-point-name-label" />
+            <ui:TextField name="PointNameInput" value="Point" class="rc-point-name-input" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-point-coord-row">
+            <ui:Button name="BtnPointCoordBase" text="Base" class="rc-point-coord-button rc-point-coord-button--active" />
+            <ui:Button name="BtnPointCoordTool" text="Tool" class="rc-point-coord-button" />
+            <ui:Button name="BtnPointCoordUser" text="User" class="rc-point-coord-button" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-point-grid">
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="X" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueX" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="mm" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="Y" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueY" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="mm" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="Z" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueZ" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="mm" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="RX" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueRx" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="deg" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="RY" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueRy" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="deg" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-cell">
+                <ui:Label text="RZ" class="rc-point-cell-label" />
+                <ui:TextField name="PointValueRz" value="0.0" class="rc-point-cell-input" />
+                <ui:Label text="deg" class="rc-point-cell-unit" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-point-footer-card">
+            <ui:Label name="PointCoordSummary" text="좌표계: Base / 현재 TCP 기준으로 시작" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="PointMotionSummary" text="이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="PointFeedbackSummary" text="아직 실행한 명령이 없다." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="rc-point-action-row">
+            <ui:Button name="BtnPointRestore" text="현재값 다시 읽기" class="rc-point-action-button" />
+            <ui:Button name="BtnPointPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />
+            <ui:Button name="BtnPointApply" text="적용" class="rc-point-action-button rc-point-action-button--danger" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

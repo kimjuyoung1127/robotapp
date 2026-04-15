@@ -1,0 +1,21 @@
+<!-- Pendant V3 - Fault Overlay: Phase 2C-1 minimum blocking fault overlay -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="fault-overlay.uss" />
+    <ui:VisualElement name="FaultOverlayRoot" class="rc-fault-overlay-root">
+        <ui:VisualElement class="rc-fault-overlay-card">
+            <ui:Label name="FaultOverlayTitle" text="⛔ 안전 정지 / Fault" class="rc-panel-title" />
+            <ui:Label
+                name="FaultOverlaySummary"
+                text="오류 상태가 감지되어 조작을 잠시 멈췄다."
+                class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label
+                name="FaultOverlaySteps"
+                text="1. 주변 안전 확인 → 2. 원인 확인 → 3. 오류 초기화"
+                class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:VisualElement class="rc-fault-overlay-actions">
+                <ui:Button name="BtnFaultOverlayReset" text="오류 초기화" class="rc-fault-overlay-button rc-fault-overlay-button--danger" />
+                <ui:Button name="BtnFaultOverlayClose" text="닫기" class="rc-fault-overlay-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
