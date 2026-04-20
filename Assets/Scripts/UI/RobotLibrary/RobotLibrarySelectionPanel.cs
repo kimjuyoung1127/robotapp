@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System;
 using System.Collections.Generic;
+using KineTutor3D.App;
 using KineTutor3D.Templates;
 using KineTutor3D.Types;
 using UnityEngine;
@@ -165,7 +166,7 @@ namespace KineTutor3D.UI
 
             guidedLessonButton = UIComponentFactory.CreatePrimaryButton(primaryActionsStack, "BtnGuidedLesson", "Start Lesson", fallbackFont, 0f);
             sandboxButton = UIComponentFactory.CreateSecondaryButton(primaryActionsStack, "BtnOpenSandbox", "Open Sandbox", fallbackFont, 0f);
-            robotControlButton = UIComponentFactory.CreateSecondaryButton(primaryActionsStack, "BtnRobotControl", "Robot Control", fallbackFont, 0f);
+            robotControlButton = UIComponentFactory.CreateSecondaryButton(primaryActionsStack, "BtnRobotControl", GetRobotControlLabel(), fallbackFont, 0f);
             guidedLessonButton.onClick.RemoveAllListeners();
             guidedLessonButton.onClick.AddListener(() => OnGuidedLessonRequested?.Invoke());
             sandboxButton.onClick.RemoveAllListeners();
@@ -306,6 +307,11 @@ namespace KineTutor3D.UI
             guidedLessonButton.interactable = hasTemplate && data.GuidedLessonSupported;
             sandboxButton.interactable = hasTemplate && data.SandboxSupported;
             robotControlButton.interactable = hasTemplate && SupportsRobotControl(data);
+            var robotControlLabel = robotControlButton.GetComponentInChildren<Text>();
+            if (robotControlLabel != null)
+            {
+                robotControlLabel.text = GetRobotControlLabel();
+            }
         }
 
         private static string BuildCapabilitySummary(RobotMetadataInfo metadata)
@@ -328,7 +334,7 @@ namespace KineTutor3D.UI
 
             if (SupportsRobotControl(metadata))
             {
-                parts.Add("Robot Control");
+                parts.Add(GetRobotControlLabel());
             }
 
             if (metadata.InstructorRecommended)
@@ -356,6 +362,13 @@ namespace KineTutor3D.UI
             }
 
             return false;
+        }
+
+        private static string GetRobotControlLabel()
+        {
+            return RobotControlScenePreference.ShouldPreferV3()
+                ? "Robot Control V3"
+                : "Robot Control";
         }
 
         private static void SafeDestroy(UnityEngine.Object target)

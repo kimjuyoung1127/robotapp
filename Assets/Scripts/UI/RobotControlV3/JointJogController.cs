@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System.Globalization;
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -34,6 +35,9 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement jointJogPanelHost;
         private VisualElement jointJogSheetHost;
         private ConnectionHomeController connectionHomeController;
+        private PopupCoordinatorV3 popupCoordinator;
+        private PendantV3VisualizationOrchestrator visualizationOrchestrator;
+        private RobotControlMotionRuntime motionRuntime;
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -42,6 +46,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isTabletVisible;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
+        private string lastFeedback = "미리보기부터 확인해라.";
 
         private void OnEnable()
         {
@@ -84,7 +89,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public string GetDebugSummary()
         {
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; mode={(useSingleAxisMode ? "SingleAxis" : "Slider")}; j1={currentValues[0]:0.0}; j6={currentValues[5]:0.0}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; mode={(useSingleAxisMode ? "SingleAxis" : "Slider")}; canApply={connectionHomeController?.ActualMoveAllowed ?? false}; j1={currentValues[0]:0.0}; j6={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         public string GetJointRowDebugSummary(int axisNumber)
@@ -139,6 +144,8 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
+            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
             root = document?.rootVisualElement;
             if (root == null || jointJogTemplate == null || connectionHomeController == null)
             {
@@ -222,6 +229,8 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnModeSlider.clicked += () => SetMode(singleAxis: false);
             panel.BtnModeSingleAxis.clicked += () => SetMode(singleAxis: true);
             panel.BtnRestore.clicked += ResetFromPreview;
+            panel.BtnPreview.clicked += PreviewJointGhost;
+            panel.BtnApply.clicked += ApplyJointMove;
 
             for (var index = 0; index < panel.Rows.Length; index++)
             {
@@ -266,8 +275,8 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.IncrementSummary.text = $"증분: {GetIncrementDegrees():0.#}°";
             panel.SpeedSummary.text = $"속도: {PendantV3LocalState.Normalize(LocalSettingsStore.LoadOrDefault()).SpeedPercent}%";
             panel.Hint.text = useSingleAxisMode
-                ? "단일축 조그에서는 J- / J+ 버튼을 길게 눌러 연속 이동 감각을 확인한다."
-                : "슬라이더나 입력칸으로 목표값을 바꾸고, 입력칸을 누르면 값이 전체 선택된다.";
+                ? $"단일축 조그에서는 J- / J+를 먼저 미리보기로 확인한다. {lastFeedback}"
+                : $"슬라이더나 입력칸으로 목표값을 바꾸고 ghost donor를 먼저 확인한다. {lastFeedback}";
 
             var canPreview = connectionHomeController.CurrentPreviewState is not PendantV3PreviewState.Kind.Disconnected and not PendantV3PreviewState.Kind.AutoReconnect;
             var canApply = connectionHomeController.CurrentPreviewState == PendantV3PreviewState.Kind.ReadyToJog;
@@ -325,6 +334,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private void SetJointValue(int index, float value)
         {
             currentValues[index] = Mathf.Clamp(value, AxisSpecs[index].MinDegrees, AxisSpecs[index].MaxDegrees);
+            visualizationOrchestrator?.PreviewJointPose(BuildJointTarget(), index, $"관절 ghost · {AxisSpecs[index].Label} {currentValues[index]:0.0}°", false);
             SyncAllRows(index);
         }
 
@@ -370,6 +380,130 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ResetFromPreview()
         {
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+            visualizationOrchestrator?.ClearPreview();
+            lastFeedback = "현재 자세로 다시 맞췄다.";
+            ApplyPanelState(desktopPanel, connectionHomeController.CurrentPreviewDefinition);
+            ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
+        }
+
+        private void PreviewJointGhost()
+        {
+            visualizationOrchestrator?.PreviewJointPose(BuildJointTarget(), FindDominantJointIndex(), $"MoveJ preview · J1 {currentValues[0]:0.0} / J2 {currentValues[1]:0.0} / J3 {currentValues[2]:0.0}", false);
+            lastFeedback = "joint ghost와 하이라이트를 갱신했다.";
+            ApplyPanelState(desktopPanel, connectionHomeController.CurrentPreviewDefinition);
+            ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
+        }
+
+        private void ApplyJointMove()
+        {
+            if (!connectionHomeController.ActualMoveAllowed)
+            {
+                lastFeedback = connectionHomeController.ActualMoveBlockReason;
+                ApplyPanelState(desktopPanel, connectionHomeController.CurrentPreviewDefinition);
+                ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
+                return;
+            }
+
+            var target = BuildJointTarget();
+            void Execute()
+            {
+                var runtimeResult = EnsureMotionRuntime();
+                if (!runtimeResult.IsSuccess)
+                {
+                    lastFeedback = runtimeResult.Message;
+                }
+                else
+                {
+                    var speed = PendantV3LocalState.Normalize(LocalSettingsStore.LoadOrDefault()).SpeedPercent;
+                    var result = motionRuntime.DispatchMoveJ(target, speed);
+                    lastFeedback = result.IsSuccess
+                        ? $"MoveJ 실행 완료 · J1 {target[0]:0.0} / J2 {target[1]:0.0} / J3 {target[2]:0.0}"
+                        : $"MoveJ 실패 · {result.Message}";
+                    if (result.IsSuccess)
+                    {
+                        visualizationOrchestrator?.SetRuntimePose(target, connectionHomeController.CurrentSessionState.IsConnected ? GetCurrentTcpPoseFallback() : null);
+                        visualizationOrchestrator?.ClearPreview();
+                    }
+                }
+
+                ApplyPanelState(desktopPanel, connectionHomeController.CurrentPreviewDefinition);
+                ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
+            }
+
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.OpenMoveConfirmForPolicy("JointJog 실행 확인", $"J1 {target[0]:0.0} / J2 {target[1]:0.0} / J3 {target[2]:0.0}", Execute, "MoveJ 실행");
+                return;
+            }
+
+            Execute();
+        }
+
+        private FairinoResult<RobotControlMotionRuntime> EnsureMotionRuntime()
+        {
+            var robotId = RobotSelectionBridge.GetSelectedRobotId();
+            if (string.IsNullOrWhiteSpace(robotId))
+            {
+                motionRuntime = null;
+                return FairinoResult<RobotControlMotionRuntime>.Fail(-1, "선택된 로봇이 없어서 JointJog runtime을 준비하지 못했다.");
+            }
+
+            if (motionRuntime != null && motionRuntime.RobotId == robotId)
+            {
+                return FairinoResult<RobotControlMotionRuntime>.Ok(motionRuntime, "joint runtime 재사용");
+            }
+
+            var createResult = RobotControlMotionRuntime.CreateFromSelection();
+            if (!createResult.IsSuccess)
+            {
+                motionRuntime = null;
+                return createResult;
+            }
+
+            motionRuntime = createResult.Value;
+            return createResult;
+        }
+
+        private double[] BuildJointTarget()
+        {
+            var target = new double[currentValues.Length];
+            for (var index = 0; index < currentValues.Length; index++)
+            {
+                target[index] = currentValues[index];
+            }
+
+            return target;
+        }
+
+        private int FindDominantJointIndex()
+        {
+            var maxDelta = 0f;
+            var maxIndex = 0;
+            var preview = connectionHomeController.CurrentPreviewDefinition.JointValues;
+            for (var index = 0; index < currentValues.Length && index < preview.Length; index++)
+            {
+                var previewValue = ParseJointValue(preview[index]);
+                var delta = Mathf.Abs(currentValues[index] - previewValue);
+                if (delta > maxDelta)
+                {
+                    maxDelta = delta;
+                    maxIndex = index;
+                }
+            }
+
+            return maxIndex;
+        }
+
+        private double[] GetCurrentTcpPoseFallback()
+        {
+            var values = connectionHomeController.CurrentPreviewDefinition.TcpValues;
+            var target = new double[values.Length];
+            for (var index = 0; index < values.Length; index++)
+            {
+                target[index] = ParseJointValue(values[index]);
+            }
+
+            return target;
         }
 
         private JointRowElements GetActiveRow(int axisNumber)

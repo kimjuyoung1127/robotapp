@@ -18,6 +18,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label whyItMovedTitle;
         private Label whyItMovedSummary;
         private ConnectionHomeController connectionHomeController;
+        private bool isContextVisible;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
 
@@ -41,6 +42,15 @@ namespace KineTutor3D.UI.RobotControlV3
         public bool ForceInitialize()
         {
             return TryInitialize();
+        }
+
+        public void SetContextVisible(bool visible)
+        {
+            isContextVisible = visible;
+            if (isInitialized)
+            {
+                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+            }
         }
 
         internal void RefreshFromBinder(PendantV3PreviewState.Definition data)
@@ -109,7 +119,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 PendantV3PreviewState.Kind.AutoReconnect => "통신이 흔들리는 동안은 자동 재연결이 먼저라서 조작보다 상태 복귀를 기다리는 흐름이다.",
                 _ => data.ActionNow,
             };
-            whyItMovedCard.EnableInClassList("rc-hidden", false);
+            whyItMovedCard.EnableInClassList("rc-hidden", !isContextVisible);
         }
     }
 }

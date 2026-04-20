@@ -56,7 +56,7 @@ namespace KineTutor3D.UI
 
             var modes = "";
             modes += m.GuidedLessonSupported ? "Guided Lesson: O\n" : "Guided Lesson: X\n";
-            modes += SupportsRobotControl(m) ? "Robot Control: O\n" : "Robot Control: X\n";
+            modes += SupportsRobotControl(m) ? $"{GetRobotControlLabel()}: O\n" : $"{GetRobotControlLabel()}: X\n";
             modes += m.SandboxSupported ? "Sandbox: O\n" : "Sandbox: X\n";
             modes += m.InstructorRecommended ? "Instructor: O" : "Instructor: X";
             modesText.text = modes;
@@ -72,7 +72,7 @@ namespace KineTutor3D.UI
                 lessonLabel.text = m.GuidedLessonSupported
                     ? "학습 시작"
                     : robotControlSupported
-                        ? "Robot Control"
+                        ? GetRobotControlLabel()
                         : "Coming Soon";
             }
 
@@ -221,8 +221,10 @@ namespace KineTutor3D.UI
 
             if (SupportsRobotControl(currentEntry.Metadata) && !currentEntry.Metadata.GuidedLessonSupported)
             {
+                var targetScene = RobotControlScenePreference.GetPreferredSceneId();
+                RobotControlEntryPolicy.Apply(targetScene, RobotControlEntryPolicy.Intent.ResumeLastSession);
                 RobotSelectionBridge.SetSelection(currentEntry.Metadata.RobotId, RobotSelectionBridge.RobotControlMode);
-                SceneNavigator.Load(SceneId.RobotControl);
+                SceneNavigator.Load(targetScene);
                 return;
             }
 
@@ -270,6 +272,13 @@ namespace KineTutor3D.UI
             }
 
             return false;
+        }
+
+        private static string GetRobotControlLabel()
+        {
+            return RobotControlScenePreference.ShouldPreferV3()
+                ? "Robot Control V3"
+                : "Robot Control";
         }
     }
 }

@@ -244,6 +244,43 @@ namespace KineTutor3D.Tests.PlayMode
             return $"invoked:{robotId}";
         }
 
+        public static string InvokeOpenRobotControl(string robotId)
+        {
+            var manager = Object.FindFirstObjectByType<RobotLibraryManager>(FindObjectsInactive.Include);
+            if (manager == null)
+            {
+                return "manager:null";
+            }
+
+            var robotCatalogType = ResolveType("KineTutor3D.Templates.RobotCatalog");
+            if (robotCatalogType == null)
+            {
+                return "catalog:null";
+            }
+
+            var tryGet = robotCatalogType.GetMethod("TryGet", BindingFlags.Public | BindingFlags.Static);
+            if (tryGet == null)
+            {
+                return "tryget:null";
+            }
+
+            var args = new object[] { robotId, null };
+            var found = (bool)tryGet.Invoke(null, args);
+            if (!found || args[1] == null)
+            {
+                return $"entry:not-found:{robotId}";
+            }
+
+            var onOpenRobotControl = manager.GetType().GetMethod("OnOpenRobotControl", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (onOpenRobotControl == null)
+            {
+                return "method:null";
+            }
+
+            onOpenRobotControl.Invoke(manager, new[] { args[1] });
+            return $"invoked:{robotId}";
+        }
+
         public static string CaptureCurrentState()
         {
             var sceneName = SceneManager.GetActiveScene().name;

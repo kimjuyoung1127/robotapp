@@ -6,6 +6,8 @@ namespace KineTutor3D.App
     /// </summary>
     public static class RobotControlEntryPolicy
     {
+        private static bool pendingDirectFreshStartGuide;
+
         public enum Intent
         {
             FreshStart,
@@ -21,8 +23,25 @@ namespace KineTutor3D.App
 
             if (intent == Intent.FreshStart)
             {
-                LocalSettingsStore.Clear();
+                LocalSettingsStore.ResetForFreshStart();
+                pendingDirectFreshStartGuide = !LocalSettingsStore.LoadOrDefault().HasShownFirstRunGuide;
+                return;
             }
+
+            pendingDirectFreshStartGuide = false;
+        }
+
+        public static bool ShouldShowFirstRunGuide()
+        {
+            return pendingDirectFreshStartGuide;
+        }
+
+        public static void MarkFirstRunGuideShown()
+        {
+            var state = LocalSettingsStore.LoadOrDefault();
+            state.HasShownFirstRunGuide = true;
+            LocalSettingsStore.Save(state);
+            pendingDirectFreshStartGuide = false;
         }
     }
 }

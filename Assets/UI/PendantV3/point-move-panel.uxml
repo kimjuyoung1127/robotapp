@@ -28,34 +28,34 @@
 
         <ui:VisualElement class="rc-point-grid">
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="X" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel1" text="X" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueX" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="mm" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit1" text="mm" class="rc-point-cell-unit" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="Y" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel2" text="Y" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueY" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="mm" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit2" text="mm" class="rc-point-cell-unit" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="Z" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel3" text="Z" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueZ" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="mm" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit3" text="mm" class="rc-point-cell-unit" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="RX" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel4" text="RX" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueRx" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="deg" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit4" text="deg" class="rc-point-cell-unit" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="RY" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel5" text="RY" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueRy" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="deg" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit5" text="deg" class="rc-point-cell-unit" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-cell">
-                <ui:Label text="RZ" class="rc-point-cell-label" />
+                <ui:Label name="PointLabel6" text="RZ" class="rc-point-cell-label" />
                 <ui:TextField name="PointValueRz" value="0.0" class="rc-point-cell-input" />
-                <ui:Label text="deg" class="rc-point-cell-unit" />
+                <ui:Label name="PointUnit6" text="deg" class="rc-point-cell-unit" />
             </ui:VisualElement>
         </ui:VisualElement>
 

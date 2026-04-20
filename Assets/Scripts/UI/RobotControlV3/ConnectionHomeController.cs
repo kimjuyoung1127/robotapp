@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System.Collections.Generic;
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -45,6 +46,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnPause;
         private Button btnSync;
         private Button btnResetError;
+        private PendantV3ConnectionSessionAdapter connectionSessionAdapter;
+        private PopupCoordinatorV3 popupCoordinator;
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -57,6 +60,75 @@ namespace KineTutor3D.UI.RobotControlV3
 
         internal PendantV3PreviewState.Definition CurrentPreviewDefinition => PendantV3PreviewState.GetDefinition(previewState);
 
+        internal PendantV3ConnectionSessionState CurrentSessionState =>
+            connectionSessionAdapter != null
+                ? connectionSessionAdapter.CurrentState
+                : PendantV3ConnectionSessionState.DefaultDisconnected();
+
+        internal bool IsMockMode => CurrentSessionState.IsMockMode;
+
+        internal bool IsLiveArmActive => CurrentSessionState.IsLiveArmActive;
+
+        internal bool ActualMoveAllowed => CurrentSessionState.ActualMoveAllowed;
+
+        internal string ActualMoveBlockReason => CurrentSessionState.ActualMoveBlockReason;
+
+        public void ApplyServoEnablePolicy()
+        {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.ApplyServoEnablePolicy();
+                return;
+            }
+
+            if (previewState == PendantV3PreviewState.Kind.ConnectedServoOff)
+            {
+                SetPreviewState(PendantV3PreviewState.Kind.ConnectedUnsynced);
+            }
+        }
+
+        public void ApplySyncPolicy()
+        {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.ApplySyncPolicy();
+                return;
+            }
+
+            if (previewState == PendantV3PreviewState.Kind.ConnectedUnsynced)
+            {
+                SetPreviewState(PendantV3PreviewState.Kind.ReadyToJog);
+            }
+        }
+
+        public void ApplyRunPolicy()
+        {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.ApplyRunPolicy();
+                return;
+            }
+
+            if (previewState is PendantV3PreviewState.Kind.ConnectedUnsynced or PendantV3PreviewState.Kind.ReadyToJog)
+            {
+                SetPreviewState(PendantV3PreviewState.Kind.ReadyToJog);
+            }
+        }
+
+        public void ApplyResetErrorPolicy()
+        {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.ApplyResetErrorPolicy();
+                return;
+            }
+
+            if (previewState == PendantV3PreviewState.Kind.Fault)
+            {
+                SetPreviewState(PendantV3PreviewState.Kind.ConnectedServoOff);
+            }
+        }
+
         private void OnEnable()
         {
             TryInitialize();
@@ -65,6 +137,16 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void OnDisable()
         {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.StateChanged -= HandleSessionStateChanged;
+            }
+
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.PopupStateChanged -= HandlePopupStateChanged;
+            }
+
             UnbindPresetButtons();
             if (initializeCoroutine != null)
             {
@@ -102,7 +184,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var panelHidden = homePanelHost?.ClassListContains("rc-hidden") ?? false;
             var sheetHidden = homeSheetHost?.ClassListContains("rc-hidden") ?? false;
             var templateName = connectionHomeTemplate != null ? connectionHomeTemplate.name : "null";
-            return $"initialized={isInitialized}; template={templateName}; document={(document != null)}; liveRoot={(liveRoot != null)}; livePanelHost={(livePanelHost != null)}; liveSheetHost={(liveSheetHost != null)}; isHomeActive={isHomeActive}; panelChildren={panelChildren}; panelHidden={panelHidden}; sheetChildren={sheetChildren}; sheetHidden={sheetHidden}; previewState={previewState}";
+            return $"initialized={isInitialized}; template={templateName}; document={(document != null)}; liveRoot={(liveRoot != null)}; livePanelHost={(livePanelHost != null)}; liveSheetHost={(liveSheetHost != null)}; isHomeActive={isHomeActive}; panelChildren={panelChildren}; panelHidden={panelHidden}; sheetChildren={sheetChildren}; sheetHidden={sheetHidden}; previewState={previewState}; session={CurrentSessionState.ToDebugSummary()}";
         }
 
         private System.Collections.IEnumerator WaitForInitialize()
@@ -124,6 +206,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool TryInitialize()
         {
             document ??= GetComponent<UIDocument>();
+            connectionSessionAdapter ??= GetComponent<PendantV3ConnectionSessionAdapter>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
             root = document?.rootVisualElement;
             if (root == null || connectionHomeTemplate == null)
             {
@@ -140,6 +224,20 @@ namespace KineTutor3D.UI.RobotControlV3
             if (desktopPanel == null || tabletPanel == null || homePanelHost.childCount == 0 || homeSheetHost.childCount == 0)
             {
                 BuildPanels();
+            }
+
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.StateChanged -= HandleSessionStateChanged;
+                connectionSessionAdapter.StateChanged += HandleSessionStateChanged;
+                connectionSessionAdapter.ForceInitialize();
+            }
+
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.PopupStateChanged -= HandlePopupStateChanged;
+                popupCoordinator.PopupStateChanged += HandlePopupStateChanged;
+                connectionSessionAdapter?.SetPopupBlockActive(popupCoordinator.HasActivePopup);
             }
 
             ApplyShellStateSnapshot();
@@ -208,6 +306,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var panel = new PanelElements(tree);
             RegisterPresetRow(panel);
+            RegisterPanelActions(panel);
             return panel;
         }
 
@@ -233,6 +332,28 @@ namespace KineTutor3D.UI.RobotControlV3
             presetButtons.Add((button, callback));
         }
 
+        private void RegisterPanelActions(PanelElements panel)
+        {
+            RegisterButton(panel.BtnConnect, OnConnectClicked);
+            RegisterButton(panel.BtnDisconnect, OnDisconnectClicked);
+            RegisterButton(panel.BtnMockMode, OnMockModeClicked);
+            RegisterButton(panel.BtnLiveMode, OnLiveModeClicked);
+            RegisterButton(panel.BtnArmLive, OnArmLiveClicked);
+            RegisterButton(panel.BtnDisarmLive, OnDisarmLiveClicked);
+            RegisterButton(panel.BtnQuickAction, OnQuickActionClicked);
+            RegisterButton(panel.BtnPrimaryAction, OnPrimaryActionClicked);
+        }
+
+        private static void RegisterButton(Button button, System.Action handler)
+        {
+            if (button == null || handler == null)
+            {
+                return;
+            }
+
+            button.clicked += handler;
+        }
+
         private void UnbindPresetButtons()
         {
             foreach (var (button, callback) in presetButtons)
@@ -245,12 +366,19 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void SetPreviewState(PendantV3PreviewState.Kind state)
         {
+            if (connectionSessionAdapter != null)
+            {
+                connectionSessionAdapter.SetDebugDisplayKind(MapDisplayKind(state));
+                return;
+            }
+
             previewState = state;
             ApplyPreview();
         }
 
         private void ApplyPreview()
         {
+            previewState = ResolvePreviewStateFromSession();
             var data = CurrentPreviewDefinition;
             ApplyTopStatusBar(data);
             ApplyPanel(desktopPanel, data);
@@ -260,25 +388,26 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void ApplyTopStatusBar(PendantV3PreviewState.Definition data)
         {
+            var session = CurrentSessionState;
             if (robotNameLabel != null)
             {
                 robotNameLabel.text = data.RobotTitle;
             }
 
-            ApplyChip(connectionIndicator, data.ConnectionChip, data.ConnectionClass);
-            ApplyChip(modeLabel, data.ModeChip, data.ModeClass);
+            ApplyChip(connectionIndicator, $"연결: {session.ConnectionSummary}", data.ConnectionClass);
+            ApplyChip(modeLabel, $"모드: {session.ModeSummary}", data.ModeClass);
             ApplyChip(speedLabel, data.SpeedChip, data.SpeedClass);
             ApplyChip(coordSystemLabel, data.CoordChip, "rc-status-chip--muted");
-            ApplyChip(toolLabel, data.ToolChip, "rc-status-chip--muted");
-            ApplyChip(userLabel, data.UserChip, "rc-status-chip--muted");
-            ApplyChip(safetyLabel, data.SafetyChip, data.SafetyClass);
-            ApplyChip(faultLabel, data.FaultChip, data.FaultClass);
+            ApplyChip(toolLabel, $"Tool: {session.ToolId:00}", "rc-status-chip--muted");
+            ApplyChip(userLabel, $"User: {session.UserId:00}", "rc-status-chip--muted");
+            ApplyChip(safetyLabel, $"안전: {session.SafetySummary}", data.SafetyClass);
+            ApplyChip(faultLabel, $"Fault: {session.FaultSummary}", data.FaultClass);
 
-            btnServoEnable?.SetEnabled(data.ServoEnabled);
+            btnServoEnable?.SetEnabled(data.ServoEnabled && !session.ReconnectActive);
             btnRun?.SetEnabled(data.RunEnabled);
             btnStop?.SetEnabled(data.StopEnabled);
             btnPause?.SetEnabled(data.PauseEnabled);
-            btnSync?.SetEnabled(data.SyncEnabled);
+            btnSync?.SetEnabled(data.SyncEnabled && !session.ReconnectActive);
             btnResetError?.SetEnabled(data.ResetEnabled);
         }
 
@@ -289,23 +418,30 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            var session = CurrentSessionState;
             panel.ConnectionRobot.text = data.RobotTitle;
-            panel.ConnectionIp.text = data.IpAddress;
-            panel.ConnectionStatus.text = data.ConnectionCardStatus;
-            panel.BtnConnect.SetEnabled(data.ConnectEnabled);
-            panel.BtnDisconnect.SetEnabled(data.DisconnectEnabled);
+            panel.ConnectionIp.text = $"IP: {session.IpAddress}";
+            panel.ConnectionStatus.text = BuildConnectionStatusText(data, session);
+            panel.BtnConnect.SetEnabled(!session.IsConnected || session.ReconnectFailed);
+            panel.BtnDisconnect.SetEnabled(session.IsConnected && !session.ReconnectActive);
 
-            panel.QuickServo.text = data.QuickServo;
-            panel.QuickMode.text = data.QuickMode;
-            panel.QuickSync.text = data.QuickSync;
-            panel.BtnQuickAction.text = data.QuickActionLabel;
-            panel.BtnQuickAction.SetEnabled(data.QuickActionEnabled);
+            panel.QuickServo.text = BuildQuickServoText(session);
+            panel.QuickMode.text = $"모드: {session.ModeSummary}";
+            panel.QuickSync.text = BuildQuickSyncText(session, data);
+            panel.QuickControllerMode.text = $"컨트롤러: {(session.IsMockMode ? "Mock" : "Live")}";
+            panel.QuickLiveArm.text = $"Live Arm: {session.LiveArmSummary}";
+            panel.BtnMockMode.SetEnabled(!session.ReconnectActive && !session.IsMockMode);
+            panel.BtnLiveMode.SetEnabled(!session.ReconnectActive && session.IsMockMode);
+            panel.BtnArmLive.SetEnabled(!session.IsMockMode && !session.IsLiveArmActive && !session.ReconnectActive && session.IsConnected && session.IsEnabled);
+            panel.BtnDisarmLive.SetEnabled(session.IsLiveArmActive);
+            panel.BtnQuickAction.text = ResolveQuickActionLabel(session, data);
+            panel.BtnQuickAction.SetEnabled(ResolveQuickActionEnabled(session, data));
 
-            panel.ActionNow.text = data.ActionNow;
-            panel.ActionPrimary.text = data.ActionPrimary;
-            panel.ActionWhy.text = data.ActionWhy;
-            panel.BtnPrimaryAction.text = data.PrimaryActionLabel;
-            panel.BtnPrimaryAction.SetEnabled(data.PrimaryActionEnabled);
+            panel.ActionNow.text = ResolveActionNow(session, data);
+            panel.ActionPrimary.text = ResolveActionPrimary(session, data);
+            panel.ActionWhy.text = ResolveActionWhy(session, data);
+            panel.BtnPrimaryAction.text = ResolvePrimaryActionLabel(session, data);
+            panel.BtnPrimaryAction.SetEnabled(ResolvePrimaryActionEnabled(session, data));
 
             SetPresetActive(panel.BtnPresetDisconnected, previewState == PendantV3PreviewState.Kind.Disconnected);
             SetPresetActive(panel.BtnPresetServoOff, previewState == PendantV3PreviewState.Kind.ConnectedServoOff);
@@ -313,6 +449,114 @@ namespace KineTutor3D.UI.RobotControlV3
             SetPresetActive(panel.BtnPresetReady, previewState == PendantV3PreviewState.Kind.ReadyToJog);
             SetPresetActive(panel.BtnPresetFault, previewState == PendantV3PreviewState.Kind.Fault);
             SetPresetActive(panel.BtnPresetReconnect, previewState == PendantV3PreviewState.Kind.AutoReconnect);
+        }
+
+        private void OnConnectClicked()
+        {
+            connectionSessionAdapter?.ConnectNow();
+        }
+
+        private void OnDisconnectClicked()
+        {
+            connectionSessionAdapter?.DisconnectNow();
+        }
+
+        private void OnMockModeClicked()
+        {
+            connectionSessionAdapter?.SetMockMode(true);
+        }
+
+        private void OnLiveModeClicked()
+        {
+            connectionSessionAdapter?.SetMockMode(false);
+        }
+
+        private void OnArmLiveClicked()
+        {
+            if (popupCoordinator != null)
+            {
+                var session = CurrentSessionState;
+                var summary = $"{session.IpAddress} / {session.ConnectionSummary} / 서보 {session.ServoSummary} / 실기 이동 허용";
+                popupCoordinator.OpenMoveConfirmForPolicy("Live Arm 확인", summary, () => connectionSessionAdapter?.SetLiveArmState(true), "Arm Live");
+                return;
+            }
+
+            connectionSessionAdapter?.SetLiveArmState(true);
+        }
+
+        private void OnDisarmLiveClicked()
+        {
+            connectionSessionAdapter?.SetLiveArmState(false);
+        }
+
+        private void OnQuickActionClicked()
+        {
+            if (CurrentSessionState.ReconnectFailed)
+            {
+                connectionSessionAdapter?.ConnectNow();
+                return;
+            }
+
+            if (CurrentSessionState.IsMockMode)
+            {
+                connectionSessionAdapter?.SetMockMode(false);
+                return;
+            }
+
+            ApplyPrimaryActionCore();
+        }
+
+        private void OnPrimaryActionClicked()
+        {
+            ApplyPrimaryActionCore();
+        }
+
+        private void ApplyPrimaryActionCore()
+        {
+            switch (CurrentPreviewState)
+            {
+                case PendantV3PreviewState.Kind.ConnectedServoOff:
+                    ApplyServoEnablePolicy();
+                    break;
+                case PendantV3PreviewState.Kind.ConnectedUnsynced:
+                    ApplySyncPolicy();
+                    break;
+                case PendantV3PreviewState.Kind.ReadyToJog:
+                    if (!CurrentSessionState.IsMockMode && !CurrentSessionState.IsLiveArmActive)
+                    {
+                        OnArmLiveClicked();
+                        break;
+                    }
+
+                    RouteToEasyMotion();
+                    break;
+                case PendantV3PreviewState.Kind.Disconnected:
+                    connectionSessionAdapter?.ConnectNow();
+                    break;
+            }
+        }
+
+        private void RouteToEasyMotion()
+        {
+            var shellStateController = GetComponent<PendantV3ShellStateController>();
+            if (shellStateController == null)
+            {
+                return;
+            }
+
+            var shell = shellStateController.GetStateSnapshot();
+            shellStateController.SetDebugSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
+        }
+
+        private void HandleSessionStateChanged(PendantV3ConnectionSessionState _)
+        {
+            ApplyPreview();
+        }
+
+        private void HandlePopupStateChanged()
+        {
+            connectionSessionAdapter?.SetPopupBlockActive(popupCoordinator != null && popupCoordinator.HasActivePopup);
+            ApplyPreview();
         }
 
         private void ApplyHomeVisibility()
@@ -326,7 +570,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             if (workPanelTitle != null)
             {
-                workPanelTitle.text = isHomeActive ? "연결 홈" : "WorkPanel";
+                workPanelTitle.text = isHomeActive ? "연결 홈" : "쉬운 조작 패널";
             }
 
             if (workPanelSummary != null)
@@ -336,7 +580,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             if (bottomSheetTitle != null)
             {
-                bottomSheetTitle.text = isHomeActive ? "BottomSheet · 연결 홈" : "BottomSheet";
+                bottomSheetTitle.text = isHomeActive ? "BottomSheet · 연결 홈" : "BottomSheet · 쉬운조작";
             }
 
             if (bottomSheetSummary != null)
@@ -362,6 +606,211 @@ namespace KineTutor3D.UI.RobotControlV3
         private static void SetPresetActive(Button button, bool active)
         {
             button?.EnableInClassList("rc-home-state-button--active", active);
+        }
+
+        private PendantV3PreviewState.Kind ResolvePreviewStateFromSession()
+        {
+            return MapPreviewKind(CurrentSessionState.DisplayKind);
+        }
+
+        private static PendantV3PreviewState.Kind MapPreviewKind(PendantV3ConnectionDisplayKind kind)
+        {
+            return kind switch
+            {
+                PendantV3ConnectionDisplayKind.ConnectedServoOff => PendantV3PreviewState.Kind.ConnectedServoOff,
+                PendantV3ConnectionDisplayKind.ConnectedUnsynced => PendantV3PreviewState.Kind.ConnectedUnsynced,
+                PendantV3ConnectionDisplayKind.ReadyToJog => PendantV3PreviewState.Kind.ReadyToJog,
+                PendantV3ConnectionDisplayKind.Fault => PendantV3PreviewState.Kind.Fault,
+                PendantV3ConnectionDisplayKind.AutoReconnect => PendantV3PreviewState.Kind.AutoReconnect,
+                _ => PendantV3PreviewState.Kind.Disconnected,
+            };
+        }
+
+        private static PendantV3ConnectionDisplayKind MapDisplayKind(PendantV3PreviewState.Kind kind)
+        {
+            return kind switch
+            {
+                PendantV3PreviewState.Kind.ConnectedServoOff => PendantV3ConnectionDisplayKind.ConnectedServoOff,
+                PendantV3PreviewState.Kind.ConnectedUnsynced => PendantV3ConnectionDisplayKind.ConnectedUnsynced,
+                PendantV3PreviewState.Kind.ReadyToJog => PendantV3ConnectionDisplayKind.ReadyToJog,
+                PendantV3PreviewState.Kind.Fault => PendantV3ConnectionDisplayKind.Fault,
+                PendantV3PreviewState.Kind.AutoReconnect => PendantV3ConnectionDisplayKind.AutoReconnect,
+                _ => PendantV3ConnectionDisplayKind.Disconnected,
+            };
+        }
+
+        private static string BuildConnectionStatusText(PendantV3PreviewState.Definition data, PendantV3ConnectionSessionState session)
+        {
+            if (session.ReconnectActive)
+            {
+                return $"상태: 재연결 시도 중 ({session.ReconnectAttempt + 1}/{session.ReconnectAttemptMax})";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "상태: 자동 재연결 실패 / 수동 연결 필요";
+            }
+
+            return data.ConnectionCardStatus;
+        }
+
+        private static string BuildQuickServoText(PendantV3ConnectionSessionState session)
+        {
+            return session.ReconnectActive
+                ? "서보: 보류 / 복귀 대기"
+                : $"서보: {session.ServoSummary}";
+        }
+
+        private static string BuildQuickSyncText(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return $"다음 재시도: {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 후";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "자동 재연결 실패 / 수동 연결 필요";
+            }
+
+            return data.QuickSync;
+        }
+
+        private static string ResolveQuickActionLabel(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectFailed)
+            {
+                return "수동 연결";
+            }
+
+            if (session.IsMockMode)
+            {
+                return "Live로 전환";
+            }
+
+            return data.QuickActionLabel;
+        }
+
+        private static bool ResolveQuickActionEnabled(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return false;
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return true;
+            }
+
+            if (session.IsMockMode)
+            {
+                return !session.ReconnectActive;
+            }
+
+            return data.QuickActionEnabled;
+        }
+
+        private static string ResolveActionNow(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return $"지금 상태: 자동 재연결 중 ({session.ReconnectAttempt}/{session.ReconnectAttemptMax})";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "지금 상태: 자동 재연결 실패";
+            }
+
+            if (!session.IsMockMode && !session.IsLiveArmActive)
+            {
+                return "지금 상태: Live 연결 / Disarmed";
+            }
+
+            return data.ActionNow;
+        }
+
+        private static string ResolveActionPrimary(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return $"다음 행동: {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 뒤 재시도 결과를 확인";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "다음 행동: 수동 연결로 복귀";
+            }
+
+            if (!session.IsMockMode && !session.IsLiveArmActive)
+            {
+                return "다음 행동: Live Arm 확인";
+            }
+
+            return data.ActionPrimary;
+        }
+
+        private static string ResolveActionWhy(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return $"3초 간격 자동 재시도를 진행 중이다. 남은 시도는 {Mathf.Max(0, session.ReconnectAttemptMax - session.ReconnectAttempt)}회다.";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return string.IsNullOrWhiteSpace(session.ReconnectFailureSummary)
+                    ? "자동 복구가 끝까지 실패했으니 수동 연결부터 다시 시도해라."
+                    : session.ReconnectFailureSummary;
+            }
+
+            if (!session.ActualMoveAllowed)
+            {
+                return session.ActualMoveBlockReason;
+            }
+
+            return data.ActionWhy;
+        }
+
+        private static string ResolvePrimaryActionLabel(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return "재시도 대기";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "수동 연결 →";
+            }
+
+            if (!session.IsMockMode && !session.IsLiveArmActive)
+            {
+                return "Live Arm →";
+            }
+
+            return data.PrimaryActionLabel;
+        }
+
+        private static bool ResolvePrimaryActionEnabled(PendantV3ConnectionSessionState session, PendantV3PreviewState.Definition data)
+        {
+            if (session.ReconnectActive)
+            {
+                return false;
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return true;
+            }
+
+            if (!session.IsMockMode && !session.IsLiveArmActive)
+            {
+                return session.IsConnected && session.IsEnabled && !session.ReconnectActive;
+            }
+
+            return data.PrimaryActionEnabled;
         }
     }
 }

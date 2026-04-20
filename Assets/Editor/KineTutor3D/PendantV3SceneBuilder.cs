@@ -42,6 +42,7 @@ namespace KineTutor3D.EditorTools
         private const string WarningDialogPath = "Assets/UI/PendantV3/popups/warning-dialog.uxml";
         private const string RecoveryDialogPath = "Assets/UI/PendantV3/popups/recovery-dialog.uxml";
         private const string UnsavedConfirmPath = "Assets/UI/PendantV3/popups/unsaved-confirm.uxml";
+        private const string FirstRunGuidePath = "Assets/UI/PendantV3/popups/first-run-guide.uxml";
 
         [MenuItem(MenuPath, priority = 172)]
         public static void AuthorSceneMenu()
@@ -239,10 +240,34 @@ namespace KineTutor3D.EditorTools
                 layoutController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3LayoutController>();
             }
 
+            var contextPanelTabController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.ContextPanelTabController>();
+            if (contextPanelTabController == null)
+            {
+                contextPanelTabController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.ContextPanelTabController>();
+            }
+
             var shellStateController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.PendantV3ShellStateController>();
             if (shellStateController == null)
             {
                 shellStateController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3ShellStateController>();
+            }
+
+            var connectionSessionAdapter = documentObject.GetComponent<KineTutor3D.App.Fairino.PendantV3ConnectionSessionAdapter>();
+            if (connectionSessionAdapter == null)
+            {
+                connectionSessionAdapter = documentObject.AddComponent<KineTutor3D.App.Fairino.PendantV3ConnectionSessionAdapter>();
+            }
+
+            var visualizationOrchestrator = documentObject.GetComponent<KineTutor3D.App.PendantV3VisualizationOrchestrator>();
+            if (visualizationOrchestrator == null)
+            {
+                visualizationOrchestrator = documentObject.AddComponent<KineTutor3D.App.PendantV3VisualizationOrchestrator>();
+            }
+
+            var visualizationDriver = documentObject.GetComponent<KineTutor3D.Visualization.PendantV3VisualizationDriver>();
+            if (visualizationDriver == null)
+            {
+                visualizationDriver = documentObject.AddComponent<KineTutor3D.Visualization.PendantV3VisualizationDriver>();
             }
 
             var sceneCoordinator = documentObject.GetComponent<KineTutor3D.App.PendantV3SceneCoordinator>();
@@ -350,6 +375,7 @@ namespace KineTutor3D.EditorTools
             var warningDialogTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(WarningDialogPath);
             var recoveryDialogTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(RecoveryDialogPath);
             var unsavedConfirmTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UnsavedConfirmPath);
+            var firstRunGuideTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FirstRunGuidePath);
             if (panelSettings == null)
             {
                 throw new MissingReferenceException($"PanelSettings not found: {PanelSettingsPath}");
@@ -455,6 +481,11 @@ namespace KineTutor3D.EditorTools
                 throw new MissingReferenceException($"VisualTreeAsset not found: {UnsavedConfirmPath}");
             }
 
+            if (firstRunGuideTree == null)
+            {
+                throw new MissingReferenceException($"VisualTreeAsset not found: {FirstRunGuidePath}");
+            }
+
             uiDocument.panelSettings = panelSettings;
             uiDocument.visualTreeAsset = visualTree;
             SetObjectReference(documentBridge, "panelSettings", panelSettings);
@@ -476,6 +507,7 @@ namespace KineTutor3D.EditorTools
             SetObjectReference(popupCoordinator, "warningDialogTemplate", warningDialogTree);
             SetObjectReference(popupCoordinator, "recoveryDialogTemplate", recoveryDialogTree);
             SetObjectReference(popupCoordinator, "unsavedConfirmTemplate", unsavedConfirmTree);
+            SetObjectReference(popupCoordinator, "firstRunGuideTemplate", firstRunGuideTree);
             SetObjectReference(statusCardController, "coordStripTemplate", coordStripTree);
             SetObjectReference(statusCardController, "statusCardTemplate", statusCardTree);
             SetIntValue(layoutController, "previewMode", (int)PendantV3LayoutController.PreviewMode.Desktop);
@@ -483,7 +515,11 @@ namespace KineTutor3D.EditorTools
             documentBridge.enabled = true;
             inputContract.enabled = true;
             layoutController.enabled = true;
+            contextPanelTabController.enabled = true;
             shellStateController.enabled = true;
+            connectionSessionAdapter.enabled = true;
+            visualizationOrchestrator.enabled = true;
+            visualizationDriver.enabled = true;
             sceneCoordinator.enabled = true;
             connectionHomeController.enabled = true;
             binder.enabled = true;

@@ -90,14 +90,14 @@
                     <ui:VisualElement name="SafetyDiagnosticsHost" class="rc-context-host" />
                     <ui:VisualElement name="ActionHint" class="rc-context-card">
                         <ui:Label name="ActionHintTitle" text="다음 행동 추천" class="rc-panel-title" />
-                        <ui:Label name="ActionHintPrimary" text="다음 행동: 동기화 먼저" class="rc-panel-copy rc-panel-copy--compact" />
-                        <ui:Label name="ActionHintSummary" text="첫 조작 전 현재 자세를 읽어두면 덜 위험하다." class="rc-panel-copy" />
+                        <ui:Label name="ActionHintPrimary" text="다음 행동을 여기에 표시한다." class="rc-panel-copy rc-panel-copy--compact" />
+                        <ui:Label name="ActionHintSummary" text="현재 상태에서 제일 먼저 확인할 행동과 이유를 짧게 정리한다." class="rc-panel-copy" />
                     </ui:VisualElement>
                     <ui:VisualElement name="WhyItMoved" class="rc-context-card rc-context-flex rc-hidden">
-                        <ui:Label name="WhyItMovedTitle" text="조작 메모" class="rc-panel-title" />
+                        <ui:Label name="WhyItMovedTitle" text="최근 조작 메모" class="rc-panel-title" />
                         <ui:Label
                             name="WhyItMovedSummary"
-                            text="작은 포즈부터 확인하고 실제 이동은 마지막에 보내는 흐름을 권장한다."
+                            text="최근 조작과 현재 상태 메모를 여기에 정리한다."
                             class="rc-panel-copy" />
                     </ui:VisualElement>
                 </ui:ScrollView>

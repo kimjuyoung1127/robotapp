@@ -3,6 +3,10 @@
     <ui:Style src="status-card.uss" />
     <ui:VisualElement name="StatusCardRoot" class="rc-context-card rc-status-card-root">
         <ui:Label text="장비 상태" class="rc-panel-title" />
+        <ui:VisualElement name="StatusSafetySummary" class="rc-status-summary-card">
+            <ui:Label name="StatusSafetySummaryTitle" text="정상 대기" class="rc-status-summary-title" />
+            <ui:Label name="StatusSafetySummaryBody" text="조작 전 상태와 좌표를 한 번 더 확인하면 된다." class="rc-panel-copy rc-panel-copy--compact" />
+        </ui:VisualElement>
 
         <ui:VisualElement class="rc-status-card-section">
             <ui:VisualElement class="rc-status-row">

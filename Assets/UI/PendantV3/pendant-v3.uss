@@ -12,7 +12,7 @@
     --rc-muted-text: rgb(140, 140, 160);
     --rc-top-bar-height: 56px;
     --rc-nav-rail-width: 72px;
-    --rc-context-panel-width: 320px;
+    --rc-context-panel-width: 240px;
     --rc-bottom-bar-height: 48px;
     --rc-work-tab-height: 40px;
     --rc-gap: 4px;
@@ -23,7 +23,7 @@
 .rc-root {
     flex-grow: 1;
     flex-direction: column;
-    background-color: var(--rc-backdrop);
+    background-color: rgba(0, 0, 0, 0);
     color: var(--rc-title-text);
 }
 
@@ -222,7 +222,7 @@
 
 .rc-viewport-host {
     flex-grow: 0.55;
-    background-color: rgb(10, 10, 14);
+    background-color: rgba(10, 10, 14, 0.12);
     border-radius: var(--rc-radius);
     padding: var(--rc-card-padding);
     border-width: 1px;
@@ -232,20 +232,18 @@
 
 .rc-viewport-host--boundary {
     border-color: rgba(80, 140, 255, 0.36);
-    box-shadow: 0 0 0 1px rgba(80, 140, 255, 0.22);
 }
 
 .rc-viewport-host--collision {
     border-color: rgba(255, 70, 70, 0.42);
-    box-shadow: 0 0 0 1px rgba(255, 70, 70, 0.3);
 }
 
 .rc-viewport-toolbar-host {
     position: absolute;
     left: 12px;
     top: 12px;
-    width: 360px;
-    max-width: 72%;
+    width: 220px;
+    max-width: 42%;
 }
 
 .rc-coord-overlay {
@@ -297,10 +295,6 @@
     margin-right: 4px;
 }
 
-.rc-context-tab:last-child {
-    margin-right: 0;
-}
-
 .rc-context-tab--active {
     background-color: rgba(80, 140, 255, 0.22);
 }
@@ -314,11 +308,56 @@
     min-height: 0;
     flex-shrink: 1;
     background-color: transparent;
+    padding-right: 2px;
 }
 
 .rc-context-scroll .unity-scroll-view__content-container {
     flex-direction: column;
     padding-bottom: 8px;
+}
+
+.rc-context-scroll .unity-scroll-view__vertical-scroller,
+.rc-context-scroll .unity-scroller--vertical {
+    width: 8px;
+    min-width: 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+.rc-context-scroll .unity-scroll-view__vertical-scroller .unity-slider__tracker,
+.rc-context-scroll .unity-scroll-view__vertical-scroller .unity-base-slider__tracker,
+.rc-context-scroll .unity-scroller--vertical .unity-slider__tracker,
+.rc-context-scroll .unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+.rc-context-scroll .unity-scroll-view__vertical-scroller .unity-slider__dragger,
+.rc-context-scroll .unity-scroll-view__vertical-scroller .unity-base-slider__dragger,
+.rc-context-scroll .unity-scroller--vertical .unity-slider__dragger,
+.rc-context-scroll .unity-scroller--vertical .unity-base-slider__dragger {
+    min-width: 8px;
+    background-color: rgba(80, 140, 255, 0.38);
+    border-radius: 4px;
+}
+
+.rc-context-scroll #unity-tracker {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+.rc-context-scroll #unity-dragger-border {
+    background-color: transparent;
+}
+
+.rc-context-scroll #unity-dragger {
+    background-color: rgba(80, 140, 255, 0.38);
+    border-radius: 4px;
+}
+
+.rc-context-scroll .unity-scroll-view__horizontal-scroller,
+.rc-context-scroll .unity-scroller--horizontal {
+    display: none;
 }
 
 .rc-context-card {
@@ -593,7 +632,7 @@
     left: 8px;
     top: 8px;
     width: 300px;
-    max-width: calc(100% - 16px);
+    max-width: 100%;
 }
 
 .rc-root--tablet .rc-panel-header {

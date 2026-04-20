@@ -149,6 +149,105 @@ namespace KineTutor3D.App
                 : $"instanceId={shell.GetInstanceID()}; {shell.GetDebugSummary()}";
         }
 
+        public static string GetConnectionSessionSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
+            if (adapter == null)
+            {
+                return "PendantV3ConnectionSessionAdapter missing";
+            }
+
+            adapter.ForceInitialize();
+            return adapter.GetDebugSummary();
+        }
+
+        public static string GetVisualizationSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var orchestrator = Object.FindFirstObjectByType<PendantV3VisualizationOrchestrator>(FindObjectsInactive.Include);
+            var driver = Object.FindFirstObjectByType<Visualization.PendantV3VisualizationDriver>(FindObjectsInactive.Include);
+            if (orchestrator == null || driver == null)
+            {
+                return "PendantV3 visualization missing";
+            }
+
+            orchestrator.ForceInitialize();
+            driver.ForceInitialize();
+            return $"state=[{orchestrator.GetDebugSummary()}]; driver=[{driver.GetDebugSummary()}]";
+        }
+
+        public static string GetViewportVisibilitySummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var camera = Camera.main ?? Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
+            var actual = GameObject.Find("RobotActual");
+            var ghost = GameObject.Find("RobotGhost");
+            var driver = Object.FindFirstObjectByType<Visualization.PendantV3VisualizationDriver>(FindObjectsInactive.Include);
+            var cameraSummary = camera != null
+                ? $"cameraPos={camera.transform.position:F2}; cameraEuler={camera.transform.eulerAngles:F2}; fov={camera.fieldOfView:0.0}; rect={camera.rect}"
+                : "camera=missing";
+            var actualSummary = actual != null ? $"actual=True; active={actual.activeInHierarchy}" : "actual=False";
+            var ghostSummary = ghost != null ? $"ghost=True; active={ghost.activeInHierarchy}" : "ghost=False";
+            var driverSummary = driver != null ? driver.GetDebugSummary() : "driver=missing";
+            return $"scene={scene.name}; {cameraSummary}; {actualSummary}; {ghostSummary}; {driverSummary}";
+        }
+
+        public static string GetViewportProbeSummary()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var camera = Camera.main ?? Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
+            var orbit = camera != null ? camera.GetComponent<Visualization.OrbitCameraController>() : null;
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var viewportHost = document?.rootVisualElement?.Q<VisualElement>("ViewportHost");
+            var runtimeRoot = GameObject.Find("PendantV3RuntimeRoot");
+            var actual = GameObject.Find("RobotActual");
+            var ghost = GameObject.Find("RobotGhost");
+            var target = orbit != null ? orbit.Target : null;
+            var hostBounds = viewportHost != null ? viewportHost.worldBound.ToString() : "null";
+            var actualPos = actual != null ? actual.transform.position.ToString("F2") : "null";
+            var ghostPos = ghost != null ? ghost.transform.position.ToString("F2") : "null";
+            var runtimeRootPos = runtimeRoot != null ? runtimeRoot.transform.position.ToString("F2") : "null";
+            var targetPos = target != null ? target.position.ToString("F2") : "null";
+            var panelName = viewportHost?.panel?.GetType().Name ?? "null";
+            var cameraRect = camera != null ? camera.rect.ToString() : "null";
+            return $"scene={scene.name}; hostBounds={hostBounds}; panel={panelName}; runtimeRootPos={runtimeRootPos}; actualPos={actualPos}; ghostPos={ghostPos}; targetPos={targetPos}; cameraRect={cameraRect}";
+        }
+
+        public static string SetLiveModeForDebug(bool live)
+        {
+            var adapter = GetConnectionSessionAdapter();
+            adapter.SetMockMode(!live);
+            return adapter.GetDebugSummary();
+        }
+
+        public static string SetLiveArmForDebug(bool armed)
+        {
+            var adapter = GetConnectionSessionAdapter();
+            adapter.SetLiveArmState(armed);
+            return adapter.GetDebugSummary();
+        }
+
         public static string GetSceneCoordinatorSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -361,8 +460,10 @@ namespace KineTutor3D.App
             var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
             var status = Object.FindFirstObjectByType<StatusCardController>(FindObjectsInactive.Include);
             var safety = Object.FindFirstObjectByType<SafetyDiagnosticsController>(FindObjectsInactive.Include);
+            var visualization = Object.FindFirstObjectByType<PendantV3VisualizationOrchestrator>(FindObjectsInactive.Include);
             var contextTabs = Object.FindFirstObjectByType<ContextPanelTabController>(FindObjectsInactive.Include);
             var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            var session = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
             var binder = Object.FindFirstObjectByType<PendantV3Binder>(FindObjectsInactive.Include);
             var coordinator = Object.FindFirstObjectByType<PendantV3SceneCoordinator>(FindObjectsInactive.Include);
             var shellCount = Object.FindObjectsByType<PendantV3ShellStateController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
@@ -370,6 +471,7 @@ namespace KineTutor3D.App
             var jointCount = Object.FindObjectsByType<JointJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             var tcpCount = Object.FindObjectsByType<TcpJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             var pointCount = Object.FindObjectsByType<PointMoveController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            session?.ForceInitialize();
             coordinator?.ForceBootstrap();
             binder?.ForceInitialize();
             home?.ForceInitialize();
@@ -387,11 +489,67 @@ namespace KineTutor3D.App
             var pointMoveSummary = pointMove != null ? pointMove.GetDebugSummary() : "PointMoveController missing";
             var statusSummary = status != null ? status.GetDebugSummary() : "StatusCardController missing";
             var safetySummary = safety != null ? safety.GetDebugSummary() : "SafetyDiagnosticsController missing";
+            var visualizationSummary = visualization != null ? visualization.GetDebugSummary() : "PendantV3VisualizationOrchestrator missing";
             var contextTabsSummary = contextTabs != null ? contextTabs.GetDebugSummary() : "ContextPanelTabController missing";
             var shellSummary = shell != null ? shell.GetDebugSummary() : "PendantV3ShellStateController missing";
+            var sessionSummary = session != null ? session.GetDebugSummary() : "PendantV3ConnectionSessionAdapter missing";
             var binderSummary = binder != null ? binder.GetDebugSummary() : "PendantV3Binder missing";
             var coordinatorSummary = coordinator != null ? coordinator.GetDebugSummary() : "PendantV3SceneCoordinator missing";
-            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | binder=[{binderSummary}] | contextTabs=[{contextTabsSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | status=[{statusSummary}] | safety=[{safetySummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
+            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | session=[{sessionSummary}] | visualization=[{visualizationSummary}] | binder=[{binderSummary}] | contextTabs=[{contextTabsSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | status=[{statusSummary}] | safety=[{safetySummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
+        }
+
+        public static string TriggerConnectionLostForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
+            if (adapter == null)
+            {
+                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
+            }
+
+            adapter.TriggerConnectionLostForDebug();
+            return adapter.GetDebugSummary();
+        }
+
+        public static string AdvanceReconnectTickForDebug(float seconds)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
+            if (adapter == null)
+            {
+                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
+            }
+
+            adapter.AdvanceReconnectTickForDebug(seconds);
+            return adapter.GetDebugSummary();
+        }
+
+        public static string CompleteReconnectForDebug(bool success)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
+            if (adapter == null)
+            {
+                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
+            }
+
+            adapter.CompleteReconnectForDebug(success);
+            return adapter.GetDebugSummary();
         }
 
         public static string SetPreferV3Route(bool value)
@@ -496,6 +654,23 @@ namespace KineTutor3D.App
             }
 
             return jointJog;
+        }
+
+        private static Fairino.PendantV3ConnectionSessionAdapter GetConnectionSessionAdapter()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
+            if (adapter == null)
+            {
+                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
+            }
+
+            return adapter;
         }
 
         private static TcpJogController GetTcpJogController()

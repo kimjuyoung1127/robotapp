@@ -39,6 +39,11 @@ namespace KineTutor3D.Visualization
         public float Distance => distance;
 
         /// <summary>
+        /// 현재 적용 중인 pivot 오프셋입니다.
+        /// </summary>
+        public Vector3 PivotOffset => pivotOffset;
+
+        /// <summary>
         /// 오빗 조작 활성 상태입니다.
         /// </summary>
         public bool OrbitEnabled
@@ -80,6 +85,20 @@ namespace KineTutor3D.Visualization
             minDistance = Mathf.Max(0.01f, min);
             maxDistance = Mathf.Max(minDistance, max);
             distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        }
+
+        /// <summary>
+        /// 대상 기준 pivot 오프셋을 설정합니다.
+        /// </summary>
+        public void SetPivotOffset(Vector3 offset)
+        {
+            pivotOffset = offset;
+            initialized = true;
+
+            if (target != null)
+            {
+                ApplyOrbit();
+            }
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ namespace KineTutor3D.UI
     public class OnboardingManager : MonoBehaviour
     {
         private const string DefaultRobotId = "2DOF_RR";
+        private const string DefaultRobotControlV3RobotId = "FAIRINO_FR5";
 
         [SerializeField] private RectTransform canvasRoot;
         [SerializeField] private Font fallbackFont;
@@ -21,6 +22,7 @@ namespace KineTutor3D.UI
         private Button startLearningButton;
         private Button beginnerButton;
         private Button skipButton;
+        private Button v3RouteButton;
         private bool listenersBound;
         private bool viewBuilt;
 
@@ -110,6 +112,18 @@ namespace KineTutor3D.UI
             SceneNavigator.Load(SceneId.Sandbox);
         }
 
+        public void OpenRobotControlV3Path()
+        {
+            StepProgressSaver.MarkVisited();
+            StepProgressSaver.SetCurrentTrack(StepProgressSaver.CoreKinematicsTrack);
+            StepProgressSaver.SaveLastCompletedStep(StepProgressSaver.CoreKinematicsTrack, 0);
+            SessionContextStore.Clear();
+            RobotControlEntryPolicy.Apply(SceneId.RobotControlV3, RobotControlEntryPolicy.Intent.FreshStart);
+            RobotSelectionBridge.SetSelection(DefaultRobotControlV3RobotId, RobotSelectionBridge.RobotControlMode);
+            RobotControlScenePreference.SetPreferV3(true);
+            SceneNavigator.Load(SceneId.RobotControlV3);
+        }
+
         private void EnsurePresentation()
         {
             canvasRoot ??= transform as RectTransform;
@@ -127,6 +141,7 @@ namespace KineTutor3D.UI
                 beginnerButton = refs.BeginnerButton;
                 startLearningButton = refs.StartLearningButton;
                 skipButton = refs.SkipButton;
+                v3RouteButton = refs.V3RouteButton;
                 viewBuilt = true;
             }
 
@@ -169,6 +184,12 @@ namespace KineTutor3D.UI
                 skipButton.onClick.AddListener(SkipToSandbox);
             }
 
+            if (v3RouteButton != null)
+            {
+                v3RouteButton.onClick.RemoveListener(OpenRobotControlV3Path);
+                v3RouteButton.onClick.AddListener(OpenRobotControlV3Path);
+            }
+
             listenersBound = true;
         }
 
@@ -179,6 +200,7 @@ namespace KineTutor3D.UI
             if (startLearningButton != null) startLearningButton.onClick.RemoveListener(BeginLearning);
             if (beginnerButton != null) beginnerButton.onClick.RemoveListener(BeginAsBeginner);
             if (skipButton != null) skipButton.onClick.RemoveListener(SkipToSandbox);
+            if (v3RouteButton != null) v3RouteButton.onClick.RemoveListener(OpenRobotControlV3Path);
 
             listenersBound = false;
         }

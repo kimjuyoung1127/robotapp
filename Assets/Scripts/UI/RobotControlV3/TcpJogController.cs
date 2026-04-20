@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using System.Globalization;
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -26,6 +27,9 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement tcpJogSheetHost;
         private VisualElement cartesianOverlayHost;
         private ConnectionHomeController connectionHomeController;
+        private PopupCoordinatorV3 popupCoordinator;
+        private PendantV3VisualizationOrchestrator visualizationOrchestrator;
+        private RobotControlMotionRuntime motionRuntime;
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -37,6 +41,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isTabletVisible;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
+        private string lastFeedback = "target/path를 먼저 확인해라.";
 
         private void OnEnable()
         {
@@ -82,7 +87,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             var activeAxis = highlightedAxis >= 0 ? $"{AxisSpecs[highlightedAxis].Label}{(highlightedDirection > 0 ? "+" : "-")}" : "none";
             var overlayHidden = cartesianOverlayHost?.ClassListContains("rc-hidden") ?? true;
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; increment={GetIncrementValue():0.#}; activeAxis={activeAxis}; overlayHidden={overlayHidden}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; increment={GetIncrementValue():0.#}; activeAxis={activeAxis}; canApply={connectionHomeController?.ActualMoveAllowed ?? false}; overlayHidden={overlayHidden}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         public string NudgeAxisForDebug(string axisLabel, int direction)
@@ -102,6 +107,8 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
+            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
             root = document?.rootVisualElement;
             if (root == null || tcpJogTemplate == null || cartesianArrowsOverlayTemplate == null || connectionHomeController == null)
             {
@@ -178,6 +185,8 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnCoordBase, () => SetCoordSystem("Base"));
             RegisterClick(panel.BtnCoordTool, () => SetCoordSystem("Tool"));
             RegisterClick(panel.BtnCoordUser, () => SetCoordSystem("User"));
+            RegisterClick(panel.BtnPreview, PreviewTcpTarget);
+            RegisterClick(panel.BtnApply, ApplyTcpMove);
             for (var index = 0; index < panel.Rows.Length; index++)
             {
                 var capturedIndex = index;
@@ -234,7 +243,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnCoordBase.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "Base");
             panel.BtnCoordTool.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "Tool");
             panel.BtnCoordUser.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "User");
-            panel.Hint.text = GetCoordHint();
+            panel.Hint.text = $"{GetCoordHint()} {lastFeedback}";
             panel.IncrementSummary.text = $"증분: {GetIncrementValue():0.#} mm / {GetIncrementValue():0.#}°";
             panel.SpeedSummary.text = $"속도: {GetLocalState().SpeedPercent}%";
             panel.OverlaySummary.text = highlightedAxis >= 0
@@ -299,6 +308,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var localState = GetLocalState();
             localState.CoordSystem = activeCoordSystem;
             LocalSettingsStore.Save(localState);
+            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"TCP preview · {activeCoordSystem}", false);
             ApplyAll();
         }
 
@@ -307,7 +317,106 @@ namespace KineTutor3D.UI.RobotControlV3
             currentValues[index] = Mathf.Clamp(currentValues[index] + direction * GetIncrementValue(), AxisSpecs[index].MinValue, AxisSpecs[index].MaxValue);
             highlightedAxis = index;
             highlightedDirection = direction;
+            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"TCP preview · {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")}", false);
             ApplyAll();
+        }
+
+        private void PreviewTcpTarget()
+        {
+            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"MoveL preview · X {currentValues[0]:0.0} / Y {currentValues[1]:0.0} / Z {currentValues[2]:0.0}", false);
+            lastFeedback = "TCP target/path를 갱신했다.";
+            ApplyAll();
+        }
+
+        private void ApplyTcpMove()
+        {
+            if (!connectionHomeController.ActualMoveAllowed)
+            {
+                lastFeedback = connectionHomeController.ActualMoveBlockReason;
+                ApplyAll();
+                return;
+            }
+
+            var target = BuildTcpTarget();
+            void Execute()
+            {
+                var runtimeResult = EnsureMotionRuntime();
+                if (!runtimeResult.IsSuccess)
+                {
+                    lastFeedback = runtimeResult.Message;
+                }
+                else
+                {
+                    var speed = GetLocalState().SpeedPercent;
+                    var result = motionRuntime.DispatchMoveL(target, speed);
+                    lastFeedback = result.IsSuccess
+                        ? $"MoveL 실행 완료 · X {target[0]:0.0} / Y {target[1]:0.0} / Z {target[2]:0.0}"
+                        : $"MoveL 실패 · {result.Message}";
+                    if (result.IsSuccess)
+                    {
+                        visualizationOrchestrator?.SetRuntimePose(CurrentJointValuesFallback(), target);
+                        visualizationOrchestrator?.ClearPreview();
+                    }
+                }
+
+                ApplyAll();
+            }
+
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.OpenMoveConfirmForPolicy("TCP 실행 확인", $"X {target[0]:0.0} / Y {target[1]:0.0} / Z {target[2]:0.0}", Execute, "MoveL 실행");
+                return;
+            }
+
+            Execute();
+        }
+
+        private FairinoResult<RobotControlMotionRuntime> EnsureMotionRuntime()
+        {
+            var robotId = RobotSelectionBridge.GetSelectedRobotId();
+            if (string.IsNullOrWhiteSpace(robotId))
+            {
+                motionRuntime = null;
+                return FairinoResult<RobotControlMotionRuntime>.Fail(-1, "선택된 로봇이 없어서 TCP runtime을 준비하지 못했다.");
+            }
+
+            if (motionRuntime != null && motionRuntime.RobotId == robotId)
+            {
+                return FairinoResult<RobotControlMotionRuntime>.Ok(motionRuntime, "tcp runtime 재사용");
+            }
+
+            var createResult = RobotControlMotionRuntime.CreateFromSelection();
+            if (!createResult.IsSuccess)
+            {
+                motionRuntime = null;
+                return createResult;
+            }
+
+            motionRuntime = createResult.Value;
+            return createResult;
+        }
+
+        private double[] BuildTcpTarget()
+        {
+            var target = new double[currentValues.Length];
+            for (var index = 0; index < currentValues.Length; index++)
+            {
+                target[index] = currentValues[index];
+            }
+
+            return target;
+        }
+
+        private double[] CurrentJointValuesFallback()
+        {
+            var values = connectionHomeController.CurrentPreviewDefinition.JointValues;
+            var target = new double[values.Length];
+            for (var index = 0; index < values.Length; index++)
+            {
+                target[index] = ParseValue(values[index]);
+            }
+
+            return target;
         }
 
         private PendantV3LocalState GetLocalState()

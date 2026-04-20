@@ -12,7 +12,7 @@ namespace KineTutor3D.App
 
         public static void Save(PendantV3LocalState state)
         {
-            var normalized = PendantV3LocalState.Normalize(state);
+            var normalized = PendantV3LocalState.DeepCopy(state);
             PlayerPrefs.SetString(LocalStateKey, JsonUtility.ToJson(normalized));
             PlayerPrefs.Save();
         }
@@ -28,7 +28,7 @@ namespace KineTutor3D.App
 
             try
             {
-                state = PendantV3LocalState.Normalize(JsonUtility.FromJson<PendantV3LocalState>(raw));
+                state = PendantV3LocalState.DeepCopy(JsonUtility.FromJson<PendantV3LocalState>(raw));
                 return true;
             }
             catch
@@ -47,6 +47,14 @@ namespace KineTutor3D.App
         {
             PlayerPrefs.DeleteKey(LocalStateKey);
             PlayerPrefs.Save();
+        }
+
+        public static void ResetForFreshStart()
+        {
+            var current = LoadOrDefault();
+            var reset = PendantV3LocalState.Default();
+            reset.HasShownFirstRunGuide = current.HasShownFirstRunGuide;
+            Save(reset);
         }
     }
 }

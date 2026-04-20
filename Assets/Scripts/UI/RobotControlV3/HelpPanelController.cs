@@ -27,6 +27,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label bottomSheetTitle;
         private Label bottomSheetSummary;
         private ConnectionHomeController connectionHomeController;
+        private PopupCoordinatorV3 popupCoordinator;
+        private PointMoveController pointMoveController;
         private HelpElements desktopPanel;
         private HelpElements tabletPanel;
         private bool isDesktopHelpActive;
@@ -43,6 +45,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void OnDisable()
         {
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.PopupStateChanged -= HandlePopupStateChanged;
+            }
+
             if (initializeCoroutine != null)
             {
                 StopCoroutine(initializeCoroutine);
@@ -83,6 +90,8 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
+            pointMoveController ??= GetComponent<PointMoveController>();
             root = document?.rootVisualElement;
             if (root == null || helpPanelTemplate == null || connectionHomeController == null)
             {
@@ -103,6 +112,12 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             currentShellState = ResolveShellStateSnapshot();
+            if (popupCoordinator != null)
+            {
+                popupCoordinator.PopupStateChanged -= HandlePopupStateChanged;
+                popupCoordinator.PopupStateChanged += HandlePopupStateChanged;
+            }
+
             isInitialized = true;
             RefreshFromBinder(connectionHomeController.CurrentPreviewDefinition, currentShellState);
             return true;
@@ -176,6 +191,16 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.HelpPrimaryBody.text = BuildPrimaryHelp(shellState);
             panel.HelpSafetyBody.text = BuildSafetyHelp(data, shellState);
             panel.HelpActionBody.text = BuildActionHelp(data, shellState);
+        }
+
+        private void HandlePopupStateChanged()
+        {
+            if (!isInitialized)
+            {
+                return;
+            }
+
+            RefreshFromBinder(connectionHomeController.CurrentPreviewDefinition, currentShellState);
         }
 
         private void ApplyVisibility(PendantV3LocalState shellState)
@@ -285,24 +310,62 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private string BuildPrimaryHelp(PendantV3LocalState state)
         {
+            if (popupCoordinator != null && popupCoordinator.HasActivePopup)
+            {
+                return $"지금은 팝업 확인 단계다. {popupCoordinator.GetPopupContextSummary()}";
+            }
+
+            var session = connectionHomeController.CurrentSessionState;
+            if (session.ReconnectFailed)
+            {
+                return "자동 복구가 실패했으니 조작보다 수동 연결을 먼저 다시 시도해야 한다.";
+            }
+
+            if (!session.ActualMoveAllowed)
+            {
+                return session.ActualMoveBlockReason;
+            }
+
             return connectionHomeController.CurrentPreviewState switch
             {
                 PendantV3PreviewState.Kind.Fault => "지금은 Fault가 걸린 상태라 조작보다 원인 확인과 복구 순서 읽기가 첫 번째다.",
                 PendantV3PreviewState.Kind.ConnectedUnsynced => "서보는 살아 있어도 미동기화면 현재 자세를 먼저 읽고 좌표계부터 다시 맞춰야 한다.",
-                PendantV3PreviewState.Kind.AutoReconnect => "통신 복귀가 먼저라서 조작 입력보다 연결 상태와 재시도 흐름을 먼저 봐야 한다.",
+                PendantV3PreviewState.Kind.AutoReconnect => $"통신 복귀가 먼저다. 지금은 {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 뒤 재시도와 남은 횟수를 먼저 봐야 한다.",
                 _ => $"현재 기준 좌표계는 {state.CoordSystem}, 증분은 {state.JogIncrement}, 속도는 {state.SpeedPercent}%다. 작은 이동이나 미리보기부터 시작해라.",
             };
         }
 
         private static string BuildSafetyHelp(PendantV3PreviewState.Definition data, PendantV3LocalState state)
         {
+            var popupSummary = string.Empty;
+            if (state.PointMotionKind == "MoveJ")
+            {
+                popupSummary = " MoveJ에서는 좌표계보다 관절 목표 숫자를 먼저 다시 보는 게 안전하다.";
+            }
+
             return state.ActiveNavSection == "NavHelp" || state.ActiveTabletTab == "BottomTabHelp"
-                ? $"{data.ActionWhy} 현재 속도 {state.SpeedPercent}% 기준으로는 확인-미리보기-적용 순서를 유지하는 게 안전하다."
-                : data.ActionWhy;
+                ? $"{data.ActionWhy} 현재 속도 {state.SpeedPercent}% 기준으로는 확인-미리보기-적용 순서를 유지하는 게 안전하다.{popupSummary}"
+                : $"{data.ActionWhy}{popupSummary}";
         }
 
-        private static string BuildActionHelp(PendantV3PreviewState.Definition data, PendantV3LocalState state)
+        private string BuildActionHelp(PendantV3PreviewState.Definition data, PendantV3LocalState state)
         {
+            if (pointMoveController != null && pointMoveController.HasUnsavedDraft())
+            {
+                return "포인트 초안이 아직 남아 있다. 버릴지 유지할지 먼저 정하고 탭을 떠나는 게 좋다.";
+            }
+
+            var session = connectionHomeController.CurrentSessionState;
+            if (session.ReconnectActive)
+            {
+                return $"자동 재연결 {session.ReconnectAttempt}/{session.ReconnectAttemptMax}를 진행 중이다. 지금은 조작 대신 복귀 결과를 기다려라.";
+            }
+
+            if (session.ReconnectFailed)
+            {
+                return "자동 재연결은 여기서 멈춘다. 연결 홈으로 가서 수동 연결을 다시 시도해라.";
+            }
+
             var nextStep = state.ActiveNavSection == "NavHelp"
                 ? "도움말을 다 읽었으면 원래 작업 탭으로 돌아가 한 단계씩 확인해라."
                 : "지금 탭 흐름을 유지한 채 바로 다음 작은 동작을 확인해라.";

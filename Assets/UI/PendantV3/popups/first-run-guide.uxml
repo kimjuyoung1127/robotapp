@@ -1,0 +1,15 @@
+<!-- Pendant V3 Popup: direct fresh-start first-run guide -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="FirstRunGuideBody" class="rc-popup-template-body">
+        <ui:VisualElement name="PopupMetaBank" class="rc-hidden">
+            <ui:Label name="PopupMetaTitle" text="첫 실행 가이드" />
+            <ui:Label name="PopupMetaSummary" text="온보딩 직행으로 들어왔으니 연결 홈 → 쉬운 조작 → 포인트 이동 순서로 보는 게 가장 안전하다." />
+            <ui:Label name="PopupMetaConfirm" text="가이드 확인" />
+            <ui:Label name="PopupMetaCancel" text="나중에" />
+            <ui:Label name="PopupMetaDanger" text="false" />
+        </ui:VisualElement>
+        <ui:Label name="FirstRunGuideTitle" text="직행 첫 진입 흐름" class="rc-popup-template-title" />
+        <ui:Label name="FirstRunGuideLine1" text="1. 연결 홈에서 상태와 서보 상태를 먼저 읽어라." class="rc-popup-template-line" />
+        <ui:Label name="FirstRunGuideLine2" text="2. 쉬운 조작에서 작은 움직임으로 감을 잡고, 그다음 포인트 이동으로 넘어가라." class="rc-popup-template-line" />
+    </ui:VisualElement>
+</ui:UXML>

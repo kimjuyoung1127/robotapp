@@ -19,6 +19,16 @@
             <ui:Label name="QuickServo" text="서보: OFF → [서보 켜기]" class="rc-panel-copy" />
             <ui:Label name="QuickMode" text="모드: 수동" class="rc-panel-copy" />
             <ui:Label name="QuickSync" text="마지막 동기화: 12초 전" class="rc-panel-copy" />
+            <ui:Label name="QuickControllerMode" text="컨트롤러: Mock" class="rc-panel-copy" />
+            <ui:Label name="QuickLiveArm" text="Live Arm: Disarmed" class="rc-panel-copy" />
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnMockMode" text="Mock" class="rc-home-button" />
+                <ui:Button name="BtnLiveMode" text="Live" class="rc-home-button" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnArmLive" text="Arm Live" class="rc-home-button rc-home-button--primary" />
+                <ui:Button name="BtnDisarmLive" text="Disarm" class="rc-home-button" />
+            </ui:VisualElement>
             <ui:VisualElement class="rc-home-button-row">
                 <ui:Button name="BtnQuickAction" text="서보 켜기" class="rc-home-button rc-home-button--primary" />
             </ui:VisualElement>

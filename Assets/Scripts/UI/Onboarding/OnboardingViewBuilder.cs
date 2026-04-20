@@ -16,7 +16,8 @@ namespace KineTutor3D.UI
             Text bodyText,
             Button beginnerButton,
             Button startLearningButton,
-            Button skipButton)
+            Button skipButton,
+            Button v3RouteButton)
         {
             Root = root;
             ModalRoot = modalRoot;
@@ -25,6 +26,7 @@ namespace KineTutor3D.UI
             BeginnerButton = beginnerButton;
             StartLearningButton = startLearningButton;
             SkipButton = skipButton;
+            V3RouteButton = v3RouteButton;
         }
 
         public RectTransform Root { get; }
@@ -34,6 +36,7 @@ namespace KineTutor3D.UI
         public Button BeginnerButton { get; }
         public Button StartLearningButton { get; }
         public Button SkipButton { get; }
+        public Button V3RouteButton { get; }
     }
 
     /// <summary>
@@ -62,7 +65,8 @@ namespace KineTutor3D.UI
             var body = surface?.Find("BodyText")?.GetComponent<Text>();
             var beginnerButton = surface?.Find("CardRow/BtnBeginner")?.GetComponent<Button>();
             var startLearningButton = surface?.Find("CardRow/BtnStartLearning")?.GetComponent<Button>();
-            var skipButton = surface?.Find("BtnOnboardingSkip")?.GetComponent<Button>();
+            var skipButton = surface?.Find("ActionRow/BtnOnboardingSkip")?.GetComponent<Button>();
+            var v3RouteButton = surface?.Find("ActionRow/BtnOpenRobotControlV3")?.GetComponent<Button>();
 
             if (screenBg == null
                 || modalRoot == null
@@ -71,12 +75,13 @@ namespace KineTutor3D.UI
                 || body == null
                 || beginnerButton == null
                 || startLearningButton == null
-                || skipButton == null)
+                || skipButton == null
+                || v3RouteButton == null)
             {
                 return false;
             }
 
-            refs = new OnboardingViewRefs(canvasRoot, modalRoot, headline, body, beginnerButton, startLearningButton, skipButton);
+            refs = new OnboardingViewRefs(canvasRoot, modalRoot, headline, body, beginnerButton, startLearningButton, skipButton, v3RouteButton);
             return true;
         }
 
@@ -137,16 +142,26 @@ namespace KineTutor3D.UI
                 "DH \ud30c\ub77c\ubbf8\ud130\uc640 \ud589\ub82c\ub85c\n\ubc14\ub85c \ub4e4\uc5b4\uac11\ub2c8\ub2e4.\n\uae30\uad6c\ud559 \ud559\uc2b5\uc744 \uc2dc\uc791\ud558\uc138\uc694.",
                 UIDesignTokens.Colors.AccentPrimary, font);
 
-            // Skip button
-            var skipBtn = UIComponentFactory.CreateGhostButton(surface, "BtnOnboardingSkip",
-                "\ub458\ub7ec\ubcf4\uae30 \u2192");
-            var skipRect = skipBtn.transform as RectTransform;
-            if (skipRect != null)
+            // Action row
+            var actionRow = UIComponentFactory.CreateHStack(surface, "ActionRow", UIDesignTokens.Space.Sm);
+            actionRow.childAlignment = TextAnchor.MiddleCenter;
+            actionRow.childControlWidth = false;
+            actionRow.childControlHeight = false;
+            var actionRowRect = (RectTransform)actionRow.transform;
+            UiRuntimeStyle.Anchor(actionRowRect,
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(360f, 36f), new Vector2(0f, 16f));
+
+            var v3Btn = UIComponentFactory.CreateSecondaryButton(actionRowRect, "BtnOpenRobotControlV3", "FR5 V3 바로 열기", font, 180f);
+            var v3Label = v3Btn.transform.Find("Label")?.GetComponent<Text>();
+            if (v3Label != null)
             {
-                UiRuntimeStyle.Anchor(skipRect,
-                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                    new Vector2(140f, 36f), new Vector2(0f, 16f));
+                v3Label.color = UIDesignTokens.Colors.TextPrimary;
             }
+
+            // Skip button
+            var skipBtn = UIComponentFactory.CreateGhostButton(actionRowRect, "BtnOnboardingSkip",
+                "\ub458\ub7ec\ubcf4\uae30 \u2192");
 
             var skipLabel = skipBtn.transform.Find("Label")?.GetComponent<Text>();
             if (skipLabel != null)
@@ -155,7 +170,7 @@ namespace KineTutor3D.UI
             }
 
             return new OnboardingViewRefs(canvasRoot, modalRoot, headline, body,
-                beginnerBtn, startBtn, skipBtn);
+                beginnerBtn, startBtn, skipBtn, v3Btn);
         }
 
         private static Button BuildSelectionCard(Transform parent, string name,

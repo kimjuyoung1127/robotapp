@@ -3,6 +3,31 @@
     margin-bottom: var(--rc-gap);
 }
 
+.rc-status-summary-card {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.rc-status-summary-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--rc-title-text);
+}
+
+.rc-status-summary-card--safe {
+    background-color: rgba(60, 200, 120, 0.10);
+}
+
+.rc-status-summary-card--warning {
+    background-color: rgba(255, 180, 40, 0.12);
+}
+
+.rc-status-summary-card--danger {
+    background-color: rgba(255, 70, 70, 0.16);
+}
+
 .rc-status-card-section {
     margin-top: 10px;
 }

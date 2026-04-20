@@ -11,7 +11,7 @@
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md) — V1 백로그
 
 ## Last Updated
-- 2026-04-15 (KST)
+- 2026-04-20 (KST)
 
 ---
 
@@ -23,15 +23,23 @@
 3. **UI 먼저, 기능 나중에**: 셸 + 패널 레이아웃 완성 → V1에서 로직 가져오거나 새로 추가
 4. **모듈식 문서**: 기능별 와이어프레임을 별도 파일로 분리, 이 README가 인덱스
 
-### 현재 실행 스냅샷 (2026-04-15)
-- `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, action/policy wiring 후속
-- `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, visualization 실데이터 연동 후속
-- `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved 최소 scaffold 완료, `first-run guide`와 정책 심화 후속
+### 현재 실행 스냅샷 (2026-04-20)
+- `2A-2` 상태/좌표: context scroll 단일화 + placeholder 정리 + desktop 텍스트 잘림 보정 완료
+- `2B-4` 포인트 이동: `MoveL`에 이어 `MoveJ` dispatch까지 연결 완료, `joint draft`/`TCP draft` 분리 + point draft local state 저장 추가
+- `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, reset/recovery 최소 policy wiring까지 연결
+- `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, viewport 전용 camera + render texture split까지 추가, overlay no-fly-zone 마감은 후속
+- `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved + `first-run guide` 1회 노출 policy까지 연결 완료
 - tablet help 경로: `BottomTabHelp` actual smoke까지 확인 완료
 - `3A` 1차 잠금: 표시 패널 5개 binder화 + scene bootstrap 순서 고정
 - `3A-3` 우측 컬럼: `상태 / 좌표` 탭 분리 + `ContextPanelScroll` 도입으로 하단 카드 텍스트 잘림 해소
+- `3B` 2차: bottom `Undo/Redo`와 point draft 저장을 `UI-local only` 범위로 고정했고, `FairinoConnectionService` 기반 `PendantV3ConnectionSessionAdapter`를 붙여 reconnect/lost/failure 상태를 `ConnectionHome / Status / Safety / Help`가 같이 읽도록 연결
+- `2C-2` 2차: `PendantV3VisualizationState / Orchestrator / Driver`와 `RobotControlV3` 카메라 프로필을 추가해 `RobotActual`/`RobotGhost`/marker/trail 경로를 묶었음
+- `2C-2` 3차: 메인 카메라 뒤에 로봇을 까는 방식 대신 `ViewportHost` 전용 camera + render texture + overlay split으로 전환했고 clean render [v3-viewport-rendertexture-clean.png](C:/Users/ezen601/Desktop/Jason/robotapp2/Artifacts/v3-viewport-rendertexture-clean.png) 에서는 로봇 실노출을 확인했음
+- 다만 overlay 포함 game view [v3-viewport-safe-overlay-4.png](C:/Users/ezen601/Desktop/Jason/robotapp2/Artifacts/v3-viewport-safe-overlay-4.png) 기준으로는 `Base/Tool/궤적/고스트` 툴바 뒤로 로봇 일부가 아직 걸쳐 보여서, safe-area/no-fly-zone 최종 마감이 남아 있음
+- reconnect 검증은 debug bridge 기준으로 `ConnectedServoOff -> AutoReconnect -> failure/success`까지 닫았고, live 장비 `OnConnectionLost` actual smoke는 후속
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
 - 오늘 구현 로그:
+  - `docs/daily/04-20/pendant-v3-p0-closeout-and-3b-kickoff.md`
   - `docs/daily/04-15/pendant-v3-context-panel-scroll-fix.md`
   - `docs/daily/04-15/pendant-v3-context-panel-phase-3-tab-split.md`
   - `docs/daily/04-15/pendant-v3-context-panel-density-phase-2-status-safety-rebalance.md`

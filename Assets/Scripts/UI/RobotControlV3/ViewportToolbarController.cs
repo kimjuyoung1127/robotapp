@@ -1,4 +1,5 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
+using KineTutor3D.App;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,6 +19,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement viewportHost;
         private VisualElement viewportToolbarHost;
         private ConnectionHomeController connectionHomeController;
+        private PendantV3VisualizationOrchestrator visualizationOrchestrator;
         private ToolbarElements elements;
         private bool isInitialized;
         private bool showBaseFrame = true;
@@ -76,6 +78,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
             root = document?.rootVisualElement;
             if (root == null || viewportToolbarTemplate == null || connectionHomeController == null)
             {
@@ -258,6 +261,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             viewportHost?.EnableInClassList("rc-viewport-host--boundary", showWorkspaceBoundary);
             viewportHost?.EnableInClassList("rc-viewport-host--collision", collisionVisible);
+            visualizationOrchestrator?.SetToolbarState(showBaseFrame, showToolFrame, showTrail, showGhost, showWorkspaceBoundary, showCollisionManual);
         }
 
         private static void SetButtonState(Button button, bool active)

@@ -14,7 +14,7 @@ namespace KineTutor3D.UI.RobotControlV3
     {
         private void ApplyState()
         {
-            state = PendantV3LocalState.Normalize(state);
+            state = PendantV3LocalState.DeepCopy(state);
             ApplyNavState();
             ApplyWorkTabState();
             ApplyBottomTabState();
@@ -23,6 +23,7 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplySpeedState();
             ApplySplitRatio();
             ApplyBottomSheetState();
+            UpdateUndoRedoButtons();
             NotifyPanelControllers();
         }
 
@@ -128,8 +129,15 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            workPanel.style.flexGrow = state.DesktopSplitRatio;
-            viewportHost.style.flexGrow = 1f - state.DesktopSplitRatio;
+            var workRatio = state.DesktopSplitRatio;
+            if (root != null && root.ClassListContains("rc-root--desktop"))
+            {
+                // V3 desktop는 3D viewport를 메인으로 보여야 하므로 좌측 작업 패널 비중 상한을 더 낮춥니다.
+                workRatio = Mathf.Min(workRatio, 0.22f);
+            }
+
+            workPanel.style.flexGrow = workRatio;
+            viewportHost.style.flexGrow = 1f - workRatio;
         }
 
         private void ApplyBottomSheetState()

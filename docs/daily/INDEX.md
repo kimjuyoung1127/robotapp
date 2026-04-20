@@ -125,3 +125,6 @@
 - [pendant-v3-context-panel-scroll-fix.md](./04-15/pendant-v3-context-panel-scroll-fix.md)
 - [pendant-v3-phase-3a-binder-scene-bootstrap-lock.md](./04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md)
 
+### 04-20
+- [pendant-v3-p0-closeout-and-3b-kickoff.md](./04-20/pendant-v3-p0-closeout-and-3b-kickoff.md)
+

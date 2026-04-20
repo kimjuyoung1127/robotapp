@@ -23,6 +23,24 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnRestore = root.Q<Button>("BtnPointRestore");
                 BtnPreview = root.Q<Button>("BtnPointPreview");
                 BtnApply = root.Q<Button>("BtnPointApply");
+                AxisLabels = new[]
+                {
+                    root.Q<Label>("PointLabel1"),
+                    root.Q<Label>("PointLabel2"),
+                    root.Q<Label>("PointLabel3"),
+                    root.Q<Label>("PointLabel4"),
+                    root.Q<Label>("PointLabel5"),
+                    root.Q<Label>("PointLabel6"),
+                };
+                AxisUnits = new[]
+                {
+                    root.Q<Label>("PointUnit1"),
+                    root.Q<Label>("PointUnit2"),
+                    root.Q<Label>("PointUnit3"),
+                    root.Q<Label>("PointUnit4"),
+                    root.Q<Label>("PointUnit5"),
+                    root.Q<Label>("PointUnit6"),
+                };
                 ValueInputs = new[]
                 {
                     root.Q<TextField>("PointValueX"),
@@ -48,6 +66,8 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnRestore { get; }
             public Button BtnPreview { get; }
             public Button BtnApply { get; }
+            public Label[] AxisLabels { get; }
+            public Label[] AxisUnits { get; }
             public TextField[] ValueInputs { get; }
         }
     }

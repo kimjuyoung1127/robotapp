@@ -969,8 +969,10 @@ namespace KineTutor3D.UI
                 return;
             }
 
+            var targetScene = RobotControlScenePreference.GetPreferredSceneId();
+            RobotControlEntryPolicy.Apply(targetScene, RobotControlEntryPolicy.Intent.ResumeLastSession);
             RobotSelectionBridge.SetSelection(entry.Metadata.RobotId, RobotSelectionBridge.RobotControlMode);
-            SceneNavigator.Load(SceneId.RobotControl);
+            SceneNavigator.Load(targetScene);
         }
 
         private void LaunchPrimaryExperience(RobotCatalogEntry entry)
