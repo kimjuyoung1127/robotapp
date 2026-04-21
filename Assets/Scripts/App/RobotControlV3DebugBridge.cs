@@ -345,6 +345,11 @@ namespace KineTutor3D.App
             return runtime.GetGripperVisualSummaryForDebug();
         }
 
+        public static string CaptureStageCameraForDebug(string outputPath)
+        {
+            return GetRuntimeController().CaptureStageCameraForDebug(outputPath);
+        }
+
         public static string SetRobotDoForDebug(int channel, bool value)
         {
             var result = GetRuntimeController().SetRobotDigitalOutput(channel, value);

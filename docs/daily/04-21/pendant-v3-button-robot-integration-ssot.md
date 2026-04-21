@@ -137,11 +137,26 @@
 ## Next Visual Lock
 - PGEA attached visual 이관 완료.
 - `robottemplete`의 PGEA 성공 구조를 기준으로 `robotapp2` RobotStage control robot에 visual을 런타임 부착한다.
+- `robottemplete` 비교 결과:
+  - 운용 기준은 `Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control_PGEA10040.prefab`의 nested override다.
+  - 단독 `Assets/Runtime/Resources/EndEffectors/PGEA_100_40.prefab`는 기본 `TcpFrame=(0,0,0)`을 갖고 있어 수동 튜닝 기준으로 쓰지 않는다.
+  - Control override 기준값은 `PGEA_100_40 local=(0.003,0.1676,0.031)`, rotation quaternion `(0,0,-0.7169106,0.69716513)`.
+  - `TcpFrame local=(-0.0677,0,-0.0325)`, `PGEA-100-40_Model.z=-0.031`.
+  - 이 값은 사용자가 템플릿 프로젝트에서 수동 미세조정한 닫힌 finger 기준 작업점으로 취급한다.
+- 구현 결과:
+  - `robotapp2` 런타임 부착 시 위 Control override 값을 강제 적용한다.
+  - 그리퍼 본체/핑거가 흰 로봇과 묻히지 않도록 런타임 고대비 material을 적용한다.
+  - `GetGripperVisualSummaryForDebug()`는 `tcpLocal` / `modelLocal`을 함께 출력한다.
 - 검증 결과:
   - `SetGripperOpenForDebug(true)`: `gripper=Gripper: Open (1.00); gripperVisual=True`
   - `SetGripperOpenForDebug(false)`: `gripper=Gripper: Closed (0.00); gripperVisual=True`
+  - `GetGripperVisualSummaryForDebug()` closed: `tcpLocal=(-0.0677,0,-0.0325)`, `modelLocal=(0.0065,0.3256,-0.031)`, `cameraVisible=True`.
+  - stage camera screenshot: `Artifacts/robotcontrolv3-gripper-template-tcp.png`.
   - `unityctl check --type compile --json`: pass
-- TCP calibration은 pending으로 유지하고 visual-only로 문서화한다.
+- 다음 단계:
+  - FAIRINO 공식 SDK/pendant 문서와 `LiveFairinoClient` 구현을 비교한다.
+  - 실기 gripper open/close, tool coordinate readback, `GetActualTCPPose`를 기준으로 current TCP가 닫힌 finger 작업점과 일치하는지 확정한다.
+  - 실기 SDK 확인 전에는 live gripper/move command를 자동 실행하지 않는다.
 
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.

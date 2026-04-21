@@ -18,6 +18,9 @@ namespace KineTutor3D.App
         public const float DefaultSplitRatio = 0.20f;
         public const float MinSplitRatio = 0.14f;
         public const float MaxSplitRatio = 0.24f;
+        public const string DefaultPointName = "Point";
+        public const string DefaultPointMotionKind = "MoveJ";
+        public const int PointAxisCount = 6;
 
         public string ActiveNavSection;
         public string ActiveWorkTab;
@@ -28,6 +31,11 @@ namespace KineTutor3D.App
         public float DesktopSplitRatio;
         public bool IsTabletSheetExpanded;
         public bool HasShownFirstRunGuide;
+        public string PointName;
+        public string PointMotionKind;
+        public float[] PointTcpDraftValues;
+        public float[] PointJointDraftValues;
+        public bool HasPointDraft;
 
         public static PendantV3LocalState Default()
         {
@@ -42,6 +50,11 @@ namespace KineTutor3D.App
                 DesktopSplitRatio = DefaultSplitRatio,
                 IsTabletSheetExpanded = true,
                 HasShownFirstRunGuide = false,
+                PointName = DefaultPointName,
+                PointMotionKind = DefaultPointMotionKind,
+                PointTcpDraftValues = CreateDefaultPointValues(),
+                PointJointDraftValues = CreateDefaultPointValues(),
+                HasPointDraft = false,
             };
         }
 
@@ -66,6 +79,10 @@ namespace KineTutor3D.App
             state.SpeedPercent = Clamp(state.SpeedPercent, 1, 100, DefaultSpeedPercent);
             state.JogIncrement = NormalizeIncrement(state.JogIncrement);
             state.DesktopSplitRatio = Clamp(state.DesktopSplitRatio, MinSplitRatio, MaxSplitRatio, DefaultSplitRatio);
+            state.PointName = string.IsNullOrWhiteSpace(state.PointName) ? DefaultPointName : state.PointName.Trim();
+            state.PointMotionKind = NormalizePointMotionKind(state.PointMotionKind);
+            state.PointTcpDraftValues = NormalizePointValues(state.PointTcpDraftValues);
+            state.PointJointDraftValues = NormalizePointValues(state.PointJointDraftValues);
             return state;
         }
 
@@ -82,6 +99,11 @@ namespace KineTutor3D.App
                 DesktopSplitRatio = state.DesktopSplitRatio,
                 IsTabletSheetExpanded = state.IsTabletSheetExpanded,
                 HasShownFirstRunGuide = state.HasShownFirstRunGuide,
+                PointName = state.PointName,
+                PointMotionKind = state.PointMotionKind,
+                PointTcpDraftValues = CopyPointValues(state.PointTcpDraftValues),
+                PointJointDraftValues = CopyPointValues(state.PointJointDraftValues),
+                HasPointDraft = state.HasPointDraft,
             });
         }
 
@@ -103,6 +125,49 @@ namespace KineTutor3D.App
             return increment == 1 || increment == 10
                 ? increment
                 : DefaultJogIncrement;
+        }
+
+        private static string NormalizePointMotionKind(string motionKind)
+        {
+            return string.Equals(motionKind, "MoveL", StringComparison.Ordinal) ||
+                string.Equals(motionKind, "MoveJ", StringComparison.Ordinal)
+                ? motionKind
+                : DefaultPointMotionKind;
+        }
+
+        private static float[] NormalizePointValues(float[] values)
+        {
+            var normalized = CreateDefaultPointValues();
+            if (values == null)
+            {
+                return normalized;
+            }
+
+            var count = System.Math.Min(values.Length, PointAxisCount);
+            for (var i = 0; i < count; i++)
+            {
+                var value = values[i];
+                normalized[i] = float.IsNaN(value) || float.IsInfinity(value) ? 0f : value;
+            }
+
+            return normalized;
+        }
+
+        private static float[] CopyPointValues(float[] values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            var copied = new float[values.Length];
+            Array.Copy(values, copied, values.Length);
+            return copied;
+        }
+
+        private static float[] CreateDefaultPointValues()
+        {
+            return new float[PointAxisCount];
         }
 
         private static int Clamp(int value, int min, int max, int fallback)

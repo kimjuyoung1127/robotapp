@@ -214,13 +214,24 @@
 - PGEA visual 이관 완료.
 - 가져온 기준:
   - `robottemplete/Assets/Runtime/Resources/EndEffectors/PGEA_100_40.prefab`
+  - `robottemplete/Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control_PGEA10040.prefab`
   - `ToolMount -> PGEA_100_40` 구조
   - `FR5EndEffectorAttachment`의 `finger_left/finger_right` 참조와 `SetGripperOpen(float)` 동작
+- 기준값:
+  - `FAIRINO_FR5_Control_PGEA10040.prefab`의 nested override를 SSOT로 삼는다.
+  - 단독 `EndEffectors/PGEA_100_40.prefab`의 기본 `TcpFrame=(0,0,0)`은 운용 기준이 아니다.
+  - `ToolMount`: identity.
+  - `PGEA_100_40`: local position `(0.003, 0.1676, 0.031)`, local rotation quaternion `(0, 0, -0.7169106, 0.69716513)`.
+  - `TcpFrame`: local position `(-0.0677, 0, -0.0325)`, local rotation identity.
+  - `PGEA-100-40_Model`: local z `-0.031`.
+  - 이 `TcpFrame`은 사용자가 `robottemplete`에서 수동 미세조정한 닫힌 finger 기준 작업점으로 취급한다.
 - 구현 결과:
   - `robotapp2` RobotStage control robot의 `wrist3_link/ToolMount` 아래에 PGEA visual을 런타임 부착한다.
   - `SetGripperOpenForDebug(true/false)`에서 snapshot과 `FR5EndEffectorAttachment` finger transform을 함께 갱신한다.
-  - TCP calibration은 아직 pending이며 visual-only 상태다.
+  - 런타임 부착 시 위 Control prefab 기준값을 강제 적용해, scene visual과 debug `TcpFrame`이 같은 기준을 보게 한다.
+  - 실기 SDK calibration은 아직 pending이며, 다음 단계에서 live pendant/SDK readback과 비교해 이 값이 실제 작업 TCP와 맞는지 확정한다.
 - 검증:
   - `SetGripperOpenForDebug(true)`: `gripper=Gripper: Open (1.00); gripperVisual=True`
   - `SetGripperOpenForDebug(false)`: `gripper=Gripper: Closed (0.00); gripperVisual=True`
+  - `GetGripperVisualSummaryForDebug()` closed 기준: `tcpLocal=(-0.0677,0,-0.0325)`, `modelLocal=(0.0065,0.3256,-0.031)`, `cameraVisible=True`
   - `unityctl check --type compile --json`: pass

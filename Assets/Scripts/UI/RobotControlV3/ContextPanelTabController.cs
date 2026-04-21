@@ -148,8 +148,6 @@ namespace KineTutor3D.UI.RobotControlV3
             statusCardHost?.EnableInClassList("rc-hidden", !isStatusMode);
             coordStripHost?.EnableInClassList("rc-hidden", isStatusMode);
             actionHintCard?.EnableInClassList("rc-hidden", !isStatusMode);
-            safetyDiagnosticsController?.SetContextVisible(isStatusMode);
-            whyItMovedController?.SetContextVisible(!isStatusMode);
         }
     }
 }

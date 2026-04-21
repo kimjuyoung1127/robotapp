@@ -44,11 +44,19 @@
 - `C:\Users\ezen601\Documents\카카오톡 받은 파일\PGEA-100-40.stl`
 - `C:\Users\ezen601\Documents\카카오톡 받은 파일\PGEA-100-40-W-F_V1.0_3D_20241226.STEP`
 
-## Current Locked TCP Point
+## Current Local Visual TCP Point
 
-- 현재 FR5 + gripper 조합의 작업 TCP는 `그리퍼 두 조 사이의 정중앙 공중점`이다.
-- 즉, jaw 면 끝점이나 finger pad 접촉면 자체가 아니라, grasp 시 기준이 되는 `중앙 workspace point`를 TCP로 사용한다.
-- 이후 모든 `MoveL`, `preview`, `point save`, `run`, `loop`, `EE marker`는 이 점을 기준으로 본다.
+- 현재 로컬 visual 기준은 `robottemplete`의 `FAIRINO_FR5_Control_PGEA10040.prefab`에서 수동 미세조정한 닫힌 finger 작업점이다.
+- 단독 `PGEA_100_40.prefab`의 `TcpFrame=(0,0,0)`은 calibration truth가 아니다.
+- Control prefab nested override 기준값:
+  - `ToolMount`: identity
+  - `PGEA_100_40 localPosition`: `(0.003, 0.1676, 0.031)`
+  - `PGEA_100_40 localRotation`: quaternion `(0, 0, -0.7169106, 0.69716513)`
+  - `TcpFrame localPosition`: `(-0.0677, 0, -0.0325)`
+  - `TcpFrame localRotation`: identity
+  - `PGEA-100-40_Model localPosition.z`: `-0.031`
+- 이후 `MoveL`, `preview`, `point save`, `run`, `loop`, `EE marker`는 live calibration 전까지 이 visual TCP를 기준 후보로 본다.
+- 최종 SSOT는 여전히 실기 pendant/SDK로 적용되고 readback되는 tool coordinate다.
 
 ## Coordinate Rule
 
@@ -62,7 +70,8 @@
 - robot visual donor 또는 URDF flange 끝점은 `mechanical mount frame`
 - gripper tool TCP는 `operation frame`
 - V2에서 사용자에게 보여주는 `현재 TCP`, `미리보기 목표`, `저장 포인트`는 전부 `operation frame` 기준
-- 현재 `operation frame`의 기준점은 `그리퍼 사이 정중앙 공중점`
+- 현재 로컬 후보 `operation frame`의 기준점은 `닫힌 finger 작업점`이다.
+- 실기 calibration 후 pendant/SDK readback이 이 후보와 다르면 pendant/SDK 값이 이긴다.
 
 ## Accepted Calibration Paths
 
@@ -156,7 +165,7 @@ live 세션 시작 후 아래는 반드시 확인한다.
 - `floor grid 대비 TCP 위치`
 
 위 4개는 전부 flange가 아니라 gripper TCP를 기준으로 계산한다.
-현재 기준 TCP는 `그리퍼 사이 정중앙 공중점`이다.
+현재 로컬 visual 후보 TCP는 `robottemplete` Control prefab에서 가져온 닫힌 finger 작업점이다.
 
 ### Teaching
 
@@ -166,7 +175,7 @@ live 세션 시작 후 아래는 반드시 확인한다.
 - `RunLoop`
 
 위 4개는 `joint snapshot + current gripper TCP + toolId + userId`를 함께 저장/사용한다.
-여기서 `current gripper TCP`는 `그리퍼 사이 정중앙 공중점`이다.
+여기서 `current gripper TCP`는 live calibration 전에는 `robottemplete` Control prefab의 닫힌 finger 작업점 후보이고, live 연결 후에는 pendant/SDK readback 값이다.
 
 ## Visual Model Rule
 
@@ -198,7 +207,7 @@ live 세션 시작 후 아래는 반드시 확인한다.
 - current TCP marker가 실제 gripper 작업점과 맞는다
 - ghost target이 flange가 아니라 gripper 기준으로 보인다
 - point save 후 reload/run 시 같은 작업점으로 복귀한다
-- 위 세 검증의 기준점은 `그리퍼 사이 정중앙 공중점`이다
+- 위 세 검증의 기준점은 `닫힌 finger 작업점`이며, 현장 pendant/SDK 값으로 최종 확정한다.
 
 ## Do Not
 
@@ -209,6 +218,6 @@ live 세션 시작 후 아래는 반드시 확인한다.
 
 ## Resolved Decision
 
-- 현장 기준으로 `gripper TCP = 그리퍼 사이 정중앙 공중점`으로 결정되었다.
-- 따라서 `jaw center`, `finger pad center`, `sensor plane center` 비교 검토는 더 이상 open question이 아니다.
-- 남은 작업은 이 기준점을 `tool coordinate calibration 값`, `preview offset`, `scene EE marker`에 일치시키는 것이다.
+- 로컬 visual 기준 후보는 `robottemplete` Control prefab에서 수동 조정한 `닫힌 finger 작업점`으로 결정되었다.
+- 최종 현장 기준은 pendant/SDK에 실제 적용된 tool coordinate readback으로 확정한다.
+- 남은 작업은 이 후보값을 공식 SDK의 gripper/tool-coordinate 동작, `GetActualTCPNum`, `GetCurToolCoord`, `GetActualTCPPose`, 실제 gripper open/close 동작과 비교해 production SSOT로 승격할지 판단하는 것이다.

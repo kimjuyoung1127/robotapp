@@ -18,11 +18,19 @@ namespace KineTutor3D.Visualization
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio;
 
         private const float StrokeMm = 40f;
+        private static readonly Color BodyColor = new(0.13f, 0.18f, 0.22f, 1f);
+        private static readonly Color BodyAccentColor = new(0.18f, 0.52f, 0.68f, 1f);
+        private static readonly Color FingerColor = new(1f, 0.58f, 0.14f, 1f);
         private Vector3 fingerLeftClosed;
         private Vector3 fingerRightClosed;
         private bool fingerBaseCaptured;
 
         public string AttachmentId => attachmentId;
+        public Transform VisualRoot => visualRoot;
+        public Transform ModelRoot => visualRoot != null ? visualRoot.Find("PGEA-100-40_Model") : null;
+        public Transform TcpFrame => tcpFrame;
+        public Transform FingerLeft => fingerLeft;
+        public Transform FingerRight => fingerRight;
         public float GripperOpenRatio => gripperOpenRatio;
 
         public void Configure(string id, Transform visual, Transform tcp)
@@ -31,6 +39,7 @@ namespace KineTutor3D.Visualization
             visualRoot = visual;
             tcpFrame = tcp;
             RefreshExistingReferences();
+            ApplyVisibilityMaterials();
         }
 
         public void SetFingers(Transform left, Transform right)
@@ -39,6 +48,30 @@ namespace KineTutor3D.Visualization
             fingerRight = right;
             fingerBaseCaptured = false;
             ApplyGripperPose();
+        }
+
+        private void ApplyVisibilityMaterials()
+        {
+            if (visualRoot == null)
+            {
+                return;
+            }
+
+            foreach (var meshRenderer in visualRoot.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var lowerName = meshRenderer.name.ToLowerInvariant();
+                var color = lowerName.Contains("finger")
+                    ? FingerColor
+                    : lowerName.Contains("body")
+                        ? BodyColor
+                        : BodyAccentColor;
+
+                var source = meshRenderer.sharedMaterial;
+                var material = source != null ? new Material(source) : new Material(Shader.Find("Standard"));
+                material.name = $"{attachmentId}_{meshRenderer.name}_Runtime";
+                material.color = color;
+                meshRenderer.sharedMaterial = material;
+            }
         }
 
         public void SetGripperOpen(float ratio)

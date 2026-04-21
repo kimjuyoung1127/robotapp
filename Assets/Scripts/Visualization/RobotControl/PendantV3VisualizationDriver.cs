@@ -555,10 +555,8 @@ namespace KineTutor3D.Visualization
                 viewportTexture.Create();
                 viewportCamera.targetTexture = viewportTexture;
 
-                if (viewportRenderSurfaceElement != null)
-                {
-                    viewportRenderSurfaceElement.style.backgroundImage = new StyleBackground(viewportTexture);
-                }
+                // RobotStageRenderSurface owns the active UI Toolkit render surface in V3.
+                // This legacy driver keeps the camera target texture only.
             }
 
             viewportCamera.aspect = (float)width / height;

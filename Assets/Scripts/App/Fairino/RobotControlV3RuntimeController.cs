@@ -1,6 +1,7 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using KineTutor3D.Math;
 using KineTutor3D.UI.RobotControlV3;
 using KineTutor3D.Visualization;
@@ -18,7 +19,9 @@ namespace KineTutor3D.App.Fairino
         private const string PgeaAttachmentResourcePath = "EndEffectors/PGEA_100_40";
         private const string PgeaAttachmentId = "PGEA_100_40";
         private static readonly Vector3 PgeaAttachmentLocalPosition = new(0.003f, 0.1676f, 0.031f);
-        private static readonly Quaternion PgeaAttachmentLocalRotation = Quaternion.Euler(0f, 0f, -91.6f);
+        private static readonly Quaternion PgeaAttachmentLocalRotation = new(0f, 0f, -0.7169106f, 0.69716513f);
+        private static readonly Vector3 PgeaTcpLocalPosition = new(-0.0677f, 0f, -0.0325f);
+        private const float PgeaModelLocalZ = -0.031f;
 
         private readonly Stack<double[]> undoJointHistory = new();
         private readonly Stack<double[]> redoJointHistory = new();
@@ -141,7 +144,63 @@ namespace KineTutor3D.App.Fairino
             var local = root.localPosition;
             var euler = root.localEulerAngles;
             var viewport = stageCamera != null && hasBounds ? stageCamera.WorldToViewportPoint(bounds.center) : Vector3.zero;
-            return $"attached=True; active={root.gameObject.activeInHierarchy}; renderers={renderers.Length}; activeRenderers={activeRendererCount}; meshFilters={meshFilters.Length}; local=({local.x:0.###},{local.y:0.###},{local.z:0.###}); rot=({euler.x:0.#},{euler.y:0.#},{euler.z:0.#}); scale=({root.localScale.x:0.###},{root.localScale.y:0.###},{root.localScale.z:0.###}); boundsCenter=({bounds.center.x:0.###},{bounds.center.y:0.###},{bounds.center.z:0.###}); boundsSize=({bounds.size.x:0.###},{bounds.size.y:0.###},{bounds.size.z:0.###}); viewport=({viewport.x:0.###},{viewport.y:0.###},{viewport.z:0.###}); cameraVisible={cameraVisible}; openRatio={endEffectorAttachment.GripperOpenRatio:0.00}";
+            var tcpLocal = endEffectorAttachment.TcpFrame != null ? endEffectorAttachment.TcpFrame.localPosition : Vector3.zero;
+            var modelLocal = endEffectorAttachment.ModelRoot != null ? endEffectorAttachment.ModelRoot.localPosition : Vector3.zero;
+            return $"attached=True; active={root.gameObject.activeInHierarchy}; renderers={renderers.Length}; activeRenderers={activeRendererCount}; meshFilters={meshFilters.Length}; local=({local.x:0.###},{local.y:0.###},{local.z:0.###}); rot=({euler.x:0.#},{euler.y:0.#},{euler.z:0.#}); scale=({root.localScale.x:0.###},{root.localScale.y:0.###},{root.localScale.z:0.###}); tcpLocal=({tcpLocal.x:0.####},{tcpLocal.y:0.####},{tcpLocal.z:0.####}); modelLocal=({modelLocal.x:0.####},{modelLocal.y:0.####},{modelLocal.z:0.####}); boundsCenter=({bounds.center.x:0.###},{bounds.center.y:0.###},{bounds.center.z:0.###}); boundsSize=({bounds.size.x:0.###},{bounds.size.y:0.###},{bounds.size.z:0.###}); viewport=({viewport.x:0.###},{viewport.y:0.###},{viewport.z:0.###}); cameraVisible={cameraVisible}; openRatio={endEffectorAttachment.GripperOpenRatio:0.00}";
+        }
+
+        public string CaptureStageCameraForDebug(string outputPath, int width = 1280, int height = 720)
+        {
+            ForceInitialize();
+            EnsureEndEffectorAttachment();
+            ResetStageCamera();
+            if (stageCamera == null)
+            {
+                return "stageCamera=missing";
+            }
+
+            width = Mathf.Clamp(width, 320, 4096);
+            height = Mathf.Clamp(height, 240, 4096);
+            if (string.IsNullOrWhiteSpace(outputPath))
+            {
+                outputPath = Path.Combine(Application.dataPath, "..", "Artifacts", "robotcontrolv3-stage-camera.png");
+            }
+
+            var fullPath = Path.GetFullPath(outputPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            var previousTarget = stageCamera.targetTexture;
+            var previousActive = RenderTexture.active;
+            var renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32)
+            {
+                name = "RobotControlV3StageDebugCapture"
+            };
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            try
+            {
+                stageCamera.targetTexture = renderTexture;
+                RenderTexture.active = renderTexture;
+                stageCamera.Render();
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(fullPath, texture.EncodeToPNG());
+            }
+            finally
+            {
+                stageCamera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                if (Application.isPlaying)
+                {
+                    Destroy(renderTexture);
+                    Destroy(texture);
+                }
+                else
+                {
+                    DestroyImmediate(renderTexture);
+                    DestroyImmediate(texture);
+                }
+            }
+
+            return $"captured={fullPath}; {GetGripperVisualSummaryForDebug()}";
         }
 
         public void SetStageTargetTexture(RenderTexture texture)
@@ -1072,6 +1131,18 @@ namespace KineTutor3D.App.Fairino
             var model = visualRoot != null ? visualRoot.Find("PGEA-100-40_Model") : null;
             var fingerLeft = model != null ? model.Find("finger_left") : null;
             var fingerRight = model != null ? model.Find("finger_right") : null;
+            if (tcpFrame != null)
+            {
+                tcpFrame.localPosition = PgeaTcpLocalPosition;
+                tcpFrame.localRotation = Quaternion.identity;
+            }
+
+            if (model != null)
+            {
+                var modelLocal = model.localPosition;
+                modelLocal.z = PgeaModelLocalZ;
+                model.localPosition = modelLocal;
+            }
 
             endEffectorAttachment = attachmentRoot.GetComponent<FR5EndEffectorAttachment>()
                 ?? attachmentRoot.gameObject.AddComponent<FR5EndEffectorAttachment>();
