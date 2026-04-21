@@ -26,6 +26,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label coordOverlayRowB;
         private ConnectionHomeController connectionHomeController;
         private PendantV3ShellStateController shellStateController;
+        private EventCallback<ClickEvent> faultDetailClickCallback;
+        private EventCallback<ClickEvent> safetyDetailClickCallback;
 
         private CoordStripElements coordStrip;
         private StatusCardElements statusCard;
@@ -75,14 +77,20 @@ namespace KineTutor3D.UI.RobotControlV3
 
             if (statusCard?.BtnFaultDetail != null)
             {
+                faultDetailClickCallback ??= _ => HandleFaultDetailClicked();
                 statusCard.BtnFaultDetail.clicked -= HandleFaultDetailClicked;
                 statusCard.BtnFaultDetail.clicked += HandleFaultDetailClicked;
+                statusCard.BtnFaultDetail.UnregisterCallback<ClickEvent>(faultDetailClickCallback);
+                statusCard.BtnFaultDetail.RegisterCallback<ClickEvent>(faultDetailClickCallback);
             }
 
             if (statusCard?.BtnSafetyDetail != null)
             {
+                safetyDetailClickCallback ??= _ => HandleSafetyDetailClicked();
                 statusCard.BtnSafetyDetail.clicked -= HandleSafetyDetailClicked;
                 statusCard.BtnSafetyDetail.clicked += HandleSafetyDetailClicked;
+                statusCard.BtnSafetyDetail.UnregisterCallback<ClickEvent>(safetyDetailClickCallback);
+                statusCard.BtnSafetyDetail.RegisterCallback<ClickEvent>(safetyDetailClickCallback);
             }
 
             BindCoordModeButtons();

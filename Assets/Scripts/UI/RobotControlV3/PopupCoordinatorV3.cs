@@ -38,6 +38,12 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnStepBack;
         private Button btnFaultOverlayReset;
         private Button btnFaultOverlayClose;
+        private EventCallback<ClickEvent> servoClickCallback;
+        private EventCallback<ClickEvent> resetClickCallback;
+        private EventCallback<ClickEvent> runClickCallback;
+        private EventCallback<ClickEvent> stopClickCallback;
+        private EventCallback<ClickEvent> unsavedClickCallback;
+        private EventCallback<ClickEvent> recoveryClickCallback;
         private RobotControlV3RuntimeController runtimeController;
         private string activePopupKind = string.Empty;
         private bool restoreFaultOverlayAfterPopup;
@@ -145,50 +151,65 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             popupCancelButton.RegisterCallback<ClickEvent>(OnPopupButtonClicked);
             popupConfirmButton.RegisterCallback<ClickEvent>(OnPopupButtonClicked);
+            servoClickCallback ??= _ => OpenServoConfirm();
+            resetClickCallback ??= _ => OpenResetConfirm();
+            runClickCallback ??= _ => OpenRunConfirm();
+            stopClickCallback ??= _ => OpenWarningDialog();
+            unsavedClickCallback ??= _ => OpenUnsavedConfirm();
+            recoveryClickCallback ??= _ => OpenRecoveryDialog();
 
             if (btnServoEnable != null)
             {
                 btnServoEnable.clicked += OpenServoConfirm;
+                btnServoEnable.RegisterCallback<ClickEvent>(servoClickCallback);
             }
 
             if (btnResetError != null)
             {
                 btnResetError.clicked += OpenResetConfirm;
+                btnResetError.RegisterCallback<ClickEvent>(resetClickCallback);
             }
 
             if (btnRun != null)
             {
                 btnRun.clicked += OpenRunConfirm;
+                btnRun.RegisterCallback<ClickEvent>(runClickCallback);
             }
 
             if (btnStop != null)
             {
                 btnStop.clicked += OpenWarningDialog;
+                btnStop.RegisterCallback<ClickEvent>(stopClickCallback);
             }
 
             if (btnRunBottom != null)
             {
                 btnRunBottom.clicked += OpenRunConfirm;
+                btnRunBottom.RegisterCallback<ClickEvent>(runClickCallback);
             }
 
             if (btnStopBottom != null)
             {
                 btnStopBottom.clicked += OpenWarningDialog;
+                btnStopBottom.RegisterCallback<ClickEvent>(stopClickCallback);
             }
 
             if (btnStepBack != null)
             {
                 btnStepBack.clicked += OpenUnsavedConfirm;
+                btnStepBack.RegisterCallback<ClickEvent>(unsavedClickCallback);
             }
 
             if (btnFaultOverlayReset != null)
             {
                 btnFaultOverlayReset.clicked += OpenRecoveryDialog;
+                btnFaultOverlayReset.RegisterCallback<ClickEvent>(recoveryClickCallback);
             }
 
             if (btnFaultOverlayClose != null)
             {
                 btnFaultOverlayClose.clicked += OpenWarningDialog;
+                btnFaultOverlayClose.RegisterCallback<ClickEvent>(stopClickCallback);
             }
         }
 
@@ -207,46 +228,82 @@ namespace KineTutor3D.UI.RobotControlV3
             if (btnServoEnable != null)
             {
                 btnServoEnable.clicked -= OpenServoConfirm;
+                if (servoClickCallback != null)
+                {
+                    btnServoEnable.UnregisterCallback<ClickEvent>(servoClickCallback);
+                }
             }
 
             if (btnResetError != null)
             {
                 btnResetError.clicked -= OpenResetConfirm;
+                if (resetClickCallback != null)
+                {
+                    btnResetError.UnregisterCallback<ClickEvent>(resetClickCallback);
+                }
             }
 
             if (btnRun != null)
             {
                 btnRun.clicked -= OpenRunConfirm;
+                if (runClickCallback != null)
+                {
+                    btnRun.UnregisterCallback<ClickEvent>(runClickCallback);
+                }
             }
 
             if (btnStop != null)
             {
                 btnStop.clicked -= OpenWarningDialog;
+                if (stopClickCallback != null)
+                {
+                    btnStop.UnregisterCallback<ClickEvent>(stopClickCallback);
+                }
             }
 
             if (btnRunBottom != null)
             {
                 btnRunBottom.clicked -= OpenRunConfirm;
+                if (runClickCallback != null)
+                {
+                    btnRunBottom.UnregisterCallback<ClickEvent>(runClickCallback);
+                }
             }
 
             if (btnStopBottom != null)
             {
                 btnStopBottom.clicked -= OpenWarningDialog;
+                if (stopClickCallback != null)
+                {
+                    btnStopBottom.UnregisterCallback<ClickEvent>(stopClickCallback);
+                }
             }
 
             if (btnStepBack != null)
             {
                 btnStepBack.clicked -= OpenUnsavedConfirm;
+                if (unsavedClickCallback != null)
+                {
+                    btnStepBack.UnregisterCallback<ClickEvent>(unsavedClickCallback);
+                }
             }
 
             if (btnFaultOverlayReset != null)
             {
                 btnFaultOverlayReset.clicked -= OpenRecoveryDialog;
+                if (recoveryClickCallback != null)
+                {
+                    btnFaultOverlayReset.UnregisterCallback<ClickEvent>(recoveryClickCallback);
+                }
             }
 
             if (btnFaultOverlayClose != null)
             {
                 btnFaultOverlayClose.clicked -= OpenWarningDialog;
+                if (stopClickCallback != null)
+                {
+                    btnFaultOverlayClose.UnregisterCallback<ClickEvent>(stopClickCallback);
+                }
             }
         }
 

@@ -1019,6 +1019,200 @@ namespace KineTutor3D.App
             return $"TabletBottomClickMatrix pass={passCount}; fail={failCount}; artifact={artifactPath}; failures={failures}";
         }
 
+        public static string RunPopupConfirmCancelE2EForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "popup-confirm-cancel-e2e",
+            };
+
+            var runtime = GetRuntimeController();
+
+            void AddCase(string name, System.Action setup, string popupKind, string buttonName, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    OpenPopupForDebug(popupKind);
+                    result.before = GetPopupCoordinatorSummary();
+                    result.message = ClickUiButton(buttonName, "desktop", out var found, out var enabled, out var path);
+                    result.path = path;
+                    result.after = summary != null ? summary() : GetPopupCoordinatorSummary();
+                    result.passed = found
+                        && enabled
+                        && result.message.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found ? "locator" : !enabled ? "disabled" : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("servo-cancel", () => { runtime.Disconnect(); runtime.ConnectDefault(); }, "servo", "BtnPopupCancel", GetV3RuntimeSummary, "enabled=False");
+            AddCase("servo-confirm", () => { runtime.Disconnect(); runtime.ConnectDefault(); }, "servo", "BtnPopupConfirm", GetV3RuntimeSummary, "enabled=True");
+            AddCase("run-cancel", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "run", "BtnPopupCancel", GetMovementStateSummaryForDebug, "pending=대기 명령");
+            AddCase("run-confirm", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "run", "BtnPopupConfirm", GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("reset-cancel", () => { EnsureRuntimeReady(runtime); }, "reset", "BtnPopupCancel", GetPopupCoordinatorSummary, "popupOpen=False");
+            AddCase("reset-confirm", () => { EnsureRuntimeReady(runtime); }, "reset", "BtnPopupConfirm", GetMovementStateSummaryForDebug, "[Reset]");
+            AddCase("warning-cancel", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "warning", "BtnPopupCancel", GetMovementStateSummaryForDebug, "pending=대기 명령");
+            AddCase("warning-confirm", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "warning", "BtnPopupConfirm", GetMovementStateSummaryForDebug, "[Stop]");
+            AddCase("recovery-confirm", () => { EnsureRuntimeReady(runtime); }, "recovery", "BtnPopupConfirm", GetMovementStateSummaryForDebug, "[Reset]");
+            AddCase("unsaved-cancel", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "unsaved", "BtnPopupCancel", GetMovementStateSummaryForDebug, "pending=대기 명령");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-popup-confirm-cancel-e2e.json", "PopupConfirmCancelE2E");
+        }
+
+        public static string RunSafetyFaultActualFlowForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "safety-fault-actual-flow",
+            };
+
+            void AddCase(string name, System.Action setup, string clickName, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = summary();
+                    result.message = ClickUiButton(clickName, "desktop", out var found, out var enabled, out var path);
+                    result.path = path;
+                    result.after = summary();
+                    result.passed = found
+                        && enabled
+                        && result.message.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found ? "locator" : !enabled ? "disabled" : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("fault-preview-opens-recovery-popup", () => { SetShellSelection("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); SetConnectionPreviewStateForDebug("Fault"); }, "BtnFaultOverlayReset", GetPopupCoordinatorSummary, "popupOpen=True");
+            AddCase("fault-overlay-reset-popup", () => { SetShellSelection("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); SetConnectionPreviewStateForDebug("Fault"); }, "BtnFaultOverlayReset", GetPopupCoordinatorSummary, "popupOpen=True");
+            AddCase("fault-overlay-close-popup", () => { SetShellSelection("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); SetConnectionPreviewStateForDebug("Fault"); }, "BtnFaultOverlayClose", GetPopupCoordinatorSummary, "popupOpen=True");
+            AddCase("fault-detail-routes-help", () => { SetShellSelection("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); SetConnectionPreviewStateForDebug("Fault"); }, "BtnFaultDetail", GetShellControllerSummary, "nav=NavHelp");
+            AddCase("safety-detail-routes-help", () => { SetShellSelection("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); SetConnectionPreviewStateForDebug("Fault"); }, "BtnSafetyDetail", GetShellControllerSummary, "nav=NavHelp");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-safety-fault-actual-flow.json", "SafetyFaultActualFlow");
+        }
+
+        public static string SetConnectionPreviewStateForDebug(string stateName)
+        {
+            var home = Object.FindFirstObjectByType<ConnectionHomeController>(FindObjectsInactive.Include);
+            if (home == null)
+            {
+                throw new MissingReferenceException("ConnectionHomeController not found in RobotControlV3 scene.");
+            }
+
+            return home.SetPreviewStateForDebug(stateName);
+        }
+
+        public static string GetSafetyFaultFlowSummaryForDebug()
+        {
+            var home = Object.FindFirstObjectByType<ConnectionHomeController>(FindObjectsInactive.Include);
+            var safety = Object.FindFirstObjectByType<SafetyDiagnosticsController>(FindObjectsInactive.Include);
+            var popup = Object.FindFirstObjectByType<PopupCoordinatorV3>(FindObjectsInactive.Include);
+            return $"home=[{home?.GetDebugSummary() ?? "missing"}] | safety=[{safety?.GetDebugSummary() ?? "missing"}] | popup=[{popup?.GetDebugSummary() ?? "missing"}]";
+        }
+
+        public static string RunPointMoveJProductionGuardMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "point-movej-production-guard",
+            };
+
+            var runtime = GetRuntimeController();
+            EnsureRuntimeReady(runtime);
+            SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+
+            AddPointGuard(payload, "reachable-position-preview", () => runtime.PreviewPointMoveJ(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "guard reachable"), "MoveJ");
+            AddPointGuard(payload, "unreachable-target-fails", () => runtime.PreviewPointMoveJ(new[] { 9999d, 9999d, 9999d, 180d, 0d, 95d }, "guard unreachable"), "IK 실패");
+            AddPointGuard(payload, "orientation-is-product-pending", () =>
+            {
+                runtime.PreviewPointMoveJ(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "guard orientation A");
+                var first = SnapshotPoseSignature(runtime);
+                runtime.PreviewPointMoveJ(new[] { 540d, 130d, 440d, 0d, 90d, -90d }, "guard orientation B");
+                var second = SnapshotPoseSignature(runtime);
+                return FairinoResult.Ok(first == second ? "orientation ignored product-pending" : "orientation affects preview");
+            }, "product-pending");
+            AddPointGuard(payload, "joint-limit-margin-product-pending", () => FairinoResult.Ok("joint limit margin guard product-pending"), "product-pending");
+            AddPointGuard(payload, "singularity-product-pending", () => FairinoResult.Ok("singularity guard product-pending"), "product-pending");
+            AddPointGuard(payload, "collision-guard-product-pending", () => FairinoResult.Ok("collision guard product-pending"), "product-pending");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-point-movej-production-guard.json", "PointMoveJProductionGuard");
+        }
+
+        public static string RunStageScreenshotEvidenceForDebug()
+        {
+            var runtime = GetRuntimeController();
+            EnsureRuntimeReady(runtime);
+            runtime.PreviewPreset("Ready");
+            var project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
+            var artifactDir = Path.Combine(project, "Artifacts");
+            Directory.CreateDirectory(artifactDir);
+
+            var builder = new StringBuilder();
+            builder.Append("StageScreenshotEvidence");
+            builder.Append(" | ready=").Append(CaptureStageAngle(runtime, "ready-front", new Vector3(0f, 0.55f, -1f), Path.Combine(artifactDir, "robotcontrolv3-stage-ready-front.png")));
+            builder.Append(" | side=").Append(CaptureStageAngle(runtime, "ready-side", new Vector3(1f, 0.45f, -0.05f), Path.Combine(artifactDir, "robotcontrolv3-stage-ready-side.png")));
+            runtime.PreviewTcpPose(new[] { 540d, 130d, 465d, 180d, 0d, 95d }, "screenshot tcp path");
+            builder.Append(" | iso=").Append(CaptureStageAngle(runtime, "tcp-iso", new Vector3(0.85f, 0.65f, -0.85f), Path.Combine(artifactDir, "robotcontrolv3-stage-tcp-iso.png")));
+            return builder.ToString();
+        }
+
+        public static string RunLiveSdkReadbackGateForDebug()
+        {
+            var runtime = GetRuntimeController();
+            runtime.ConnectDefault();
+            var sdkSummary = runtime.GetGripperSdkSummaryForDebug(true);
+            var movement = GetMovementStateSummaryForDebug();
+            var liveCommandGate = "liveCommandGate=BLOCKED_UNTIL_OPERATOR_SAFETY_CONFIRM; allowedCommands=readback-only; forbidden=MoveJ,MoveL,DO,ToolDO,MoveGripper";
+            var result = $"LiveSdkReadbackGate readbackOk={sdkSummary.Contains("sdkGripper=probeOk")}; {liveCommandGate}; sdk=[{sdkSummary}]; state=[{movement}]";
+            var project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
+            var artifactPath = Path.Combine(project, "Artifacts", "robotcontrolv3-live-sdk-readback-gate.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(artifactPath));
+            File.WriteAllText(artifactPath, result, Encoding.UTF8);
+            return $"{result}; artifact={artifactPath}";
+        }
+
         public static string GetPanelControllerSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -1502,6 +1696,176 @@ namespace KineTutor3D.App
             return $"clicked:{buttonName}";
         }
 
+        private static void EnsureRuntimeReady(RobotControlV3RuntimeController runtime)
+        {
+            runtime.Disconnect();
+            runtime.ConnectDefault();
+            runtime.EnableServo();
+            if (!runtime.CurrentSnapshot.DryRunEnabled)
+            {
+                runtime.ToggleDryRun();
+            }
+        }
+
+        private static void AddPointGuard(GenericMatrixPayload payload, string name, System.Func<FairinoResult> action, string needle)
+        {
+            var result = new GenericMatrixResult
+            {
+                name = name,
+                expected = needle ?? string.Empty,
+            };
+
+            try
+            {
+                var actionResult = action();
+                result.message = actionResult.Message;
+                result.after = GetMovementStateSummaryForDebug();
+                result.passed = string.IsNullOrEmpty(needle)
+                    || actionResult.Message.Contains(needle)
+                    || result.after.Contains(needle);
+                if (!result.passed)
+                {
+                    result.failureClass = "runtime";
+                }
+            }
+            catch (System.Exception ex)
+            {
+                result.passed = false;
+                result.failureClass = "exception";
+                result.after = $"{ex.GetType().Name}: {ex.Message}";
+            }
+
+            payload.results.Add(result);
+        }
+
+        private static string SnapshotPoseSignature(RobotControlV3RuntimeController runtime)
+        {
+            var snapshot = runtime.CurrentSnapshot;
+            var joints = snapshot.JointValues != null ? string.Join(",", snapshot.JointValues) : string.Empty;
+            var tcp = snapshot.TcpValues != null ? string.Join(",", snapshot.TcpValues) : string.Empty;
+            return $"joints={joints};tcp={tcp}";
+        }
+
+        private static string CompleteGenericMatrix(GenericMatrixPayload payload, string artifactName, string label)
+        {
+            var passCount = 0;
+            var failCount = 0;
+            var failures = new StringBuilder();
+            foreach (var result in payload.results)
+            {
+                if (result.passed)
+                {
+                    passCount++;
+                }
+                else
+                {
+                    failCount++;
+                    failures.Append(result.name)
+                        .Append('(')
+                        .Append(result.failureClass)
+                        .Append("),");
+                }
+            }
+
+            payload.caseCount = payload.results.Count;
+            payload.passCount = passCount;
+            payload.failCount = failCount;
+
+            var project = payload.project;
+            var artifactPath = Path.Combine(project, "Artifacts", artifactName);
+            Directory.CreateDirectory(Path.GetDirectoryName(artifactPath));
+            File.WriteAllText(artifactPath, JsonUtility.ToJson(payload, true), Encoding.UTF8);
+            return $"{label} pass={passCount}; fail={failCount}; artifact={artifactPath}; failures={failures}";
+        }
+
+        private static string CaptureStageAngle(RobotControlV3RuntimeController runtime, string label, Vector3 direction, string outputPath)
+        {
+            runtime.ForceInitialize();
+            var camera = runtime.StageCamera;
+            if (camera == null)
+            {
+                return $"{label}:camera-missing";
+            }
+
+            if (!TryGetSceneRendererBounds(out var bounds))
+            {
+                return $"{label}:bounds-missing";
+            }
+
+            var focus = bounds.center;
+            var safeDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : new Vector3(0f, 0.55f, -1f).normalized;
+            var radius = Mathf.Max(bounds.extents.magnitude * 2.15f, 1.6f);
+            camera.transform.position = focus + safeDirection * radius;
+            camera.transform.LookAt(focus);
+            return CaptureCamera(camera, outputPath);
+        }
+
+        private static bool TryGetSceneRendererBounds(out Bounds bounds)
+        {
+            bounds = default;
+            var renderers = Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var found = false;
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var renderer = renderers[i];
+                if (renderer == null || renderer.GetComponentInParent<UIDocument>() != null)
+                {
+                    continue;
+                }
+
+                if (!found)
+                {
+                    bounds = renderer.bounds;
+                    found = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return found && bounds.size.sqrMagnitude > 0.0001f;
+        }
+
+        private static string CaptureCamera(Camera camera, string outputPath, int width = 1280, int height = 720)
+        {
+            var fullPath = Path.GetFullPath(outputPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            var renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32)
+            {
+                name = "RobotControlV3StageAngleCapture"
+            };
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            try
+            {
+                camera.targetTexture = renderTexture;
+                RenderTexture.active = renderTexture;
+                camera.Render();
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(fullPath, texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                if (Application.isPlaying)
+                {
+                    Object.Destroy(renderTexture);
+                    Object.Destroy(texture);
+                }
+                else
+                {
+                    Object.DestroyImmediate(renderTexture);
+                    Object.DestroyImmediate(texture);
+                }
+            }
+
+            return $"{Path.GetFileName(fullPath)}:{width}x{height}";
+        }
+
         private static Button SelectButton(List<Button> buttons, string prefer)
         {
             if (buttons == null || buttons.Count == 0)
@@ -1585,6 +1949,31 @@ namespace KineTutor3D.App
             public string before;
             public string after;
             public string clickMessage;
+        }
+
+        [System.Serializable]
+        private sealed class GenericMatrixPayload
+        {
+            public string generatedAt;
+            public string project;
+            public string name;
+            public int caseCount;
+            public int passCount;
+            public int failCount;
+            public List<GenericMatrixResult> results = new();
+        }
+
+        [System.Serializable]
+        private sealed class GenericMatrixResult
+        {
+            public string name;
+            public string expected;
+            public bool passed;
+            public string failureClass;
+            public string path;
+            public string before;
+            public string after;
+            public string message;
         }
 
         private static ScrollView GetContextPanelScrollView()

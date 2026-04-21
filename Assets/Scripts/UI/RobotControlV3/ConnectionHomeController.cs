@@ -18,7 +18,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         internal event System.Action<RobotControlV3RuntimeSnapshot> PreviewChanged;
 
-        private readonly List<(Button button, EventCallback<ClickEvent> callback)> presetButtons = new();
+        private readonly List<(Button button, EventCallback<ClickEvent> callback, System.Action clicked)> presetButtons = new();
 
         private VisualElement root;
         private VisualElement workTabBar;
@@ -112,6 +112,30 @@ namespace KineTutor3D.UI.RobotControlV3
         public bool ForceInitialize()
         {
             return TryInitialize();
+        }
+
+        internal string SetPreviewStateForDebug(string stateName)
+        {
+            if (!isInitialized && !TryInitialize())
+            {
+                return GetDebugSummary();
+            }
+
+            var state = stateName switch
+            {
+                "Disconnected" => PendantV3PreviewState.Kind.Disconnected,
+                "ServoOff" => PendantV3PreviewState.Kind.ConnectedServoOff,
+                "ConnectedServoOff" => PendantV3PreviewState.Kind.ConnectedServoOff,
+                "Unsynced" => PendantV3PreviewState.Kind.ConnectedUnsynced,
+                "ConnectedUnsynced" => PendantV3PreviewState.Kind.ConnectedUnsynced,
+                "Ready" => PendantV3PreviewState.Kind.ReadyToJog,
+                "ReadyToJog" => PendantV3PreviewState.Kind.ReadyToJog,
+                "Fault" => PendantV3PreviewState.Kind.Fault,
+                "AutoReconnect" => PendantV3PreviewState.Kind.AutoReconnect,
+                _ => previewState,
+            };
+            SetPreviewState(state);
+            return GetDebugSummary();
         }
 
         public string GetDebugSummary()
@@ -259,15 +283,18 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             EventCallback<ClickEvent> callback = _ => SetPreviewState(state);
-            button.RegisterCallback(callback);
-            presetButtons.Add((button, callback));
+            System.Action clicked = () => SetPreviewState(state);
+            button.RegisterCallback<ClickEvent>(callback);
+            button.clicked += clicked;
+            presetButtons.Add((button, callback, clicked));
         }
 
         private void UnbindPresetButtons()
         {
-            foreach (var (button, callback) in presetButtons)
+            foreach (var (button, callback, clicked) in presetButtons)
             {
-                button.UnregisterCallback(callback);
+                button.UnregisterCallback<ClickEvent>(callback);
+                button.clicked -= clicked;
             }
 
             presetButtons.Clear();

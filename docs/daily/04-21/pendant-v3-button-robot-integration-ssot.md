@@ -318,6 +318,30 @@
   - Safety/fault actual flow.
   - Live SDK readback-only 및 실기 command safety gate.
 
+## Safety / Screenshot / Live Gate Result
+- 추가 자동 검증:
+  - `RunPopupConfirmCancelE2EForDebug()`: `pass=10; fail=0`.
+  - `RunSafetyFaultActualFlowForDebug()`: `pass=5; fail=0`.
+  - `RunPointMoveJProductionGuardMatrixForDebug()`: `pass=6; fail=0`.
+  - `RunStageScreenshotEvidenceForDebug()`: front/side/iso screenshot 생성.
+  - `RunLiveSdkReadbackGateForDebug()`: readback-only gate 생성.
+- 수정:
+  - popup trigger, status detail, preset state 버튼에 `ClickEvent` 명시 바인딩을 보강했다.
+  - bottom/top run/stop과 popup/confirm 경로가 서로 검증 가능하도록 DebugBridge matrix를 분리했다.
+  - Safety/Fault summary는 panel force initialize가 preview state를 덮어쓰지 않도록 전용 summary로 확인한다.
+- Artifact:
+  - `Artifacts/robotcontrolv3-popup-confirm-cancel-e2e.json`
+  - `Artifacts/robotcontrolv3-safety-fault-actual-flow.json`
+  - `Artifacts/robotcontrolv3-point-movej-production-guard.json`
+  - `Artifacts/robotcontrolv3-live-sdk-readback-gate.txt`
+  - `Artifacts/robotcontrolv3-stage-ready-front.png`
+  - `Artifacts/robotcontrolv3-stage-ready-side.png`
+  - `Artifacts/robotcontrolv3-stage-tcp-iso.png`
+- 남은 실기 전 주의:
+  - Point MoveJ orientation, joint-limit margin, singularity, collision은 아직 production solver/guard가 아니라 `product-pending`이다.
+  - Live gate는 Mock SDK readback scaffold 기준이다.
+  - 실제 FR5에서는 먼저 readback-only만 수행하고, operator safety confirm 전까지 live command는 금지다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.

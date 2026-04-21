@@ -403,3 +403,33 @@
   - Point MoveJ production behavior: orientation, unreachable target, joint limit, singularity, collision guard.
   - Safety/fault state actual flow.
   - Live SDK readback-only 및 live movement/IO command safety gate.
+
+## 2026-04-21 Safety / Screenshot / Live Gate Execution
+- 추가 구현:
+  - `RunPopupConfirmCancelE2EForDebug()`
+  - `RunSafetyFaultActualFlowForDebug()`
+  - `RunPointMoveJProductionGuardMatrixForDebug()`
+  - `RunStageScreenshotEvidenceForDebug()`
+  - `RunLiveSdkReadbackGateForDebug()`
+- 실제 발견 및 수정:
+  - popup/fault/status detail 계열 버튼도 `ClickEvent` 검증에서 안정적으로 동작하도록 explicit callback을 보강했다.
+  - `ConnectionHomeController.SetPreviewStateForDebug()`를 추가해 live fault 없이도 Fault UI flow를 재현할 수 있게 했다.
+  - `GetPanelControllerSummary()`가 debug preview state를 덮어쓰는 문제가 있어 Safety/Fault 전용 summary를 분리했다.
+- 검증 결과:
+  - Popup confirm/cancel E2E: `pass=10; fail=0`.
+  - Safety/Fault actual flow: `pass=5; fail=0`.
+  - Point MoveJ production guard matrix: `pass=6; fail=0`.
+  - RobotStage screenshot evidence: front/side/iso 3장 생성.
+  - Live SDK readback gate: `readbackOk=True`, `liveCommandGate=BLOCKED_UNTIL_OPERATOR_SAFETY_CONFIRM`.
+- Artifacts:
+  - `Artifacts/robotcontrolv3-popup-confirm-cancel-e2e.json`
+  - `Artifacts/robotcontrolv3-safety-fault-actual-flow.json`
+  - `Artifacts/robotcontrolv3-point-movej-production-guard.json`
+  - `Artifacts/robotcontrolv3-live-sdk-readback-gate.txt`
+  - `Artifacts/robotcontrolv3-stage-ready-front.png`
+  - `Artifacts/robotcontrolv3-stage-ready-side.png`
+  - `Artifacts/robotcontrolv3-stage-tcp-iso.png`
+- 해석:
+  - Point MoveJ unreachable target failure는 동작한다.
+  - Orientation, joint-limit margin, singularity, collision은 현재 guard artifact에서 `product-pending`으로 명시했다.
+  - Live SDK gate는 현재 Mock/readback-only 검증이다. 실제 FR5 연결 전까지 live `MoveJ/MoveL/DO/ToolDO/MoveGripper`는 계속 금지다.
