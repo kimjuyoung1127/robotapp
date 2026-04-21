@@ -44,6 +44,7 @@ namespace KineTutor3D.App.Fairino
         private PresetTransitionAnimator presetAnimator;
         private WaypointCycleRunner waypointRunner;
         private RobotControlPeripheralFacade peripheralFacade;
+        private LiveCommandSafetyGate liveCommandSafetyGate;
         private RobotKinematicsFacade previewKinematicsFacade;
         private FR5EndEffectorAttachment endEffectorAttachment;
         private Camera stageCamera;
@@ -65,6 +66,8 @@ namespace KineTutor3D.App.Fairino
         private string lastInitializationError = string.Empty;
         private string lastSelectedPartName = "없음";
         private bool requestStageRefocus;
+        private LiveCommandKind approvedLiveCommandKind = LiveCommandKind.ReadbackOnly;
+        private DateTime approvedLiveCommandUntilUtc = DateTime.MinValue;
 
         internal event Action<RobotControlV3RuntimeSnapshot> SnapshotChanged;
 
@@ -72,6 +75,7 @@ namespace KineTutor3D.App.Fairino
         internal PendantV3PreviewState.Kind CurrentStateKind => ToPreviewKind(snapshot.StatusKind);
         internal Camera StageCamera => stageCamera;
         internal bool IsInitialized => initialized;
+        internal FairinoConnectionService ConnectionServiceForDebug => connectionService;
 
         private void OnEnable()
         {
@@ -159,6 +163,26 @@ namespace KineTutor3D.App.Fairino
                 : "sdkGripper=blocked; reason=peripheral facade missing";
             RefreshSnapshot();
             return summary;
+        }
+
+        public string GrantLiveCommandApprovalForDebug(string commandKind, int ttlSeconds = 15)
+        {
+            approvedLiveCommandKind = ParseLiveCommandKind(commandKind);
+            approvedLiveCommandUntilUtc = DateTime.UtcNow.AddSeconds(Mathf.Clamp(ttlSeconds, 1, 60));
+            return $"approved={approvedLiveCommandKind}; expires={approvedLiveCommandUntilUtc:O}";
+        }
+
+        public string GetLiveCommandSafetyGateSummaryForDebug(string commandKind)
+        {
+            var kind = ParseLiveCommandKind(commandKind);
+            var result = EvaluateLiveCommandSafety(
+                kind,
+                ResolveRequestedSpeedPercent(),
+                productionIkSafe: kind is not LiveCommandKind.MoveJ,
+                boundaryReady: false,
+                collisionReady: false,
+                hasGripperReadback: kind == LiveCommandKind.MoveGripper);
+            return result.ToSummary();
         }
 
         public string CaptureStageCameraForDebug(string outputPath, int width = 1280, int height = 720)
@@ -582,7 +606,7 @@ namespace KineTutor3D.App.Fairino
             RefreshSnapshot();
         }
 
-        public FairinoResult ApplyJointAngles(double[] jointAnglesDeg, string reason = "관절 적용")
+        public FairinoResult ApplyJointAngles(double[] jointAnglesDeg, string reason = "관절 적용", bool liveProductionIkEligible = true)
         {
             if (!EnsureReadyForCommand(reason))
             {
@@ -609,6 +633,18 @@ namespace KineTutor3D.App.Fairino
                 PushFeedback($"[DryRun Apply] {reason}");
                 RefreshSnapshot();
                 return FairinoResult.Ok("DryRun 적용");
+            }
+
+            var gate = EvaluateLiveCommandSafety(
+                LiveCommandKind.MoveJ,
+                ResolveRequestedSpeedPercent(),
+                liveProductionIkEligible,
+                boundaryReady: false,
+                collisionReady: false,
+                hasGripperReadback: false);
+            if (!gate.CanExecuteLive)
+            {
+                return BlockLiveCommand(gate, "live-movej-blocked");
             }
 
             var runtime = RobotControlMotionRuntime.CreateFromSelection();
@@ -680,6 +716,18 @@ namespace KineTutor3D.App.Fairino
                 return FairinoResult.Ok("DryRun TCP 적용");
             }
 
+            var gate = EvaluateLiveCommandSafety(
+                LiveCommandKind.MoveL,
+                ResolveRequestedSpeedPercent(),
+                productionIkSafe: true,
+                boundaryReady: false,
+                collisionReady: false,
+                hasGripperReadback: false);
+            if (!gate.CanExecuteLive)
+            {
+                return BlockLiveCommand(gate, "live-movel-blocked");
+            }
+
             var runtime = RobotControlMotionRuntime.CreateFromSelection();
             if (!runtime.IsSuccess)
             {
@@ -746,7 +794,7 @@ namespace KineTutor3D.App.Fairino
                 return solveResult;
             }
 
-            return ApplyJointAngles(jointTarget, reason);
+            return ApplyJointAngles(jointTarget, reason, liveProductionIkEligible: false);
         }
 
         private bool EnsureReadyForCommand(string commandName)
@@ -776,6 +824,21 @@ namespace KineTutor3D.App.Fairino
                 return FairinoResult.Fail(-30, lastInitializationError);
             }
 
+            if (!snapshot.DryRunEnabled && connectionService != null && !connectionService.IsMockMode)
+            {
+                var gate = EvaluateLiveCommandSafety(
+                    LiveCommandKind.MoveGripper,
+                    ResolveRequestedSpeedPercent(),
+                    productionIkSafe: true,
+                    boundaryReady: true,
+                    collisionReady: true,
+                    hasGripperReadback: true);
+                if (!gate.CanExecuteLive)
+                {
+                    return BlockLiveCommand(gate, "live-gripper-blocked");
+                }
+            }
+
             var result = peripheralFacade.SetGripperOpen(open, snapshot.DryRunEnabled);
             ApplyGripperVisual(peripheralFacade.Snapshot.GripperOpenRatio);
             PushFeedback(result.Message);
@@ -791,6 +854,21 @@ namespace KineTutor3D.App.Fairino
                 return FairinoResult.Fail(-30, lastInitializationError);
             }
 
+            if (!snapshot.DryRunEnabled && connectionService != null && !connectionService.IsMockMode)
+            {
+                var gate = EvaluateLiveCommandSafety(
+                    LiveCommandKind.RobotDo,
+                    ResolveRequestedSpeedPercent(),
+                    productionIkSafe: true,
+                    boundaryReady: true,
+                    collisionReady: true,
+                    hasGripperReadback: false);
+                if (!gate.CanExecuteLive)
+                {
+                    return BlockLiveCommand(gate, "live-robotdo-blocked");
+                }
+            }
+
             var result = peripheralFacade.SetRobotDigitalOutput(channel, value, snapshot.DryRunEnabled);
             PushFeedback(result.Message);
             snapshot.LiveBlockedReason = result.IsSuccess ? string.Empty : result.Message;
@@ -803,6 +881,21 @@ namespace KineTutor3D.App.Fairino
             if (!EnsureReadyForCommand($"ToolDO{channel} {(value ? "ON" : "OFF")}"))
             {
                 return FairinoResult.Fail(-30, lastInitializationError);
+            }
+
+            if (!snapshot.DryRunEnabled && connectionService != null && !connectionService.IsMockMode)
+            {
+                var gate = EvaluateLiveCommandSafety(
+                    LiveCommandKind.ToolDo,
+                    ResolveRequestedSpeedPercent(),
+                    productionIkSafe: true,
+                    boundaryReady: true,
+                    collisionReady: true,
+                    hasGripperReadback: false);
+                if (!gate.CanExecuteLive)
+                {
+                    return BlockLiveCommand(gate, "live-tooldo-blocked");
+                }
             }
 
             var result = peripheralFacade.SetToolDigitalOutput(channel, value, snapshot.DryRunEnabled);
@@ -902,6 +995,74 @@ namespace KineTutor3D.App.Fairino
             return false;
         }
 
+        private LiveCommandSafetyGateResult EvaluateLiveCommandSafety(
+            LiveCommandKind kind,
+            int requestedSpeedPercent,
+            bool productionIkSafe,
+            bool boundaryReady,
+            bool collisionReady,
+            bool hasGripperReadback)
+        {
+            liveCommandSafetyGate ??= new LiveCommandSafetyGate();
+            var hasPreview = previewJointAnglesDeg != null || previewTcpPose != null;
+            var request = new LiveCommandSafetyGateRequest
+            {
+                Kind = kind,
+                ConnectionService = connectionService,
+                AllowDryRun = snapshot.DryRunEnabled,
+                OperatorConfirmed = ConsumeLiveCommandApproval(kind),
+                RequestedSpeedPercent = requestedSpeedPercent,
+                SpeedCapPercent = LiveCommandSafetyGate.DefaultLiveSpeedCapPercent,
+                HasDryRunPreviewArtifact = hasPreview,
+                IsProductionIkSafe = productionIkSafe,
+                IsBoundaryDataReady = boundaryReady,
+                IsTargetWithinBoundary = boundaryReady,
+                IsCollisionDataReady = collisionReady,
+                IsPredictedPathCollisionFree = collisionReady,
+                HasGripperReadback = hasGripperReadback,
+            };
+
+            return liveCommandSafetyGate.Evaluate(request);
+        }
+
+        private FairinoResult BlockLiveCommand(LiveCommandSafetyGateResult gate, string auditLabel)
+        {
+            liveCommandSafetyGate ??= new LiveCommandSafetyGate();
+            var artifactPath = liveCommandSafetyGate.WriteAudit(gate, auditLabel);
+            var message = $"[Live Gate] {gate.Status}: {string.Join(" / ", gate.BlockReasons)} · artifact={artifactPath}";
+            PushFeedback(message);
+            snapshot.LiveBlockedReason = message;
+            RefreshSnapshot();
+            return FairinoResult.Fail(-70, message);
+        }
+
+        private bool ConsumeLiveCommandApproval(LiveCommandKind kind)
+        {
+            if (approvedLiveCommandUntilUtc <= DateTime.UtcNow || approvedLiveCommandKind != kind)
+            {
+                return false;
+            }
+
+            approvedLiveCommandUntilUtc = DateTime.MinValue;
+            return true;
+        }
+
+        private static LiveCommandKind ParseLiveCommandKind(string commandKind)
+        {
+            return commandKind switch
+            {
+                "MoveJ" => LiveCommandKind.MoveJ,
+                "MoveL" => LiveCommandKind.MoveL,
+                "RobotDo" => LiveCommandKind.RobotDo,
+                "DO" => LiveCommandKind.RobotDo,
+                "ToolDo" => LiveCommandKind.ToolDo,
+                "ToolDO" => LiveCommandKind.ToolDo,
+                "MoveGripper" => LiveCommandKind.MoveGripper,
+                "Gripper" => LiveCommandKind.MoveGripper,
+                _ => LiveCommandKind.ReadbackOnly,
+            };
+        }
+
         private bool TryInitialize()
         {
             if (initialized)
@@ -949,6 +1110,7 @@ namespace KineTutor3D.App.Fairino
             waypointRunner = EnsureComponent<WaypointCycleRunner>(gameObject);
             waypointRunner.Inject(connectionService, config, presetAnimator);
             peripheralFacade ??= new RobotControlPeripheralFacade(connectionService);
+            liveCommandSafetyGate ??= new LiveCommandSafetyGate();
         }
 
         private void BindConnectionEvents()

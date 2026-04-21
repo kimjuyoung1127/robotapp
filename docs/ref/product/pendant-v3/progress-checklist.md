@@ -23,7 +23,7 @@
 | `2B-1` 쉬운 조작 | done | EasyMotion + Zero preset + actual click matrix 통과 |
 | `2B-2` 관절 조그 | done | Joint jog preview/apply/restore + actual click matrix 통과 |
 | `2B-3` TCP 조그 | done | TCP jog + Cartesian arrows + actual click matrix 통과 |
-| `2B-4` 포인트 이동 | in_progress | MoveL/MoveJ preview/apply, save/recall/list/delete/rename/export/cleanup 연결 완료. Production IK guard는 아직 product-pending |
+| `2B-4` 포인트 이동 | in_progress | MoveL/MoveJ preview/apply, save/recall/list/delete/rename/export/cleanup 연결 완료. Numerical IK live는 safety gate에서 차단 |
 | `2C-1` 안전/진단 | done | safety/fault actual flow `5/5 PASS`, fault overlay popup route 확인 |
 | `2C-2` 뷰포트 보조 UI | in_progress | toolbar/frame/path/ghost/bound/coll/cam actual click matrix 통과. 실데이터 boundary/collision은 후속 |
 | `2D` 팝업/도움말 | done | popup confirm/cancel E2E `10/10 PASS`, status detail help routing 확인 |
@@ -32,7 +32,7 @@
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
 | `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, program/sequence history는 후속 |
-| `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback gate artifacts 생성 |
+| `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -72,7 +72,7 @@
 
 - `robot-button-integration-plan.md`를 버튼-로봇 연동 기준 문서로 추가했다.
 - 모든 V3 조작 버튼은 `wired / partial / stub / pending / excluded` 상태로 비교한다.
-- 현재 high-priority gap은 `Program Run/Step queue`, `Point MoveJ production IK guard`, `Boundary/Collision real data`, `Live command safety gate`이다.
+- 현재 high-priority gap은 `Program Run/Step queue`, `Point MoveJ production IK policy`, `Boundary/Collision real data`, `Operator live confirm UX`이다.
 - `GetMovementStateSummaryForDebug()`, `Zero preset`, `CoordStrip mode`는 1차 연결 완료했다.
 - Easy/Joint/TCP/Cartesian 대표 전후 state matrix와 Point MoveL DryRun preview/apply까지 확인했다.
 - Joint preview target이 runtime snapshot `JointValues`로 전달되게 수정해서 보조패널 row와 로봇 preview 상태가 같은 값을 본다.
@@ -91,6 +91,8 @@
 - Point MoveJ production guard matrix `6/6 PASS`.
 - RobotStage screenshot evidence 3장 생성.
 - Live SDK readback gate 생성: `readbackOk=True`, live command는 operator safety confirm 전까지 차단.
+- Live command safety gate matrix `12/12 PASS`.
+- live motion은 boundary/collision real data와 production IK policy가 준비될 때까지 gate에서 차단한다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
 ## Done Checklist
@@ -198,7 +200,8 @@
 - [x] Gripper open/close, DO, ToolDO debug state 검증
 - [x] PGEA attached visual prefab 이관/연결
 - [x] live SDK gripper capability/readback scaffold
-- [ ] live SDK/ROS gripper command safety gate
+- [x] live command safety gate scaffold (`RunLiveCommandSafetyGateMatrixForDebug`: `12/12 PASS`)
+- [ ] live SDK/ROS command operator confirm UX
 
 ### `2C-1` 안전/진단 scaffold
 - [x] `safety-diagnostics-panel.uxml` / `.uss` 생성

@@ -433,3 +433,33 @@
   - Point MoveJ unreachable target failure는 동작한다.
   - Orientation, joint-limit margin, singularity, collision은 현재 guard artifact에서 `product-pending`으로 명시했다.
   - Live SDK gate는 현재 Mock/readback-only 검증이다. 실제 FR5 연결 전까지 live `MoveJ/MoveL/DO/ToolDO/MoveGripper`는 계속 금지다.
+
+## 2026-04-21 Live Command Safety Gate
+- 구현:
+  - `LiveCommandSafetyGate` 추가.
+  - live command 평가 결과는 `Allowed / Blocked / ReadbackOnly / RequiresConfirm`로 고정했다.
+  - 위험도는 `Low / Medium / High / Critical`로 분류한다.
+  - live command block 시 `Artifacts/robotcontrolv3-live-*-blocked.txt` 계열 audit 파일을 남긴다.
+- Runtime 연결:
+  - `ApplyJointAngles`, `ApplyTcpPose`, `SetRobotDigitalOutput`, `SetToolDigitalOutput`, `SetGripperOpen`의 live 경로 앞에 safety gate를 배치했다.
+  - DryRun과 Mock은 기존 시뮬레이션 동작을 유지한다.
+  - 실제 Live는 operator confirm token, speed cap, readback, boundary/collision, production IK 조건이 맞지 않으면 SDK 호출 전에 차단한다.
+- 보수적 기본값:
+  - live speed cap: `10%`.
+  - Point MoveJ numerical XYZ IK fallback은 live 금지.
+  - saved joint target 기반 MoveJ만 live 후보가 될 수 있다.
+  - boundary/collision real data가 아직 없으면 live motion은 차단된다.
+  - live command token은 1회성/단기 TTL로 취급한다.
+- 검증:
+  - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
+  - `RunActualUiClickMatrixForDebug()`: `pass=95; fail=0`.
+  - `RunPopupConfirmCancelE2EForDebug()`: `pass=10; fail=0`.
+  - `RunSafetyFaultActualFlowForDebug()`: `pass=5; fail=0`.
+  - `RunPointMoveJProductionGuardMatrixForDebug()`: `pass=6; fail=0`.
+  - `unityctl check --type compile`: pass.
+- Artifact:
+  - `Artifacts/robotcontrolv3-live-command-safety-gate.json`
+- 남은 실제 실기 단계:
+  - 실제 FR5에서 readback-only를 먼저 수행한다.
+  - operator safety confirm UI/token을 제품 UX로 승격한다.
+  - boundary/collision real data와 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.

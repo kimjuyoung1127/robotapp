@@ -1213,6 +1213,66 @@ namespace KineTutor3D.App
             return $"{result}; artifact={artifactPath}";
         }
 
+        public static string RunLiveCommandSafetyGateMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            var gate = new LiveCommandSafetyGate();
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "live-command-safety-gate",
+            };
+
+            void AddCase(string name, LiveCommandSafetyGateRequest request, string expected)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = expected,
+                };
+
+                try
+                {
+                    var gateResult = gate.Evaluate(request);
+                    result.message = gateResult.ToSummary();
+                    result.after = GetMovementStateSummaryForDebug();
+                    result.passed = result.message.Contains(expected);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "gate";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            runtime.Disconnect();
+            var service = GetRuntimeConnectionService();
+            AddCase("not-connected-blocked", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: false), "not connected");
+            runtime.ConnectDefault();
+            AddCase("servo-disabled-blocked", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: false), "servo disabled");
+            runtime.EnableServo();
+            AddCase("dryrun-allows-simulation", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: true, confirmed: false), "Allowed");
+            AddCase("operator-token-required", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: false, boundary: true, collision: true), "RequiresConfirm");
+            AddCase("speed-cap-blocks", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: true, speed: 30), "exceeds cap");
+            AddCase("boundary-missing-blocks", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: true), "boundary data missing");
+            AddCase("collision-missing-blocks", NewGateRequest(service, LiveCommandKind.MoveL, dryRun: false, confirmed: true, boundary: true), "collision data missing");
+            AddCase("numerical-ik-blocks", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: true, boundary: true, collision: true, productionIk: false), "production IK guard not cleared");
+            AddCase("saved-movej-eligible", NewGateRequest(service, LiveCommandKind.MoveJ, dryRun: false, confirmed: true, boundary: true, collision: true, productionIk: true), "Allowed");
+            AddCase("gripper-readback-required", NewGateRequest(service, LiveCommandKind.MoveGripper, dryRun: false, confirmed: true, boundary: true, collision: true, gripperReadback: false), "gripper readback missing");
+            AddCase("gripper-eligible", NewGateRequest(service, LiveCommandKind.MoveGripper, dryRun: false, confirmed: true, boundary: true, collision: true, gripperReadback: true), "Allowed");
+            AddCase("readback-only", NewGateRequest(service, LiveCommandKind.ReadbackOnly, dryRun: false, confirmed: false), "ReadbackOnly");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-live-command-safety-gate.json", "LiveCommandSafetyGate");
+        }
+
         public static string GetPanelControllerSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -1694,6 +1754,42 @@ namespace KineTutor3D.App
             clickEvent.target = selected;
             selected.SendEvent(clickEvent);
             return $"clicked:{buttonName}";
+        }
+
+        private static FairinoConnectionService GetRuntimeConnectionService()
+        {
+            var runtime = GetRuntimeController();
+            return runtime.ConnectionServiceForDebug;
+        }
+
+        private static LiveCommandSafetyGateRequest NewGateRequest(
+            FairinoConnectionService service,
+            LiveCommandKind kind,
+            bool dryRun,
+            bool confirmed,
+            int speed = 10,
+            bool boundary = false,
+            bool collision = false,
+            bool productionIk = true,
+            bool gripperReadback = false)
+        {
+            return new LiveCommandSafetyGateRequest
+            {
+                Kind = kind,
+                ConnectionService = service,
+                AllowDryRun = dryRun,
+                OperatorConfirmed = confirmed,
+                RequestedSpeedPercent = speed,
+                SpeedCapPercent = LiveCommandSafetyGate.DefaultLiveSpeedCapPercent,
+                HasDryRunPreviewArtifact = true,
+                IsProductionIkSafe = productionIk,
+                IsBoundaryDataReady = boundary,
+                IsTargetWithinBoundary = boundary,
+                IsCollisionDataReady = collision,
+                IsPredictedPathCollisionFree = collision,
+                HasGripperReadback = gripperReadback,
+                TreatMockAsLiveForDebug = true,
+            };
         }
 
         private static void EnsureRuntimeReady(RobotControlV3RuntimeController runtime)

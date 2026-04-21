@@ -342,6 +342,35 @@
   - Live gate는 Mock SDK readback scaffold 기준이다.
   - 실제 FR5에서는 먼저 readback-only만 수행하고, operator safety confirm 전까지 live command는 금지다.
 
+## Live Command Safety Gate Result
+- `LiveCommandSafetyGate`를 추가했다.
+- `Allowed / Blocked / ReadbackOnly / RequiresConfirm` 결과와 `Low / Medium / High / Critical` risk level을 분리했다.
+- live command 앞단 연결:
+  - `MoveJ`
+  - `MoveL`
+  - `Robot DO`
+  - `Tool DO`
+  - `MoveGripper`
+- 기본 차단 조건:
+  - 연결 없음
+  - servo OFF
+  - speed cap 10% 초과
+  - operator confirm token 없음
+  - E-stop / safety stop / fault / collision flag
+  - dry-run preview artifact 없음
+  - production IK guard 미통과
+  - boundary/collision real data 없음
+  - gripper readback 없음
+- 검증:
+  - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
+  - 기존 actual click / popup / safety / point guard matrix도 재실행해 green 유지.
+- Artifact:
+  - `Artifacts/robotcontrolv3-live-command-safety-gate.json`
+- 현재 정책:
+  - Mock/DryRun은 유지한다.
+  - 실제 Live command는 gate 앞에서 계속 막는다.
+  - saved joint target MoveJ만 live 후보가 될 수 있고, numerical XYZ IK fallback은 live 금지다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.
