@@ -14,7 +14,7 @@
 - [feature-safety-controls.md](./feature-safety-controls.md)
 
 ## Last Updated
-- 2026-04-06 (KST)
+- 2026-04-20 (KST)
 
 ---
 
@@ -59,6 +59,43 @@
 │  └──────────────────────────────────────────────┘    │
 │                                                       │
 └───────────────────────────────────────────────────────┘
+```
+
+## 2026-04-20 표시 위치 잠금
+
+- Desktop 메인 로봇 표시는 별도 `ViewportHost`가 아니라 `WorkPanel` 내부 `RobotStage`에서 수행한다.
+- `RobotStage`는 `WorkPanel` 본체를 거의 전부 차지하는 단독 3D 표시 영역으로 둔다.
+- 탭별 조작 UI와 연결 홈/도움말은 `ViewportHost`의 보조 작업 패널로 이동한다.
+- `ViewportHost`는 1차 구현에서 삭제하지 않더라도 메인 디지털 트윈 역할을 맡지 않는다.
+- 따라서 이 문서의 `3DViewport`는 앞으로 **독립 패널**이 아니라 **WorkPanel 내부 임베디드 로봇 스테이지**로 해석한다.
+
+## WorkPanel 임베디드 구조
+
+```text
+┌─ WorkPanel ──────────────────────────────────────────┐
+│  Header                                              │
+│  Tab summary / panel title                           │
+│                                                      │
+│  ┌─ RobotStage (robot only) ──────────────────────┐  │
+│  │                                                │  │
+│  │      3D 로봇 / 프레임 / 트레일 / 고스트        │  │
+│  │      바닥 격자 / 선택 파츠 XYZ 기즈모          │  │
+│  │                                                │  │
+│  └────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────┘
+
+┌─ ViewportHost (보조 작업 패널) ──────────────────────┐
+│  상단 보조 툴바                                      │
+│  [Base축] [Tool축] [궤적] [고스트] [카메라↺]        │
+│                                                      │
+│  공용 Scroll                                          │
+│  - TCP 3D 화살표 / RPY 보조 조작                      │
+│  - 연결 홈                                            │
+│  - 쉬운 조작                                          │
+│  - 관절 조그                                          │
+│  - TCP 조그                                           │
+│  - 포인트 이동                                        │
+└──────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -185,16 +222,19 @@
 ### UI Toolkit / 3D 역할 분리
 - V3의 2D 셸은 `UI Toolkit`이 소유한다.
 - 로봇 메시, 프레임 기즈모, 트레일, 고스트, 충돌 하이라이트, 타깃 마커는 기존 `Visualization/` 계층이 소유한다.
-- `ViewportHost`는 3D 카메라가 그려지는 빈 UI 컨테이너다. UI Toolkit 요소를 World Space로 직접 렌더링하지 않는다.
+- `RobotStage`는 3D 카메라가 그려지는 메인 UI 컨테이너다. UI Toolkit 요소를 World Space로 직접 렌더링하지 않는다.
+- `ViewportHost`는 별도 보조 컨테이너가 필요할 때만 유지하고, 메인 로봇 메시 표시 책임은 갖지 않는다.
+- `ViewportHost` 내부 조작 패널은 공용 `ScrollView` 스타일을 공유해 탭별 패널 길이가 길어져도 같은 스크롤 규칙으로 흘린다.
+- `TCP 3D 화살표`, 특히 `Z / RX / RY / RZ` 조작 UI는 로봇을 가리지 않도록 `RobotStage`가 아니라 `ViewportHost` 쪽 보조 패널에서 표시한다.
 
 ### 렌더 경계
 - 메인 카메라는 기존 `SceneCameraDirector` 기준으로 유지한다.
-- V3는 `ViewportHost`의 rect를 기준으로 카메라 viewport 또는 RenderTexture 표시 영역만 제어한다.
+- V3는 `WorkPanel` 안 `RobotStage` rect를 기준으로 카메라 viewport 또는 RenderTexture 표시 영역을 제어한다.
 - `TopStatusBar`, `NavRail`, `ContextPanel`, `BottomBar`, popup은 3D 위 오버레이로 취급하고 3D가 이를 침범하지 않는다.
 
 ### 입력 경계
-- `ViewportHost` 내부 포인터 입력만 카메라 조작과 3D hit-test에 전달한다.
-- `ViewportHost` 외의 V3 UI 입력은 3D에 전달하지 않는다.
+- `RobotStage` 내부 포인터 입력만 카메라 조작과 3D hit-test에 전달한다.
+- `RobotStage` 외의 V3 UI 입력은 3D에 전달하지 않는다.
 - TCP 화살표, 툴바 버튼, 카메라 프리셋 버튼은 모두 UI 이벤트로 처리하고, 3D 조작 명령은 presenter를 통해 visualization 계층에 전달한다.
 
 ### 채택 전 금지사항

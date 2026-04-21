@@ -9,9 +9,10 @@
 - [robotcontrol-soft-teaching-pad.md](../ux/robotcontrol-soft-teaching-pad.md) — V1/V2 UX 계획 (uGUI)
 - [fairino-teaching-pad-feature-matrix.md](../robots/fairino-teaching-pad-feature-matrix.md) — FAIRINO 1:1 기능 매트릭스
 - [robotcontrol-soft-teaching-pad-v1-backlog.md](../roadmap/robotcontrol-soft-teaching-pad-v1-backlog.md) — V1 백로그
+- [robot-button-integration-plan.md](./robot-button-integration-plan.md) — V3 버튼-로봇 연동 SSOT
 
 ## Last Updated
-- 2026-04-20 (KST)
+- 2026-04-21 (KST)
 
 ---
 
@@ -24,22 +25,41 @@
 4. **모듈식 문서**: 기능별 와이어프레임을 별도 파일로 분리, 이 README가 인덱스
 
 ### 현재 실행 스냅샷 (2026-04-20)
-- `2A-2` 상태/좌표: context scroll 단일화 + placeholder 정리 + desktop 텍스트 잘림 보정 완료
-- `2B-4` 포인트 이동: `MoveL`에 이어 `MoveJ` dispatch까지 연결 완료, `joint draft`/`TCP draft` 분리 + point draft local state 저장 추가
-- `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, reset/recovery 최소 policy wiring까지 연결
-- `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, viewport 전용 camera + render texture split까지 추가, overlay no-fly-zone 마감은 후속
-- `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved + `first-run guide` 1회 노출 policy까지 연결 완료
+- `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, action/policy wiring 후속
+- `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, visualization 실데이터 연동 후속
+- `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved 최소 scaffold 완료, `first-run guide`와 정책 심화 후속
 - tablet help 경로: `BottomTabHelp` actual smoke까지 확인 완료
 - `3A` 1차 잠금: 표시 패널 5개 binder화 + scene bootstrap 순서 고정
 - `3A-3` 우측 컬럼: `상태 / 좌표` 탭 분리 + `ContextPanelScroll` 도입으로 하단 카드 텍스트 잘림 해소
-- `3B` 2차: bottom `Undo/Redo`와 point draft 저장을 `UI-local only` 범위로 고정했고, `FairinoConnectionService` 기반 `PendantV3ConnectionSessionAdapter`를 붙여 reconnect/lost/failure 상태를 `ConnectionHome / Status / Safety / Help`가 같이 읽도록 연결
-- `2C-2` 2차: `PendantV3VisualizationState / Orchestrator / Driver`와 `RobotControlV3` 카메라 프로필을 추가해 `RobotActual`/`RobotGhost`/marker/trail 경로를 묶었음
-- `2C-2` 3차: 메인 카메라 뒤에 로봇을 까는 방식 대신 `ViewportHost` 전용 camera + render texture + overlay split으로 전환했고 clean render [v3-viewport-rendertexture-clean.png](C:/Users/ezen601/Desktop/Jason/robotapp2/Artifacts/v3-viewport-rendertexture-clean.png) 에서는 로봇 실노출을 확인했음
-- 다만 overlay 포함 game view [v3-viewport-safe-overlay-4.png](C:/Users/ezen601/Desktop/Jason/robotapp2/Artifacts/v3-viewport-safe-overlay-4.png) 기준으로는 `Base/Tool/궤적/고스트` 툴바 뒤로 로봇 일부가 아직 걸쳐 보여서, safe-area/no-fly-zone 최종 마감이 남아 있음
-- reconnect 검증은 debug bridge 기준으로 `ConnectedServoOff -> AutoReconnect -> failure/success`까지 닫았고, live 장비 `OnConnectionLost` actual smoke는 후속
+- 2026-04-20 viewport 시행착오 요약
+  - `ViewportHost` 내장형/분리형, 툴바 재배치, RT/카메라 가시화 실험은 **채택 없이 rollback**
+  - `8549b09` baseline 자체에 별도 `ViewportHost`가 이미 포함된다는 점을 재확인
+  - 다음 세션에서는 구현 전에 "로봇을 어느 패널에 표시할지"를 먼저 잠그고 시작
+- 2026-04-20 표시 패널 잠금
+  - 현재 하이라이트된 `WorkPanel`을 **로봇 표시 핵심 패널**로 확정
+  - `ViewportHost`는 메인 로봇 표시 패널이 아니라 **보조/유틸 패널**로 후퇴
+  - 로봇은 `WorkPanel` 안에서 **RobotStage 단독 표시**로 유지
+  - 탭별 조작/도움말/연결 홈은 `ViewportHost`의 **보조 작업 패널 + 공용 스크롤**로 이동
+  - 1차 잠금 비율은 `WorkPanel 70% / ViewportHost 30%` 기준으로 본다
+- 2026-04-21 보조/오른쪽 패널 compact lock
+  - 가로 스크롤은 UX상 금지로 유지한다.
+  - `ViewportPanelScroll`, `ContextPanelScroll`은 세로 전용 공용 스크롤로 잠근다.
+  - 보조패널 툴바는 `Base / Tool / Path / Ghost / Bound / Coll / Cam` compact chip grid로 유지한다.
+  - TCP/Cartesian 조작행은 `축+값+단위`와 `- / +` 버튼을 2줄로 분리해 좁은 폭에서 버튼이 잘리지 않게 한다.
+  - 관절 조그는 `J축+입력+값`, `슬라이더`, `- / +` 버튼 행을 분리한다.
+  - 오른쪽 `ContextPanel` 좌표/상태 카드는 compact grid/wrap으로 두고, 보조패널을 키워 해결하지 않는다.
+  - 최신 재시작 검증 기준 `viewportClipped=0`, `contextClipped=0`, `horizontalVisible=False`, `scrollShare>=0.88`을 확인했다.
+- 2026-04-21 버튼-로봇 연동 기준선
+  - `robot-button-integration-plan.md`를 버튼 연동 SSOT로 추가했다.
+  - 모든 V3 버튼은 `wired / partial / stub / pending / excluded` 중 하나로 분류한다.
+  - 구현은 `V2 성공패턴(구조/검증)` + `FAIRINO 공식 SDK 기능 범위` + `V3 문서/레이아웃 잠금`을 같이 비교하며 진행한다.
+  - Live 실기 이동은 Mock e2e 완료 전까지 금지한다.
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
 - 오늘 구현 로그:
-  - `docs/daily/04-20/pendant-v3-p0-closeout-and-3b-kickoff.md`
+  - `docs/daily/04-21/pendant-v3-button-robot-integration-ssot.md`
+  - `docs/daily/04-21/pendant-v3-aux-compact-no-horizontal-scroll.md`
+  - `docs/daily/04-20/pendant-v3-workpanel-robot-display-lock.md`
+  - `docs/daily/04-20/pendant-v3-viewport-reset-and-next-session-lock.md`
   - `docs/daily/04-15/pendant-v3-context-panel-scroll-fix.md`
   - `docs/daily/04-15/pendant-v3-context-panel-phase-3-tab-split.md`
   - `docs/daily/04-15/pendant-v3-context-panel-density-phase-2-status-safety-rebalance.md`
@@ -67,6 +87,17 @@
 - **uGUI/직접 렌더링 유지**: 3D 시각화 (조인트 하이라이트 링, 타겟 마커, 프레임 기즈모, EE 트레일)
   - Unity 6에서 UIDocument World Space가 추가되었으나 성숙도 미검증 → 3D 오버레이는 기존 방식 유지
 - **기존 재사용**: `RobotControlViewState`, `IFairinoRobotClient`, 모션/연결 로직 전체
+
+### WorkPanel 표시 잠금
+- Desktop 메인 로봇 표시 영역은 `ViewportHost`가 아니라 `WorkPanel`이다.
+- `WorkPanel`은 `RobotStage` 단일 책임으로 고정한다.
+- `RobotStage`는 탭 전환과 무관하게 유지되는 대형 3D 표시 영역이다.
+- 탭별 조작 UI, 도움말, 연결 홈은 `ViewportHost` 쪽 `보조 작업 패널`에서 스크롤로 이어 붙인다.
+- `ViewportHost`는 1차 구현에서 제거하지 않더라도 메인 디지털 트윈 역할을 맡지 않는다.
+- `Base축 / Tool축 / 궤적` 토글은 `ViewportHost` 상단 보조 툴바에서 제어하되, 실제 3D 반영은 `RobotStage`에서 본다.
+- `선택 파츠 XYZ 기즈모`, `바닥 격자`처럼 로봇에 직접 붙는 시각 요소는 `RobotStage`에 둔다.
+- `TCP 3D 화살표`, 특히 `Z / RX / RY / RZ` 조작 UI는 로봇을 가리지 않도록 `ViewportHost` 보조 패널에 둔다.
+- 1차 목표는 "큰 작업 패널 안에는 로봇만 또렷하게 보이고, 조작은 옆 보조 패널로 흘린다"를 만족시키는 것이다.
 
 ### 기술 주의사항
 - **USS @media 미지원**: 반응형 레이아웃은 C# `GeometryChangedEvent` + `AddToClassList()`/`RemoveFromClassList()`로 구현

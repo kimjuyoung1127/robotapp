@@ -40,8 +40,8 @@ Sandbox -> RobotLibrary (로봇 목록 복귀)
 
 ## Read Next
 
-- [information-architecture.md](./product/ux/information-architecture.md)
-- [page-quality-baseline.md](./product/ux/page-quality-baseline.md)
+- [USER-FLOW.md](./USER-FLOW.md)
+- [page-qa/README.md](../status/page-qa/README.md)
 - [guided-lesson.md](./product/ux/guided-lesson.md)
 - [robot-library.md](./product/ux/robot-library.md)
 - [sandbox.md](./product/ux/sandbox.md)

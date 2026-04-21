@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using UnityEngine;
 using UnityEngine.UIElements;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.UI.RobotControlV3
 {
@@ -19,9 +20,9 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement safetyDiagnosticsHost;
         private VisualElement faultOverlayHost;
         private ConnectionHomeController connectionHomeController;
+        private RobotControlV3RuntimeController runtimeController;
         private SafetyElements safetyElements;
         private FaultOverlayElements faultOverlayElements;
-        private bool isContextVisible = true;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
 
@@ -47,16 +48,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return TryInitialize();
         }
 
-        public void SetContextVisible(bool visible)
-        {
-            isContextVisible = visible;
-            if (isInitialized)
-            {
-                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            }
-        }
-
-        internal void RefreshFromBinder(PendantV3PreviewState.Definition data)
+        internal void RefreshFromBinder(RobotControlV3RuntimeSnapshot data)
         {
             if (!isInitialized && !TryInitialize())
             {
@@ -69,19 +61,19 @@ namespace KineTutor3D.UI.RobotControlV3
         public string GetDebugSummary()
         {
             var state = connectionHomeController != null ? connectionHomeController.CurrentPreviewState.ToString() : "none";
-            var hostHidden = safetyDiagnosticsHost?.ClassListContains("rc-hidden") ?? false;
             var overlayVisible = faultOverlayHost != null && !faultOverlayHost.ClassListContains("rc-hidden");
             var bannerText = safetyElements?.SafetyBannerText?.text ?? "missing";
             var faultText = safetyElements?.FaultStateValue?.text ?? "missing";
-            return $"initialized={isInitialized}; state={state}; hostHidden={hostHidden}; overlayVisible={overlayVisible}; banner={bannerText}; fault={faultText}";
+            return $"initialized={isInitialized}; state={state}; overlayVisible={overlayVisible}; banner={bannerText}; fault={faultText}";
         }
 
         private bool TryInitialize()
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || safetyDiagnosticsTemplate == null || faultOverlayTemplate == null || connectionHomeController == null)
+            if (root == null || safetyDiagnosticsTemplate == null || faultOverlayTemplate == null || connectionHomeController == null || runtimeController == null || !runtimeController.ForceInitialize())
             {
                 return false;
             }
@@ -102,6 +94,12 @@ namespace KineTutor3D.UI.RobotControlV3
             if (faultOverlayElements == null || faultOverlayHost.childCount == 0)
             {
                 faultOverlayElements = CreateFaultOverlay(faultOverlayHost);
+            }
+
+            if (safetyElements?.BtnRecoveryPrimary != null)
+            {
+                safetyElements.BtnRecoveryPrimary.clicked -= HandleRecoveryPrimaryClicked;
+                safetyElements.BtnRecoveryPrimary.clicked += HandleRecoveryPrimaryClicked;
             }
 
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
@@ -141,7 +139,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return new FaultOverlayElements(tree);
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             if (safetyElements == null)
             {
@@ -149,19 +147,11 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             var state = connectionHomeController.CurrentPreviewState;
-            var session = connectionHomeController.CurrentSessionState;
             var isFault = state == PendantV3PreviewState.Kind.Fault;
             var isWarning = state is PendantV3PreviewState.Kind.ConnectedUnsynced or PendantV3PreviewState.Kind.AutoReconnect;
-            var shouldShowPanel = (isFault || isWarning) && isContextVisible;
-
-            safetyDiagnosticsHost?.EnableInClassList("rc-hidden", !shouldShowPanel);
 
             safetyElements.SafetyBannerText.text = isFault
                 ? "안전 상태: Fault 감지 · 조작 잠금"
-                : session.ReconnectActive
-                    ? $"안전 상태: 자동 재연결 중 · {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 뒤 재시도"
-                    : session.ReconnectFailed
-                        ? "안전 상태: 자동 복구 실패 · 수동 연결 필요"
                 : isWarning
                     ? "안전 상태: 주의 · 동기화/재연결 확인"
                     : "안전 상태: 정상";
@@ -172,25 +162,11 @@ namespace KineTutor3D.UI.RobotControlV3
             SetChipState(safetyElements.SafetyStateValue, isFault, isWarning);
             SetFaultChipState(safetyElements.FaultStateValue, isFault);
 
-            safetyElements.RecoveryNow.text = session.ReconnectActive
-                ? $"지금 상태: 재연결 {session.ReconnectAttempt}/{session.ReconnectAttemptMax}"
-                : !session.ActualMoveAllowed
-                    ? "지금 상태: 실기 이동 잠금"
-                : $"지금 상태: {data.ActionNow}";
-            safetyElements.RecoveryPrimary.text = session.ReconnectFailed
-                ? "다음 행동: 수동 연결로 복귀"
-                : !session.ActualMoveAllowed
-                    ? "다음 행동: arm / 연결 상태 확인"
-                : $"다음 행동: {data.ActionPrimary}";
-            safetyElements.RecoveryWhy.text = session.ReconnectActive
-                ? $"자동 복구를 시도 중이다. {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 뒤 결과를 다시 확인해라."
-                : session.ReconnectFailed
-                    ? (string.IsNullOrWhiteSpace(session.ReconnectFailureSummary) ? data.ActionWhy : session.ReconnectFailureSummary)
-                    : !session.ActualMoveAllowed
-                        ? session.ActualMoveBlockReason
-                    : data.ActionWhy;
+            safetyElements.RecoveryNow.text = $"지금 상태: {data.ActionNow}";
+            safetyElements.RecoveryPrimary.text = $"다음 행동: {data.ActionPrimary}";
+            safetyElements.RecoveryWhy.text = data.ActionWhy;
             safetyElements.BtnRecoveryPrimary.text = data.PrimaryActionLabel;
-            safetyElements.BtnRecoveryPrimary.SetEnabled(!session.ReconnectActive && data.PrimaryActionEnabled);
+            safetyElements.BtnRecoveryPrimary.SetEnabled(data.PrimaryActionEnabled);
 
             safetyElements.EventLogLine1.text = $"연결 {data.StatusConnection} · 서보 {data.StatusServo}";
             safetyElements.EventLogLine2.text = $"상태 {data.StatusMotion} · Safety {data.StatusSafety}";
@@ -199,7 +175,7 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyFaultOverlay(data, isFault);
         }
 
-        private void ApplyFaultOverlay(PendantV3PreviewState.Definition data, bool isFault)
+        private void ApplyFaultOverlay(RobotControlV3RuntimeSnapshot data, bool isFault)
         {
             if (faultOverlayHost == null || faultOverlayElements == null)
             {
@@ -254,6 +230,12 @@ namespace KineTutor3D.UI.RobotControlV3
             label.EnableInClassList("rc-safety-chip--safe", false);
             label.EnableInClassList("rc-safety-chip--warning", false);
         }
+
+        private void HandleRecoveryPrimaryClicked()
+        {
+            runtimeController?.ExecutePrimaryAction();
+        }
+
 
         private sealed class SafetyElements
         {

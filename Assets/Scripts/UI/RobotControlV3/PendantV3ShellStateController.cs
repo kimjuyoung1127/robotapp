@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -28,6 +29,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement mainSplit;
         private VisualElement workPanel;
         private VisualElement viewportHost;
+        private ScrollView viewportPanelScroll;
+        private Label workPanelDebugBadge;
         private VisualElement splitHandle;
         private VisualElement bottomSheet;
         private VisualElement bottomSheetContent;
@@ -41,16 +44,20 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button coordSystemButton;
         private Button incrementButton;
         private Button sheetToggleButton;
+        private Button dryRunButton;
         private Button undoButton;
         private Button redoButton;
+        private Button stepBackButton;
+        private Button stepForwardButton;
         private Slider speedSlider;
         private ConnectionHomeController connectionHomeController;
+        private RobotControlV3RuntimeController runtimeController;
+        private HelpPanelController helpPanelController;
         private EasyMotionController easyMotionController;
         private JointJogController jointJogController;
         private TcpJogController tcpJogController;
         private PointMoveController pointMoveController;
-        private readonly Stack<PendantV3LocalState> undoHistory = new();
-        private readonly Stack<PendantV3LocalState> redoHistory = new();
+        private IoPanelController ioPanelController;
 
         private Coroutine saveCoroutine;
         private bool hasPendingSave;
@@ -58,8 +65,6 @@ namespace KineTutor3D.UI.RobotControlV3
         private int dragPointerId = -1;
         private float dragStartX;
         private float dragStartRatio;
-        private PendantV3LocalState dragStartState;
-        private bool isApplyingHistory;
 
         private void OnEnable()
         {
@@ -96,12 +101,14 @@ namespace KineTutor3D.UI.RobotControlV3
         public string GetDebugSummary()
         {
             var normalized = PendantV3LocalState.Normalize(state);
-            return $"{normalized.ToDebugSummary()}; undo={undoHistory.Count}; redo={redoHistory.Count}";
+            var workPanelHighlighted = workPanel?.ClassListContains("rc-work-panel--debug-highlight") ?? false;
+            var workPanelBadgeVisible = !(workPanelDebugBadge?.ClassListContains("rc-hidden") ?? true);
+            return $"{normalized.ToDebugSummary()}; workPanelHighlight={workPanelHighlighted}; workPanelBadgeVisible={workPanelBadgeVisible}";
         }
 
         public PendantV3LocalState GetStateSnapshot()
         {
-            return PendantV3LocalState.DeepCopy(state);
+            return PendantV3LocalState.Normalize(state);
         }
 
         private void CacheElements()
@@ -131,6 +138,9 @@ namespace KineTutor3D.UI.RobotControlV3
             mainSplit = root.Q<VisualElement>("MainSplit");
             workPanel = root.Q<VisualElement>("WorkPanel");
             viewportHost = root.Q<VisualElement>("ViewportHost");
+            viewportPanelScroll = root.Q<ScrollView>("ViewportPanelScroll");
+            ConfigureSharedScrollViews();
+            workPanelDebugBadge = root.Q<Label>("WorkPanelDebugBadge");
             splitHandle = root.Q<VisualElement>("MainSplitHandle");
             bottomSheet = root.Q<VisualElement>("BottomSheet");
             bottomSheetContent = root.Q<VisualElement>("BottomSheetContent");
@@ -144,46 +154,54 @@ namespace KineTutor3D.UI.RobotControlV3
             coordSystemButton = root.Q<Button>("BtnCoordSystem");
             incrementButton = root.Q<Button>("BtnIncrement");
             sheetToggleButton = root.Q<Button>("BtnSheetToggle");
+            dryRunButton = root.Q<Button>("BtnDryRun");
             undoButton = root.Q<Button>("BtnUndo");
             redoButton = root.Q<Button>("BtnRedo");
+            stepBackButton = root.Q<Button>("BtnStepBack");
+            stepForwardButton = root.Q<Button>("BtnStepForward");
             speedSlider = root.Q<Slider>("SpeedSlider");
             connectionHomeController = GetComponent<ConnectionHomeController>();
+            runtimeController = GetComponent<RobotControlV3RuntimeController>();
+            helpPanelController = GetComponent<HelpPanelController>();
             easyMotionController = GetComponent<EasyMotionController>();
             jointJogController = GetComponent<JointJogController>();
             tcpJogController = GetComponent<TcpJogController>();
             pointMoveController = GetComponent<PointMoveController>();
+            ioPanelController = GetComponent<IoPanelController>();
+        }
+
+        private void ConfigureSharedScrollViews()
+        {
+            root.Query<ScrollView>(className: "rc-shared-scroll").ForEach(scrollView =>
+            {
+                scrollView.mode = ScrollViewMode.Vertical;
+                scrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+                scrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
+                scrollView.style.overflow = Overflow.Hidden;
+                scrollView.contentContainer.style.minWidth = 0;
+                scrollView.contentContainer.style.maxWidth = Length.Percent(100);
+            });
         }
 
         public void SetDebugSelection(string navSection, string workTab, string tabletTab)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.ActiveNavSection = string.IsNullOrWhiteSpace(navSection) ? nextState.ActiveNavSection : navSection;
-            nextState.ActiveWorkTab = string.IsNullOrWhiteSpace(workTab) ? nextState.ActiveWorkTab : workTab;
-            nextState.ActiveTabletTab = string.IsNullOrWhiteSpace(tabletTab) ? nextState.ActiveTabletTab : tabletTab;
-            CommitStateChange(nextState);
+            state.ActiveNavSection = string.IsNullOrWhiteSpace(navSection) ? state.ActiveNavSection : navSection;
+            state.ActiveWorkTab = string.IsNullOrWhiteSpace(workTab) ? state.ActiveWorkTab : workTab;
+            state.ActiveTabletTab = string.IsNullOrWhiteSpace(tabletTab) ? state.ActiveTabletTab : tabletTab;
+            state = PendantV3LocalState.Normalize(state);
+            LocalSettingsStore.Save(state);
+            ApplyState();
+            EmitStateSnapshotChanged();
         }
 
         public void SetCoordSystemSelection(string coordSystem)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.CoordSystem = string.IsNullOrWhiteSpace(coordSystem) ? nextState.CoordSystem : coordSystem;
-            CommitStateChange(nextState);
-        }
-
-        public void UpdatePointMoveDraft(
-            string pointName,
-            string motionKind,
-            float[] tcpDraftValues,
-            float[] jointDraftValues,
-            bool hasPointDraft)
-        {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.PointName = pointName;
-            nextState.PointMotionKind = motionKind;
-            nextState.PointTcpDraftValues = tcpDraftValues;
-            nextState.PointJointDraftValues = jointDraftValues;
-            nextState.HasPointDraft = hasPointDraft;
-            CommitStateChange(nextState);
+            state.CoordSystem = string.IsNullOrWhiteSpace(coordSystem) ? state.CoordSystem : coordSystem;
+            state = PendantV3LocalState.Normalize(state);
+            ApplyCoordSystemState();
+            runtimeController?.SetCoordSystem(state.CoordSystem);
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void BindListeners()
@@ -194,8 +212,11 @@ namespace KineTutor3D.UI.RobotControlV3
             coordSystemButton?.RegisterCallback<ClickEvent>(OnCoordSystemClicked);
             incrementButton?.RegisterCallback<ClickEvent>(OnIncrementClicked);
             sheetToggleButton?.RegisterCallback<ClickEvent>(OnSheetToggleClicked);
+            dryRunButton?.RegisterCallback<ClickEvent>(OnDryRunClicked);
             undoButton?.RegisterCallback<ClickEvent>(OnUndoClicked);
             redoButton?.RegisterCallback<ClickEvent>(OnRedoClicked);
+            stepBackButton?.RegisterCallback<ClickEvent>(OnStepBackClicked);
+            stepForwardButton?.RegisterCallback<ClickEvent>(OnStepForwardClicked);
             speedSlider?.RegisterValueChangedCallback(OnSpeedChanged);
             splitHandle?.RegisterCallback<PointerDownEvent>(OnSplitPointerDown);
             splitHandle?.RegisterCallback<PointerMoveEvent>(OnSplitPointerMove);
@@ -212,8 +233,11 @@ namespace KineTutor3D.UI.RobotControlV3
             coordSystemButton?.UnregisterCallback<ClickEvent>(OnCoordSystemClicked);
             incrementButton?.UnregisterCallback<ClickEvent>(OnIncrementClicked);
             sheetToggleButton?.UnregisterCallback<ClickEvent>(OnSheetToggleClicked);
+            dryRunButton?.UnregisterCallback<ClickEvent>(OnDryRunClicked);
             undoButton?.UnregisterCallback<ClickEvent>(OnUndoClicked);
             redoButton?.UnregisterCallback<ClickEvent>(OnRedoClicked);
+            stepBackButton?.UnregisterCallback<ClickEvent>(OnStepBackClicked);
+            stepForwardButton?.UnregisterCallback<ClickEvent>(OnStepForwardClicked);
             speedSlider?.UnregisterValueChangedCallback(OnSpeedChanged);
             splitHandle?.UnregisterCallback<PointerDownEvent>(OnSplitPointerDown);
             splitHandle?.UnregisterCallback<PointerMoveEvent>(OnSplitPointerMove);
@@ -253,9 +277,10 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.ActiveNavSection = button.name;
-            CommitStateChange(nextState);
+            state.ActiveNavSection = button.name;
+            ApplyNavState();
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnWorkTabClicked(ClickEvent evt)
@@ -265,9 +290,10 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.ActiveWorkTab = button.name;
-            CommitStateChange(nextState);
+            state.ActiveWorkTab = button.name;
+            ApplyWorkTabState();
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnBottomTabClicked(ClickEvent evt)
@@ -277,37 +303,68 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.ActiveTabletTab = button.name;
-            CommitStateChange(nextState);
+            state.ActiveTabletTab = button.name;
+            ApplyBottomTabState();
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnCoordSystemClicked(ClickEvent evt)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.CoordSystem = CoordSystems[(ResolveIndex(CoordSystems, state.CoordSystem) + 1) % CoordSystems.Length];
-            CommitStateChange(nextState);
+            state.CoordSystem = CoordSystems[(ResolveIndex(CoordSystems, state.CoordSystem) + 1) % CoordSystems.Length];
+            ApplyCoordSystemState();
+            runtimeController?.SetCoordSystem(state.CoordSystem);
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnIncrementClicked(ClickEvent evt)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.JogIncrement = Increments[(ResolveIndex(Increments, state.JogIncrement) + 1) % Increments.Length];
-            CommitStateChange(nextState);
+            state.JogIncrement = Increments[(ResolveIndex(Increments, state.JogIncrement) + 1) % Increments.Length];
+            ApplyIncrementState();
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnSheetToggleClicked(ClickEvent evt)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.IsTabletSheetExpanded = !nextState.IsTabletSheetExpanded;
-            CommitStateChange(nextState, emitSnapshot: false);
+            state.IsTabletSheetExpanded = !state.IsTabletSheetExpanded;
+            ApplyBottomSheetState();
+            QueueSave();
+        }
+
+        private void OnDryRunClicked(ClickEvent evt)
+        {
+            runtimeController?.ToggleDryRun();
+            ApplyBottomBarState();
+        }
+
+        private void OnUndoClicked(ClickEvent evt)
+        {
+            runtimeController?.UndoPreview();
+        }
+
+        private void OnRedoClicked(ClickEvent evt)
+        {
+            runtimeController?.RedoPreview();
+        }
+
+        private void OnStepBackClicked(ClickEvent evt)
+        {
+            runtimeController?.StepBackward();
+        }
+
+        private void OnStepForwardClicked(ClickEvent evt)
+        {
+            runtimeController?.StepForward();
         }
 
         private void OnSpeedChanged(ChangeEvent<float> evt)
         {
-            var nextState = PendantV3LocalState.DeepCopy(state);
-            nextState.SpeedPercent = Mathf.RoundToInt(evt.newValue);
-            CommitStateChange(nextState);
+            state.SpeedPercent = Mathf.RoundToInt(evt.newValue);
+            ApplySpeedState();
+            QueueSave();
+            EmitStateSnapshotChanged();
         }
 
         private void OnSplitPointerDown(PointerDownEvent evt)
@@ -320,7 +377,6 @@ namespace KineTutor3D.UI.RobotControlV3
             dragPointerId = evt.pointerId;
             dragStartX = evt.position.x;
             dragStartRatio = state.DesktopSplitRatio;
-            dragStartState = PendantV3LocalState.DeepCopy(state);
             splitHandle.CapturePointer(dragPointerId);
             splitHandle.EnableInClassList("rc-split-handle--dragging", true);
             evt.StopPropagation();
@@ -337,7 +393,6 @@ namespace KineTutor3D.UI.RobotControlV3
             var deltaRatio = (evt.position.x - dragStartX) / width;
             state.DesktopSplitRatio = Mathf.Clamp(dragStartRatio + deltaRatio, PendantV3LocalState.MinSplitRatio, PendantV3LocalState.MaxSplitRatio);
             ApplySplitRatio();
-            UpdateUndoRedoButtons();
         }
 
         private void OnSplitPointerUp(PointerUpEvent evt)
@@ -347,17 +402,8 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            if (!PendantV3LocalState.AreEquivalent(dragStartState, state))
-            {
-                undoHistory.Push(PendantV3LocalState.DeepCopy(dragStartState));
-                redoHistory.Clear();
-                state = PendantV3LocalState.DeepCopy(state);
-                QueueSave();
-                EmitStateSnapshotChanged();
-                UpdateUndoRedoButtons();
-            }
-
             ReleaseSplitDrag();
+            QueueSave();
         }
 
         private void OnSplitPointerCaptureOut(PointerCaptureOutEvent evt)
@@ -370,16 +416,6 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplySplitRatio();
         }
 
-        private void OnUndoClicked(ClickEvent evt)
-        {
-            UndoLastState();
-        }
-
-        private void OnRedoClicked(ClickEvent evt)
-        {
-            RedoLastState();
-        }
-
         private void ReleaseSplitDrag()
         {
             if (splitHandle != null && dragPointerId >= 0 && splitHandle.HasPointerCapture(dragPointerId))
@@ -389,73 +425,6 @@ namespace KineTutor3D.UI.RobotControlV3
 
             dragPointerId = -1;
             splitHandle?.EnableInClassList("rc-split-handle--dragging", false);
-        }
-
-        private void CommitStateChange(PendantV3LocalState nextState, bool emitSnapshot = true)
-        {
-            var normalizedNext = PendantV3LocalState.DeepCopy(nextState);
-            if (PendantV3LocalState.AreEquivalent(state, normalizedNext))
-            {
-                UpdateUndoRedoButtons();
-                return;
-            }
-
-            if (!isApplyingHistory)
-            {
-                undoHistory.Push(PendantV3LocalState.DeepCopy(state));
-                redoHistory.Clear();
-            }
-
-            state = normalizedNext;
-            ApplyState();
-            QueueSave();
-            if (emitSnapshot)
-            {
-                EmitStateSnapshotChanged();
-            }
-            UpdateUndoRedoButtons();
-        }
-
-        private void UndoLastState()
-        {
-            if (undoHistory.Count == 0)
-            {
-                UpdateUndoRedoButtons();
-                return;
-            }
-
-            isApplyingHistory = true;
-            redoHistory.Push(PendantV3LocalState.DeepCopy(state));
-            state = PendantV3LocalState.DeepCopy(undoHistory.Pop());
-            isApplyingHistory = false;
-            ApplyState();
-            QueueSave();
-            EmitStateSnapshotChanged();
-            UpdateUndoRedoButtons();
-        }
-
-        private void RedoLastState()
-        {
-            if (redoHistory.Count == 0)
-            {
-                UpdateUndoRedoButtons();
-                return;
-            }
-
-            isApplyingHistory = true;
-            undoHistory.Push(PendantV3LocalState.DeepCopy(state));
-            state = PendantV3LocalState.DeepCopy(redoHistory.Pop());
-            isApplyingHistory = false;
-            ApplyState();
-            QueueSave();
-            EmitStateSnapshotChanged();
-            UpdateUndoRedoButtons();
-        }
-
-        private void UpdateUndoRedoButtons()
-        {
-            undoButton?.SetEnabled(undoHistory.Count > 0);
-            redoButton?.SetEnabled(redoHistory.Count > 0);
         }
 
         private void EmitStateSnapshotChanged()

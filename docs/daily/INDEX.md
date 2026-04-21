@@ -126,5 +126,13 @@
 - [pendant-v3-phase-3a-binder-scene-bootstrap-lock.md](./04-15/pendant-v3-phase-3a-binder-scene-bootstrap-lock.md)
 
 ### 04-20
-- [pendant-v3-p0-closeout-and-3b-kickoff.md](./04-20/pendant-v3-p0-closeout-and-3b-kickoff.md)
+- [pendant-v3-workpanel-robot-display-lock.md](./04-20/pendant-v3-workpanel-robot-display-lock.md)
+- [pendant-v3-viewport-reset-and-next-session-lock.md](./04-20/pendant-v3-viewport-reset-and-next-session-lock.md)
+
+### 04-21
+- [pendant-v3-robotstage-only-aux-scroll-lock.md](./04-21/pendant-v3-robotstage-only-aux-scroll-lock.md)
+- [pendant-v3-tcp-overlay-to-aux-panel.md](./04-21/pendant-v3-tcp-overlay-to-aux-panel.md)
+- [pendant-v3-aux-compact-no-horizontal-scroll.md](./04-21/pendant-v3-aux-compact-no-horizontal-scroll.md)
+- [pendant-v3-button-robot-integration-ssot.md](./04-21/pendant-v3-button-robot-integration-ssot.md)
+- [doc-consistency-check-and-archive-pass.md](./04-21/doc-consistency-check-and-archive-pass.md)
 

@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using UnityEngine;
 using UnityEngine.UIElements;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.UI.RobotControlV3
 {
@@ -18,7 +19,6 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label whyItMovedTitle;
         private Label whyItMovedSummary;
         private ConnectionHomeController connectionHomeController;
-        private bool isContextVisible;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
 
@@ -44,16 +44,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return TryInitialize();
         }
 
-        public void SetContextVisible(bool visible)
-        {
-            isContextVisible = visible;
-            if (isInitialized)
-            {
-                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            }
-        }
-
-        internal void RefreshFromBinder(PendantV3PreviewState.Definition data)
+        internal void RefreshFromBinder(RobotControlV3RuntimeSnapshot data)
         {
             if (!isInitialized && !TryInitialize())
             {
@@ -109,7 +100,7 @@ namespace KineTutor3D.UI.RobotControlV3
             initializeCoroutine = null;
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             whyItMovedTitle.text = "최근 조작 메모";
             whyItMovedSummary.text = connectionHomeController.CurrentPreviewState switch
@@ -119,7 +110,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 PendantV3PreviewState.Kind.AutoReconnect => "통신이 흔들리는 동안은 자동 재연결이 먼저라서 조작보다 상태 복귀를 기다리는 흐름이다.",
                 _ => data.ActionNow,
             };
-            whyItMovedCard.EnableInClassList("rc-hidden", !isContextVisible);
+            whyItMovedCard.EnableInClassList("rc-hidden", false);
         }
     }
 }

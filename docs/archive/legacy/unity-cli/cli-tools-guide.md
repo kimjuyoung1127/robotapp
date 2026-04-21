@@ -1,5 +1,7 @@
 # unity-cli 커스텀 도구 가이드
 
+> Archive Note: 이 문서는 `unityctl` 표준화 이전의 legacy unity-cli 운영 문서라 archive로 이동했다.
+
 KineTutor3D 프로젝트의 unity-cli 커스텀 도구 카탈로그, 사용법, 개발 가이드.
 
 ## 개요
@@ -505,7 +507,7 @@ namespace KineTutor3D.Editor.CliTools
 
 ### 4. 문서 업데이트
 
-- 이 파일(`docs/ref/cli-tools-guide.md`)에 새 도구 등록
+- 이 파일(`docs/archive/legacy/unity-cli/cli-tools-guide.md`)에 새 도구 등록
 - `CLAUDE.md` Skill 인덱스에 관련 정보 반영
 
 ---

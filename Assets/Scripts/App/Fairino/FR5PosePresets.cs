@@ -3,7 +3,7 @@ namespace KineTutor3D.App.Fairino
 {
     /// <summary>
     /// FR5 프리셋 포즈 정의입니다.
-    /// Home(영점), Ready(작업 준비), Folded(접힘) 포즈를 제공합니다.
+    /// Home(홈), Zero(영점), Ready(작업 준비), Folded(접힘) 포즈를 제공합니다.
     /// </summary>
     public static class FR5PosePresets
     {
@@ -48,6 +48,14 @@ namespace KineTutor3D.App.Fairino
         public static readonly Preset Home = new Preset(
             "Home",
             "모든 관절 영점 (0°)",
+            new double[] { 0, 0, 0, 0, 0, 0 });
+
+        /// <summary>
+        /// Zero 포즈 (명시적 영점 프리셋)입니다.
+        /// </summary>
+        public static readonly Preset Zero = new Preset(
+            "Zero",
+            "명시적 영점 자세 (0°)",
             new double[] { 0, 0, 0, 0, 0, 0 });
 
         /// <summary>
@@ -102,7 +110,7 @@ namespace KineTutor3D.App.Fairino
             {
                 if (cachedAll == null)
                 {
-                    cachedAll = new[] { Home, Ready, Folded, current };
+                    cachedAll = new[] { Home, Zero, Ready, Folded, current };
                 }
 
                 return cachedAll;

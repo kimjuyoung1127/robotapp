@@ -45,7 +45,7 @@ namespace KineTutor3D.UI.RobotControlV3
             navRail = root.Q<VisualElement>("NavRail");
             workTabBar = root.Q<VisualElement>("WorkTabBar");
             workPanel = root.Q<VisualElement>("WorkPanel");
-            viewportHost = root.Q<VisualElement>("ViewportHost");
+            viewportHost = root.Q<VisualElement>("RobotStageHost");
             contextPanel = root.Q<VisualElement>("ContextPanel");
             bottomBar = root.Q<VisualElement>("BottomBar");
             popupLayer = root.Q<VisualElement>("PopupLayer");

@@ -3,7 +3,7 @@
 최종 업데이트: 2026-03-12
 
 ## 범위
-`Assets/KineTutor_AssetCuration_BACKUP/` 내 프리팹 44개를 `Main.unity` 임시 루트에 instantiate하는 스모크 테스트.
+`Assets/KineTutor_AssetCuration_BACKUP/` 내 프리팹 44개를 당시 `Main.unity` 임시 루트에 instantiate했던 historical 스모크 테스트 기록이다.
 
 ## 결과 요약
 | 분류 | 개수 |
@@ -17,7 +17,7 @@
 ### SceneSelectables.prefab
 - **경로**: `Assets/realvirtual/UIPrefabs/SceneSelectables.prefab` (historical, removed)
 - **증상**: Instantiate 후 `NullReferenceException` 발생
-- **원인**: realvirtual 패키지 내부 스크립트가 런타임 초기화 시 참조하는 컴포넌트/오브젝트가 Main.unity 컨텍스트에 없음
+- **원인**: realvirtual 패키지 내부 스크립트가 런타임 초기화 시 참조하는 컴포넌트/오브젝트가 당시 `Main.unity` 컨텍스트에 없었음
 - **분류**: vendor asset (외부 패키지)
 - **판단**: **수정 불필요 (Exclude)**
   - KineTutor3D 제품에서 직접 사용하지 않는 vendor UI prefab

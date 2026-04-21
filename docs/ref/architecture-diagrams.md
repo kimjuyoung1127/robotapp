@@ -3,6 +3,9 @@
 Version: 1.7.0
 Last Updated: 2026-03-31 (KST)
 
+> Note: 이 문서는 혼합형 reference 문서라 일부 섹션에 historical naming(`Main`, 초기 RobotControl 구조)이 남아 있다.
+> 현재 runtime truth는 `docs/ref/architecture-mermaid.md`와 `docs/ref/project-flow-code-review.md`를 우선한다.
+
 ## Fast Context Entry
 
 1. `AGENTS.md`

@@ -1,5 +1,7 @@
 # Unity-CLI 개선 백로그
 
+> Archive Note: 이 문서는 legacy unity-cli 개선 백로그라 archive로 이동했다.
+
 > Navigation 리팩터링(2026-03-23) 과정에서 발견된 unity-cli 도구 개선점.
 > 모든 구현 작업 완료 후 별도로 개선할 용도.
 

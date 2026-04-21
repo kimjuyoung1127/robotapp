@@ -20,7 +20,7 @@
 | `Assets/Prefabs/ScaraRobot.prefab` | SCARA donor mesh 소스 | Active |
 | `Assets/Scenes/Boot.unity` | 부트 씬 | Active |
 | `Assets/Scenes/Onboarding.unity` | 온보딩 씬 | Active |
-| `Assets/Scenes/Main.unity` | 메인 학습 씬 | Active |
+| `Assets/Scenes/MathReadiness.unity` | 수학 준비 학습 씬 | Active |
 | `Assets/Scenes/RobotLibrary.unity` | 로봇 라이브러리 씬 | Active |
 
 ### Curated Backup (백업 보관)

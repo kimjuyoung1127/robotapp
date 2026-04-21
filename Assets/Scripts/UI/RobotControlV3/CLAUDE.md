@@ -38,5 +38,7 @@ Pendant V3 UI Toolkit controller 루트.
 - `NavRailController.cs` — nav 선택 상태 최소 제어
 
 ## 실기 연동 메모
-- V3 패널은 `FairinoConnectionService`를 직접 조립하지 말고 `App/Fairino/Motion` facade를 통해 connect/enable/move 정책을 위임한다.
-- `PointMoveController`는 `RobotControlMotionRuntime`만 호출하고, 실기/mock 준비 로직은 App 계층에 남긴다.
+- V3 패널은 `FairinoConnectionService`를 직접 조립하지 말고 App/Fairino facade를 통해 connect/enable/move 정책을 위임한다.
+- `PointMoveController`는 실기/mock 준비 로직을 직접 소유하지 않는다.
+- `PointMoveController`가 RobotStage preview, ghost, predicted path를 갱신해야 할 때는 `RobotControlV3RuntimeController` App facade만 호출한다.
+- Live 실기 dispatch는 `RobotControlV3RuntimeController -> RobotControlMotionRuntime -> FairinoConnectionService` 경로를 유지한다.

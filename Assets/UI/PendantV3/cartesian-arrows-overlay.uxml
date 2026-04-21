@@ -13,42 +13,54 @@
 
         <ui:VisualElement class="rc-cartesian-grid">
             <ui:VisualElement name="CartesianAxis1" class="rc-cartesian-axis rc-cartesian-axis--x">
-                <ui:Label name="CartesianAxisValue1" text="X -497.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue1" text="X -497.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow1Minus" text="X-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow1Plus" text="X+" class="rc-cartesian-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="CartesianAxis2" class="rc-cartesian-axis rc-cartesian-axis--y">
-                <ui:Label name="CartesianAxisValue2" text="Y -130.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue2" text="Y -130.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow2Minus" text="Y-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow2Plus" text="Y+" class="rc-cartesian-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="CartesianAxis3" class="rc-cartesian-axis rc-cartesian-axis--z">
-                <ui:Label name="CartesianAxisValue3" text="Z 477.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue3" text="Z 477.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow3Minus" text="Z-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow3Plus" text="Z+" class="rc-cartesian-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="CartesianAxis4" class="rc-cartesian-axis rc-cartesian-axis--r">
-                <ui:Label name="CartesianAxisValue4" text="RX 180.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue4" text="RX 180.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow4Minus" text="RX-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow4Plus" text="RX+" class="rc-cartesian-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="CartesianAxis5" class="rc-cartesian-axis rc-cartesian-axis--r">
-                <ui:Label name="CartesianAxisValue5" text="RY 0.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue5" text="RY 0.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow5Minus" text="RY-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow5Plus" text="RY+" class="rc-cartesian-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="CartesianAxis6" class="rc-cartesian-axis rc-cartesian-axis--r">
-                <ui:Label name="CartesianAxisValue6" text="RZ 90.0" class="rc-cartesian-axis-value" />
+                <ui:VisualElement class="rc-cartesian-axis-meta">
+                    <ui:Label name="CartesianAxisValue6" text="RZ 90.0" class="rc-cartesian-axis-value" />
+                </ui:VisualElement>
                 <ui:VisualElement class="rc-cartesian-button-row">
                     <ui:Button name="BtnArrow6Minus" text="RZ-" class="rc-cartesian-button" />
                     <ui:Button name="BtnArrow6Plus" text="RZ+" class="rc-cartesian-button" />

@@ -4,37 +4,37 @@
     <ui:Style src="workspace-boundary.uss" />
     <ui:VisualElement name="ViewportToolbarRoot" class="rc-viewport-toolbar-root">
         <ui:VisualElement name="ViewportToolbarCopyBank" class="rc-hidden">
-            <ui:Label name="ViewportBoundaryButtonOnText" text="경계 ON" />
-            <ui:Label name="ViewportBoundaryButtonOffText" text="경계 OFF" />
-            <ui:Label name="ViewportBoundaryStatusOnText" text="작업공간 경계: 표시" />
-            <ui:Label name="ViewportBoundaryStatusOffText" text="작업공간 경계: 숨김" />
-            <ui:Label name="ViewportCollisionButtonOnText" text="충돌 ON" />
-            <ui:Label name="ViewportCollisionButtonOffText" text="충돌 OFF" />
-            <ui:Label name="ViewportCollisionStatusWaitingText" text="충돌 예측: 대기" />
-            <ui:Label name="ViewportCollisionStatusSafeText" text="충돌 예측: 안전" />
-            <ui:Label name="ViewportCollisionStatusWarningText" text="충돌 예측: 동기화 후 재확인 필요" />
-            <ui:Label name="ViewportCollisionStatusDangerText" text="충돌 예측: 위험 구간 감지 (자동 강조)" />
-            <ui:Label name="ViewportCameraResetHintText" text="카메라 리셋 요청을 받았다. 실제 카메라 프로필 연결은 2C-2 후속에서 붙인다." />
+            <ui:Label name="ViewportBoundaryButtonOnText" text="Bound" />
+            <ui:Label name="ViewportBoundaryButtonOffText" text="Bound" />
+            <ui:Label name="ViewportBoundaryStatusOnText" text="경계 표시" />
+            <ui:Label name="ViewportBoundaryStatusOffText" text="경계 숨김" />
+            <ui:Label name="ViewportCollisionButtonOnText" text="Coll" />
+            <ui:Label name="ViewportCollisionButtonOffText" text="Coll" />
+            <ui:Label name="ViewportCollisionStatusWaitingText" text="충돌 대기" />
+            <ui:Label name="ViewportCollisionStatusSafeText" text="충돌 안전" />
+            <ui:Label name="ViewportCollisionStatusWarningText" text="재확인 필요" />
+            <ui:Label name="ViewportCollisionStatusDangerText" text="위험 강조" />
+            <ui:Label name="ViewportCameraResetHintText" text="카메라 리셋" />
         </ui:VisualElement>
         <ui:VisualElement class="rc-viewport-toolbar-row">
-            <ui:Button name="BtnViewportBaseFrame" text="Base축" class="rc-viewport-toolbar-button" />
-            <ui:Button name="BtnViewportToolFrame" text="Tool축" class="rc-viewport-toolbar-button" />
-            <ui:Button name="BtnViewportTrail" text="궤적" class="rc-viewport-toolbar-button rc-viewport-toolbar-button--active" />
-            <ui:Button name="BtnViewportGhost" text="고스트" class="rc-viewport-toolbar-button" />
+            <ui:Button name="BtnViewportBaseFrame" text="Base" class="rc-viewport-toolbar-button" />
+            <ui:Button name="BtnViewportToolFrame" text="Tool" class="rc-viewport-toolbar-button" />
+            <ui:Button name="BtnViewportTrail" text="Path" class="rc-viewport-toolbar-button rc-viewport-toolbar-button--active" />
+            <ui:Button name="BtnViewportGhost" text="Ghost" class="rc-viewport-toolbar-button" />
         </ui:VisualElement>
         <ui:VisualElement class="rc-viewport-toolbar-row">
-            <ui:Button name="BtnViewportBoundary" text="경계 OFF" class="rc-viewport-toolbar-button rc-workspace-toggle" />
-            <ui:Button name="BtnViewportCollision" text="충돌 OFF" class="rc-viewport-toolbar-button" />
-            <ui:Button name="BtnViewportCameraReset" text="카메라↺" class="rc-viewport-toolbar-button" />
+            <ui:Button name="BtnViewportBoundary" text="Bound" class="rc-viewport-toolbar-button rc-workspace-toggle" />
+            <ui:Button name="BtnViewportCollision" text="Coll" class="rc-viewport-toolbar-button" />
+            <ui:Button name="BtnViewportCameraReset" text="Cam↺" class="rc-viewport-toolbar-button" />
         </ui:VisualElement>
 
-        <ui:VisualElement class="rc-viewport-toolbar-status">
+        <ui:VisualElement name="ViewportToolbarStatusRoot" class="rc-viewport-toolbar-status rc-hidden">
             <ui:Label name="ViewportBoundaryStatus" text="작업공간 경계: 숨김" class="rc-viewport-toolbar-status-line" />
             <ui:Label name="ViewportCollisionStatus" text="충돌 예측: 대기" class="rc-viewport-toolbar-status-line rc-viewport-toolbar-status-line--muted" />
             <ui:Label
                 name="ViewportToolbarHint"
                 text="2C-2는 표시 scaffold만 먼저 닫고, 실제 충돌 계산/경계 데이터는 visualization 계층으로 후속 연결한다."
-                class="rc-viewport-toolbar-hint" />
+                class="rc-viewport-toolbar-hint rc-hidden" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -1,5 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
 using KineTutor3D.UI.RobotControlV3;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -70,6 +71,28 @@ namespace KineTutor3D.App
             localState.ActiveTabletTab = tabletTab;
             LocalSettingsStore.Save(localState);
             shell.SetDebugSelection(navSection, workTab, tabletTab);
+            return shell.GetDebugSummary();
+        }
+
+        public static string SetDesktopSplitRatioForDebug(float ratio)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            if (shell == null)
+            {
+                throw new MissingReferenceException("PendantV3ShellStateController not found in RobotControlV3 scene.");
+            }
+
+            var state = shell.GetStateSnapshot();
+            state.DesktopSplitRatio = ratio;
+            state = PendantV3LocalState.Normalize(state);
+            LocalSettingsStore.Save(state);
+            shell.SetDebugSelection(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
             return shell.GetDebugSummary();
         }
 
@@ -147,105 +170,6 @@ namespace KineTutor3D.App
             return shell == null
                 ? "PendantV3ShellStateController missing"
                 : $"instanceId={shell.GetInstanceID()}; {shell.GetDebugSummary()}";
-        }
-
-        public static string GetConnectionSessionSummary()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
-            {
-                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
-            }
-
-            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
-            if (adapter == null)
-            {
-                return "PendantV3ConnectionSessionAdapter missing";
-            }
-
-            adapter.ForceInitialize();
-            return adapter.GetDebugSummary();
-        }
-
-        public static string GetVisualizationSummary()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
-            {
-                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
-            }
-
-            var orchestrator = Object.FindFirstObjectByType<PendantV3VisualizationOrchestrator>(FindObjectsInactive.Include);
-            var driver = Object.FindFirstObjectByType<Visualization.PendantV3VisualizationDriver>(FindObjectsInactive.Include);
-            if (orchestrator == null || driver == null)
-            {
-                return "PendantV3 visualization missing";
-            }
-
-            orchestrator.ForceInitialize();
-            driver.ForceInitialize();
-            return $"state=[{orchestrator.GetDebugSummary()}]; driver=[{driver.GetDebugSummary()}]";
-        }
-
-        public static string GetViewportVisibilitySummary()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
-            {
-                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
-            }
-
-            var camera = Camera.main ?? Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
-            var actual = GameObject.Find("RobotActual");
-            var ghost = GameObject.Find("RobotGhost");
-            var driver = Object.FindFirstObjectByType<Visualization.PendantV3VisualizationDriver>(FindObjectsInactive.Include);
-            var cameraSummary = camera != null
-                ? $"cameraPos={camera.transform.position:F2}; cameraEuler={camera.transform.eulerAngles:F2}; fov={camera.fieldOfView:0.0}; rect={camera.rect}"
-                : "camera=missing";
-            var actualSummary = actual != null ? $"actual=True; active={actual.activeInHierarchy}" : "actual=False";
-            var ghostSummary = ghost != null ? $"ghost=True; active={ghost.activeInHierarchy}" : "ghost=False";
-            var driverSummary = driver != null ? driver.GetDebugSummary() : "driver=missing";
-            return $"scene={scene.name}; {cameraSummary}; {actualSummary}; {ghostSummary}; {driverSummary}";
-        }
-
-        public static string GetViewportProbeSummary()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
-            {
-                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
-            }
-
-            var camera = Camera.main ?? Object.FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
-            var orbit = camera != null ? camera.GetComponent<Visualization.OrbitCameraController>() : null;
-            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
-            var viewportHost = document?.rootVisualElement?.Q<VisualElement>("ViewportHost");
-            var runtimeRoot = GameObject.Find("PendantV3RuntimeRoot");
-            var actual = GameObject.Find("RobotActual");
-            var ghost = GameObject.Find("RobotGhost");
-            var target = orbit != null ? orbit.Target : null;
-            var hostBounds = viewportHost != null ? viewportHost.worldBound.ToString() : "null";
-            var actualPos = actual != null ? actual.transform.position.ToString("F2") : "null";
-            var ghostPos = ghost != null ? ghost.transform.position.ToString("F2") : "null";
-            var runtimeRootPos = runtimeRoot != null ? runtimeRoot.transform.position.ToString("F2") : "null";
-            var targetPos = target != null ? target.position.ToString("F2") : "null";
-            var panelName = viewportHost?.panel?.GetType().Name ?? "null";
-            var cameraRect = camera != null ? camera.rect.ToString() : "null";
-            return $"scene={scene.name}; hostBounds={hostBounds}; panel={panelName}; runtimeRootPos={runtimeRootPos}; actualPos={actualPos}; ghostPos={ghostPos}; targetPos={targetPos}; cameraRect={cameraRect}";
-        }
-
-        public static string SetLiveModeForDebug(bool live)
-        {
-            var adapter = GetConnectionSessionAdapter();
-            adapter.SetMockMode(!live);
-            return adapter.GetDebugSummary();
-        }
-
-        public static string SetLiveArmForDebug(bool armed)
-        {
-            var adapter = GetConnectionSessionAdapter();
-            adapter.SetLiveArmState(armed);
-            return adapter.GetDebugSummary();
         }
 
         public static string GetSceneCoordinatorSummary()
@@ -337,6 +261,24 @@ namespace KineTutor3D.App
             return $"instanceId={pointMove.GetInstanceID()}; {pointMove.GetDebugSummary()}";
         }
 
+        public static string SetCoordStripModeForDebug(string mode)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var status = Object.FindFirstObjectByType<StatusCardController>(FindObjectsInactive.Include);
+            if (status == null)
+            {
+                throw new MissingReferenceException("StatusCardController not found in RobotControlV3 scene.");
+            }
+
+            status.ForceInitialize();
+            return $"instanceId={status.GetInstanceID()}; {status.SetCoordStripModeForDebug(mode)}";
+        }
+
         public static string GetPopupCoordinatorSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -389,6 +331,78 @@ namespace KineTutor3D.App
         {
             var pointMove = GetPointMoveController();
             return pointMove.ApplyForDebug();
+        }
+
+        public static string SetGripperOpenForDebug(bool open)
+        {
+            var result = GetRuntimeController().SetGripperOpen(open);
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
+        public static string SetRobotDoForDebug(int channel, bool value)
+        {
+            var result = GetRuntimeController().SetRobotDigitalOutput(channel, value);
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
+        public static string SetToolDoForDebug(int channel, bool value)
+        {
+            var result = GetRuntimeController().SetToolDigitalOutput(channel, value);
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
+        public static string SavePointMoveForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SavePointForDebug();
+        }
+
+        public static string RecallPointMoveForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RecallPointForDebug(pointName);
+        }
+
+        public static string DeletePointMoveForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DeletePointForDebug(pointName);
+        }
+
+        public static string GetPointMoveListSummaryForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.GetPointListSummaryForDebug();
+        }
+
+        public static string RenamePointMoveForDebug(string oldName, string newName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RenamePointForDebug(oldName, newName);
+        }
+
+        public static string ExportPointMoveForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ExportPointsForDebug();
+        }
+
+        public static string CleanupPointMoveForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.CleanupPointsForDebug();
+        }
+
+        public static string SetPointMoveNameForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetPointNameForDebug(pointName);
+        }
+
+        public static string SetPointMoveValueForDebug(string axisLabel, float value)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetPointValueForDebug(axisLabel, value);
         }
 
         public static string SetJointJogShellState(string navSection, string workTab, string tabletTab)
@@ -458,12 +472,12 @@ namespace KineTutor3D.App
             var jointJog = Object.FindFirstObjectByType<JointJogController>(FindObjectsInactive.Include);
             var tcpJog = Object.FindFirstObjectByType<TcpJogController>(FindObjectsInactive.Include);
             var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
+            var ioPanel = Object.FindFirstObjectByType<IoPanelController>(FindObjectsInactive.Include);
             var status = Object.FindFirstObjectByType<StatusCardController>(FindObjectsInactive.Include);
             var safety = Object.FindFirstObjectByType<SafetyDiagnosticsController>(FindObjectsInactive.Include);
-            var visualization = Object.FindFirstObjectByType<PendantV3VisualizationOrchestrator>(FindObjectsInactive.Include);
-            var contextTabs = Object.FindFirstObjectByType<ContextPanelTabController>(FindObjectsInactive.Include);
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            var renderSurface = Object.FindFirstObjectByType<RobotStageRenderSurface>(FindObjectsInactive.Include);
             var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
-            var session = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
             var binder = Object.FindFirstObjectByType<PendantV3Binder>(FindObjectsInactive.Include);
             var coordinator = Object.FindFirstObjectByType<PendantV3SceneCoordinator>(FindObjectsInactive.Include);
             var shellCount = Object.FindObjectsByType<PendantV3ShellStateController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
@@ -471,34 +485,35 @@ namespace KineTutor3D.App
             var jointCount = Object.FindObjectsByType<JointJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             var tcpCount = Object.FindObjectsByType<TcpJogController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             var pointCount = Object.FindObjectsByType<PointMoveController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
-            session?.ForceInitialize();
             coordinator?.ForceBootstrap();
+            ioPanel ??= Object.FindFirstObjectByType<IoPanelController>(FindObjectsInactive.Include);
+            var ioCount = Object.FindObjectsByType<IoPanelController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             binder?.ForceInitialize();
             home?.ForceInitialize();
             easy?.ForceInitialize();
             jointJog?.ForceInitialize();
             tcpJog?.ForceInitialize();
             pointMove?.ForceInitialize();
+            ioPanel?.ForceInitialize();
             status?.ForceInitialize();
             safety?.ForceInitialize();
-            contextTabs?.ForceInitialize();
             var homeSummary = home != null ? home.GetDebugSummary() : "ConnectionHomeController missing";
             var easySummary = easy != null ? easy.GetDebugSummary() : "EasyMotionController missing";
             var jointJogSummary = jointJog != null ? jointJog.GetDebugSummary() : "JointJogController missing";
             var tcpJogSummary = tcpJog != null ? tcpJog.GetDebugSummary() : "TcpJogController missing";
             var pointMoveSummary = pointMove != null ? pointMove.GetDebugSummary() : "PointMoveController missing";
-            var statusSummary = status != null ? status.GetDebugSummary() : "StatusCardController missing";
-            var safetySummary = safety != null ? safety.GetDebugSummary() : "SafetyDiagnosticsController missing";
-            var visualizationSummary = visualization != null ? visualization.GetDebugSummary() : "PendantV3VisualizationOrchestrator missing";
-            var contextTabsSummary = contextTabs != null ? contextTabs.GetDebugSummary() : "ContextPanelTabController missing";
+            var ioSummary = ioPanel != null ? ioPanel.GetDebugSummary() : "IoPanelController missing";
+            var statusSummary = status != null ? $"instanceId={status.GetInstanceID()}" : "StatusCardController missing";
+            var safetySummary = safety != null ? $"instanceId={safety.GetInstanceID()}" : "SafetyDiagnosticsController missing";
+            var runtimeSummary = runtime != null ? runtime.GetDebugSummary() : "RobotControlV3RuntimeController missing";
+            var renderSummary = renderSurface != null ? renderSurface.GetDebugSummary() : "RobotStageRenderSurface missing";
             var shellSummary = shell != null ? shell.GetDebugSummary() : "PendantV3ShellStateController missing";
-            var sessionSummary = session != null ? session.GetDebugSummary() : "PendantV3ConnectionSessionAdapter missing";
             var binderSummary = binder != null ? binder.GetDebugSummary() : "PendantV3Binder missing";
             var coordinatorSummary = coordinator != null ? coordinator.GetDebugSummary() : "PendantV3SceneCoordinator missing";
-            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}] | coordinator=[{coordinatorSummary}] | session=[{sessionSummary}] | visualization=[{visualizationSummary}] | binder=[{binderSummary}] | contextTabs=[{contextTabsSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | status=[{statusSummary}] | safety=[{safetySummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}]";
+            return $"counts=[shell={shellCount}; easy={easyCount}; joint={jointCount}; tcp={tcpCount}; point={pointCount}; io={ioCount}] | coordinator=[{coordinatorSummary}] | runtime=[{runtimeSummary}] | render=[{renderSummary}] | binder=[{binderSummary}] | shell=[{shellSummary}] | home=[{homeSummary}] | status=[{statusSummary}] | safety=[{safetySummary}] | easy=[{easySummary}] | joint=[{jointJogSummary}] | tcp=[{tcpJogSummary}] | point=[{pointMoveSummary}] | io=[{ioSummary}]";
         }
 
-        public static string TriggerConnectionLostForDebug()
+        public static string GetV3RuntimeSummary()
         {
             var scene = SceneManager.GetActiveScene();
             if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
@@ -506,17 +521,13 @@ namespace KineTutor3D.App
                 throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
             }
 
-            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
-            if (adapter == null)
-            {
-                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
-            }
-
-            adapter.TriggerConnectionLostForDebug();
-            return adapter.GetDebugSummary();
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            return runtime == null
+                ? "RobotControlV3RuntimeController missing"
+                : $"instanceId={runtime.GetInstanceID()}; {runtime.GetDebugSummary()}";
         }
 
-        public static string AdvanceReconnectTickForDebug(float seconds)
+        public static string GetMovementStateSummaryForDebug()
         {
             var scene = SceneManager.GetActiveScene();
             if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
@@ -524,17 +535,12 @@ namespace KineTutor3D.App
                 throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
             }
 
-            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
-            if (adapter == null)
-            {
-                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
-            }
-
-            adapter.AdvanceReconnectTickForDebug(seconds);
-            return adapter.GetDebugSummary();
+            var runtime = GetRuntimeController();
+            var snapshot = runtime.CurrentSnapshot;
+            return $"status={snapshot.StatusKind}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; feedback={snapshot.LastFeedback}; joints=[{string.Join(",", snapshot.JointValues)}]; tcp=[{string.Join(",", snapshot.TcpValues)}]; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; gripper={snapshot.GripperSummary}; robotDo={snapshot.RobotDoSummary}; toolDo={snapshot.ToolDoSummary}; peripheral={snapshot.PeripheralFeedback}; selected={snapshot.SelectedPartName}; liveBlocked={snapshot.LiveBlockedReason}";
         }
 
-        public static string CompleteReconnectForDebug(bool success)
+        public static string GetRobotStageRenderSummary()
         {
             var scene = SceneManager.GetActiveScene();
             if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
@@ -542,14 +548,88 @@ namespace KineTutor3D.App
                 throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
             }
 
-            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
-            if (adapter == null)
+            var surface = Object.FindFirstObjectByType<RobotStageRenderSurface>(FindObjectsInactive.Include);
+            surface?.ForceInitialize();
+            return surface == null
+                ? "RobotStageRenderSurface missing"
+                : $"instanceId={surface.GetInstanceID()}; {surface.GetDebugSummary()}";
+        }
+
+        public static string SelectRobotPartAtViewportForDebug(float normalizedX, float normalizedY)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
             {
-                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
             }
 
-            adapter.CompleteReconnectForDebug(success);
-            return adapter.GetDebugSummary();
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            if (runtime == null)
+            {
+                throw new MissingReferenceException("RobotControlV3RuntimeController not found in RobotControlV3 scene.");
+            }
+
+            var selected = runtime.SelectRobotPartAtViewport(new Vector2(normalizedX, normalizedY));
+            return $"selected={selected}; {runtime.GetDebugSummary()}";
+        }
+
+        public static string SelectRobotPartCenterForDebug()
+        {
+            return SelectRobotPartAtViewportForDebug(0.5f, 0.5f);
+        }
+
+        public static string ToggleViewportDescriptionForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var controller = Object.FindFirstObjectByType<ViewportAuxInfoController>(FindObjectsInactive.Include);
+            if (controller == null)
+            {
+                throw new MissingReferenceException("ViewportAuxInfoController not found in RobotControlV3 scene.");
+            }
+
+            controller.ForceInitialize();
+            return controller.ToggleDescriptionForDebug();
+        }
+
+        public static string ToggleViewportSelectionForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var controller = Object.FindFirstObjectByType<ViewportAuxInfoController>(FindObjectsInactive.Include);
+            if (controller == null)
+            {
+                throw new MissingReferenceException("ViewportAuxInfoController not found in RobotControlV3 scene.");
+            }
+
+            controller.ForceInitialize();
+            return controller.ToggleSelectionForDebug();
+        }
+
+        public static string PreviewEasyMotionForDebug(string presetName)
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            if (runtime == null)
+            {
+                throw new MissingReferenceException("RobotControlV3RuntimeController not found in RobotControlV3 scene.");
+            }
+
+            runtime.PreviewPreset(presetName);
+            return runtime.GetDebugSummary();
         }
 
         public static string SetPreferV3Route(bool value)
@@ -589,15 +669,39 @@ namespace KineTutor3D.App
             var workPanelBody = root.Q<VisualElement>("WorkPanelBody");
             var bottomSheetBody = root.Q<VisualElement>("BottomSheetBody");
             var whyCard = root.Q<VisualElement>("WhyItMoved");
+            var workPanelHeader = root.Q<VisualElement>("WorkPanelHeader");
+            var workPanelTitle = root.Q<Label>("WorkPanelTitle");
+            var workPanelSummary = root.Q<Label>("WorkPanelSummary");
+            var workPanelChipPrimary = root.Q<Label>("WorkPanelChipPrimary");
+            var workPanelChipSecondary = root.Q<Label>("WorkPanelChipSecondary");
+            var robotStageHost = root.Q<VisualElement>("RobotStageHost");
+            var robotStageSurface = root.Q<VisualElement>("RobotStageRenderSurface");
+            var robotStageDiagnostic = root.Q<Label>("RobotStageDiagnosticLabel");
+            var viewportHost = root.Q<VisualElement>("ViewportHost");
+            var viewportToolbarHost = root.Q<VisualElement>("ViewportToolbarHost");
+            var cartesianOverlayHost = root.Q<VisualElement>("CartesianArrowsOverlayHost");
             var contextPanel = root.Q<VisualElement>("ContextPanel") != null;
             var descendantCount = CountDescendants(root);
             var homeHostHidden = homeHost?.ClassListContains("rc-hidden") ?? false;
             var easyHostHidden = easyHost?.ClassListContains("rc-hidden") ?? false;
             var easySheetHidden = easySheet?.ClassListContains("rc-hidden") ?? false;
             var workPanelBodyHidden = workPanelBody?.ClassListContains("rc-hidden") ?? false;
+            var workPanelSummaryHidden = workPanelSummary?.ClassListContains("rc-hidden") ?? false;
             var bottomSheetBodyHidden = bottomSheetBody?.ClassListContains("rc-hidden") ?? false;
             var whyCardHidden = whyCard?.ClassListContains("rc-hidden") ?? false;
-            return $"panel={panelName}; tree={treeName}; rootChildren={childCount}; rootName={(root?.name ?? "null")}; bridge={bridgeName}; robotName={robotName}; easyHome={easyHome}; homeHost={homePanel}; easyHost={easyPanel}; context={contextPanel}; homeHostChildren={homeHost?.childCount ?? -1}; easyHostChildren={easyHost?.childCount ?? -1}; homeHostHidden={homeHostHidden}; easyHostHidden={easyHostHidden}; workPanelBodyHidden={workPanelBodyHidden}; homeSheetChildren={homeSheet?.childCount ?? -1}; easySheetChildren={easySheet?.childCount ?? -1}; easySheetHidden={easySheetHidden}; bottomSheetBodyHidden={bottomSheetBodyHidden}; whyCardHidden={whyCardHidden}; descendants={descendantCount}";
+            var workPanelHeaderBounds = workPanelHeader != null ? $"{workPanelHeader.worldBound.x:0.#},{workPanelHeader.worldBound.y:0.#},{workPanelHeader.worldBound.width:0.#}x{workPanelHeader.worldBound.height:0.#}" : "missing";
+            var robotStageHostDisplay = robotStageHost != null ? robotStageHost.resolvedStyle.display.ToString() : "missing";
+            var robotStageSurfaceDisplay = robotStageSurface != null ? robotStageSurface.resolvedStyle.display.ToString() : "missing";
+            var robotStageDiagnosticDisplay = robotStageDiagnostic != null ? robotStageDiagnostic.resolvedStyle.display.ToString() : "missing";
+            var robotStageDiagnosticText = robotStageDiagnostic?.text ?? "missing";
+            var viewportHostDisplay = viewportHost != null ? viewportHost.resolvedStyle.display.ToString() : "missing";
+            var viewportToolbarDisplay = viewportToolbarHost != null ? viewportToolbarHost.resolvedStyle.display.ToString() : "missing";
+            var viewportToolbarParent = viewportToolbarHost?.hierarchy.parent?.name ?? "missing";
+            var cartesianOverlayParent = cartesianOverlayHost?.hierarchy.parent?.name ?? "missing";
+            var robotStageHostBounds = robotStageHost != null ? $"{robotStageHost.worldBound.x:0.#},{robotStageHost.worldBound.y:0.#},{robotStageHost.worldBound.width:0.#}x{robotStageHost.worldBound.height:0.#}" : "missing";
+            var viewportHostBounds = viewportHost != null ? $"{viewportHost.worldBound.x:0.#},{viewportHost.worldBound.y:0.#},{viewportHost.worldBound.width:0.#}x{viewportHost.worldBound.height:0.#}" : "missing";
+            var viewportToolbarBounds = viewportToolbarHost != null ? $"{viewportToolbarHost.worldBound.x:0.#},{viewportToolbarHost.worldBound.y:0.#},{viewportToolbarHost.worldBound.width:0.#}x{viewportToolbarHost.worldBound.height:0.#}" : "missing";
+            return $"panel={panelName}; tree={treeName}; rootChildren={childCount}; rootName={(root?.name ?? "null")}; bridge={bridgeName}; robotName={robotName}; easyHome={easyHome}; homeHost={homePanel}; easyHost={easyPanel}; context={contextPanel}; homeHostChildren={homeHost?.childCount ?? -1}; easyHostChildren={easyHost?.childCount ?? -1}; homeHostHidden={homeHostHidden}; easyHostHidden={easyHostHidden}; workPanelTitle={(workPanelTitle?.text ?? "missing")}; workPanelChipPrimary={(workPanelChipPrimary?.text ?? "missing")}; workPanelChipSecondary={(workPanelChipSecondary?.text ?? "missing")}; workPanelSummaryHidden={workPanelSummaryHidden}; workPanelHeaderBounds={workPanelHeaderBounds}; workPanelBodyHidden={workPanelBodyHidden}; homeSheetChildren={homeSheet?.childCount ?? -1}; easySheetChildren={easySheet?.childCount ?? -1}; easySheetHidden={easySheetHidden}; bottomSheetBodyHidden={bottomSheetBodyHidden}; robotStageHostDisplay={robotStageHostDisplay}; robotStageHostBounds={robotStageHostBounds}; robotStageSurfaceDisplay={robotStageSurfaceDisplay}; robotStageDiagnosticDisplay={robotStageDiagnosticDisplay}; robotStageDiagnostic={robotStageDiagnosticText}; viewportHostDisplay={viewportHostDisplay}; viewportHostBounds={viewportHostBounds}; viewportToolbarDisplay={viewportToolbarDisplay}; viewportToolbarParent={viewportToolbarParent}; viewportToolbarBounds={viewportToolbarBounds}; cartesianOverlayParent={cartesianOverlayParent}; whyCardHidden={whyCardHidden}; descendants={descendantCount}";
         }
 
         public static string ScrollContextPanelToTopForDebug()
@@ -620,6 +724,23 @@ namespace KineTutor3D.App
             var viewportHeight = scrollView.contentViewport.layout.height;
             var contentHeight = scrollView.contentContainer.layout.height;
             return $"offsetY={scrollView.scrollOffset.y:F1}; viewportHeight={viewportHeight:F1}; contentHeight={contentHeight:F1}";
+        }
+
+        public static string GetAuxLayoutSummaryForDebug()
+        {
+            var contract = GetInputContract();
+            var root = contract.GetComponent<UIDocument>()?.rootVisualElement;
+            if (root == null)
+            {
+                throw new MissingReferenceException("RobotControlV3 UIDocument root not found.");
+            }
+
+            var viewportHost = root.Q<VisualElement>("ViewportHost");
+            var viewportScroll = root.Q<ScrollView>("ViewportPanelScroll");
+            var contextScroll = root.Q<ScrollView>("ContextPanelScroll");
+            var viewportSummary = GetScrollLayoutSummary("viewport", viewportHost, viewportScroll);
+            var contextSummary = GetScrollLayoutSummary("context", root.Q<VisualElement>("ContextPanel"), contextScroll);
+            return $"{viewportSummary}; {contextSummary}";
         }
 
         private static PendantV3InputContract GetInputContract()
@@ -656,23 +777,6 @@ namespace KineTutor3D.App
             return jointJog;
         }
 
-        private static Fairino.PendantV3ConnectionSessionAdapter GetConnectionSessionAdapter()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
-            {
-                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
-            }
-
-            var adapter = Object.FindFirstObjectByType<Fairino.PendantV3ConnectionSessionAdapter>(FindObjectsInactive.Include);
-            if (adapter == null)
-            {
-                throw new MissingReferenceException("PendantV3ConnectionSessionAdapter not found in RobotControlV3 scene.");
-            }
-
-            return adapter;
-        }
-
         private static TcpJogController GetTcpJogController()
         {
             var scene = SceneManager.GetActiveScene();
@@ -707,6 +811,24 @@ namespace KineTutor3D.App
             return pointMove;
         }
 
+        private static RobotControlV3RuntimeController GetRuntimeController()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            if (runtime == null)
+            {
+                throw new MissingReferenceException("RobotControlV3RuntimeController not found in RobotControlV3 scene.");
+            }
+
+            runtime.ForceInitialize();
+            return runtime;
+        }
+
         private static int CountDescendants(VisualElement root)
         {
             var total = 0;
@@ -719,6 +841,63 @@ namespace KineTutor3D.App
             }
 
             return total;
+        }
+
+        private static string GetScrollLayoutSummary(string label, VisualElement host, ScrollView scrollView)
+        {
+            if (scrollView == null)
+            {
+                return $"{label}=missing";
+            }
+
+            var viewportWidth = scrollView.contentViewport?.worldBound.width ?? 0f;
+            var viewportHeight = scrollView.contentViewport?.worldBound.height ?? 0f;
+            var contentWidth = scrollView.contentContainer?.worldBound.width ?? 0f;
+            var contentHeight = scrollView.contentContainer?.worldBound.height ?? 0f;
+            var hostHeight = host?.worldBound.height ?? 0f;
+            var scrollShare = hostHeight > 0.1f ? viewportHeight / hostHeight : 0f;
+            var horizontalVisible = scrollView.horizontalScroller != null
+                && scrollView.horizontalScroller.resolvedStyle.display != DisplayStyle.None;
+            var clipped = CountHorizontallyClippedDescendants(
+                scrollView.contentContainer,
+                scrollView.contentViewport?.worldBound ?? Rect.zero);
+            return $"{label}Mode={scrollView.mode}; {label}Viewport={viewportWidth:F1}x{viewportHeight:F1}; {label}Content={contentWidth:F1}x{contentHeight:F1}; {label}ScrollShare={scrollShare:F2}; {label}HorizontalVisible={horizontalVisible}; {label}Clipped={clipped}";
+        }
+
+        private static int CountHorizontallyClippedDescendants(VisualElement element, Rect clipBounds)
+        {
+            if (element == null || clipBounds.width <= 0.1f)
+            {
+                return 0;
+            }
+
+            var total = 0;
+            using var iterator = element.Children().GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                var child = iterator.Current;
+                if (IsVisibleForLayout(child))
+                {
+                    var bounds = child.worldBound;
+                    if (bounds.width > 0.5f
+                        && (bounds.xMin < clipBounds.xMin - 0.5f || bounds.xMax > clipBounds.xMax + 0.5f))
+                    {
+                        total++;
+                    }
+                }
+
+                total += CountHorizontallyClippedDescendants(child, clipBounds);
+            }
+
+            return total;
+        }
+
+        private static bool IsVisibleForLayout(VisualElement element)
+        {
+            return element.resolvedStyle.display != DisplayStyle.None
+                && element.resolvedStyle.visibility != Visibility.Hidden
+                && element.worldBound.width > 0.5f
+                && element.worldBound.height > 0.5f;
         }
 
         private static ScrollView GetContextPanelScrollView()

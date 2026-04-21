@@ -1,5 +1,7 @@
 # Page Quality Baseline
 
+> Archive Note: 이 문서는 `Home/Main` 기준의 초기 UI 품질 baseline이라 archive로 이동했다.
+
 ## Purpose
 - 각 페이지(씬)의 UI 완성도를 L1~L5 등급으로 정의하고, 현재 상태와 목표를 추적한다.
 - 공유 컴포넌트 갭을 식별하고 공유화 우선순위를 관리한다.

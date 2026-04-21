@@ -1,24 +1,36 @@
 /* Pendant V3 - Viewport Toolbar: Phase 2C-2 workspace/collision helper scaffold */
+.rc-hidden {
+    display: none;
+}
+
 .rc-viewport-toolbar-root {
-    border-radius: 10px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 6px;
     background-color: rgba(18, 20, 28, 0.86);
     border-width: 1px;
     border-color: rgba(80, 140, 255, 0.18);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-viewport-toolbar-row {
     flex-direction: row;
     flex-wrap: wrap;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    min-width: 0;
 }
 
 .rc-viewport-toolbar-button {
-    min-height: 30px;
-    min-width: 64px;
-    margin-right: 6px;
-    margin-bottom: 4px;
-    font-size: 11px;
+    min-height: 24px;
+    min-width: 40px;
+    margin-right: 4px;
+    margin-bottom: 3px;
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+    flex-shrink: 1;
+    white-space: normal;
 }
 
 .rc-viewport-toolbar-button--active {
@@ -26,16 +38,16 @@
 }
 
 .rc-viewport-toolbar-status {
-    margin-top: 4px;
-    padding-top: 6px;
+    margin-top: 2px;
+    padding-top: 4px;
     border-top-width: 1px;
     border-top-color: rgba(255, 255, 255, 0.08);
 }
 
 .rc-viewport-toolbar-status-line {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--rc-title-text);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .rc-viewport-toolbar-status-line--muted {

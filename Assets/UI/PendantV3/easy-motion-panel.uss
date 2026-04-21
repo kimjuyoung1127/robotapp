@@ -2,12 +2,17 @@
 .rc-easy-root {
     flex-grow: 1;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-easy-header {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-easy-badge {
@@ -22,7 +27,7 @@
 }
 
 .rc-easy-section-title {
-    margin-top: 12px;
+    margin-top: 8px;
     font-size: 12px;
     color: var(--rc-muted-text);
     -unity-font-style: bold;
@@ -36,16 +41,20 @@
     flex-direction: row;
     flex-wrap: wrap;
     margin-top: 8px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-easy-preset-button {
-    width: 48%;
-    min-width: 132px;
-    min-height: 88px;
-    margin-right: 8px;
-    margin-bottom: 8px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    flex-grow: 1;
+    width: 46%;
+    min-width: 84px;
+    min-height: 64px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 11px;
     white-space: normal;
     -unity-text-align: middle-center;
     background-color: rgba(36, 36, 48, 0.96);
@@ -53,31 +62,38 @@
 
 .rc-easy-gripper-row {
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 8px;
 }
 
 .rc-easy-option-card {
-    margin-top: 14px;
-    padding: 12px;
+    margin-top: 10px;
+    padding: 8px;
     border-radius: 10px;
     background-color: rgba(18, 18, 24, 0.55);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-easy-hint {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: 11px;
     color: var(--rc-muted-text);
 }
 
 .rc-easy-exec-row {
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 12px;
 }
 
 .rc-easy-action-button {
     flex-grow: 1;
-    min-height: 44px;
-    margin-right: 8px;
+    min-width: 84px;
+    min-height: 34px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
 }
 
 .rc-easy-action-button--primary {

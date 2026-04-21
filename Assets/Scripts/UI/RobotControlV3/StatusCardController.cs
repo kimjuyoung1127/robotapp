@@ -1,6 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using UnityEngine;
 using UnityEngine.UIElements;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.UI.RobotControlV3
 {
@@ -11,39 +12,24 @@ namespace KineTutor3D.UI.RobotControlV3
     [RequireComponent(typeof(ConnectionHomeController))]
     public sealed class StatusCardController : MonoBehaviour
     {
-        private enum ContextTabMode
-        {
-            Status,
-            Coordinate
-        }
-
         [SerializeField] private UIDocument document;
         [SerializeField] private VisualTreeAsset coordStripTemplate;
         [SerializeField] private VisualTreeAsset statusCardTemplate;
 
         private VisualElement root;
-        private Button btnContextTabStatus;
-        private Button btnContextTabCoordinate;
         private VisualElement coordStripHost;
         private VisualElement statusCardHost;
-        private VisualElement safetyDiagnosticsHost;
-        private VisualElement actionHintCard;
         private Label actionHintTitle;
         private Label actionHintPrimary;
         private Label actionHintSummary;
         private Label coordOverlayRowA;
         private Label coordOverlayRowB;
         private ConnectionHomeController connectionHomeController;
-        private SafetyDiagnosticsController safetyDiagnosticsController;
-        private WhyItMovedController whyItMovedController;
-        private ContextTabMode activeContextTab = ContextTabMode.Status;
-        private bool isCoordStripCollapsed;
-        private EventCallback<ClickEvent> coordStripToggleCallback;
-        private EventCallback<ClickEvent> contextTabStatusCallback;
-        private EventCallback<ClickEvent> contextTabCoordinateCallback;
+        private PendantV3ShellStateController shellStateController;
 
         private CoordStripElements coordStrip;
         private StatusCardElements statusCard;
+        private CoordStripMode coordStripMode = CoordStripMode.Both;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
 
@@ -55,7 +41,6 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void OnDisable()
         {
-            UnbindCoordStripToggle();
             if (initializeCoroutine != null)
             {
                 StopCoroutine(initializeCoroutine);
@@ -69,6 +54,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            shellStateController ??= GetComponent<PendantV3ShellStateController>();
             root = document?.rootVisualElement;
             if (root == null || coordStripTemplate == null || statusCardTemplate == null || connectionHomeController == null)
             {
@@ -87,6 +73,20 @@ namespace KineTutor3D.UI.RobotControlV3
                 BuildPanels();
             }
 
+            if (statusCard?.BtnFaultDetail != null)
+            {
+                statusCard.BtnFaultDetail.clicked -= HandleFaultDetailClicked;
+                statusCard.BtnFaultDetail.clicked += HandleFaultDetailClicked;
+            }
+
+            if (statusCard?.BtnSafetyDetail != null)
+            {
+                statusCard.BtnSafetyDetail.clicked -= HandleSafetyDetailClicked;
+                statusCard.BtnSafetyDetail.clicked += HandleSafetyDetailClicked;
+            }
+
+            BindCoordModeButtons();
+
             isInitialized = true;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
             return true;
@@ -99,15 +99,23 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public string GetDebugSummary()
         {
-            var summaryTitle = statusCard?.StatusSafetySummaryTitle?.text ?? "missing";
-            var summaryBody = statusCard?.StatusSafetySummaryBody?.text ?? "missing";
-            var statusVisible = !(statusCardHost?.ClassListContains("rc-hidden") ?? true);
-            var coordVisible = !(coordStripHost?.ClassListContains("rc-hidden") ?? true);
-            var actionVisible = !(actionHintCard?.ClassListContains("rc-hidden") ?? true);
-            return $"initialized={isInitialized}; tab={activeContextTab}; coordCollapsed={isCoordStripCollapsed}; statusVisible={statusVisible}; coordVisible={coordVisible}; actionVisible={actionVisible}; summaryTitle={summaryTitle}; summaryBody={summaryBody}";
+            return $"initialized={isInitialized}; coordMode={coordStripMode}; jointHidden={coordStrip?.JointGrid?.ClassListContains("rc-hidden") ?? true}; tcpHidden={coordStrip?.TcpGrid?.ClassListContains("rc-hidden") ?? true}";
         }
 
-        internal void RefreshFromBinder(PendantV3PreviewState.Definition data)
+        public string SetCoordStripModeForDebug(string mode)
+        {
+            coordStripMode = mode switch
+            {
+                "Joint" => CoordStripMode.Joint,
+                "TCP" => CoordStripMode.Tcp,
+                "Tcp" => CoordStripMode.Tcp,
+                _ => CoordStripMode.Both,
+            };
+            ApplyCoordStripMode();
+            return GetDebugSummary();
+        }
+
+        internal void RefreshFromBinder(RobotControlV3RuntimeSnapshot data)
         {
             if (!isInitialized && !TryInitialize())
             {
@@ -137,25 +145,17 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             coordStripHost = root.Q<VisualElement>("CoordStripHost");
             statusCardHost = root.Q<VisualElement>("StatusCardHost");
-            btnContextTabStatus = root.Q<Button>("BtnContextTabStatus");
-            btnContextTabCoordinate = root.Q<Button>("BtnContextTabCoordinate");
-            safetyDiagnosticsHost = root.Q<VisualElement>("SafetyDiagnosticsHost");
-            actionHintCard = root.Q<VisualElement>("ActionHint");
             actionHintTitle = root.Q<Label>("ActionHintTitle");
             actionHintPrimary = root.Q<Label>("ActionHintPrimary");
             actionHintSummary = root.Q<Label>("ActionHintSummary");
             coordOverlayRowA = root.Q<Label>("CoordOverlayRowA");
             coordOverlayRowB = root.Q<Label>("CoordOverlayRowB");
-            safetyDiagnosticsController ??= GetComponent<SafetyDiagnosticsController>();
-            whyItMovedController ??= GetComponent<WhyItMovedController>();
         }
 
         private void BuildPanels()
         {
             coordStrip = CreateCoordStrip(coordStripHost);
             statusCard = CreateStatusCard(statusCardHost);
-            BindCoordStripToggle();
-            BindContextTabs();
         }
 
         private CoordStripElements CreateCoordStrip(VisualElement host)
@@ -184,7 +184,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return new StatusCardElements(tree);
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             ApplyCoordStrip(data);
             ApplyStatusCard(data);
@@ -201,7 +201,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
         }
 
-        private void ApplyCoordStrip(PendantV3PreviewState.Definition data)
+        private void ApplyCoordStrip(RobotControlV3RuntimeSnapshot data)
         {
             if (coordStrip == null)
             {
@@ -211,20 +211,15 @@ namespace KineTutor3D.UI.RobotControlV3
             coordStrip.CoordSystemBadge.text = $"좌표계: {data.CoordSystem}";
             SetValues(coordStrip.JointValues, data.JointValues);
             SetValues(coordStrip.TcpValues, data.TcpValues);
-            SetCoordModeActive(coordStrip.BtnCoordModeJoint, false);
-            SetCoordModeActive(coordStrip.BtnCoordModeTcp, false);
-            SetCoordModeActive(coordStrip.BtnCoordModeBoth, true);
-            ApplyCoordStripCollapsedState();
+            ApplyCoordStripMode();
         }
 
-        private void ApplyStatusCard(PendantV3PreviewState.Definition data)
+        private void ApplyStatusCard(RobotControlV3RuntimeSnapshot data)
         {
             if (statusCard == null)
             {
                 return;
             }
-
-            ApplySafetySummary(data);
 
             statusCard.StatusConnectionValue.text = data.StatusConnection;
             statusCard.StatusModeValue.text = data.StatusMode;
@@ -244,51 +239,9 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyValueState(statusCard.StatusMotionValue, data.StatusMotionClass);
             ApplyValueState(statusCard.StatusFaultValue, data.StatusFaultClass);
             ApplyValueState(statusCard.StatusSafetyValue, data.StatusSafetyClass);
-            ApplyContextTabVisibility();
         }
 
-        private void ApplySafetySummary(PendantV3PreviewState.Definition data)
-        {
-            if (statusCard?.StatusSafetySummary == null)
-            {
-                return;
-            }
-
-            var previewState = connectionHomeController.CurrentPreviewState;
-            var session = connectionHomeController.CurrentSessionState;
-            var isFault = previewState == PendantV3PreviewState.Kind.Fault;
-            var isWarning = previewState is PendantV3PreviewState.Kind.ConnectedUnsynced or PendantV3PreviewState.Kind.AutoReconnect;
-            var title = session.ReconnectFailed
-                ? "수동 연결 필요"
-                : !session.ActualMoveAllowed
-                ? "실기 이동 잠금"
-                : isFault
-                ? "Fault 복구 우선"
-                : isWarning
-                    ? "안전 확인 우선"
-                    : "정상 대기";
-            var body = session.ReconnectActive
-                ? $"지금은 {Mathf.CeilToInt(session.ReconnectSecondsUntilRetry)}초 뒤 자동 재시도를 기다리는 상태다. 조작보다 복귀 여부를 먼저 본다."
-                : session.ReconnectFailed
-                    ? (string.IsNullOrWhiteSpace(session.ReconnectFailureSummary)
-                        ? "자동 재연결이 끝까지 실패했다. 수동 연결로 다시 복귀하는 게 먼저다."
-                        : session.ReconnectFailureSummary)
-                : !session.ActualMoveAllowed
-                    ? session.ActualMoveBlockReason
-                : isFault
-                ? $"{data.ActionPrimary} 전에 오류 코드와 Safety 상태를 먼저 확인해라."
-                : isWarning
-                    ? $"{data.ActionWhy} 지금은 조작보다 동기화/재연결 확인이 먼저다."
-                    : "오른쪽 상세 진단 카드는 숨기고, 상태 요약만 유지한 채 작업을 이어간다.";
-
-            statusCard.StatusSafetySummaryTitle.text = title;
-            statusCard.StatusSafetySummaryBody.text = body;
-            statusCard.StatusSafetySummary.EnableInClassList("rc-status-summary-card--safe", !isFault && !isWarning);
-            statusCard.StatusSafetySummary.EnableInClassList("rc-status-summary-card--warning", !isFault && isWarning);
-            statusCard.StatusSafetySummary.EnableInClassList("rc-status-summary-card--danger", isFault);
-        }
-
-        private void ApplyContextGuidance(PendantV3PreviewState.Definition data)
+        private void ApplyContextGuidance(RobotControlV3RuntimeSnapshot data)
         {
             if (actionHintTitle != null)
             {
@@ -302,9 +255,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             if (actionHintSummary != null)
             {
-                actionHintSummary.text = connectionHomeController.CurrentSessionState.ReconnectActive
-                    ? $"재시도 {connectionHomeController.CurrentSessionState.ReconnectAttempt}/{connectionHomeController.CurrentSessionState.ReconnectAttemptMax} · {Mathf.CeilToInt(connectionHomeController.CurrentSessionState.ReconnectSecondsUntilRetry)}초 뒤 다시 연결을 시도한다."
-                    : data.ActionWhy;
+                actionHintSummary.text = data.ActionWhy;
             }
 
         }
@@ -331,89 +282,55 @@ namespace KineTutor3D.UI.RobotControlV3
             button?.EnableInClassList("rc-coord-mode-button--active", active);
         }
 
-        private void BindCoordStripToggle()
-        {
-            if (coordStrip?.BtnCoordStripToggle == null)
-            {
-                return;
-            }
-
-            coordStripToggleCallback ??= _ => ToggleCoordStripCollapsed();
-            coordStrip.BtnCoordStripToggle.UnregisterCallback(coordStripToggleCallback);
-            coordStrip.BtnCoordStripToggle.RegisterCallback(coordStripToggleCallback);
-        }
-
-        private void BindContextTabs()
-        {
-            if (btnContextTabStatus == null || btnContextTabCoordinate == null)
-            {
-                return;
-            }
-
-            contextTabStatusCallback ??= _ => SetContextTab(ContextTabMode.Status);
-            contextTabCoordinateCallback ??= _ => SetContextTab(ContextTabMode.Coordinate);
-            btnContextTabStatus.UnregisterCallback(contextTabStatusCallback);
-            btnContextTabCoordinate.UnregisterCallback(contextTabCoordinateCallback);
-            btnContextTabStatus.RegisterCallback(contextTabStatusCallback);
-            btnContextTabCoordinate.RegisterCallback(contextTabCoordinateCallback);
-        }
-
-        private void UnbindCoordStripToggle()
-        {
-            if (coordStrip?.BtnCoordStripToggle == null || coordStripToggleCallback == null)
-            {
-                return;
-            }
-
-            coordStrip.BtnCoordStripToggle.UnregisterCallback(coordStripToggleCallback);
-            if (btnContextTabStatus != null && contextTabStatusCallback != null)
-            {
-                btnContextTabStatus.UnregisterCallback(contextTabStatusCallback);
-            }
-
-            if (btnContextTabCoordinate != null && contextTabCoordinateCallback != null)
-            {
-                btnContextTabCoordinate.UnregisterCallback(contextTabCoordinateCallback);
-            }
-        }
-
-        private void ToggleCoordStripCollapsed()
-        {
-            isCoordStripCollapsed = !isCoordStripCollapsed;
-            ApplyCoordStripCollapsedState();
-        }
-
-        private void SetContextTab(ContextTabMode mode)
-        {
-            activeContextTab = mode;
-            ApplyContextTabVisibility();
-        }
-
-        private void ApplyCoordStripCollapsedState()
+        private void BindCoordModeButtons()
         {
             if (coordStrip == null)
             {
                 return;
             }
 
-            coordStrip.Root.EnableInClassList("rc-coord-strip-root--collapsed", isCoordStripCollapsed);
-            if (coordStrip.BtnCoordStripToggle != null)
-            {
-                coordStrip.BtnCoordStripToggle.text = isCoordStripCollapsed ? "펼치기" : "접기";
-            }
+            coordStrip.BtnCoordModeJoint.clicked -= SetCoordModeJoint;
+            coordStrip.BtnCoordModeTcp.clicked -= SetCoordModeTcp;
+            coordStrip.BtnCoordModeBoth.clicked -= SetCoordModeBoth;
+            coordStrip.BtnCoordModeJoint.clicked += SetCoordModeJoint;
+            coordStrip.BtnCoordModeTcp.clicked += SetCoordModeTcp;
+            coordStrip.BtnCoordModeBoth.clicked += SetCoordModeBoth;
         }
 
-        private void ApplyContextTabVisibility()
+        private void SetCoordModeJoint()
         {
-            var isStatusTab = activeContextTab == ContextTabMode.Status;
-            btnContextTabStatus?.EnableInClassList("rc-context-tab--active", isStatusTab);
-            btnContextTabCoordinate?.EnableInClassList("rc-context-tab--active", !isStatusTab);
-            statusCardHost?.EnableInClassList("rc-hidden", !isStatusTab);
-            coordStripHost?.EnableInClassList("rc-hidden", isStatusTab);
-            actionHintCard?.EnableInClassList("rc-hidden", !isStatusTab);
-            safetyDiagnosticsHost?.EnableInClassList("rc-hidden", !isStatusTab);
-            safetyDiagnosticsController?.SetContextVisible(isStatusTab);
-            whyItMovedController?.SetContextVisible(!isStatusTab);
+            coordStripMode = CoordStripMode.Joint;
+            ApplyCoordStripMode();
+        }
+
+        private void SetCoordModeTcp()
+        {
+            coordStripMode = CoordStripMode.Tcp;
+            ApplyCoordStripMode();
+        }
+
+        private void SetCoordModeBoth()
+        {
+            coordStripMode = CoordStripMode.Both;
+            ApplyCoordStripMode();
+        }
+
+        private void ApplyCoordStripMode()
+        {
+            if (coordStrip == null)
+            {
+                return;
+            }
+
+            var showJoint = coordStripMode is CoordStripMode.Joint or CoordStripMode.Both;
+            var showTcp = coordStripMode is CoordStripMode.Tcp or CoordStripMode.Both;
+            coordStrip.JointTitle?.EnableInClassList("rc-hidden", !showJoint);
+            coordStrip.JointGrid?.EnableInClassList("rc-hidden", !showJoint);
+            coordStrip.TcpTitle?.EnableInClassList("rc-hidden", !showTcp);
+            coordStrip.TcpGrid?.EnableInClassList("rc-hidden", !showTcp);
+            SetCoordModeActive(coordStrip.BtnCoordModeJoint, coordStripMode == CoordStripMode.Joint);
+            SetCoordModeActive(coordStrip.BtnCoordModeTcp, coordStripMode == CoordStripMode.Tcp);
+            SetCoordModeActive(coordStrip.BtnCoordModeBoth, coordStripMode == CoordStripMode.Both);
         }
 
         private static void ApplyValueState(Label label, string className)
@@ -430,14 +347,25 @@ namespace KineTutor3D.UI.RobotControlV3
             label.EnableInClassList("rc-status-value--danger", className == "rc-status-value--danger");
         }
 
+        private void HandleFaultDetailClicked()
+        {
+            shellStateController?.SetDebugSelection("NavHelp", "TabEasyMotion", "BottomTabHelp");
+        }
+
+        private void HandleSafetyDetailClicked()
+        {
+            shellStateController?.SetDebugSelection("NavHelp", "TabEasyMotion", "BottomTabHelp");
+        }
+
         private sealed class CoordStripElements
         {
             public CoordStripElements(VisualElement root)
             {
-                Root = root;
                 CoordSystemBadge = root.Q<Label>("CoordSystemBadge");
-                CoordStripBody = root.Q<VisualElement>("CoordStripBody");
-                BtnCoordStripToggle = root.Q<Button>("BtnCoordStripToggle");
+                JointTitle = root.Q<Label>("CoordJointTitle");
+                JointGrid = root.Q<VisualElement>("CoordJointGrid");
+                TcpTitle = root.Q<Label>("CoordTcpTitle");
+                TcpGrid = root.Q<VisualElement>("CoordTcpGrid");
                 JointValues = new[]
                 {
                     root.Q<Label>("JointValue1"),
@@ -461,10 +389,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnCoordModeBoth = root.Q<Button>("BtnCoordModeBoth");
             }
 
-            public VisualElement Root { get; }
             public Label CoordSystemBadge { get; }
-            public VisualElement CoordStripBody { get; }
-            public Button BtnCoordStripToggle { get; }
+            public Label JointTitle { get; }
+            public VisualElement JointGrid { get; }
+            public Label TcpTitle { get; }
+            public VisualElement TcpGrid { get; }
             public Label[] JointValues { get; }
             public Label[] TcpValues { get; }
             public Button BtnCoordModeJoint { get; }
@@ -476,9 +405,6 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             public StatusCardElements(VisualElement root)
             {
-                StatusSafetySummary = root.Q<VisualElement>("StatusSafetySummary");
-                StatusSafetySummaryTitle = root.Q<Label>("StatusSafetySummaryTitle");
-                StatusSafetySummaryBody = root.Q<Label>("StatusSafetySummaryBody");
                 StatusConnectionValue = root.Q<Label>("StatusConnectionValue");
                 StatusModeValue = root.Q<Label>("StatusModeValue");
                 StatusServoValue = root.Q<Label>("StatusServoValue");
@@ -492,9 +418,6 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnSafetyDetail = root.Q<Button>("BtnSafetyDetail");
             }
 
-            public VisualElement StatusSafetySummary { get; }
-            public Label StatusSafetySummaryTitle { get; }
-            public Label StatusSafetySummaryBody { get; }
             public Label StatusConnectionValue { get; }
             public Label StatusModeValue { get; }
             public Label StatusServoValue { get; }
@@ -506,6 +429,13 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label StatusSpeedValue { get; }
             public Button BtnFaultDetail { get; }
             public Button BtnSafetyDetail { get; }
+        }
+
+        private enum CoordStripMode
+        {
+            Joint,
+            Tcp,
+            Both,
         }
     }
 }

@@ -14,7 +14,6 @@ Last Updated: 2026-03-12 (KST)
 ## QA Prep Menus
 - `KineTutor3D/QA: Reset to First-Time User`
 - `KineTutor3D/QA: Reset to Returning User (skip onboarding)`
-- `KineTutor3D/QA: Prep Home / Continue Hub`
 - `KineTutor3D/QA: Prep Guided Lesson (Core Step 1)`
 - `KineTutor3D/QA: Prep Math Readiness`
 - `KineTutor3D/QA: Prep Robot Library`
@@ -22,7 +21,6 @@ Last Updated: 2026-03-12 (KST)
 
 ## Page Runbooks
 - [Onboarding](./onboarding.md)
-- [Home / Continue Hub](./home-continue-hub.md)
 - [Guided Lesson](./guided-lesson.md)
 - [Math Readiness](./math-readiness.md)
 - [Robot Library](./robot-library.md)
@@ -35,5 +33,7 @@ Last Updated: 2026-03-12 (KST)
 - `Minor`: 카피, 간격, 아이콘, 정렬, 비핵심 시각 불일치
 
 ## Result Logging
-- 페이지별 결과는 `docs/status/PAGE-QA-MATRIX.md`의 해당 행과 함께 본다.
+- 현재 페이지별 결과는 이 runbook 묶음과 `docs/status/PROJECT-STATUS.md`를 함께 본다.
+- 2026-03-23 초기 baseline 비교가 필요하면 `docs/archive/legacy/page-qa/PAGE-QA-MATRIX-2026-03-23.md`를 본다.
+- `Home / Continue Hub` runbook이 필요하면 `docs/archive/legacy/page-qa/home-continue-hub-runbook.md`를 본다.
 - 재감사 후 점수/게이트를 바꾸려면 오늘자 daily log에 함께 남긴다.

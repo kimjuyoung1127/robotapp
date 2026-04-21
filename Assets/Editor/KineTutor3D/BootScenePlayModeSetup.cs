@@ -7,7 +7,7 @@ using UnityEngine;
 namespace KineTutor3D.Editor
 {
     [InitializeOnLoad]
-    internal static class BootScenePlayModeSetup
+    public static class BootScenePlayModeSetup
     {
         private const string StartScenePath = "Assets/Scenes/Onboarding.unity";
         private const string MenuPath = "KineTutor3D/Always Start From Onboarding";
@@ -32,6 +32,21 @@ namespace KineTutor3D.Editor
         {
             IsEnabled = !IsEnabled;
             ApplyIfEnabled();
+        }
+
+        public static string SetAlwaysStartFromOnboarding(bool enabled)
+        {
+            IsEnabled = enabled;
+            ApplyIfEnabled();
+            return GetDebugSummary();
+        }
+
+        public static string GetDebugSummary()
+        {
+            var startScene = EditorSceneManager.playModeStartScene != null
+                ? AssetDatabase.GetAssetPath(EditorSceneManager.playModeStartScene)
+                : "null";
+            return $"alwaysStart={IsEnabled}; playModeStartScene={startScene}";
         }
 
         [MenuItem(MenuPath, true)]

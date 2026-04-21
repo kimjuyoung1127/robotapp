@@ -9,7 +9,7 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-21 (KST)
 
 ---
 
@@ -45,25 +45,25 @@
 │ │Home │ │  └──────────────────────────────────────┘ │  │ J2: -32.0°       │ │
 │ ├────┤ │                                             │  │ J3: 84.0°        │ │
 │ │ 🔧 │ │  ┌─ WorkPanel ──────────────────────────┐ │  │ J4: 0.0°         │ │
-│ │조작 │ │  │                                      │ │  │ J5: 90.0°        │ │
-│ ├────┤ │  │  (선택된 탭에 따라 내용 변경)         │ │  │ J6: 0.0°         │ │
-│ │ 📍 │ │  │                                      │ │  ├─────────────────┤ │
-│ │포인트│ │  │  예: 관절 탭 선택 시                │ │  │ TCP              │ │
-│ ├────┤ │  │  [J1 ◀━━━━━●━━━━━▶ 0.0°]            │ │  │ X: -497.0 mm    │ │
-│ │ ⚡ │ │  │  [J2 ◀━━●━━━━━━━▶ -32.0°]           │ │  │ Y: -130.0 mm    │ │
-│ │I/O  │ │  │  [J3 ◀━━━━━━━●━▶ 84.0°]            │ │  │ Z: 477.0 mm     │ │
-│ ├────┤ │  │  ...                                  │ │  │ RX: 180.0°      │ │
-│ │ 📊 │ │  │  [복원] [미리보기] [적용]             │ │  │ RY: 0.0°        │ │
-│ │상태 │ │  │                                      │ │  │ RZ: 90.0°       │ │
-│ ├────┤ │  └──────────────────────────────────────┘ │  └─────────────────┘ │
-│ │ ❓ │ │                                             │                       │
-│ │도움 │ │  ┌─ 3DViewport ────────────────────────┐ │  ┌─ StatusCard ────┐ │
-│ └────┘ │  │                                      │ │  │ 상태: 정지       │ │
-│        │  │   3D 로봇 + 프레임 + 트레일          │ │  │ 모드: 수동       │ │
-│        │  │   고스트 + 경로 미리보기              │ │  │ Fault: 없음      │ │
-│        │  │                                      │ │  │ Safety: 정상     │ │
-│        │  │  [Base축] [Tool축] [궤적] [리셋]     │ │  ├─────────────────┤ │
-│        │  └──────────────────────────────────────┘ │  │ 다음 행동 추천   │ │
+│ │조작 │ │  │ Header / Summary                     │ │  │ J5: 90.0°        │ │
+│ ├────┤ │  ├──────────────────────────────────────┤ │  │ J6: 0.0°         │ │
+│ │ 📍 │ │  │ RobotStage (메인)                    │ │  ├─────────────────┤ │
+│ │포인트│ │  │ 3D 로봇만 표시                       │ │  │ TCP              │ │
+│ ├────┤ │  │ 바닥 격자 / 선택 XYZ 기즈모           │ │  │ X: -497.0 mm    │ │
+│ │ ⚡ │ │  │                                         │ │  │ Y: -130.0 mm    │ │
+│ │I/O  │ │  │                                         │ │  │ Z: 477.0 mm     │ │
+│ ├────┤ │  └──────────────────────────────────────┘ │  │ RX: 180.0°      │ │
+│ │ 📊 │ │                                             │  │ RY: 0.0°        │ │
+│ │상태 │ │  ┌─ ViewportHost (보조 작업 패널) ─────┐ │  │ RZ: 90.0°       │ │
+│ ├────┤ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │  └─────────────────┘ │
+│ │ ❓ │ │  │ scroll                                 │ │                       │
+│ │도움 │ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  ┌─ StatusCard ────┐ │
+│ └────┘ │  │ [관절 조그]                            │ │  │ 상태: 정지       │ │
+│        │  │ [TCP 조그]                             │ │  │ 모드: 수동       │ │
+│        │  │ [포인트 이동]                          │ │  │ Fault: 없음      │ │
+│        │  │ [복원] [미리보기] [적용]              │ │  │ Safety: 정상     │ │
+│        │  └──────────────────────────────────────┘ │  ├─────────────────┤ │
+│        │                                             │  │ 다음 행동 추천   │ │
 │        │                                             │  │ "Sync를 먼저     │ │
 │        │                                             │  │  실행하세요"     │ │
 │        │                                             │  └─────────────────┘ │
@@ -81,14 +81,23 @@
 |------|------|------|------|
 | TopStatusBar | 100% | 56px | 고정, 스크롤 안 됨 |
 | NavRail | 72px | flex | 아이콘 + 짧은 레이블, 접기 가능 |
-| MainContent | flex (나머지) | flex | WorkTabBar(40px) + WorkPanel + 3DViewport |
+| MainContent | flex (나머지) | flex | WorkTabBar(40px) + WorkPanel + ViewportHost(보조) |
 | ContextPanel | 320px | flex | CoordStrip + StatusCard, 접기 가능 |
 | BottomBar | 100% | 48px | 고정, 실행 제어 전용 |
 
 ### Desktop 콘텐츠 분할 비율
-- MainContent 내에서 WorkPanel과 3DViewport는 **수직 분할**
-- 기본 비율: WorkPanel 45% / 3DViewport 55%
-- 드래그로 리사이즈 가능 (최소 30% / 최대 70%)
+- MainContent 내에서 `WorkPanel`이 메인 로봇 표시 패널을 맡는다.
+- `WorkPanel` 본체는 `RobotStage` 단일 영역으로 잠근다.
+- `ViewportHost`는 `보조 작업 패널`로 두고, 조작/도움말/연결 홈을 공용 스크롤 안에서 이어 붙인다.
+- 메인 `RobotStage`에는 로봇과 그에 직접 붙는 시각화만 보이게 둔다.
+- `Z / RX / RY / RZ`처럼 로봇을 가릴 수 있는 TCP 보조 조작 UI는 `ViewportHost` 공용 스크롤 안으로 이동시켜 겹침을 예방한다.
+- `ViewportHost`와 `ContextPanel`은 가로 스크롤을 쓰지 않는다.
+- 좁은 폭에서 잘림이 생기면 패널 폭을 키우지 말고 내부 요소를 줄인다.
+- `ViewportPanelScroll` / `ContextPanelScroll`은 세로 전용으로 유지하고, 내부 버튼/카드는 `max-width: 100%`, `min-width: 0`, `flex-wrap` 기반으로 접는다.
+- 보조패널 툴바는 `Base / Tool / Path / Ghost / Bound / Coll / Cam` compact chip grid로 유지한다.
+- TCP/Cartesian 조작행은 한 줄 고정 금지다. `축+값+단위` 상단, `- / +` 하단의 2줄 구조로 둔다.
+- 관절 조그는 `J축+입력+값`, `슬라이더`, `- / +` 버튼 행을 분리한다.
+- 최신 acceptance 기준은 `viewportHorizontalVisible=False`, `contextHorizontalVisible=False`, `viewportClipped=0`, `contextClipped=0`, `scrollShare>=0.67`이다.
 
 ---
 
@@ -241,8 +250,10 @@ PendantV3Root (UIDocument)
 │   │   └── NavItem[Help]
 │   ├── MainContent (flex: 1)
 │   │   ├── WorkTabBar
-│   │   ├── WorkPanel (flex: 0.45)
-│   │   └── ViewportHost (flex: 0.55)
+│   │   ├── WorkPanel
+│   │   │   ├── RobotStage
+│   │   │   └── ControlDock
+│   │   └── ViewportHost (보조)
 │   └── ContextPanel
 │       ├── CoordStrip
 │       ├── StatusCard

@@ -1,5 +1,7 @@
 # Page QA Matrix
 
+> Archive Note: 이 문서는 2026-03-23 시점 QA baseline이라 archive로 이동했다.
+
 Last Updated: 2026-03-23 (KST)
 
 ## Purpose

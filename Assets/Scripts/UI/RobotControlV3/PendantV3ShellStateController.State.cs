@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,7 +15,8 @@ namespace KineTutor3D.UI.RobotControlV3
     {
         private void ApplyState()
         {
-            state = PendantV3LocalState.DeepCopy(state);
+            state = PendantV3LocalState.Normalize(state);
+            state.DesktopSplitRatio = Mathf.Min(state.DesktopSplitRatio, PendantV3LocalState.DefaultSplitRatio);
             ApplyNavState();
             ApplyWorkTabState();
             ApplyBottomTabState();
@@ -22,8 +24,9 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyIncrementState();
             ApplySpeedState();
             ApplySplitRatio();
+            ApplyPanelRoleMarkers();
             ApplyBottomSheetState();
-            UpdateUndoRedoButtons();
+            ApplyBottomBarState();
             NotifyPanelControllers();
         }
 
@@ -39,14 +42,21 @@ namespace KineTutor3D.UI.RobotControlV3
             var label = GetWorkTabLabel(state.ActiveWorkTab);
             if (workPanelTitle != null)
             {
-                workPanelTitle.text = $"{label} 패널";
+                workPanelTitle.text = label;
             }
 
             if (workPanelSummary != null)
             {
-                workPanelSummary.text = GetWorkTabSummary(state.ActiveWorkTab);
+                workPanelSummary.text = string.Empty;
+                workPanelSummary.EnableInClassList("rc-hidden", true);
             }
 
+            if (viewportPanelScroll != null)
+            {
+                viewportPanelScroll.scrollOffset = Vector2.zero;
+            }
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
+            runtimeController?.ResetStageCamera();
             NotifyPanelControllers();
         }
 
@@ -70,15 +80,19 @@ namespace KineTutor3D.UI.RobotControlV3
         private void NotifyPanelControllers()
         {
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            helpPanelController ??= GetComponent<HelpPanelController>();
             easyMotionController ??= GetComponent<EasyMotionController>();
             jointJogController ??= GetComponent<JointJogController>();
             tcpJogController ??= GetComponent<TcpJogController>();
             pointMoveController ??= GetComponent<PointMoveController>();
+            ioPanelController ??= GetComponent<IoPanelController>();
             connectionHomeController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
+            helpPanelController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
             easyMotionController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
             jointJogController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
             tcpJogController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
             pointMoveController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
+            ioPanelController?.SetShellState(state.ActiveNavSection, state.ActiveWorkTab, state.ActiveTabletTab);
         }
 
         private void ApplyCoordSystemState()
@@ -129,15 +143,16 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            var workRatio = state.DesktopSplitRatio;
-            if (root != null && root.ClassListContains("rc-root--desktop"))
-            {
-                // V3 desktop는 3D viewport를 메인으로 보여야 하므로 좌측 작업 패널 비중 상한을 더 낮춥니다.
-                workRatio = Mathf.Min(workRatio, 0.22f);
-            }
+            var desktopSplitRatio = Mathf.Min(state.DesktopSplitRatio, PendantV3LocalState.DefaultSplitRatio);
+            workPanel.style.flexGrow = 1f - desktopSplitRatio;
+            viewportHost.style.flexGrow = desktopSplitRatio;
+        }
 
-            workPanel.style.flexGrow = workRatio;
-            viewportHost.style.flexGrow = 1f - workRatio;
+        private void ApplyPanelRoleMarkers()
+        {
+            workPanel?.EnableInClassList("rc-work-panel--debug-highlight", false);
+            workPanelDebugBadge?.EnableInClassList("rc-hidden", true);
+            viewportHost?.EnableInClassList("rc-viewport-host--debug-highlight", false);
         }
 
         private void ApplyBottomSheetState()
@@ -147,6 +162,17 @@ namespace KineTutor3D.UI.RobotControlV3
             if (sheetToggleButton != null)
             {
                 sheetToggleButton.text = state.IsTabletSheetExpanded ? "시트 접기" : "시트 펼치기";
+            }
+        }
+
+        private void ApplyBottomBarState()
+        {
+            var runtime = runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
+            var dryRunEnabled = runtime?.CurrentSnapshot.DryRunEnabled ?? true;
+            if (dryRunButton != null)
+            {
+                dryRunButton.text = dryRunEnabled ? "DryRun ON" : "DryRun OFF";
+                dryRunButton.EnableInClassList("rc-bottom-tab--active", dryRunEnabled);
             }
         }
 
@@ -210,6 +236,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 "TabJointJog" => "관절",
                 "TabTcpJog" => "TCP",
                 "TabPointMove" => "포인트 이동",
+                "NavIo" => "I/O",
                 "NavHelp" => "도움말",
                 _ => "쉬운 조작",
             };
@@ -233,10 +260,11 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             return buttonName switch
             {
-                "TabJointJog" => "6축 관절값을 슬라이더, 단일축 버튼, 숫자 입력으로 바로 다루는 데스크탑 메인 패널.",
-                "TabTcpJog" => "Base·Tool·User 좌표계 기준으로 XYZ·RPY 조그와 뷰포트 오버레이를 같이 쓰는 데스크탑 메인 패널.",
-                "TabPointMove" => "지정 좌표를 입력하고 MoveJ·MoveL 후보를 준비하는 포인트 이동 패널.",
-                _ => "자주 쓰는 포즈와 작은 이동부터 시작하는 데스크탑 메인 패널.",
+                "TabJointJog" => "메인 로봇 뷰 · 관절",
+                "TabTcpJog" => "메인 로봇 뷰 · TCP",
+                "TabPointMove" => "메인 로봇 뷰 · 포인트 이동",
+                "NavIo" => "메인 로봇 뷰 · I/O",
+                _ => "메인 로봇 뷰 · 쉬운 조작",
             };
         }
 

@@ -2,22 +2,30 @@
 .rc-joint-root {
     flex-grow: 1;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-joint-header {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-joint-mode-row {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-joint-mode-button {
     min-height: 32px;
     margin-left: 6px;
+    margin-bottom: 4px;
 }
 
 .rc-joint-mode-button--active {
@@ -29,30 +37,50 @@
 }
 
 .rc-joint-row {
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 8px;
-    padding: 8px;
+    padding: 7px;
     border-radius: 8px;
     background-color: rgba(18, 18, 24, 0.38);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-joint-row-meta {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-joint-axis-label {
-    min-width: 28px;
-    margin-right: 8px;
+    min-width: 26px;
+    margin-right: 6px;
     font-size: 13px;
     -unity-font-style: bold;
 }
 
 .rc-joint-step-button {
-    min-width: 52px;
-    min-height: 36px;
-    margin-right: 8px;
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 30px;
+    margin-right: 4px;
+    font-size: 11px;
 }
 
 .rc-joint-slider-group {
     flex-grow: 1;
-    margin-right: 8px;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 6px;
+    margin-right: 0;
+}
+
+.rc-joint-button-row {
+    flex-direction: row;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 6px;
 }
 
 .rc-joint-slider {
@@ -66,15 +94,17 @@
 }
 
 .rc-joint-input {
-    width: 84px;
-    min-width: 84px;
-    margin-right: 8px;
+    width: 54px;
+    min-width: 54px;
+    margin-right: 6px;
 }
 
 .rc-joint-value {
-    min-width: 60px;
-    font-size: 14px;
+    flex-grow: 1;
+    min-width: 42px;
+    font-size: 13px;
     -unity-font-style: bold;
+    -unity-text-align: middle-right;
 }
 
 .rc-joint-value--warning {
@@ -83,20 +113,26 @@
 
 .rc-joint-footer-card {
     margin-top: 10px;
-    padding: 10px 12px;
+    padding: 8px;
     border-radius: 8px;
     background-color: rgba(18, 18, 24, 0.55);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-joint-action-row {
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 12px;
 }
 
 .rc-joint-action-button {
     flex-grow: 1;
-    min-height: 42px;
-    margin-right: 8px;
+    min-width: 72px;
+    min-height: 34px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
 }
 
 .rc-joint-action-button--primary {

@@ -2,23 +2,31 @@
 .rc-tcp-root {
     flex-grow: 1;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-tcp-header {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-tcp-coord-row {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-tcp-coord-button {
     min-height: 32px;
-    min-width: 58px;
+    min-width: 48px;
     margin-left: 6px;
+    margin-bottom: 4px;
 }
 
 .rc-tcp-coord-button--active {
@@ -37,12 +45,13 @@
 }
 
 .rc-tcp-row {
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 8px;
-    padding: 8px 10px;
+    padding: 7px;
     border-radius: 8px;
     background-color: rgba(18, 18, 24, 0.38);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-tcp-row--active {
@@ -50,10 +59,24 @@
 }
 
 .rc-tcp-axis-label {
-    min-width: 30px;
-    margin-right: 8px;
+    min-width: 28px;
+    margin-right: 6px;
     font-size: 13px;
     -unity-font-style: bold;
+}
+
+.rc-tcp-row-meta {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-tcp-button-row {
+    flex-direction: row;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 6px;
 }
 
 .rc-tcp-axis-label--x {
@@ -73,8 +96,11 @@
 }
 
 .rc-tcp-step-button {
-    min-width: 56px;
-    min-height: 36px;
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 30px;
+    margin-right: 4px;
+    font-size: 11px;
 }
 
 .rc-tcp-step-button--x {
@@ -95,36 +121,43 @@
 
 .rc-tcp-value {
     flex-grow: 1;
-    margin-left: 10px;
-    margin-right: 10px;
-    font-size: 16px;
+    min-width: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+    font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
 
 .rc-tcp-unit {
-    min-width: 30px;
-    margin-left: 8px;
-    font-size: 12px;
+    min-width: 24px;
+    margin-left: 4px;
+    font-size: 10px;
     color: var(--rc-muted-text);
 }
 
 .rc-tcp-footer-card {
     margin-top: 10px;
-    padding: 10px 12px;
+    padding: 8px;
     border-radius: 8px;
     background-color: rgba(18, 18, 24, 0.55);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-tcp-action-row {
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 12px;
 }
 
 .rc-tcp-action-button {
     flex-grow: 1;
-    min-height: 42px;
-    margin-right: 8px;
+    min-width: 88px;
+    min-height: 34px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
 }
 
 .rc-tcp-action-button--primary {

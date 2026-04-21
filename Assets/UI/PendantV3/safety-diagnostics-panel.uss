@@ -1,12 +1,17 @@
 /* Pendant V3 - Safety Diagnostics: Phase 2C-1 minimum safety/diagnostics panel */
 .rc-safety-root {
     margin-bottom: var(--rc-gap);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-safety-banner {
     margin-top: 8px;
-    padding: 8px 10px;
+    padding: 7px;
     border-radius: 6px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-safety-banner--safe {
@@ -22,8 +27,9 @@
 }
 
 .rc-safety-banner-text {
-    font-size: 13px;
+    font-size: 11px;
     -unity-font-style: bold;
+    white-space: normal;
 }
 
 .rc-safety-chip-row {
@@ -33,11 +39,11 @@
 }
 
 .rc-safety-chip {
-    margin-right: 6px;
+    margin-right: 4px;
     margin-bottom: 4px;
-    padding: 3px 8px;
+    padding: 3px 6px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 10px;
     background-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -59,16 +65,20 @@
 
 .rc-safety-recovery-card {
     margin-top: 10px;
-    padding: 10px;
+    padding: 8px;
     border-radius: 6px;
     background-color: rgba(255, 255, 255, 0.04);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-safety-event-card {
     margin-top: 10px;
-    padding: 10px;
+    padding: 8px;
     border-radius: 6px;
     background-color: rgba(255, 255, 255, 0.04);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-safety-subtitle {
@@ -79,7 +89,8 @@
 
 .rc-safety-action {
     margin-top: 8px;
-    min-height: 32px;
+    min-height: 28px;
+    font-size: 11px;
 }
 
 .rc-safety-event-line {

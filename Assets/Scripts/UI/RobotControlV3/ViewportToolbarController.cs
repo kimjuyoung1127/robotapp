@@ -1,7 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
-using KineTutor3D.App;
 using UnityEngine;
 using UnityEngine.UIElements;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.UI.RobotControlV3
 {
@@ -19,7 +19,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement viewportHost;
         private VisualElement viewportToolbarHost;
         private ConnectionHomeController connectionHomeController;
-        private PendantV3VisualizationOrchestrator visualizationOrchestrator;
+        private RobotControlV3RuntimeController runtimeController;
         private ToolbarElements elements;
         private bool isInitialized;
         private bool showBaseFrame = true;
@@ -56,7 +56,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return TryInitialize();
         }
 
-        internal void RefreshFromBinder(PendantV3PreviewState.Definition data)
+        internal void RefreshFromBinder(RobotControlV3RuntimeSnapshot data)
         {
             if (!isInitialized && !TryInitialize())
             {
@@ -78,7 +78,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
-            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
             if (root == null || viewportToolbarTemplate == null || connectionHomeController == null)
             {
@@ -98,6 +98,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 elements = CreateToolbar(viewportToolbarHost);
             }
 
+            runtimeController?.ForceInitialize();
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
             ApplyAll();
             isInitialized = true;
@@ -154,30 +155,35 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ToggleBaseFrame()
         {
             showBaseFrame = !showBaseFrame;
+            runtimeController?.SetBaseFrameVisible(showBaseFrame);
             ApplyAll();
         }
 
         private void ToggleToolFrame()
         {
             showToolFrame = !showToolFrame;
+            runtimeController?.SetToolFrameVisible(showToolFrame);
             ApplyAll();
         }
 
         private void ToggleTrail()
         {
             showTrail = !showTrail;
+            runtimeController?.SetTrailVisible(showTrail);
             ApplyAll();
         }
 
         private void ToggleGhost()
         {
             showGhost = !showGhost;
+            runtimeController?.SetGhostVisible(showGhost);
             ApplyAll();
         }
 
         private void ToggleBoundary()
         {
             showWorkspaceBoundary = !showWorkspaceBoundary;
+            runtimeController?.SetWorkspaceBoundaryVisible(showWorkspaceBoundary);
             ApplyAll();
         }
 
@@ -189,18 +195,20 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             showCollisionManual = !showCollisionManual;
+            runtimeController?.SetCollisionVisible(showCollisionManual);
             ApplyAll();
         }
 
         private void OnCameraReset()
         {
+            runtimeController?.ResetStageCamera();
             if (elements?.Hint != null)
             {
                 elements.Hint.text = elements.CameraResetHintText?.text ?? string.Empty;
             }
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             var preview = connectionHomeController.CurrentPreviewState;
             showCollisionAuto = preview == PendantV3PreviewState.Kind.Fault;
@@ -258,10 +266,13 @@ namespace KineTutor3D.UI.RobotControlV3
             elements.CollisionStatus.EnableInClassList("rc-viewport-toolbar-status-line--muted", !collisionWarning && !collisionDanger);
             elements.CollisionStatus.EnableInClassList("rc-viewport-toolbar-status-line--warning", collisionWarning && !collisionDanger);
             elements.CollisionStatus.EnableInClassList("rc-viewport-toolbar-status-line--danger", collisionDanger);
+            if (elements.StatusRoot != null)
+            {
+                elements.StatusRoot.style.display = DisplayStyle.None;
+            }
 
             viewportHost?.EnableInClassList("rc-viewport-host--boundary", showWorkspaceBoundary);
             viewportHost?.EnableInClassList("rc-viewport-host--collision", collisionVisible);
-            visualizationOrchestrator?.SetToolbarState(showBaseFrame, showToolFrame, showTrail, showGhost, showWorkspaceBoundary, showCollisionManual);
         }
 
         private static void SetButtonState(Button button, bool active)
@@ -285,6 +296,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnBoundary = root.Q<Button>("BtnViewportBoundary");
                 BtnCollision = root.Q<Button>("BtnViewportCollision");
                 BtnCameraReset = root.Q<Button>("BtnViewportCameraReset");
+                StatusRoot = root.Q<VisualElement>("ViewportToolbarStatusRoot");
                 BoundaryStatus = root.Q<Label>("ViewportBoundaryStatus");
                 CollisionStatus = root.Q<Label>("ViewportCollisionStatus");
                 Hint = root.Q<Label>("ViewportToolbarHint");
@@ -307,6 +319,7 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnBoundary { get; }
             public Button BtnCollision { get; }
             public Button BtnCameraReset { get; }
+            public VisualElement StatusRoot { get; }
             public Label BoundaryStatus { get; }
             public Label CollisionStatus { get; }
             public Label Hint { get; }

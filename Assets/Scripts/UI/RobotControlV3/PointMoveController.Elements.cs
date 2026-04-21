@@ -19,8 +19,16 @@ namespace KineTutor3D.UI.RobotControlV3
                 CoordSummary = root.Q<Label>("PointCoordSummary");
                 MotionSummary = root.Q<Label>("PointMotionSummary");
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
+                StoreSummary = root.Q<Label>("PointStoreSummary");
+                PointListContainer = root.Q<VisualElement>("PointListContainer");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
                 BtnRestore = root.Q<Button>("BtnPointRestore");
+                BtnSave = root.Q<Button>("BtnPointSave");
+                BtnRecall = root.Q<Button>("BtnPointRecall");
+                BtnDelete = root.Q<Button>("BtnPointDelete");
+                BtnRename = root.Q<Button>("BtnPointRename");
+                BtnExport = root.Q<Button>("BtnPointExport");
+                BtnCleanup = root.Q<Button>("BtnPointCleanup");
                 BtnPreview = root.Q<Button>("BtnPointPreview");
                 BtnApply = root.Q<Button>("BtnPointApply");
                 AxisLabels = new[]
@@ -62,8 +70,16 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label CoordSummary { get; }
             public Label MotionSummary { get; }
             public Label PreviewSummary { get; }
+            public Label StoreSummary { get; }
+            public VisualElement PointListContainer { get; }
             public Label FeedbackSummary { get; }
             public Button BtnRestore { get; }
+            public Button BtnSave { get; }
+            public Button BtnRecall { get; }
+            public Button BtnDelete { get; }
+            public Button BtnRename { get; }
+            public Button BtnExport { get; }
+            public Button BtnCleanup { get; }
             public Button BtnPreview { get; }
             public Button BtnApply { get; }
             public Label[] AxisLabels { get; }

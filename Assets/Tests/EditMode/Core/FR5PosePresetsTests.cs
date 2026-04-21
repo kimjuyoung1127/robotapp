@@ -49,9 +49,19 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
-        public void All_ContainsFourPresets()
+        public void All_ContainsFivePresets()
         {
-            Assert.AreEqual(4, FR5PosePresets.All.Length);
+            Assert.AreEqual(5, FR5PosePresets.All.Length);
+        }
+
+        [Test]
+        public void Zero_AllZeros()
+        {
+            var joints = FR5PosePresets.Zero.JointAnglesDeg;
+            for (var i = 0; i < 6; i++)
+            {
+                Assert.AreEqual(0.0, joints[i], 1e-10, $"Zero J{i} should be 0");
+            }
         }
 
         [Test]

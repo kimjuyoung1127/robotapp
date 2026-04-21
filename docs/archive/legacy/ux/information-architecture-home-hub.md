@@ -1,5 +1,7 @@
 # Information Architecture
 
+> Archive Note: 이 문서는 `Home / Continue Hub` 중심 target IA 문서라 archive로 이동했다.
+
 ## Purpose
 - 전체 제품 화면 구조와 진입 관계를 정의한다.
 

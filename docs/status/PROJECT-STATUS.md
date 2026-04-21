@@ -3,6 +3,9 @@
 최종 업데이트: 2026-03-31 (KST)
 기준 문서: `CLAUDE.md`, `KineTutor3D_Execution_Plan.md`
 
+> Note: 이 문서는 누적 turn log 성격이라 예전 항목 중 `Home/Main` 언급은 당시 기준 기록일 수 있다.
+> 현재 runtime truth는 `Boot -> Onboarding -> RobotLibrary -> {MathReadiness, Sandbox, RobotControl}` 기준으로 읽는다.
+
 ## 현재 Phase
 - **Phase 0: Foundation** (완료)
 - **Phase 1: Types + Math (TDD)** (완료)
@@ -595,7 +598,7 @@
 5. Phase 6 CI/CD 실주행 확인
 
 ## 이번 턴 반영 내용 (Page QA Matrix baseline)
-1. `docs/status/PAGE-QA-MATRIX.md`를 추가해 실제 진입 가능한 페이지 기준 QA baseline을 잠갔다.
+1. `docs/archive/legacy/page-qa/PAGE-QA-MATRIX-2026-03-23.md`를 추가해 당시 실제 진입 가능한 페이지 기준 QA baseline을 잠갔다.
 2. 감사 범위를 `Onboarding`, `Home / Continue Hub`, `Guided Lesson`, `Math Readiness`, `Robot Library`, `Sandbox`로 고정하고, `Boot`는 route-only로 분리했다.
 3. `Instructor Mode`, `Progress`, `Settings`는 이번 패스에서 점수 제외 IA gap으로만 기록했다.
 4. 페이지별 공통 판정 축을 `기능 충족도 / 진입 가능성 / 레이아웃 무결성 / UI 일관성 / UX 흐름 품질`로 고정했다.

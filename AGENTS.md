@@ -178,7 +178,7 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
   `status --wait` -> `check --type compile` -> `play start/stop` or `test --mode edit/play` -> `console get-entries` / `exec`
 - Use `exec` for project-specific runtime inspection when no dedicated `unityctl` command exists.
 - Only fall back to MCP when `unityctl` has no equivalent command or IPC is unavailable.
-- Treat `docs/ref/cli-tools-guide.md` and `unity-cli` commands as legacy/historical guidance only unless a task explicitly requires them.
+- Treat `docs/archive/legacy/unity-cli/cli-tools-guide.md` and `unity-cli` commands as legacy/historical guidance only unless a task explicitly requires them.
 
 ## Unityctl Working Recipes
 - Session bootstrap:

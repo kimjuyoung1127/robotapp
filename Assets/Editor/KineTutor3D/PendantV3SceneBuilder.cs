@@ -276,6 +276,18 @@ namespace KineTutor3D.EditorTools
                 sceneCoordinator = documentObject.AddComponent<KineTutor3D.App.PendantV3SceneCoordinator>();
             }
 
+            var runtimeController = documentObject.GetComponent<KineTutor3D.App.Fairino.RobotControlV3RuntimeController>();
+            if (runtimeController == null)
+            {
+                runtimeController = documentObject.AddComponent<KineTutor3D.App.Fairino.RobotControlV3RuntimeController>();
+            }
+
+            var robotStageRenderSurface = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.RobotStageRenderSurface>();
+            if (robotStageRenderSurface == null)
+            {
+                robotStageRenderSurface = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.RobotStageRenderSurface>();
+            }
+
             var connectionHomeController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.ConnectionHomeController>();
             if (connectionHomeController == null)
             {
@@ -312,6 +324,12 @@ namespace KineTutor3D.EditorTools
                 pointMoveController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PointMoveController>();
             }
 
+            var ioPanelController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.IoPanelController>();
+            if (ioPanelController == null)
+            {
+                ioPanelController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.IoPanelController>();
+            }
+
             var safetyDiagnosticsController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.SafetyDiagnosticsController>();
             if (safetyDiagnosticsController == null)
             {
@@ -322,6 +340,12 @@ namespace KineTutor3D.EditorTools
             if (viewportToolbarController == null)
             {
                 viewportToolbarController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.ViewportToolbarController>();
+            }
+
+            var viewportAuxInfoController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.ViewportAuxInfoController>();
+            if (viewportAuxInfoController == null)
+            {
+                viewportAuxInfoController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.ViewportAuxInfoController>();
             }
 
             var helpPanelController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.HelpPanelController>();
@@ -529,6 +553,7 @@ namespace KineTutor3D.EditorTools
             pointMoveController.enabled = true;
             safetyDiagnosticsController.enabled = true;
             viewportToolbarController.enabled = true;
+            viewportAuxInfoController.enabled = true;
             helpPanelController.enabled = true;
             whyItMovedController.enabled = true;
             popupCoordinator.enabled = true;

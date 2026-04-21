@@ -1,6 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
-using KineTutor3D.App.Fairino;
 using KineTutor3D.UI.RobotControlV3;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 
 namespace KineTutor3D.App
@@ -14,15 +14,15 @@ namespace KineTutor3D.App
     {
         [SerializeField] private PendantV3Document document;
         [SerializeField] private PendantV3Binder binder;
-        [SerializeField] private ContextPanelTabController contextPanelTabController;
-        [SerializeField] private PendantV3ConnectionSessionAdapter connectionSessionAdapter;
-        [SerializeField] private PendantV3VisualizationOrchestrator visualizationOrchestrator;
-        [SerializeField] private Visualization.PendantV3VisualizationDriver visualizationDriver;
         [SerializeField] private ConnectionHomeController connectionHomeController;
+        [SerializeField] private RobotControlV3RuntimeController runtimeController;
+        [SerializeField] private RobotStageRenderSurface robotStageRenderSurface;
+        [SerializeField] private ViewportAuxInfoController viewportAuxInfoController;
         [SerializeField] private EasyMotionController easyMotionController;
         [SerializeField] private JointJogController jointJogController;
         [SerializeField] private TcpJogController tcpJogController;
         [SerializeField] private PointMoveController pointMoveController;
+        [SerializeField] private IoPanelController ioPanelController;
         [SerializeField] private PopupCoordinatorV3 popupCoordinator;
 
         private bool isBootstrapped;
@@ -52,7 +52,7 @@ namespace KineTutor3D.App
 
         public string GetDebugSummary()
         {
-            return $"bootstrapped={isBootstrapped}; documentReady={document != null && document.IsReadyForSceneBootstrap()}; binder={(binder != null)}; contextTabs={(contextPanelTabController != null)}; session={(connectionSessionAdapter != null)}; viz={(visualizationOrchestrator != null && visualizationDriver != null)}; home={(connectionHomeController != null)}; motion={(easyMotionController != null && jointJogController != null && tcpJogController != null && pointMoveController != null)}; popup={(popupCoordinator != null)}";
+            return $"bootstrapped={isBootstrapped}; documentReady={document != null && document.IsReadyForSceneBootstrap()}; binder={(binder != null)}; home={(connectionHomeController != null)}; motion={(easyMotionController != null && jointJogController != null && tcpJogController != null && pointMoveController != null)}; io={(ioPanelController != null)}; popup={(popupCoordinator != null)}";
         }
 
         private System.Collections.IEnumerator BootstrapWhenReady()
@@ -75,39 +75,35 @@ namespace KineTutor3D.App
         {
             document ??= GetComponent<PendantV3Document>();
             binder ??= GetComponent<PendantV3Binder>();
-            contextPanelTabController ??= GetComponent<ContextPanelTabController>();
-            connectionSessionAdapter ??= GetComponent<PendantV3ConnectionSessionAdapter>();
-            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
-            visualizationDriver ??= GetComponent<Visualization.PendantV3VisualizationDriver>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>() ?? gameObject.AddComponent<RobotControlV3RuntimeController>();
+            robotStageRenderSurface ??= GetComponent<RobotStageRenderSurface>() ?? gameObject.AddComponent<RobotStageRenderSurface>();
+            viewportAuxInfoController ??= GetComponent<ViewportAuxInfoController>() ?? gameObject.AddComponent<ViewportAuxInfoController>();
             easyMotionController ??= GetComponent<EasyMotionController>();
             jointJogController ??= GetComponent<JointJogController>();
             tcpJogController ??= GetComponent<TcpJogController>();
             pointMoveController ??= GetComponent<PointMoveController>();
+            ioPanelController ??= GetComponent<IoPanelController>() ?? gameObject.AddComponent<IoPanelController>();
             popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
-            if (contextPanelTabController == null)
-            {
-                contextPanelTabController = gameObject.AddComponent<ContextPanelTabController>();
-            }
 
             if (document == null || !document.IsReadyForSceneBootstrap())
             {
                 return false;
             }
 
+            var runtimeReady = true;
+            var renderReady = robotStageRenderSurface == null || robotStageRenderSurface.ForceInitialize();
+            var auxInfoReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
             var homeReady = connectionHomeController == null || connectionHomeController.ForceInitialize();
-            var sessionReady = connectionSessionAdapter == null || connectionSessionAdapter.ForceInitialize();
-            var visualizationReady = visualizationOrchestrator == null || visualizationOrchestrator.ForceInitialize();
-            var visualizationDriverReady = visualizationDriver == null || visualizationDriver.ForceInitialize();
             var binderReady = binder == null || binder.ForceInitialize();
-            var contextTabsReady = contextPanelTabController == null || contextPanelTabController.ForceInitialize();
             var easyReady = easyMotionController == null || easyMotionController.ForceInitialize();
             var jointReady = jointJogController == null || jointJogController.ForceInitialize();
             var tcpReady = tcpJogController == null || tcpJogController.ForceInitialize();
             var pointReady = pointMoveController == null || pointMoveController.ForceInitialize();
+            var ioReady = ioPanelController == null || ioPanelController.ForceInitialize();
             var popupReady = popupCoordinator == null || popupCoordinator.ForceInitialize();
 
-            isBootstrapped = homeReady && sessionReady && visualizationReady && visualizationDriverReady && binderReady && contextTabsReady && easyReady && jointReady && tcpReady && pointReady && popupReady;
+            isBootstrapped = runtimeReady && renderReady && auxInfoReady && homeReady && binderReady && easyReady && jointReady && tcpReady && pointReady && ioReady && popupReady;
             return isBootstrapped;
         }
     }

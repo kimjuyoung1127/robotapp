@@ -27,9 +27,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement tcpJogSheetHost;
         private VisualElement cartesianOverlayHost;
         private ConnectionHomeController connectionHomeController;
-        private PopupCoordinatorV3 popupCoordinator;
-        private PendantV3VisualizationOrchestrator visualizationOrchestrator;
-        private RobotControlMotionRuntime motionRuntime;
+        private RobotControlV3RuntimeController runtimeController;
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -41,7 +39,6 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isTabletVisible;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
-        private string lastFeedback = "target/path를 먼저 확인해라.";
 
         private void OnEnable()
         {
@@ -87,7 +84,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             var activeAxis = highlightedAxis >= 0 ? $"{AxisSpecs[highlightedAxis].Label}{(highlightedDirection > 0 ? "+" : "-")}" : "none";
             var overlayHidden = cartesianOverlayHost?.ClassListContains("rc-hidden") ?? true;
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; increment={GetIncrementValue():0.#}; activeAxis={activeAxis}; canApply={connectionHomeController?.ActualMoveAllowed ?? false}; overlayHidden={overlayHidden}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; increment={GetIncrementValue():0.#}; activeAxis={activeAxis}; overlayHidden={overlayHidden}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}";
         }
 
         public string NudgeAxisForDebug(string axisLabel, int direction)
@@ -107,10 +104,9 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
-            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
-            visualizationOrchestrator ??= GetComponent<PendantV3VisualizationOrchestrator>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || tcpJogTemplate == null || cartesianArrowsOverlayTemplate == null || connectionHomeController == null)
+            if (root == null || tcpJogTemplate == null || cartesianArrowsOverlayTemplate == null || connectionHomeController == null || runtimeController == null)
             {
                 return false;
             }
@@ -185,8 +181,8 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnCoordBase, () => SetCoordSystem("Base"));
             RegisterClick(panel.BtnCoordTool, () => SetCoordSystem("Tool"));
             RegisterClick(panel.BtnCoordUser, () => SetCoordSystem("User"));
-            RegisterClick(panel.BtnPreview, PreviewTcpTarget);
-            RegisterClick(panel.BtnApply, ApplyTcpMove);
+            RegisterClick(panel.BtnPreview, PreviewCurrentPose);
+            RegisterClick(panel.BtnApply, ApplyCurrentPose);
             for (var index = 0; index < panel.Rows.Length; index++)
             {
                 var capturedIndex = index;
@@ -215,7 +211,7 @@ namespace KineTutor3D.UI.RobotControlV3
             button.RegisterCallback<ClickEvent>(_ => handler());
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             for (var index = 0; index < AxisSpecs.Length && index < data.TcpValues.Length; index++)
             {
@@ -243,12 +239,12 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnCoordBase.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "Base");
             panel.BtnCoordTool.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "Tool");
             panel.BtnCoordUser.EnableInClassList("rc-tcp-coord-button--active", activeCoordSystem == "User");
-            panel.Hint.text = $"{GetCoordHint()} {lastFeedback}";
+            panel.Hint.text = GetCoordHint();
             panel.IncrementSummary.text = $"증분: {GetIncrementValue():0.#} mm / {GetIncrementValue():0.#}°";
             panel.SpeedSummary.text = $"속도: {GetLocalState().SpeedPercent}%";
             panel.OverlaySummary.text = highlightedAxis >= 0
-                ? $"3D 화살표 강조: {AxisSpecs[highlightedAxis].Label}{(highlightedDirection > 0 ? "+" : "-")} ({activeCoordSystem})"
-                : "같은 축을 오른쪽 3D 오버레이에서 바로 이어서 조작할 수 있다.";
+                ? $"보조 조작 강조: {AxisSpecs[highlightedAxis].Label}{(highlightedDirection > 0 ? "+" : "-")} ({activeCoordSystem})"
+                : "3D 방향 조작은 보조패널에서만 보여 로봇 메인 뷰를 가리지 않는다.";
             panel.BtnPreview.SetEnabled(CanPreview());
             panel.BtnApply.SetEnabled(CanApply());
 
@@ -270,7 +266,7 @@ namespace KineTutor3D.UI.RobotControlV3
             overlay.Hint.text = GetCoordHint();
             overlay.Summary.text = highlightedAxis >= 0
                 ? $"마지막 조작 축: {AxisSpecs[highlightedAxis].Label}{(highlightedDirection > 0 ? "+" : "-")} / 증분 {GetIncrementValue():0.#}"
-                : "마지막 조작 축: 없음";
+                : "마지막 조작 축: 없음 / 메인 로봇 뷰는 계속 유지";
             for (var index = 0; index < overlay.Axes.Length; index++)
             {
                 overlay.Axes[index].Root.EnableInClassList("rc-cartesian-axis--active", highlightedAxis == index);
@@ -308,7 +304,6 @@ namespace KineTutor3D.UI.RobotControlV3
             var localState = GetLocalState();
             localState.CoordSystem = activeCoordSystem;
             LocalSettingsStore.Save(localState);
-            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"TCP preview · {activeCoordSystem}", false);
             ApplyAll();
         }
 
@@ -317,106 +312,8 @@ namespace KineTutor3D.UI.RobotControlV3
             currentValues[index] = Mathf.Clamp(currentValues[index] + direction * GetIncrementValue(), AxisSpecs[index].MinValue, AxisSpecs[index].MaxValue);
             highlightedAxis = index;
             highlightedDirection = direction;
-            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"TCP preview · {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")}", false);
             ApplyAll();
-        }
-
-        private void PreviewTcpTarget()
-        {
-            visualizationOrchestrator?.PreviewTcpTarget(BuildTcpTarget(), highlightedAxis, highlightedDirection, activeCoordSystem, $"MoveL preview · X {currentValues[0]:0.0} / Y {currentValues[1]:0.0} / Z {currentValues[2]:0.0}", false);
-            lastFeedback = "TCP target/path를 갱신했다.";
-            ApplyAll();
-        }
-
-        private void ApplyTcpMove()
-        {
-            if (!connectionHomeController.ActualMoveAllowed)
-            {
-                lastFeedback = connectionHomeController.ActualMoveBlockReason;
-                ApplyAll();
-                return;
-            }
-
-            var target = BuildTcpTarget();
-            void Execute()
-            {
-                var runtimeResult = EnsureMotionRuntime();
-                if (!runtimeResult.IsSuccess)
-                {
-                    lastFeedback = runtimeResult.Message;
-                }
-                else
-                {
-                    var speed = GetLocalState().SpeedPercent;
-                    var result = motionRuntime.DispatchMoveL(target, speed);
-                    lastFeedback = result.IsSuccess
-                        ? $"MoveL 실행 완료 · X {target[0]:0.0} / Y {target[1]:0.0} / Z {target[2]:0.0}"
-                        : $"MoveL 실패 · {result.Message}";
-                    if (result.IsSuccess)
-                    {
-                        visualizationOrchestrator?.SetRuntimePose(CurrentJointValuesFallback(), target);
-                        visualizationOrchestrator?.ClearPreview();
-                    }
-                }
-
-                ApplyAll();
-            }
-
-            if (popupCoordinator != null)
-            {
-                popupCoordinator.OpenMoveConfirmForPolicy("TCP 실행 확인", $"X {target[0]:0.0} / Y {target[1]:0.0} / Z {target[2]:0.0}", Execute, "MoveL 실행");
-                return;
-            }
-
-            Execute();
-        }
-
-        private FairinoResult<RobotControlMotionRuntime> EnsureMotionRuntime()
-        {
-            var robotId = RobotSelectionBridge.GetSelectedRobotId();
-            if (string.IsNullOrWhiteSpace(robotId))
-            {
-                motionRuntime = null;
-                return FairinoResult<RobotControlMotionRuntime>.Fail(-1, "선택된 로봇이 없어서 TCP runtime을 준비하지 못했다.");
-            }
-
-            if (motionRuntime != null && motionRuntime.RobotId == robotId)
-            {
-                return FairinoResult<RobotControlMotionRuntime>.Ok(motionRuntime, "tcp runtime 재사용");
-            }
-
-            var createResult = RobotControlMotionRuntime.CreateFromSelection();
-            if (!createResult.IsSuccess)
-            {
-                motionRuntime = null;
-                return createResult;
-            }
-
-            motionRuntime = createResult.Value;
-            return createResult;
-        }
-
-        private double[] BuildTcpTarget()
-        {
-            var target = new double[currentValues.Length];
-            for (var index = 0; index < currentValues.Length; index++)
-            {
-                target[index] = currentValues[index];
-            }
-
-            return target;
-        }
-
-        private double[] CurrentJointValuesFallback()
-        {
-            var values = connectionHomeController.CurrentPreviewDefinition.JointValues;
-            var target = new double[values.Length];
-            for (var index = 0; index < values.Length; index++)
-            {
-                target[index] = ParseValue(values[index]);
-            }
-
-            return target;
+            runtimeController?.PreviewTcpPose(ToTcpPoseArray(), $"TCP {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")} 프리뷰");
         }
 
         private PendantV3LocalState GetLocalState()
@@ -453,6 +350,27 @@ namespace KineTutor3D.UI.RobotControlV3
                 "User" => "User는 작업대 기준 좌표를 맞출 때 쓰고, 아직 값이 없다면 Base부터 확인한다.",
                 _ => "Base는 베이스 기준으로 앞/좌/상 감각을 먼저 잡기 좋다.",
             };
+        }
+
+        private void PreviewCurrentPose()
+        {
+            runtimeController?.PreviewTcpPose(ToTcpPoseArray(), $"TCP {activeCoordSystem} 미리보기");
+        }
+
+        private void ApplyCurrentPose()
+        {
+            runtimeController?.ApplyTcpPose(ToTcpPoseArray(), $"TCP {activeCoordSystem} 적용");
+        }
+
+        private double[] ToTcpPoseArray()
+        {
+            var result = new double[currentValues.Length];
+            for (var i = 0; i < currentValues.Length; i++)
+            {
+                result[i] = currentValues[i];
+            }
+
+            return result;
         }
     }
 }

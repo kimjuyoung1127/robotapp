@@ -8,7 +8,7 @@ Date: 2026-03-12 (KST)
 - `Boot`는 route-only, `Instructor Mode / Progress / Settings`는 미구현 IA gap으로만 기록했다.
 
 ## Updated Docs
-- `docs/status/PAGE-QA-MATRIX.md`
+- `docs/archive/legacy/page-qa/PAGE-QA-MATRIX-2026-03-23.md`
 - `docs/status/PHASE-EXECUTION-BOARD.md`
 - `docs/status/PROJECT-STATUS.md`
 

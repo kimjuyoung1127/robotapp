@@ -1,7 +1,7 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
-using KineTutor3D.App;
 using UnityEngine;
 using UnityEngine.UIElements;
+using KineTutor3D.App.Fairino;
 
 namespace KineTutor3D.UI.RobotControlV3
 {
@@ -12,19 +12,6 @@ namespace KineTutor3D.UI.RobotControlV3
     [RequireComponent(typeof(PendantV3InputContract))]
     public sealed class PopupCoordinatorV3 : MonoBehaviour
     {
-        private enum PopupKind
-        {
-            None,
-            ServoConfirm,
-            ResetConfirm,
-            RunConfirm,
-            MoveConfirm,
-            Warning,
-            Recovery,
-            Unsaved,
-            FirstRunGuide,
-        }
-
         [SerializeField] private UIDocument document;
         [SerializeField] private VisualTreeAsset servoConfirmTemplate;
         [SerializeField] private VisualTreeAsset resetConfirmTemplate;
@@ -33,12 +20,8 @@ namespace KineTutor3D.UI.RobotControlV3
         [SerializeField] private VisualTreeAsset warningDialogTemplate;
         [SerializeField] private VisualTreeAsset recoveryDialogTemplate;
         [SerializeField] private VisualTreeAsset unsavedConfirmTemplate;
-        [SerializeField] private VisualTreeAsset firstRunGuideTemplate;
 
         private PendantV3InputContract inputContract;
-        private ConnectionHomeController connectionHomeController;
-        private PointMoveController pointMoveController;
-        private PendantV3ShellStateController shellStateController;
         private VisualElement root;
         private Label popupCardTitle;
         private Label popupCardSummary;
@@ -47,22 +30,19 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button popupCancelButton;
         private Button popupConfirmButton;
         private Button btnServoEnable;
+        private Button btnRun;
+        private Button btnStop;
         private Button btnResetError;
         private Button btnRunBottom;
         private Button btnStopBottom;
         private Button btnStepBack;
-        private Button btnSync;
         private Button btnFaultOverlayReset;
         private Button btnFaultOverlayClose;
+        private RobotControlV3RuntimeController runtimeController;
+        private string activePopupKind = string.Empty;
         private bool restoreFaultOverlayAfterPopup;
-        private bool firstRunGuideChecked;
-        private PopupKind currentPopupKind;
-        private System.Action pendingConfirmAction;
-        private System.Action pendingCancelAction;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
-
-        public event System.Action PopupStateChanged;
 
         private void OnEnable()
         {
@@ -93,36 +73,26 @@ namespace KineTutor3D.UI.RobotControlV3
             var confirmText = popupConfirmButton?.text ?? "missing";
             var hostChildren = popupTemplateHost?.childCount ?? -1;
             var popupOpen = popupTemplateHost != null && popupTemplateHost.childCount > 0;
-            return $"initialized={isInitialized}; popupOpen={popupOpen}; kind={currentPopupKind}; title={title}; confirm={confirmText}; templateChildren={hostChildren}";
-        }
-
-        public bool HasActivePopup => currentPopupKind != PopupKind.None;
-
-        public string GetPopupContextSummary()
-        {
-            return HasActivePopup
-                ? $"{popupCardTitle?.text ?? "팝업"} · {popupCardSummary?.text ?? string.Empty}"
-                : string.Empty;
+            return $"initialized={isInitialized}; popupOpen={popupOpen}; title={title}; confirm={confirmText}; templateChildren={hostChildren}";
         }
 
         private bool TryInitialize()
         {
             document ??= GetComponent<UIDocument>();
             inputContract ??= GetComponent<PendantV3InputContract>();
-            connectionHomeController ??= GetComponent<ConnectionHomeController>();
-            pointMoveController ??= GetComponent<PointMoveController>();
-            shellStateController ??= GetComponent<PendantV3ShellStateController>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
             if (root == null
                 || inputContract == null
+                || runtimeController == null
+                || !runtimeController.ForceInitialize()
                 || servoConfirmTemplate == null
                 || resetConfirmTemplate == null
                 || runConfirmTemplate == null
                 || moveConfirmTemplate == null
                 || warningDialogTemplate == null
                 || recoveryDialogTemplate == null
-                || unsavedConfirmTemplate == null
-                || firstRunGuideTemplate == null)
+                || unsavedConfirmTemplate == null)
             {
                 return false;
             }
@@ -134,11 +104,12 @@ namespace KineTutor3D.UI.RobotControlV3
             popupCancelButton = root.Q<Button>("BtnPopupCancel");
             popupConfirmButton = root.Q<Button>("BtnPopupConfirm");
             btnServoEnable = root.Q<Button>("BtnServoEnable");
+            btnRun = root.Q<Button>("BtnRun");
+            btnStop = root.Q<Button>("BtnStop");
             btnResetError = root.Q<Button>("BtnResetError");
             btnRunBottom = root.Q<Button>("BtnRunBottom");
             btnStopBottom = root.Q<Button>("BtnStopBottom");
             btnStepBack = root.Q<Button>("BtnStepBack");
-            btnSync = root.Q<Button>("BtnSync");
             btnFaultOverlayReset = root.Q<Button>("BtnFaultOverlayReset");
             btnFaultOverlayClose = root.Q<Button>("BtnFaultOverlayClose");
 
@@ -151,7 +122,6 @@ namespace KineTutor3D.UI.RobotControlV3
             UnbindButtons();
             BindButtons();
             isInitialized = true;
-            TryOpenFirstRunGuide();
             return true;
         }
 
@@ -173,8 +143,8 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void BindButtons()
         {
-            popupCancelButton.RegisterCallback<ClickEvent>(OnPopupCancelClicked);
-            popupConfirmButton.RegisterCallback<ClickEvent>(OnPopupConfirmClicked);
+            popupCancelButton.RegisterCallback<ClickEvent>(OnPopupButtonClicked);
+            popupConfirmButton.RegisterCallback<ClickEvent>(OnPopupButtonClicked);
 
             if (btnServoEnable != null)
             {
@@ -186,14 +156,19 @@ namespace KineTutor3D.UI.RobotControlV3
                 btnResetError.clicked += OpenResetConfirm;
             }
 
+            if (btnRun != null)
+            {
+                btnRun.clicked += OpenRunConfirm;
+            }
+
+            if (btnStop != null)
+            {
+                btnStop.clicked += OpenWarningDialog;
+            }
+
             if (btnRunBottom != null)
             {
                 btnRunBottom.clicked += OpenRunConfirm;
-            }
-
-            if (btnSync != null)
-            {
-                btnSync.clicked += ApplySyncPolicy;
             }
 
             if (btnStopBottom != null)
@@ -221,12 +196,12 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (popupCancelButton != null)
             {
-                popupCancelButton.UnregisterCallback<ClickEvent>(OnPopupCancelClicked);
+                popupCancelButton.UnregisterCallback<ClickEvent>(OnPopupButtonClicked);
             }
 
             if (popupConfirmButton != null)
             {
-                popupConfirmButton.UnregisterCallback<ClickEvent>(OnPopupConfirmClicked);
+                popupConfirmButton.UnregisterCallback<ClickEvent>(OnPopupButtonClicked);
             }
 
             if (btnServoEnable != null)
@@ -239,14 +214,19 @@ namespace KineTutor3D.UI.RobotControlV3
                 btnResetError.clicked -= OpenResetConfirm;
             }
 
+            if (btnRun != null)
+            {
+                btnRun.clicked -= OpenRunConfirm;
+            }
+
+            if (btnStop != null)
+            {
+                btnStop.clicked -= OpenWarningDialog;
+            }
+
             if (btnRunBottom != null)
             {
                 btnRunBottom.clicked -= OpenRunConfirm;
-            }
-
-            if (btnSync != null)
-            {
-                btnSync.clicked -= ApplySyncPolicy;
             }
 
             if (btnStopBottom != null)
@@ -272,67 +252,44 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void OpenServoConfirm()
         {
-            if (connectionHomeController == null || connectionHomeController.CurrentPreviewState != PendantV3PreviewState.Kind.ConnectedServoOff)
-            {
-                return;
-            }
-
-            OpenPopup(PopupKind.ServoConfirm, servoConfirmTemplate, connectionHomeController.ApplyServoEnablePolicy);
+            activePopupKind = "servo";
+            OpenPopup(servoConfirmTemplate);
         }
 
         private void OpenResetConfirm()
         {
-            if (connectionHomeController == null || connectionHomeController.CurrentPreviewState != PendantV3PreviewState.Kind.Fault)
-            {
-                return;
-            }
-
-            OpenPopup(PopupKind.ResetConfirm, resetConfirmTemplate, connectionHomeController.ApplyResetErrorPolicy);
+            activePopupKind = "reset";
+            OpenPopup(resetConfirmTemplate);
         }
 
         private void OpenRunConfirm()
         {
-            if (connectionHomeController == null || !connectionHomeController.CurrentPreviewDefinition.RunEnabled)
-            {
-                return;
-            }
-
-            OpenPopup(PopupKind.RunConfirm, runConfirmTemplate, connectionHomeController.ApplyRunPolicy);
+            activePopupKind = "run";
+            OpenPopup(runConfirmTemplate);
         }
 
         private void OpenMoveConfirm()
         {
-            OpenPopup(PopupKind.MoveConfirm, moveConfirmTemplate, null);
+            activePopupKind = "move";
+            OpenPopup(moveConfirmTemplate);
         }
 
         private void OpenWarningDialog()
         {
-            OpenPopup(PopupKind.Warning, warningDialogTemplate, null);
+            activePopupKind = "warning";
+            OpenPopup(warningDialogTemplate);
         }
 
         private void OpenRecoveryDialog()
         {
-            OpenPopup(PopupKind.Recovery, recoveryDialogTemplate, null);
+            activePopupKind = "recovery";
+            OpenPopup(recoveryDialogTemplate);
         }
 
         private void OpenUnsavedConfirm()
         {
-            if (pointMoveController == null || !pointMoveController.HasUnsavedDraft())
-            {
-                return;
-            }
-
-            OpenPopup(PopupKind.Unsaved, unsavedConfirmTemplate, pointMoveController.DiscardDraftAndReturnToEasyMotion);
-        }
-
-        private void OpenFirstRunGuide()
-        {
-            OpenPopup(PopupKind.FirstRunGuide, firstRunGuideTemplate, null);
-        }
-
-        public void OpenMoveConfirmForPolicy(string title, string summary, System.Action confirmAction, string confirmLabel)
-        {
-            OpenPopup(PopupKind.MoveConfirm, moveConfirmTemplate, confirmAction, null, title, summary, confirmLabel);
+            activePopupKind = "unsaved";
+            OpenPopup(unsavedConfirmTemplate);
         }
 
         public string OpenPopupForDebug(string popupKind)
@@ -365,40 +322,26 @@ namespace KineTutor3D.UI.RobotControlV3
                 case "unsaved":
                     OpenUnsavedConfirm();
                     break;
-                case "guide":
-                    OpenFirstRunGuide();
-                    break;
                 default:
-                    return $"popupKind={popupKind}; supported=servo,reset,run,move,warning,recovery,unsaved,guide";
+                    return $"popupKind={popupKind}; supported=servo,reset,run,move,warning,recovery,unsaved";
             }
 
             return GetDebugSummary();
         }
 
-        private void OpenPopup(
-            PopupKind popupKind,
-            VisualTreeAsset template,
-            System.Action confirmAction,
-            System.Action cancelAction = null,
-            string titleOverride = null,
-            string summaryOverride = null,
-            string confirmLabelOverride = null)
+        private void OpenPopup(VisualTreeAsset template)
         {
             if (template == null || popupTemplateHost == null)
             {
                 return;
             }
 
-            pendingConfirmAction = confirmAction;
-            pendingCancelAction = cancelAction;
-            currentPopupKind = popupKind;
             popupTemplateHost.Clear();
             var tree = template.CloneTree();
             popupTemplateHost.Add(tree);
-            ApplyTemplateCopy(tree, titleOverride, summaryOverride, confirmLabelOverride);
+            ApplyTemplateCopy(tree);
             SetFaultOverlaySuppressed(true);
             inputContract.OpenPopupProbeForDebug();
-            PopupStateChanged?.Invoke();
         }
 
         private void CloseActivePopup()
@@ -406,22 +349,41 @@ namespace KineTutor3D.UI.RobotControlV3
             popupTemplateHost?.Clear();
             inputContract?.ClosePopupProbeForDebug();
             SetFaultOverlaySuppressed(false);
-            pendingConfirmAction = null;
-            pendingCancelAction = null;
-            currentPopupKind = PopupKind.None;
-            PopupStateChanged?.Invoke();
+            activePopupKind = string.Empty;
         }
 
-        private void OnPopupCancelClicked(ClickEvent _)
+        private void OnPopupButtonClicked(ClickEvent evt)
         {
-            pendingCancelAction?.Invoke();
+            if (evt.currentTarget == popupConfirmButton)
+            {
+                ExecuteConfirmedAction();
+            }
+
             CloseActivePopup();
         }
 
-        private void OnPopupConfirmClicked(ClickEvent _)
+        private void ExecuteConfirmedAction()
         {
-            pendingConfirmAction?.Invoke();
-            CloseActivePopup();
+            switch (activePopupKind)
+            {
+                case "servo":
+                    runtimeController?.EnableServo();
+                    break;
+                case "reset":
+                case "recovery":
+                    runtimeController?.ResetErrors();
+                    break;
+                case "run":
+                case "move":
+                    runtimeController?.ExecutePrimaryAction();
+                    break;
+                case "warning":
+                    runtimeController?.StopMotion();
+                    break;
+                case "unsaved":
+                    runtimeController?.StepBackward();
+                    break;
+            }
         }
 
         private void SetFaultOverlaySuppressed(bool suppressed)
@@ -451,7 +413,7 @@ namespace KineTutor3D.UI.RobotControlV3
             restoreFaultOverlayAfterPopup = false;
         }
 
-        private void ApplyTemplateCopy(VisualElement tree, string titleOverride, string summaryOverride, string confirmLabelOverride)
+        private void ApplyTemplateCopy(VisualElement tree)
         {
             var metaTitle = tree.Q<Label>("PopupMetaTitle");
             var metaSummary = tree.Q<Label>("PopupMetaSummary");
@@ -459,32 +421,14 @@ namespace KineTutor3D.UI.RobotControlV3
             var metaCancel = tree.Q<Label>("PopupMetaCancel");
             var metaDanger = tree.Q<Label>("PopupMetaDanger");
 
-            popupCardTitle.text = string.IsNullOrWhiteSpace(titleOverride) ? metaTitle?.text ?? string.Empty : titleOverride;
-            popupCardSummary.text = string.IsNullOrWhiteSpace(summaryOverride) ? metaSummary?.text ?? string.Empty : summaryOverride;
+            popupCardTitle.text = metaTitle?.text ?? string.Empty;
+            popupCardSummary.text = metaSummary?.text ?? string.Empty;
             popupCancelButton.text = metaCancel?.text ?? string.Empty;
-            popupConfirmButton.text = string.IsNullOrWhiteSpace(confirmLabelOverride) ? metaConfirm?.text ?? string.Empty : confirmLabelOverride;
+            popupConfirmButton.text = metaConfirm?.text ?? string.Empty;
 
             var isDanger = bool.TryParse(metaDanger?.text, out var parsedDanger) && parsedDanger;
             popupConfirmButton.EnableInClassList("rc-popup-button--danger", isDanger);
             popupConfirmButton.EnableInClassList("rc-popup-button--primary", !isDanger);
-        }
-
-        private void ApplySyncPolicy()
-        {
-            connectionHomeController?.ApplySyncPolicy();
-            PopupStateChanged?.Invoke();
-        }
-
-        private void TryOpenFirstRunGuide()
-        {
-            if (firstRunGuideChecked || !RobotControlEntryPolicy.ShouldShowFirstRunGuide())
-            {
-                return;
-            }
-
-            firstRunGuideChecked = true;
-            RobotControlEntryPolicy.MarkFirstRunGuideShown();
-            OpenFirstRunGuide();
         }
     }
 }

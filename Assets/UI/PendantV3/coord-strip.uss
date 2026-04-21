@@ -1,12 +1,17 @@
 /* Pendant V3 - Coord Strip: Phase 2A-2 right-side coordinate summary */
 .rc-coord-strip-root {
     margin-bottom: var(--rc-gap);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .rc-coord-strip-header {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    min-width: 0;
 }
 
 .rc-coord-strip-header-right {
@@ -15,14 +20,14 @@
 }
 
 .rc-coord-badge {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
     padding-top: 3px;
     padding-bottom: 3px;
     border-radius: 999px;
     background-color: rgba(80, 140, 255, 0.18);
     color: var(--rc-title-text);
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .rc-coord-toggle-button {
@@ -56,15 +61,18 @@
 .rc-coord-grid {
     flex-direction: row;
     flex-wrap: wrap;
-    margin-top: 8px;
+    margin-top: 6px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-coord-cell {
-    width: 30%;
+    flex-grow: 1;
+    width: 47%;
     min-width: 86px;
-    margin-right: 6px;
+    margin-right: 4px;
     margin-bottom: 6px;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
     background-color: rgba(18, 18, 24, 0.55);
 }
@@ -75,21 +83,26 @@
 }
 
 .rc-coord-cell-value {
-    margin-top: 4px;
-    font-size: 16px;
+    margin-top: 3px;
+    font-size: 13px;
     -unity-font-style: bold;
     color: var(--rc-title-text);
 }
 
 .rc-coord-mode-row {
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 10px;
+    min-width: 0;
 }
 
 .rc-coord-mode-button {
     flex-grow: 1;
-    min-height: 32px;
-    margin-right: 6px;
+    min-width: 72px;
+    min-height: 28px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    font-size: 11px;
 }
 
 .rc-coord-mode-button--active {

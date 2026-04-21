@@ -1,5 +1,6 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -21,6 +22,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement easyMotionPanelHost;
         private VisualElement easyMotionSheetHost;
         private ConnectionHomeController connectionHomeController;
+        private RobotControlV3RuntimeController runtimeController;
+        private string selectedPresetName = "Ready";
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -85,8 +88,9 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
+            runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || easyMotionTemplate == null || connectionHomeController == null)
+            if (root == null || easyMotionTemplate == null || connectionHomeController == null || runtimeController == null)
             {
                 return false;
             }
@@ -162,16 +166,35 @@ namespace KineTutor3D.UI.RobotControlV3
             host.Clear();
             var tree = easyMotionTemplate.CloneTree();
             host.Add(tree);
-            return new PanelElements(tree);
+            var panel = new PanelElements(tree);
+            RegisterPanel(panel);
+            return panel;
         }
 
-        private void ApplyPreview(PendantV3PreviewState.Definition data)
+        private void RegisterPanel(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            panel.BtnEasyHome.clicked += () => SelectPresetAndPreview("Home");
+            panel.BtnEasyReady.clicked += () => SelectPresetAndPreview("Ready");
+            panel.BtnEasyFolded.clicked += () => SelectPresetAndPreview("Folded");
+            panel.BtnEasyZero.clicked += () => SelectPresetAndPreview("Zero");
+            panel.BtnEasyPreview.clicked += PreviewSelectedPreset;
+            panel.BtnEasyApply.clicked += ApplySelectedPreset;
+            panel.BtnGripperOpen.clicked += () => runtimeController?.SetGripperOpen(true);
+            panel.BtnGripperClose.clicked += () => runtimeController?.SetGripperOpen(false);
+        }
+
+        private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
             ApplyPanel(desktopPanel, data, connectionHomeController.CurrentPreviewState);
             ApplyPanel(tabletPanel, data, connectionHomeController.CurrentPreviewState);
         }
 
-        private void ApplyPanel(PanelElements panel, PendantV3PreviewState.Definition data, PendantV3PreviewState.Kind state)
+        private void ApplyPanel(PanelElements panel, RobotControlV3RuntimeSnapshot data, PendantV3PreviewState.Kind state)
         {
             if (panel == null)
             {
@@ -180,12 +203,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
             panel.EasyStateSummary.text = $"{data.StatusConnection} · Tool {data.StatusTool} · User {data.StatusUser}";
             panel.EasyModeBadge.text = state == PendantV3PreviewState.Kind.ReadyToJog ? "조작 가능" : "초보자 시작";
-            panel.EasyDryRunLabel.text = state == PendantV3PreviewState.Kind.ReadyToJog ? "미리보기 먼저 (DryRun ON)" : "연결/동기화 끝나면 DryRun부터 권장";
-            panel.EasyActionHint.text = data.ActionWhy;
+            panel.EasyDryRunLabel.text = $"{data.GripperSummary} · {data.ToolDoSummary}";
+            panel.EasyActionHint.text = $"{data.ActionWhy} / {data.PeripheralFeedback}";
 
             var canPreview = state is not PendantV3PreviewState.Kind.Disconnected and not PendantV3PreviewState.Kind.AutoReconnect;
             var canApply = state == PendantV3PreviewState.Kind.ReadyToJog;
-            var canGrip = state is PendantV3PreviewState.Kind.ReadyToJog or PendantV3PreviewState.Kind.ConnectedUnsynced;
+            var canGrip = data.DryRunEnabled || state is PendantV3PreviewState.Kind.ReadyToJog or PendantV3PreviewState.Kind.ConnectedUnsynced;
             var canPreset = canPreview;
 
             panel.BtnEasyHome.SetEnabled(canPreset);
@@ -196,6 +219,22 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnEasyApply.SetEnabled(canApply);
             panel.BtnGripperOpen.SetEnabled(canGrip);
             panel.BtnGripperClose.SetEnabled(canGrip);
+        }
+
+        private void SelectPresetAndPreview(string presetName)
+        {
+            selectedPresetName = string.IsNullOrWhiteSpace(presetName) ? "Ready" : presetName;
+            runtimeController?.PreviewPreset(selectedPresetName);
+        }
+
+        private void PreviewSelectedPreset()
+        {
+            runtimeController?.PreviewPreset(selectedPresetName);
+        }
+
+        private void ApplySelectedPreset()
+        {
+            runtimeController?.ApplyPreset(selectedPresetName);
         }
 
         private void ApplyVisibility()

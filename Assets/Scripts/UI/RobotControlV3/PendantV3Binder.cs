@@ -1,5 +1,6 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
 using KineTutor3D.App;
+using KineTutor3D.App.Fairino;
 using UnityEngine;
 
 namespace KineTutor3D.UI.RobotControlV3
@@ -16,13 +17,14 @@ namespace KineTutor3D.UI.RobotControlV3
         [SerializeField] private StatusCardController statusCardController;
         [SerializeField] private SafetyDiagnosticsController safetyDiagnosticsController;
         [SerializeField] private ViewportToolbarController viewportToolbarController;
+        [SerializeField] private ViewportAuxInfoController viewportAuxInfoController;
         [SerializeField] private HelpPanelController helpPanelController;
         [SerializeField] private WhyItMovedController whyItMovedController;
 
         private bool isInitialized;
         private bool subscriptionsBound;
         private Coroutine initializeCoroutine;
-        private PendantV3PreviewState.Definition lastPreviewDefinition;
+        private RobotControlV3RuntimeSnapshot lastPreviewDefinition;
         private PendantV3LocalState lastShellState;
 
         private void OnEnable()
@@ -87,6 +89,7 @@ namespace KineTutor3D.UI.RobotControlV3
             statusCardController ??= GetComponent<StatusCardController>();
             safetyDiagnosticsController ??= GetComponent<SafetyDiagnosticsController>();
             viewportToolbarController ??= GetComponent<ViewportToolbarController>();
+            viewportAuxInfoController ??= GetComponent<ViewportAuxInfoController>();
             helpPanelController ??= GetComponent<HelpPanelController>();
             whyItMovedController ??= GetComponent<WhyItMovedController>();
 
@@ -98,9 +101,10 @@ namespace KineTutor3D.UI.RobotControlV3
             var statusReady = statusCardController == null || statusCardController.ForceInitialize();
             var safetyReady = safetyDiagnosticsController == null || safetyDiagnosticsController.ForceInitialize();
             var toolbarReady = viewportToolbarController == null || viewportToolbarController.ForceInitialize();
+            var auxReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
             var helpReady = helpPanelController == null || helpPanelController.ForceInitialize();
             var whyReady = whyItMovedController == null || whyItMovedController.ForceInitialize();
-            if (!statusReady || !safetyReady || !toolbarReady || !helpReady || !whyReady)
+            if (!statusReady || !safetyReady || !toolbarReady || !auxReady || !helpReady || !whyReady)
             {
                 isInitialized = false;
                 return false;
@@ -144,7 +148,7 @@ namespace KineTutor3D.UI.RobotControlV3
             subscriptionsBound = false;
         }
 
-        private void HandlePreviewChanged(PendantV3PreviewState.Definition data)
+        private void HandlePreviewChanged(RobotControlV3RuntimeSnapshot data)
         {
             lastPreviewDefinition = data;
             lastShellState = shellStateController != null
@@ -167,11 +171,12 @@ namespace KineTutor3D.UI.RobotControlV3
             RefreshDisplayPanels(lastPreviewDefinition, lastShellState);
         }
 
-        private void RefreshDisplayPanels(PendantV3PreviewState.Definition previewDefinition, PendantV3LocalState shellState)
+        private void RefreshDisplayPanels(RobotControlV3RuntimeSnapshot previewDefinition, PendantV3LocalState shellState)
         {
             statusCardController?.RefreshFromBinder(previewDefinition);
             safetyDiagnosticsController?.RefreshFromBinder(previewDefinition);
             viewportToolbarController?.RefreshFromBinder(previewDefinition);
+            viewportAuxInfoController?.RefreshFromBinder(previewDefinition, shellState);
             helpPanelController?.RefreshFromBinder(previewDefinition, shellState);
             whyItMovedController?.RefreshFromBinder(previewDefinition);
         }
