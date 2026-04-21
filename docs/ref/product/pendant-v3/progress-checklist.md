@@ -95,6 +95,30 @@
 - live motion은 boundary/collision real data와 production IK policy가 준비될 때까지 gate에서 차단한다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
+## Next Session Handoff
+
+- 현재 브랜치: `codex/robotcontrol-v3-toolkit`
+- 최신 커밋 기준:
+  - `9ad78f5 Add RobotControl V3 live command safety gate`
+- 첫 확인 명령:
+  - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
+  - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
+  - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
+- 바로 재실행할 핵심 matrix:
+  - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+  - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
+  - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
+  - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
+- 다음 구현 우선순위:
+  - `Operator live confirm UX`: 실제 제품 팝업에서 1회성 live token을 발급하고 표시한다.
+  - `Boundary/Collision real data`: 현재 토글/표시가 아니라 safety gate 입력으로 쓸 실제 판정 데이터를 만든다.
+  - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
+  - `Program Run/Step queue`: 단일 pending preview 실행을 넘어 step queue를 정의한다.
+- 절대 금지:
+  - 실제 FR5 `MoveJ / MoveL / DO / ToolDO / MoveGripper`를 operator safety confirm UX, boundary/collision real data, production IK policy 없이 열지 않는다.
+  - live command를 열기 전에 `RunLiveSdkReadbackGateForDebug()` readback-only부터 수행한다.
+
 ## Done Checklist
 
 - [x] V3 전용 `RobotControlV3.unity` 씬 생성

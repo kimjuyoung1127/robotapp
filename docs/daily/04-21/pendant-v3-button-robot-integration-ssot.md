@@ -371,6 +371,24 @@
   - 실제 Live command는 gate 앞에서 계속 막는다.
   - saved joint target MoveJ만 live 후보가 될 수 있고, numerical XYZ IK fallback은 live 금지다.
 
+## Next Session Handoff
+- 기준 커밋: `9ad78f5 Add RobotControl V3 live command safety gate`.
+- 다음 세션은 실기 명령을 여는 세션이 아니라, live command를 열기 위한 product UX/policy를 완성하는 세션으로 시작한다.
+- 첫 재검증:
+  - `unityctl check --type compile --json`
+  - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+  - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
+- 다음 구현 후보:
+  - operator confirm popup이 실제 `GrantLiveCommandApprovalForDebug()` 같은 debug token이 아니라 제품 UI token을 발급하도록 연결.
+  - boundary/collision real data를 `LiveCommandSafetyGateRequest`의 `IsBoundaryDataReady`, `IsCollisionDataReady`에 연결.
+  - Point MoveJ production IK policy를 saved joint target / numerical fallback / unreachable / singularity / collision별로 명확히 분리.
+  - Program Run/Step queue v1을 single-step queue로 제한해 정의.
+- 유지해야 할 안전 원칙:
+  - 모르는 조건은 허용이 아니라 차단이다.
+  - 실제 FR5 이동/출력/그리퍼 명령은 readback-only와 operator safety confirm 전까지 계속 금지다.
+  - Play direct QA 후에는 항상 `Always Start From Onboarding=true`로 원복한다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.
