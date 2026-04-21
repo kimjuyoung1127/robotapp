@@ -854,6 +854,11 @@ namespace KineTutor3D.App.Fairino
 
         public void ExecutePrimaryAction()
         {
+            if (TryExecutePendingPreview())
+            {
+                return;
+            }
+
             switch (snapshot.StatusKind)
             {
                 case RobotControlV3RuntimeStatusKind.Disconnected:
@@ -873,6 +878,28 @@ namespace KineTutor3D.App.Fairino
                     RefreshSnapshot();
                     break;
             }
+        }
+
+        private bool TryExecutePendingPreview()
+        {
+            if (!EnsureReadyForCommand("실행"))
+            {
+                return false;
+            }
+
+            if (previewUsesJointPose && previewJointAnglesDeg != null)
+            {
+                ApplyJointAngles(previewJointAnglesDeg, "실행 버튼 MoveJ");
+                return true;
+            }
+
+            if (!previewUsesJointPose && previewTcpPose != null)
+            {
+                ApplyTcpPose(previewTcpPose, "실행 버튼 MoveL");
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryInitialize()

@@ -356,3 +356,50 @@
   - pendant readback과 SDK readback의 gripper activation, position, speed, current, voltage, temperature를 비교한다.
 - `P2 실기 게이트`: live movement/IO command.
   - `MoveJ`, `MoveL`, DO/ToolDO, `MoveGripper` live 실행은 safety checklist, speed limit, E-stop, operator confirm, DryRun preview evidence가 모두 준비된 뒤에만 연다.
+
+## 2026-04-21 Missing Test Execution Kickoff
+- 실행 순서:
+  - 1차: desktop actual UI click full matrix를 자동화한다.
+  - 2차: tablet/bottom sheet actual click matrix를 별도 자동화한다.
+  - 3차: popup confirm/cancel E2E를 분리해서 검증한다.
+  - 4차: RobotStage 다각도 screenshot evidence를 남긴다.
+- 자동화 원칙:
+  - target 버튼은 반드시 `unityctl uitk click`로 누른다.
+  - 전제 상태 연결, servo on, panel visibility는 테스트 안정성을 위해 DebugBridge나 nav/tab click으로 세팅할 수 있다.
+  - 각 버튼은 before summary, click result, after summary, expected needle을 artifact에 남긴다.
+  - 실패한 버튼은 runtime 미연동, locator/visibility 문제, product 의미 미구현, popup policy 문제로 분류한다.
+- 산출물:
+  - actual-click matrix artifact: `Artifacts/robotcontrolv3-actual-click-matrix.json`
+  - screenshot evidence: `Artifacts/robotcontrolv3-stage-*.png`
+- 이번 세션의 첫 실행 단위:
+  - desktop actual-click matrix 스크립트를 만들고 실행한다.
+  - 실패가 나오면 코드/UX/테스트 분류 후 즉시 수정 가능한 것은 같은 세션에서 고친다.
+
+## 2026-04-21 Actual Click Matrix Execution
+- 구현:
+  - `RobotControlV3DebugBridge.RunActualUiClickMatrixForDebug()` 추가.
+  - `RobotControlV3DebugBridge.RunTabletBottomActualClickMatrixForDebug()` 추가.
+  - 외부 `unityctl uitk click` 반복은 너무 느려서, Unity 내부에서 실제 `Button`에 `ClickEvent`를 보내는 빠른 matrix로 승격했다.
+  - 느린 외부 스크립트는 `docs/ref/product/pendant-v3/run-v3-actual-click-matrix.ps1`에 남겨 재현용으로 둔다.
+- 발견 및 수정:
+  - `BtnRun`은 pending preview가 있어도 `ExecutePrimaryAction()`이 실행하지 않고 안내 문구만 띄웠다.
+  - `BtnRunBottom`, `BtnStopBottom`은 runtime handler에 연결되지 않았다.
+  - `RobotControlV3RuntimeController.ExecutePrimaryAction()`이 pending MoveJ/MoveL preview를 우선 실행하도록 보강했다.
+  - `ConnectionHomeController`가 bottom run/stop 버튼도 top run/stop과 같은 runtime handler에 묶도록 수정했다.
+- 검증 결과:
+  - `unityctl check --type compile --json`: pass.
+  - `script get-errors`: error 0.
+  - Desktop actual UI click matrix: `ActualUiClickMatrix pass=95; fail=0`.
+  - Tablet/bottom representative matrix: `TabletBottomClickMatrix pass=16; fail=0`.
+- Artifact:
+  - `Artifacts/robotcontrolv3-actual-click-matrix-internal.json`
+  - `Artifacts/robotcontrolv3-tablet-bottom-click-matrix.json`
+- 닫힌 항목:
+  - `P0 필수`: actual UI click full matrix.
+  - `P0 필수`: tablet/bottom sheet representative actual click matrix.
+- 아직 남은 항목:
+  - popup confirm/cancel E2E.
+  - RobotStage 다각도 screenshot evidence.
+  - Point MoveJ production behavior: orientation, unreachable target, joint limit, singularity, collision guard.
+  - Safety/fault state actual flow.
+  - Live SDK readback-only 및 live movement/IO command safety gate.

@@ -46,6 +46,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnPause;
         private Button btnSync;
         private Button btnResetError;
+        private Button btnRunBottom;
+        private Button btnStopBottom;
         private EventCallback<ClickEvent> connectClickCallback;
         private EventCallback<ClickEvent> disconnectClickCallback;
         private EventCallback<ClickEvent> primaryActionClickCallback;
@@ -211,6 +213,8 @@ namespace KineTutor3D.UI.RobotControlV3
             btnPause = root.Q<Button>("BtnPause");
             btnSync = root.Q<Button>("BtnSync");
             btnResetError = root.Q<Button>("BtnResetError");
+            btnRunBottom = root.Q<Button>("BtnRunBottom");
+            btnStopBottom = root.Q<Button>("BtnStopBottom");
         }
 
         private void BuildPanels()
@@ -417,6 +421,16 @@ namespace KineTutor3D.UI.RobotControlV3
                 btnStop.RegisterCallback(stopClickCallback);
             }
 
+            if (btnRunBottom != null)
+            {
+                btnRunBottom.RegisterCallback(runClickCallback);
+            }
+
+            if (btnStopBottom != null)
+            {
+                btnStopBottom.RegisterCallback(stopClickCallback);
+            }
+
             if (btnPause != null)
             {
                 btnPause.RegisterCallback(pauseClickCallback);
@@ -464,6 +478,16 @@ namespace KineTutor3D.UI.RobotControlV3
             if (btnStop != null && stopClickCallback != null)
             {
                 btnStop.UnregisterCallback(stopClickCallback);
+            }
+
+            if (btnRunBottom != null && runClickCallback != null)
+            {
+                btnRunBottom.UnregisterCallback(runClickCallback);
+            }
+
+            if (btnStopBottom != null && stopClickCallback != null)
+            {
+                btnStopBottom.UnregisterCallback(stopClickCallback);
             }
 
             if (btnPause != null)

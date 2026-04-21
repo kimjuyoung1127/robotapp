@@ -1,4 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using KineTutor3D.UI.RobotControlV3;
 using KineTutor3D.App.Fairino;
@@ -686,6 +688,337 @@ namespace KineTutor3D.App
             return builder.ToString();
         }
 
+        public static string RunActualUiClickMatrixForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var runtime = GetRuntimeController();
+            var payload = new ActualClickMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+            };
+
+            void AddCase(string buttonName, System.Action setup, System.Func<string> summary, string needle, string prefer = "desktop")
+            {
+                var result = new ActualClickMatrixResult
+                {
+                    name = buttonName,
+                    expected = needle ?? string.Empty,
+                    prefer = prefer,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = SafeSummary(summary);
+                    result.clickMessage = ClickUiButton(buttonName, prefer, out var found, out var enabled, out var path);
+                    result.found = found;
+                    result.enabled = enabled;
+                    result.path = path;
+                    result.after = SafeSummary(summary);
+                    result.passed = found
+                        && enabled
+                        && result.clickMessage.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found
+                            ? "locator"
+                            : !enabled
+                                ? "disabled"
+                                : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            string SafeSummary(System.Func<string> summary)
+            {
+                try
+                {
+                    return summary != null ? summary() : GetMovementStateSummaryForDebug();
+                }
+                catch (System.Exception ex)
+                {
+                    return $"summary-error={ex.GetType().Name}: {ex.Message}";
+                }
+            }
+
+            void EnsureReady()
+            {
+                runtime.Disconnect();
+                runtime.ConnectDefault();
+                runtime.EnableServo();
+                if (!runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+            }
+
+            void Select(string nav, string work, string tablet)
+            {
+                SetShellSelection(nav, work, tablet);
+            }
+
+            void PointDefaults()
+            {
+                SetPointMoveNameForDebug("AUDIT_UI");
+                SetPointMoveValueForDebug("X", 540f);
+                SetPointMoveValueForDebug("Y", 130f);
+                SetPointMoveValueForDebug("Z", 440f);
+                SetPointMoveValueForDebug("RX", 180f);
+                SetPointMoveValueForDebug("RY", 0f);
+                SetPointMoveValueForDebug("RZ", 95f);
+            }
+
+            AddCase("BtnConnect", () => { runtime.Disconnect(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "connected=True");
+            AddCase("BtnDisconnect", () => { runtime.ConnectDefault(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "connected=False");
+            AddCase("BtnQuickAction", () => { runtime.Disconnect(); runtime.ConnectDefault(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "enabled=True");
+            AddCase("BtnPrimaryAction", () => { runtime.Disconnect(); runtime.ConnectDefault(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "enabled=True");
+            AddCase("BtnServoEnable", () => { runtime.Disconnect(); runtime.ConnectDefault(); }, GetV3RuntimeSummary, "enabled=True");
+            AddCase("BtnSync", EnsureReady, GetMovementStateSummaryForDebug, "[Sync]");
+            AddCase("BtnStop", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
+            AddCase("BtnPause", EnsureReady, GetMovementStateSummaryForDebug, "Pause");
+            AddCase("BtnRun", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
+            AddCase("BtnResetError", EnsureReady, GetMovementStateSummaryForDebug, "[Reset]");
+            AddCase("BtnDryRun", EnsureReady, GetV3RuntimeSummary, "dryRun=False");
+
+            foreach (var buttonName in new[] { "BtnEasyHome", "BtnEasyReady", "BtnEasyFolded", "BtnEasyZero", "BtnEasyPreview" })
+            {
+                AddCase(buttonName, () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "MoveJ");
+            }
+
+            AddCase("BtnEasyApply", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd Open");
+            AddCase("BtnGripperClose", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); runtime.SetGripperOpen(true); }, GetMovementStateSummaryForDebug, "Cmd Close");
+
+            for (var axis = 1; axis <= 6; axis++)
+            {
+                var capturedAxis = axis;
+                AddCase($"BtnJoint{axis}Plus", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); }, GetMovementStateSummaryForDebug, "MoveJ");
+                AddCase($"BtnJoint{axis}Minus", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); NudgeJointForDebug(capturedAxis, 1); }, GetMovementStateSummaryForDebug, "MoveJ");
+            }
+
+            AddCase("BtnJointPreview", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); NudgeJointForDebug(1, 1); }, GetMovementStateSummaryForDebug, "MoveJ");
+            AddCase("BtnJointApply", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); NudgeJointForDebug(1, 1); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnJointRestore", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); NudgeJointForDebug(1, 1); }, GetMovementStateSummaryForDebug, "[Restore]");
+
+            for (var axis = 1; axis <= 6; axis++)
+            {
+                AddCase($"BtnTcp{axis}Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
+                AddCase($"BtnTcp{axis}Minus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
+                AddCase($"BtnArrow{axis}Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
+                AddCase($"BtnArrow{axis}Minus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
+            }
+
+            AddCase("BtnTcpCoordBase", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetTcpJogControllerSummary, "coord=Base");
+            AddCase("BtnTcpCoordTool", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetTcpJogControllerSummary, "coord=Tool");
+            AddCase("BtnTcpCoordUser", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetTcpJogControllerSummary, "coord=User");
+            AddCase("BtnTcpPreview", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); NudgeTcpAxisForDebug("X", 1); }, GetMovementStateSummaryForDebug, "MoveL");
+            AddCase("BtnTcpApply", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); NudgeTcpAxisForDebug("X", 1); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+
+            foreach (var buttonName in new[] { "BtnPointMoveJ", "BtnPointMoveL", "BtnPointPreview", "BtnPointApply", "BtnPointSave", "BtnPointRecall", "BtnPointDelete", "BtnPointRename", "BtnPointExport", "BtnPointCleanup" })
+            {
+                AddCase(buttonName, () =>
+                {
+                    EnsureReady();
+                    Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                    PointDefaults();
+                    CleanupPointMoveForDebug();
+                    SavePointMoveForDebug();
+                }, GetPointMoveListSummaryForDebug, "points=");
+            }
+
+            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
+            {
+                AddCase(buttonName, () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
+            }
+
+            foreach (var buttonName in new[] { "BtnViewportBaseFrame", "BtnViewportToolFrame", "BtnViewportTrail", "BtnViewportGhost", "BtnViewportBoundary", "BtnViewportCollision", "BtnViewportCameraReset" })
+            {
+                AddCase(buttonName, () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetAuxLayoutSummaryForDebug, "viewportHorizontalVisible=False");
+            }
+
+            AddCase("BtnCoordModeJoint", EnsureReady, () => SetCoordStripModeForDebug("Joint"), "jointHidden=False");
+            AddCase("BtnCoordModeTcp", EnsureReady, () => SetCoordStripModeForDebug("TCP"), "tcpHidden=False");
+            AddCase("BtnCoordModeBoth", EnsureReady, () => SetCoordStripModeForDebug("Both"), "jointHidden=False");
+
+            var passCount = 0;
+            var failCount = 0;
+            var failures = new StringBuilder();
+            foreach (var result in payload.results)
+            {
+                if (result.passed)
+                {
+                    passCount++;
+                }
+                else
+                {
+                    failCount++;
+                    failures.Append(result.name)
+                        .Append('(')
+                        .Append(result.failureClass)
+                        .Append("),");
+                }
+            }
+
+            payload.caseCount = payload.results.Count;
+            payload.passCount = passCount;
+            payload.failCount = failCount;
+
+            var artifactPath = Path.Combine(payload.project, "Artifacts", "robotcontrolv3-actual-click-matrix-internal.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(artifactPath));
+            File.WriteAllText(artifactPath, JsonUtility.ToJson(payload, true), Encoding.UTF8);
+
+            return $"ActualUiClickMatrix pass={passCount}; fail={failCount}; artifact={artifactPath}; failures={failures}";
+        }
+
+        public static string RunTabletBottomActualClickMatrixForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var runtime = GetRuntimeController();
+            var payload = new ActualClickMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+            };
+
+            string SafeSummary(System.Func<string> summary)
+            {
+                try
+                {
+                    return summary != null ? summary() : GetMovementStateSummaryForDebug();
+                }
+                catch (System.Exception ex)
+                {
+                    return $"summary-error={ex.GetType().Name}: {ex.Message}";
+                }
+            }
+
+            void EnsureReady()
+            {
+                runtime.Disconnect();
+                runtime.ConnectDefault();
+                runtime.EnableServo();
+                if (!runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+            }
+
+            void Select(string nav, string work, string tablet)
+            {
+                SetShellSelection(nav, work, tablet);
+            }
+
+            void AddCase(string buttonName, System.Action setup, System.Func<string> summary, string needle)
+            {
+                var result = new ActualClickMatrixResult
+                {
+                    name = buttonName,
+                    expected = needle ?? string.Empty,
+                    prefer = "tablet",
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = SafeSummary(summary);
+                    result.clickMessage = ClickUiButton(buttonName, "tablet", out var found, out var enabled, out var path);
+                    result.found = found;
+                    result.enabled = enabled;
+                    result.path = path;
+                    result.after = SafeSummary(summary);
+                    result.passed = found
+                        && enabled
+                        && result.clickMessage.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found
+                            ? "locator"
+                            : !enabled
+                                ? "disabled"
+                                : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("BottomTabEasyMotion", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabJointJog"); }, GetShellControllerSummary, "tablet=BottomTabEasyMotion");
+            AddCase("BottomTabJointJog", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabJointJog");
+            AddCase("BottomTabTcpJog", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabTcpJog");
+            AddCase("BottomTabPointMove", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabPointMove");
+            AddCase("BottomTabIo", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabIo");
+            AddCase("BottomTabStatus", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabStatus");
+            AddCase("BottomTabHelp", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabHelp");
+
+            AddCase("BtnEasyReady", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "MoveJ");
+            AddCase("BtnJoint1Plus", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); }, GetMovementStateSummaryForDebug, "MoveJ");
+            AddCase("BtnTcp3Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
+            AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
+            AddCase("BtnPointApply", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabIo"); }, GetMovementStateSummaryForDebug, "Cmd Open");
+            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabIo"); }, GetMovementStateSummaryForDebug, "DO0 ON");
+            AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
+
+            var passCount = 0;
+            var failCount = 0;
+            var failures = new StringBuilder();
+            foreach (var result in payload.results)
+            {
+                if (result.passed)
+                {
+                    passCount++;
+                }
+                else
+                {
+                    failCount++;
+                    failures.Append(result.name)
+                        .Append('(')
+                        .Append(result.failureClass)
+                        .Append("),");
+                }
+            }
+
+            payload.caseCount = payload.results.Count;
+            payload.passCount = passCount;
+            payload.failCount = failCount;
+
+            var artifactPath = Path.Combine(payload.project, "Artifacts", "robotcontrolv3-tablet-bottom-click-matrix.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(artifactPath));
+            File.WriteAllText(artifactPath, JsonUtility.ToJson(payload, true), Encoding.UTF8);
+
+            return $"TabletBottomClickMatrix pass={passCount}; fail={failCount}; artifact={artifactPath}; failures={failures}";
+        }
+
         public static string GetPanelControllerSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -1125,6 +1458,133 @@ namespace KineTutor3D.App
                 && element.resolvedStyle.visibility != Visibility.Hidden
                 && element.worldBound.width > 0.5f
                 && element.worldBound.height > 0.5f;
+        }
+
+        private static string ClickUiButton(string buttonName, string prefer, out bool found, out bool enabled, out string path)
+        {
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var root = document?.rootVisualElement;
+            if (root == null)
+            {
+                found = false;
+                enabled = false;
+                path = string.Empty;
+                return "document-missing";
+            }
+
+            var buttons = new List<Button>();
+            root.Query<Button>(name: buttonName).ForEach(button => buttons.Add(button));
+            if (buttons.Count == 0)
+            {
+                found = false;
+                enabled = false;
+                path = string.Empty;
+                return "not-found";
+            }
+
+            var selected = SelectButton(buttons, prefer);
+            found = selected != null;
+            enabled = selected != null && selected.enabledInHierarchy;
+            path = selected != null ? BuildElementPath(selected) : string.Empty;
+            if (selected == null)
+            {
+                return "not-found";
+            }
+
+            if (!selected.enabledInHierarchy)
+            {
+                return "disabled";
+            }
+
+            using var clickEvent = ClickEvent.GetPooled();
+            clickEvent.target = selected;
+            selected.SendEvent(clickEvent);
+            return $"clicked:{buttonName}";
+        }
+
+        private static Button SelectButton(List<Button> buttons, string prefer)
+        {
+            if (buttons == null || buttons.Count == 0)
+            {
+                return null;
+            }
+
+            if (string.Equals(prefer, "tablet", System.StringComparison.OrdinalIgnoreCase))
+            {
+                for (var i = 0; i < buttons.Count; i++)
+                {
+                    if (HasAncestor(buttons[i], "BottomSheet") || HasAncestor(buttons[i], "BottomBar"))
+                    {
+                        return buttons[i];
+                    }
+                }
+            }
+
+            for (var i = 0; i < buttons.Count; i++)
+            {
+                if (!HasAncestor(buttons[i], "BottomSheet"))
+                {
+                    return buttons[i];
+                }
+            }
+
+            return buttons[0];
+        }
+
+        private static bool HasAncestor(VisualElement element, string ancestorName)
+        {
+            for (var current = element; current != null; current = current.parent)
+            {
+                if (current.name == ancestorName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string BuildElementPath(VisualElement element)
+        {
+            if (element == null)
+            {
+                return string.Empty;
+            }
+
+            var stack = new Stack<string>();
+            for (var current = element; current != null; current = current.parent)
+            {
+                stack.Push(string.IsNullOrEmpty(current.name) ? current.GetType().Name : current.name);
+            }
+
+            return string.Join("/", stack);
+        }
+
+        [System.Serializable]
+        private sealed class ActualClickMatrixPayload
+        {
+            public string generatedAt;
+            public string project;
+            public int caseCount;
+            public int passCount;
+            public int failCount;
+            public List<ActualClickMatrixResult> results = new();
+        }
+
+        [System.Serializable]
+        private sealed class ActualClickMatrixResult
+        {
+            public string name;
+            public string prefer;
+            public string expected;
+            public bool passed;
+            public string failureClass;
+            public bool found;
+            public bool enabled;
+            public string path;
+            public string before;
+            public string after;
+            public string clickMessage;
         }
 
         private static ScrollView GetContextPanelScrollView()

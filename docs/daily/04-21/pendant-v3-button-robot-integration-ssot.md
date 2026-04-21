@@ -277,6 +277,47 @@
   - 실제 FR5 이동, live `MoveJ/MoveL`, live DO/ToolDO, live `MoveGripper`는 Phase 6 안전 게이트 전까지 금지다.
   - 실기 전 1순위는 `GetGripperSdkSummaryForDebug(true)` readback-only 비교다.
 
+## Missing Test Execution Kickoff
+- 이번 세션에서 바로 진행할 첫 단위는 desktop actual UI click full matrix다.
+- 방식:
+  - `unityctl uitk click`로 target 버튼을 실제 클릭한다.
+  - 연결/servo/panel visibility 같은 전제 조건은 테스트 독립성을 위해 각 case 시작 전에 세팅한다.
+  - before/after runtime summary와 expected needle을 artifact에 저장한다.
+- 산출물:
+  - `Artifacts/robotcontrolv3-actual-click-matrix.json`
+- 판정:
+  - 실패는 무조건 기능 실패로 뭉뚱그리지 않고 `locator`, `disabled`, `runtime`, `popup-policy`, `product-pending`으로 분류한다.
+  - 즉시 수정 가능한 binding/locator 문제는 같은 세션에서 고친다.
+
+## Actual Click Matrix Execution Result
+- 첫 외부 PowerShell matrix는 `95 cases / 51 pass / 44 fail`로 나왔지만, 분석 결과 false fail이 섞여 있었다.
+  - 한글 expected needle 인코딩 깨짐.
+  - PowerShell `-like`가 `[DryRun Apply]`의 `[]`를 wildcard 문자클래스로 해석.
+  - 버튼마다 `unityctl` 프로세스를 새로 띄워 15분 제한을 넘김.
+- 대응:
+  - 외부 스크립트는 재현용으로 유지한다.
+  - 실제 반복 검증은 Unity 내부 `ClickEvent` matrix로 승격했다.
+- 실제 발견한 runtime gap:
+  - `BtnRun`: pending preview가 있어도 실행하지 않고 안내 문구만 표시했다.
+  - `BtnRunBottom`, `BtnStopBottom`: bottom bar 버튼이 runtime handler에 연결되어 있지 않았다.
+- 수정:
+  - `ExecutePrimaryAction()`이 pending MoveJ/MoveL preview를 우선 실행하도록 보강했다.
+  - `ConnectionHomeController`가 `BtnRunBottom`, `BtnStopBottom`을 top run/stop handler와 공유하도록 연결했다.
+- 최종 검증:
+  - `unityctl check --type compile --json`: pass.
+  - `script get-errors`: error 0.
+  - Desktop actual UI click matrix: `ActualUiClickMatrix pass=95; fail=0`.
+  - Tablet/bottom representative matrix: `TabletBottomClickMatrix pass=16; fail=0`.
+- Artifact:
+  - `Artifacts/robotcontrolv3-actual-click-matrix-internal.json`
+  - `Artifacts/robotcontrolv3-tablet-bottom-click-matrix.json`
+- 남은 누락:
+  - popup confirm/cancel E2E.
+  - RobotStage 다각도 screenshot evidence.
+  - Point MoveJ orientation/unreachable/joint-limit/singularity/collision guard.
+  - Safety/fault actual flow.
+  - Live SDK readback-only 및 실기 command safety gate.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.
