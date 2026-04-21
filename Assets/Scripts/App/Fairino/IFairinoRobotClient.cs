@@ -128,5 +128,30 @@ namespace KineTutor3D.App.Fairino
         /// 컨트롤러 fault를 리셋합니다.
         /// </summary>
         FairinoResult ResetErrors();
+
+        /// <summary>
+        /// SDK gripper API 지원 여부를 확인합니다.
+        /// </summary>
+        FairinoResult<FairinoGripperCapability> ProbeGripperCapability();
+
+        /// <summary>
+        /// SDK gripper 상태를 읽습니다.
+        /// </summary>
+        FairinoResult<FairinoGripperStatus> ReadGripperStatus();
+
+        /// <summary>
+        /// SDK gripper 설정을 적용합니다.
+        /// </summary>
+        FairinoResult ConfigureGripper(FairinoGripperProfile profile);
+
+        /// <summary>
+        /// SDK gripper를 reset/activate합니다.
+        /// </summary>
+        FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate);
+
+        /// <summary>
+        /// SDK gripper 위치 명령을 전송합니다.
+        /// </summary>
+        FairinoResult MoveGripper(FairinoGripperCommand command);
     }
 }

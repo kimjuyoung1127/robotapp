@@ -40,7 +40,7 @@
 | Coordinate / Increment | `BtnCoordSystem`, `BtnIncrement` | `wired` | all panels share same local state | `PendantV3LocalState` | maintain |
 | Easy Presets | `BtnEasyHome`, `BtnEasyReady`, `BtnEasyFolded` | `wired` | preview/apply -> RobotStage/Mock state | `PreviewPreset`, `ApplyPreset` | Phase 1 verify |
 | Easy Zero | `BtnEasyZero` | `wired` | `Home` alias 제거, Zero 독립 preset | FR5 pose presets | maintain |
-| Gripper | `BtnGripperOpen`, `BtnGripperClose`, I/O gripper buttons | `wired` | attach PGEA prefab + live SDK/ROS command | robottemplete `FR5EndEffectorAttachment.SetGripperOpen` + facade | Phase 3 polish |
+| Gripper | `BtnGripperOpen`, `BtnGripperClose`, I/O gripper buttons | `wired` | attach PGEA prefab + live SDK command after safety gate | robottemplete `FR5EndEffectorAttachment.SetGripperOpen` + FAIRINO `SetGripperConfig/ActGripper/MoveGripper/GetGripper*` | Phase 3 polish |
 | Joint Jog | J1~J6 slider/input/`J-`/`J+`, `BtnJointPreview`, `BtnJointApply`, `BtnJointRestore` | `wired` | all axes apply/preview verified against visual pose | `PreviewJointAngles`, `ApplyJointAngles`, MoveJ | Phase 1 verify |
 | TCP Jog | `X/Y/Z/RX/RY/RZ -/+`, coord buttons, `BtnTcpPreview`, `BtnTcpApply` | `wired` | panel + overlay share one runtime path | `PreviewTcpPose`, `ApplyTcpPose`, MoveL | Phase 1 verify |
 | Cartesian Overlay | `BtnArrow1~6Minus/Plus` | `wired` | same as TCP jog, no main-panel obstruction | `TcpJogController.AdjustAxis` | Phase 1 verify |
@@ -107,7 +107,8 @@
 9. `[done]` Point rename/export and persistence cleanup policy.
 10. `[done]` I/O/Gripper mock/live-gated state facade 설계 및 1차 연결.
 11. `[done]` PGEA attached visual prefab 이관/연결.
-12. `[next]` live SDK/ROS command contract.
+12. `[done]` live SDK gripper capability/readback contract scaffold.
+13. `[next]` 실기 gripper command safety gate + pendant/SDK readback comparison.
 
 ## 2026-04-21 Phase 1 Start Result
 - `GetMovementStateSummaryForDebug()` callable 노출 확인.
@@ -235,3 +236,30 @@
   - `SetGripperOpenForDebug(false)`: `gripper=Gripper: Closed (0.00); gripperVisual=True`
   - `GetGripperVisualSummaryForDebug()` closed 기준: `tcpLocal=(-0.0677,0,-0.0325)`, `modelLocal=(0.0065,0.3256,-0.031)`, `cameraVisible=True`
   - `unityctl check --type compile --json`: pass
+
+## 2026-04-21 Phase 3 Live SDK Gripper Contract
+- 공식 문서 기준:
+  - gripper 설정: `SetGripperConfig(company, device, softversion, bus)`.
+  - gripper reset/activate: `ActGripper(index, action)`.
+  - gripper 이동: `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)`.
+  - readback: `GetGripperMotionDone`, `GetGripperActivateStatus`, `GetGripperCurPosition`, `GetGripperCurSpeed`, `GetGripperCurCurrent`, `GetGripperVoltage`, `GetGripperTemp`.
+- 로컬 PGEA 후보 프로필:
+  - `company=4`, `device=0`, `soft=0`, `bus=2`, `index=2`.
+  - Open 후보 command: `pos=100`, `vel=50`, `force=50`, `max=30000`, `block=True`.
+  - Close 후보 command: `pos=0`, `vel=50`, `force=50`, `max=30000`, `block=True`.
+- 구현:
+  - `IFairinoRobotClient`에 gripper capability/readback/config/activate/move 계약 추가.
+  - `LiveFairinoClient`는 reflection으로 위 공식 SDK 메서드 존재 여부를 probe하고 readback을 읽는다.
+  - `RobotControlPeripheralFacade`는 mock 연결 시 공식 command path를 같이 시뮬레이션한다.
+  - Live 연결에서는 안전 게이트 전까지 버튼 실행은 계속 blocked 상태로 유지한다.
+- 검증:
+  - `unityctl check --type compile --json`: pass.
+  - `GetGripperSdkSummaryForDebug(true)` mock connected:
+    - `configure=True`, `activate=True`, `move=True`, `pos=True`, `current=True`, `voltage=True`, `temp=True`.
+    - 초기 readback `position=0`.
+  - `SetGripperOpenForDebug(true)` 후:
+    - visual `Gripper: Open (1.00)`.
+    - SDK mock readback `activationMask=1`, `position=100`, `speed=50`, `current=50`.
+- 다음 단계:
+  - 실제 FR5 연결 후 `GetGripperSdkSummaryForDebug(true)`로 SDK method/readback만 먼저 확인한다.
+  - 사용자가 현장 안전을 확인하기 전까지 `MoveGripper` live 실행은 열지 않는다.

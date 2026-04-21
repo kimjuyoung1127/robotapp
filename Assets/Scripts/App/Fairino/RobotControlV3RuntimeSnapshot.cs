@@ -92,6 +92,7 @@ namespace KineTutor3D.App.Fairino
         public string RobotDoSummary { get; set; } = "DO0 OFF / DO1 OFF";
         public string ToolDoSummary { get; set; } = "ToolDO0 OFF / ToolDO1 OFF";
         public string PeripheralFeedback { get; set; } = "주변장치 조작 전";
+        public string GripperSdkSummary { get; set; } = "SDK gripper 비교 전";
 
         public RobotControlV3RuntimeSnapshot Clone()
         {
@@ -171,6 +172,7 @@ namespace KineTutor3D.App.Fairino
                 RobotDoSummary = RobotDoSummary,
                 ToolDoSummary = ToolDoSummary,
                 PeripheralFeedback = PeripheralFeedback,
+                GripperSdkSummary = GripperSdkSummary,
             };
         }
 

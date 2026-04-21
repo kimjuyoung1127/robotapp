@@ -21,14 +21,23 @@ namespace KineTutor3D.App.Fairino
         {
             if (!CanSimulateOrMock(allowDryRun, out var blockReason))
             {
-                state.LastPeripheralFeedback = blockReason;
+                var command = FairinoGripperCommand.ForOpen(open);
+                state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
+                state.LastPeripheralFeedback = $"{blockReason}; 공식 MoveGripper 후보: {command}";
                 return FairinoResult.Fail(-60, blockReason);
             }
 
             state.GripperOpen = open;
             state.GripperOpenRatio = open ? 1f : 0f;
             state.LastPeripheralFeedback = open ? "[Mock Gripper] 열림" : "[Mock Gripper] 닫힘";
+            SyncMockSdkGripper(open);
             return FairinoResult.Ok(state.LastPeripheralFeedback);
+        }
+
+        public string GetGripperSdkSummary(bool includeReadback)
+        {
+            state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback);
+            return state.LastGripperSdkSummary;
         }
 
         public FairinoResult SetRobotDigitalOutput(int channel, bool value, bool allowDryRun)
@@ -82,6 +91,53 @@ namespace KineTutor3D.App.Fairino
 
             reason = "live blocked: I/O/Gripper SDK contract not enabled";
             return false;
+        }
+
+        private string BuildGripperSdkSummary(bool includeReadback)
+        {
+            if (connectionService == null || connectionService.Client == null)
+            {
+                return "sdkGripper=blocked; reason=connection service missing";
+            }
+
+            if (!connectionService.Client.IsConnected)
+            {
+                return "sdkGripper=blocked; reason=not connected";
+            }
+
+            var profile = FairinoGripperProfile.Pgea10040Default;
+            var openCommand = FairinoGripperCommand.ForOpen(true);
+            var closeCommand = FairinoGripperCommand.ForOpen(false);
+            var capability = connectionService.ProbeGripperCapability();
+            if (!capability.IsSuccess)
+            {
+                return $"sdkGripper=probeFailed; code={capability.ErrorCode}; message={capability.Message}; profile={profile}; open={openCommand}; close={closeCommand}";
+            }
+
+            var summary = $"sdkGripper=probeOk; capability=({capability.Value}); profile=({profile}); open=({openCommand}); close=({closeCommand})";
+            if (!includeReadback)
+            {
+                return summary;
+            }
+
+            var status = connectionService.ReadGripperStatus();
+            return status.IsSuccess
+                ? $"{summary}; readback=({status.Value})"
+                : $"{summary}; readbackFailed=code {status.ErrorCode}: {status.Message}";
+        }
+
+        private void SyncMockSdkGripper(bool open)
+        {
+            if (connectionService == null || !connectionService.IsMockMode || connectionService.Client == null || !connectionService.Client.IsConnected)
+            {
+                return;
+            }
+
+            var command = FairinoGripperCommand.ForOpen(open);
+            connectionService.ConfigureGripper(command.Profile);
+            connectionService.ActivateGripper(command.Profile, activate: true);
+            connectionService.MoveGripper(command);
+            state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
         }
     }
 }

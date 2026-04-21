@@ -264,5 +264,32 @@ namespace KineTutor3D.App.Mecademic
             controllerFault = FairinoControllerFault.None();
             return FairinoResult.Ok("Mock Meca500 fault reset 완료");
         }
+
+        public FairinoResult<FairinoGripperCapability> ProbeGripperCapability()
+        {
+            return FairinoResult<FairinoGripperCapability>.Ok(
+                new FairinoGripperCapability(false, false, false, false, false, false, false, false, false, false),
+                "Mock Meca500 gripper unsupported");
+        }
+
+        public FairinoResult<FairinoGripperStatus> ReadGripperStatus()
+        {
+            return FairinoResult<FairinoGripperStatus>.Fail(-62, "Mock Meca500 gripper unsupported");
+        }
+
+        public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
+        {
+            return FairinoResult.Fail(-62, "Mock Meca500 gripper unsupported");
+        }
+
+        public FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate)
+        {
+            return FairinoResult.Fail(-62, "Mock Meca500 gripper unsupported");
+        }
+
+        public FairinoResult MoveGripper(FairinoGripperCommand command)
+        {
+            return FairinoResult.Fail(-62, "Mock Meca500 gripper unsupported");
+        }
     }
 }

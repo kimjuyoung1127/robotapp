@@ -142,6 +142,31 @@ live 세션 시작 후 아래는 반드시 확인한다.
 - `GetActualTCPPose(...)`
 - 필요 시 `GetActualWObjNum(...)`
 
+gripper 세션 시작 후 아래는 반드시 확인한다.
+
+- SDK method probe:
+  - `SetGripperConfig`
+  - `ActGripper`
+  - `MoveGripper`
+  - `GetGripperMotionDone`
+  - `GetGripperActivateStatus`
+  - `GetGripperCurPosition`
+  - `GetGripperCurSpeed`
+  - `GetGripperCurCurrent`
+  - `GetGripperVoltage`
+  - `GetGripperTemp`
+- Readback:
+  - activation mask
+  - current position
+  - current speed
+  - current current/force proxy
+  - voltage
+  - temperature
+
+현재 PGEA-100-40 후보 profile은 `company=4`, `device=0`, `soft=0`, `bus=2`, `index=2`다.
+Open 후보 command는 `pos=100`, `vel=50`, `force=50`, `max_time=30000`, `block=1`이고,
+Close 후보 command는 `pos=0`, `vel=50`, `force=50`, `max_time=30000`, `block=1`이다.
+
 ### Must Match
 
 아래 3개가 서로 어긋나면 `MoveL`을 live-ready로 보지 않는다.
@@ -200,7 +225,18 @@ live 세션 시작 후 아래는 반드시 확인한다.
 - 앱에서 `GetActualTCPNum` 확인
 - 앱에서 `GetCurToolCoord` 확인
 - 현재 TCP 읽기 값과 pendant 표시값 비교
+- 앱에서 `GetGripperSdkSummaryForDebug(true)` 실행
+- pendant의 gripper 설정/활성/현재 위치와 앱 readback 비교
 - 작은 `MoveL` 수행 후 실제 gripper tip 기준으로 방향 일치 확인
+
+첫 실기 gripper 명령은 아래 순서가 모두 끝나기 전까지 금지한다.
+
+- pendant에서 gripper 설정 확인
+- SDK capability probe 통과
+- gripper activation readback 확인
+- 현재 gripper position readback 확인
+- E-stop / speed / dry-run preview 확인
+- 사용자가 현장 안전 확인 후 live execution gate를 수동으로 연다
 
 ### Preview Check
 

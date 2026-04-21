@@ -12,6 +12,7 @@ namespace KineTutor3D.App.Fairino
         public bool[] RobotDigitalOutputs { get; } = new bool[2];
         public bool[] ToolDigitalOutputs { get; } = new bool[2];
         public string LastPeripheralFeedback { get; set; } = "주변장치 조작 전";
+        public string LastGripperSdkSummary { get; set; } = "SDK gripper 비교 전";
 
         public RobotControlPeripheralState Clone()
         {
@@ -21,6 +22,7 @@ namespace KineTutor3D.App.Fairino
                 GripperOpenRatio = GripperOpenRatio,
                 GripperVisualAttached = GripperVisualAttached,
                 LastPeripheralFeedback = LastPeripheralFeedback,
+                LastGripperSdkSummary = LastGripperSdkSummary,
             };
             RobotDigitalOutputs.CopyTo(clone.RobotDigitalOutputs, 0);
             ToolDigitalOutputs.CopyTo(clone.ToolDigitalOutputs, 0);

@@ -339,10 +339,28 @@ namespace KineTutor3D.App
             return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
         }
 
+        public static string ConnectDefaultForDebug()
+        {
+            var result = GetRuntimeController().ConnectDefault();
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
+        public static string DisconnectForDebug()
+        {
+            var result = GetRuntimeController().Disconnect();
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
         public static string GetGripperVisualSummaryForDebug()
         {
             var runtime = GetRuntimeController();
             return runtime.GetGripperVisualSummaryForDebug();
+        }
+
+        public static string GetGripperSdkSummaryForDebug(bool includeReadback = true)
+        {
+            var runtime = GetRuntimeController();
+            return runtime.GetGripperSdkSummaryForDebug(includeReadback);
         }
 
         public static string CaptureStageCameraForDebug(string outputPath)
@@ -548,7 +566,7 @@ namespace KineTutor3D.App
 
             var runtime = GetRuntimeController();
             var snapshot = runtime.CurrentSnapshot;
-            return $"status={snapshot.StatusKind}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; feedback={snapshot.LastFeedback}; joints=[{string.Join(",", snapshot.JointValues)}]; tcp=[{string.Join(",", snapshot.TcpValues)}]; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; gripper={snapshot.GripperSummary}; gripperVisual={snapshot.GripperVisualAttached}; robotDo={snapshot.RobotDoSummary}; toolDo={snapshot.ToolDoSummary}; peripheral={snapshot.PeripheralFeedback}; selected={snapshot.SelectedPartName}; liveBlocked={snapshot.LiveBlockedReason}";
+            return $"status={snapshot.StatusKind}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; feedback={snapshot.LastFeedback}; joints=[{string.Join(",", snapshot.JointValues)}]; tcp=[{string.Join(",", snapshot.TcpValues)}]; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; gripper={snapshot.GripperSummary}; gripperVisual={snapshot.GripperVisualAttached}; robotDo={snapshot.RobotDoSummary}; toolDo={snapshot.ToolDoSummary}; peripheral={snapshot.PeripheralFeedback}; gripperSdk={snapshot.GripperSdkSummary}; selected={snapshot.SelectedPartName}; liveBlocked={snapshot.LiveBlockedReason}";
         }
 
         public static string GetRobotStageRenderSummary()

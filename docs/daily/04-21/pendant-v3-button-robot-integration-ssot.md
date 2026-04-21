@@ -36,6 +36,8 @@
 10. `[done]` I/O/Gripper mock/live-gated state facade 1차 연결.
 11. `[done]` PGEA attached visual prefab 이관/연결.
 12. `[next]` live SDK/ROS command contract.
+13. `[done]` FAIRINO live SDK gripper capability/readback scaffold.
+14. `[next]` 실기 연결 후 pendant/SDK gripper readback 비교.
 
 ## Phase 1 Start Verification
 - Unity 재시작 후 `RobotControlV3DebugBridge` callable 목록에 `GetMovementStateSummaryForDebug`, `SetCoordStripModeForDebug` 노출 확인.
@@ -157,6 +159,34 @@
   - FAIRINO 공식 SDK/pendant 문서와 `LiveFairinoClient` 구현을 비교한다.
   - 실기 gripper open/close, tool coordinate readback, `GetActualTCPPose`를 기준으로 current TCP가 닫힌 finger 작업점과 일치하는지 확정한다.
   - 실기 SDK 확인 전에는 live gripper/move command를 자동 실행하지 않는다.
+
+## Phase 3 Live SDK Gripper Contract
+- 공식 문서 비교:
+  - `SetGripperConfig(company, device, softversion, bus)`로 gripper vendor/device/bus를 설정한다.
+  - `ActGripper(index, action)`으로 reset/activate를 수행한다.
+  - `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)`가 실제 gripper 위치 명령이다.
+  - `GetGripperMotionDone`, `GetGripperActivateStatus`, `GetGripperCurPosition`, `GetGripperCurSpeed`, `GetGripperCurCurrent`, `GetGripperVoltage`, `GetGripperTemp`를 readback 비교 기준으로 둔다.
+- 구현:
+  - `FairinoGripperProfile`, `FairinoGripperCommand`, `FairinoGripperCapability`, `FairinoGripperStatus` 추가.
+  - `IFairinoRobotClient`에 gripper SDK contract 추가.
+  - `LiveFairinoClient`는 공식 SDK method명을 reflection으로 probe/readback/wrap한다.
+  - `MockFairinoClient`는 같은 contract를 시뮬레이션한다.
+  - UR5e/Doosan/Meca mock은 gripper unsupported로 명시 반환한다.
+  - `RobotControlPeripheralFacade`는 mock 연결 시 visual open/close와 SDK mock readback을 함께 갱신한다.
+  - Live 실행은 아직 차단한다. 현재 단계는 실기 명령 전 method/readback 비교 scaffold다.
+- 검증:
+  - `unityctl check --type compile --json`: pass.
+  - `ConnectDefaultForDebug()` mock connected.
+  - `GetGripperSdkSummaryForDebug(true)`:
+    - `capability=(configure=True; activate=True; move=True; motion=True; active=True; pos=True; speed=True; current=True; voltage=True; temp=True)`.
+    - 초기 `position=0`.
+  - `SetGripperOpenForDebug(true)`:
+    - visual `Gripper: Open (1.00)`.
+    - mock SDK readback `activationMask=1`, `position=100`, `speed=50`, `current=50`.
+- 다음 실기 기준:
+  - 실제 FR5 연결 후 먼저 `GetGripperSdkSummaryForDebug(true)`만 실행한다.
+  - pendant에서 gripper configuration/activation 상태를 확인하고 앱 readback과 비교한다.
+  - 현장 확인 전에는 `MoveGripper` live 실행을 열지 않는다.
 
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.

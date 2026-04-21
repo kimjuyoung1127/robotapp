@@ -17,6 +17,13 @@ namespace KineTutor3D.App.Fairino
         private int reconnectTimeoutMs = 30000;
         private int reconnectPeriodMs = 500;
         private bool inDragTeach;
+        private bool gripperActivated;
+        private int gripperPositionPercent;
+        private int gripperSpeedPercent;
+        private int gripperCurrentPercent;
+        private int gripperVoltage = 24;
+        private int gripperTemperature = 25;
+        private FairinoGripperProfile gripperProfile = FairinoGripperProfile.Pgea10040Default;
         private FairinoCoordContext coordContext = FairinoCoordContext.Default();
         private FairinoControllerFault controllerFault = FairinoControllerFault.None();
 
@@ -271,6 +278,86 @@ namespace KineTutor3D.App.Fairino
 
             controllerFault = FairinoControllerFault.None();
             return FairinoResult.Ok("Mock fault reset 완료");
+        }
+
+        public FairinoResult<FairinoGripperCapability> ProbeGripperCapability()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult<FairinoGripperCapability>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return FairinoResult<FairinoGripperCapability>.Ok(
+                new FairinoGripperCapability(true, true, true, true, true, true, true, true, true, true),
+                "Mock gripper SDK capability");
+        }
+
+        public FairinoResult<FairinoGripperStatus> ReadGripperStatus()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult<FairinoGripperStatus>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return FairinoResult<FairinoGripperStatus>.Ok(
+                new FairinoGripperStatus(
+                    0,
+                    1,
+                    0,
+                    gripperActivated ? 1 : 0,
+                    0,
+                    gripperPositionPercent,
+                    0,
+                    gripperSpeedPercent,
+                    0,
+                    gripperCurrentPercent,
+                    0,
+                    gripperVoltage,
+                    0,
+                    gripperTemperature),
+                "Mock gripper status");
+        }
+
+        public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            gripperProfile = profile;
+            return FairinoResult.Ok($"Mock gripper config: {gripperProfile}");
+        }
+
+        public FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            gripperProfile = profile;
+            gripperActivated = activate;
+            return FairinoResult.Ok(activate ? "Mock gripper activated" : "Mock gripper reset");
+        }
+
+        public FairinoResult MoveGripper(FairinoGripperCommand command)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            if (!gripperActivated)
+            {
+                return FairinoResult.Fail(-62, "Mock gripper가 activate되지 않았다.");
+            }
+
+            gripperProfile = command.Profile;
+            gripperPositionPercent = command.PositionPercent;
+            gripperSpeedPercent = command.SpeedPercent;
+            gripperCurrentPercent = command.ForcePercent;
+            return FairinoResult.Ok($"Mock gripper move: {command}");
         }
     }
 }

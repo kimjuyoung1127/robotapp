@@ -487,6 +487,108 @@ namespace KineTutor3D.App.Fairino
             return result;
         }
 
+        public FairinoResult<FairinoGripperCapability> ProbeGripperCapability()
+        {
+            if (!connected)
+            {
+                return FairinoResult<FairinoGripperCapability>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            var capability = new FairinoGripperCapability(
+                HasMethod("SetGripperConfig"),
+                HasMethod("ActGripper"),
+                HasMethod("MoveGripper"),
+                HasMethod("GetGripperMotionDone"),
+                HasMethod("GetGripperActivateStatus"),
+                HasMethod("GetGripperCurPosition"),
+                HasMethod("GetGripperCurSpeed"),
+                HasMethod("GetGripperCurCurrent"),
+                HasMethod("GetGripperVoltage"),
+                HasMethod("GetGripperTemp"));
+            return FairinoResult<FairinoGripperCapability>.Ok(capability, capability.ToString());
+        }
+
+        public FairinoResult<FairinoGripperStatus> ReadGripperStatus()
+        {
+            if (!connected)
+            {
+                return FairinoResult<FairinoGripperStatus>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            try
+            {
+                var motion = ReadPairByRef("GetGripperMotionDone");
+                var activation = ReadPairByRef("GetGripperActivateStatus");
+                var position = ReadPairByRef("GetGripperCurPosition");
+                var speed = ReadPairByRef("GetGripperCurSpeed");
+                var current = ReadPairByRef("GetGripperCurCurrent");
+                var voltage = ReadPairByRef("GetGripperVoltage");
+                var temperature = ReadPairByRef("GetGripperTemp");
+                var status = new FairinoGripperStatus(
+                    motion.fault,
+                    motion.value,
+                    activation.fault,
+                    activation.value,
+                    position.fault,
+                    position.value,
+                    speed.fault,
+                    speed.value,
+                    current.fault,
+                    current.value,
+                    voltage.fault,
+                    voltage.value,
+                    temperature.fault,
+                    temperature.value);
+                return FairinoResult<FairinoGripperStatus>.Ok(status, status.ToString());
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LiveFairinoClient] gripper status 읽기 실패: {ex.Message}");
+                return FairinoResult<FairinoGripperStatus>.Fail(-6, ex.Message);
+            }
+        }
+
+        public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return InvokeSdk("SetGripperConfig", profile.Company, profile.Device, profile.SoftVersion, profile.Bus);
+        }
+
+        public FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate)
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return InvokeSdk("ActGripper", profile.Index, activate ? 1 : 0);
+        }
+
+        public FairinoResult MoveGripper(FairinoGripperCommand command)
+        {
+            if (!connected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return InvokeSdk(
+                "MoveGripper",
+                command.Profile.Index,
+                command.PositionPercent,
+                command.SpeedPercent,
+                command.ForcePercent,
+                command.MaxTimeMs,
+                command.Blocking ? 1 : 0,
+                command.GripperType,
+                command.RotateTurns,
+                command.RotateSpeedPercent,
+                command.RotateTorquePercent);
+        }
+
         private FairinoResult InvokeSdk(string methodName, params object[] args)
         {
             try
@@ -589,6 +691,24 @@ namespace KineTutor3D.App.Fairino
         private bool HasMethod(string methodName)
         {
             return sdkRobot != null && sdkRobot.GetType().GetMethods().Any(m => m.Name == methodName);
+        }
+
+        private (int fault, int value) ReadPairByRef(string methodName)
+        {
+            if (!HasMethod(methodName))
+            {
+                return (-1, 0);
+            }
+
+            var args = new object[] { 0, 0 };
+            var code = InvokeSdkRaw(methodName, args);
+            var errCode = ConvertSdkReturnCode(code, methodName);
+            if (errCode != 0)
+            {
+                return (errCode, 0);
+            }
+
+            return (Convert.ToInt32(args[0]), Convert.ToInt32(args[1]));
         }
 
         private FairinoResult EnsureReadyForLiveMotion()

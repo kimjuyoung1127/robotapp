@@ -264,5 +264,32 @@ namespace KineTutor3D.App.Doosan
             controllerFault = FairinoControllerFault.None();
             return FairinoResult.Ok("Mock Doosan M1013 fault reset 완료");
         }
+
+        public FairinoResult<FairinoGripperCapability> ProbeGripperCapability()
+        {
+            return FairinoResult<FairinoGripperCapability>.Ok(
+                new FairinoGripperCapability(false, false, false, false, false, false, false, false, false, false),
+                "Mock Doosan M1013 gripper unsupported");
+        }
+
+        public FairinoResult<FairinoGripperStatus> ReadGripperStatus()
+        {
+            return FairinoResult<FairinoGripperStatus>.Fail(-62, "Mock Doosan M1013 gripper unsupported");
+        }
+
+        public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
+        {
+            return FairinoResult.Fail(-62, "Mock Doosan M1013 gripper unsupported");
+        }
+
+        public FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate)
+        {
+            return FairinoResult.Fail(-62, "Mock Doosan M1013 gripper unsupported");
+        }
+
+        public FairinoResult MoveGripper(FairinoGripperCommand command)
+        {
+            return FairinoResult.Fail(-62, "Mock Doosan M1013 gripper unsupported");
+        }
     }
 }

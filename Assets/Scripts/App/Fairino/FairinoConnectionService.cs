@@ -346,6 +346,61 @@ namespace KineTutor3D.App.Fairino
             return result;
         }
 
+        public FairinoResult<FairinoGripperCapability> ProbeGripperCapability()
+        {
+            var result = client.ProbeGripperCapability();
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        public FairinoResult<FairinoGripperStatus> ReadGripperStatus()
+        {
+            var result = client.ReadGripperStatus();
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
+        {
+            var result = client.ConfigureGripper(profile);
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
+        public FairinoResult ActivateGripper(FairinoGripperProfile profile, bool activate)
+        {
+            var result = client.ActivateGripper(profile, activate);
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
+        public FairinoResult MoveGripper(FairinoGripperCommand command)
+        {
+            var result = client.MoveGripper(command);
+            if (!result.IsSuccess)
+            {
+                OnError?.Invoke(result);
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// 현재 로봇 상태를 읽어 반환합니다. Live 모드에서 관절 동기화용입니다.
         /// </summary>
