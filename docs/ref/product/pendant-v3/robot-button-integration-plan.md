@@ -302,3 +302,32 @@
   - `RunRobotLinkedButtonSimulationAuditForDebug()`가 계속 green이어야 한다.
   - 실제 FR5에서는 먼저 `GetGripperSdkSummaryForDebug(true)` readback만 수행한다.
   - pendant gripper direction과 SDK `pos=0/100` 의미가 확인되기 전까지 visual finger open/close를 live truth로 쓰지 않는다.
+
+## 2026-04-21 Actual UI Click E2E
+- 범위:
+  - `DebugBridge` 직접 호출이 아니라 `unityctl uitk click`로 실제 UI Toolkit 버튼을 눌렀다.
+  - 목적은 `ClickEvent -> UI controller -> RobotControlV3RuntimeController -> Mock/RobotStage state`가 이어지는지 확인하는 것이다.
+- 발견:
+  - `Button.clicked` 기반 동적 버튼은 runtime path가 있어도 `unityctl uitk click` 검증에서 실행되지 않는 경우가 있었다.
+  - top bar `Servo / Run / Stop / Reset`은 안전 popup scaffold와 별개로 runtime 진입점이 명확해야 했다.
+  - I/O 동적 버튼은 stable name이 없어 duplicate desktop/tablet 버튼 중 desktop locator 검증이 불안정했다.
+- 수정:
+  - `ConnectionHomeController` runtime 버튼들을 `RegisterCallback<ClickEvent>`로 바꾸고 `Servo / Run / Stop / Reset` handlers를 추가했다.
+  - `EasyMotionController`, `JointJogController`, `IoPanelController`의 로봇 연동 동적 버튼도 `RegisterCallback<ClickEvent>`로 통일했다.
+  - I/O 버튼에 stable name을 부여했다.
+- 실제 클릭 결과:
+  - `BtnConnect` 클릭 후 `connected=True`, `enabled=False`.
+  - `BtnServoEnable` 클릭 후 `connected=True`, `enabled=True`.
+  - `NavMotion -> TabPointMove -> BtnPointPreview` 클릭 후 `pending=대기 명령: MoveJ`, `ghost=True`, `path=True`.
+  - `BtnPointApply` 클릭 후 `[DryRun Apply] 포인트 MoveJ 적용`, `pending=대기 중인 명령 없음`.
+  - `NavIo -> BtnRobotDo0On` 클릭 후 `robotDo=DO0 ON / DO1 OFF`.
+  - `BtnToolDo0On` 클릭 후 `toolDo=ToolDO0 ON / ToolDO1 OFF`.
+  - `BtnIoGripperOpen` 클릭 후 SDK mock readback `position=100`.
+  - `BtnIoGripperClose` 클릭 후 SDK mock readback `position=0`.
+- 최종 게이트:
+  - `unityctl check --type compile --json`: pass.
+  - `console get-count`: error 0.
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`: `pass=74; fail=0`.
+- 계약:
+  - PointMove 버튼은 `NavMotion + TabPointMove`에서 활성화된다.
+  - `NavIo`에서 Point 버튼이 disabled처럼 보이는 상태는 panel visibility 계약상 정상이다.

@@ -46,6 +46,15 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnPause;
         private Button btnSync;
         private Button btnResetError;
+        private EventCallback<ClickEvent> connectClickCallback;
+        private EventCallback<ClickEvent> disconnectClickCallback;
+        private EventCallback<ClickEvent> primaryActionClickCallback;
+        private EventCallback<ClickEvent> servoClickCallback;
+        private EventCallback<ClickEvent> runClickCallback;
+        private EventCallback<ClickEvent> stopClickCallback;
+        private EventCallback<ClickEvent> resetClickCallback;
+        private EventCallback<ClickEvent> pauseClickCallback;
+        private EventCallback<ClickEvent> syncClickCallback;
         private RobotControlV3RuntimeController runtimeController;
 
         private PanelElements desktopPanel;
@@ -383,59 +392,133 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void BindRuntimeButtons()
         {
+            connectClickCallback ??= _ => HandleConnectClicked();
+            disconnectClickCallback ??= _ => HandleDisconnectClicked();
+            primaryActionClickCallback ??= _ => HandlePrimaryActionClicked();
+            servoClickCallback ??= _ => HandleServoClicked();
+            runClickCallback ??= _ => HandleRunClicked();
+            stopClickCallback ??= _ => HandleStopClicked();
+            resetClickCallback ??= _ => HandleResetClicked();
+            pauseClickCallback ??= _ => HandlePauseClicked();
+            syncClickCallback ??= _ => HandleSyncClicked();
+
+            if (btnServoEnable != null)
+            {
+                btnServoEnable.RegisterCallback(servoClickCallback);
+            }
+
+            if (btnRun != null)
+            {
+                btnRun.RegisterCallback(runClickCallback);
+            }
+
+            if (btnStop != null)
+            {
+                btnStop.RegisterCallback(stopClickCallback);
+            }
+
             if (btnPause != null)
             {
-                btnPause.clicked += HandlePauseClicked;
+                btnPause.RegisterCallback(pauseClickCallback);
             }
 
             if (btnSync != null)
             {
-                btnSync.clicked += HandleSyncClicked;
+                btnSync.RegisterCallback(syncClickCallback);
+            }
+
+            if (btnResetError != null)
+            {
+                btnResetError.RegisterCallback(resetClickCallback);
             }
 
             if (desktopPanel != null)
             {
-                desktopPanel.BtnConnect.clicked += HandleConnectClicked;
-                desktopPanel.BtnDisconnect.clicked += HandleDisconnectClicked;
-                desktopPanel.BtnQuickAction.clicked += HandlePrimaryActionClicked;
-                desktopPanel.BtnPrimaryAction.clicked += HandlePrimaryActionClicked;
+                desktopPanel.BtnConnect.RegisterCallback(connectClickCallback);
+                desktopPanel.BtnDisconnect.RegisterCallback(disconnectClickCallback);
+                desktopPanel.BtnQuickAction.RegisterCallback(primaryActionClickCallback);
+                desktopPanel.BtnPrimaryAction.RegisterCallback(primaryActionClickCallback);
             }
 
             if (tabletPanel != null)
             {
-                tabletPanel.BtnConnect.clicked += HandleConnectClicked;
-                tabletPanel.BtnDisconnect.clicked += HandleDisconnectClicked;
-                tabletPanel.BtnQuickAction.clicked += HandlePrimaryActionClicked;
-                tabletPanel.BtnPrimaryAction.clicked += HandlePrimaryActionClicked;
+                tabletPanel.BtnConnect.RegisterCallback(connectClickCallback);
+                tabletPanel.BtnDisconnect.RegisterCallback(disconnectClickCallback);
+                tabletPanel.BtnQuickAction.RegisterCallback(primaryActionClickCallback);
+                tabletPanel.BtnPrimaryAction.RegisterCallback(primaryActionClickCallback);
             }
         }
 
         private void UnbindRuntimeButtons()
         {
+            if (btnServoEnable != null && servoClickCallback != null)
+            {
+                btnServoEnable.UnregisterCallback(servoClickCallback);
+            }
+
+            if (btnRun != null && runClickCallback != null)
+            {
+                btnRun.UnregisterCallback(runClickCallback);
+            }
+
+            if (btnStop != null && stopClickCallback != null)
+            {
+                btnStop.UnregisterCallback(stopClickCallback);
+            }
+
             if (btnPause != null)
             {
-                btnPause.clicked -= HandlePauseClicked;
+                if (pauseClickCallback != null)
+                {
+                    btnPause.UnregisterCallback(pauseClickCallback);
+                }
             }
 
             if (btnSync != null)
             {
-                btnSync.clicked -= HandleSyncClicked;
+                if (syncClickCallback != null)
+                {
+                    btnSync.UnregisterCallback(syncClickCallback);
+                }
+            }
+
+            if (btnResetError != null && resetClickCallback != null)
+            {
+                btnResetError.UnregisterCallback(resetClickCallback);
             }
 
             if (desktopPanel != null)
             {
-                desktopPanel.BtnConnect.clicked -= HandleConnectClicked;
-                desktopPanel.BtnDisconnect.clicked -= HandleDisconnectClicked;
-                desktopPanel.BtnQuickAction.clicked -= HandlePrimaryActionClicked;
-                desktopPanel.BtnPrimaryAction.clicked -= HandlePrimaryActionClicked;
+                UnregisterPanelCallbacks(desktopPanel);
             }
 
             if (tabletPanel != null)
             {
-                tabletPanel.BtnConnect.clicked -= HandleConnectClicked;
-                tabletPanel.BtnDisconnect.clicked -= HandleDisconnectClicked;
-                tabletPanel.BtnQuickAction.clicked -= HandlePrimaryActionClicked;
-                tabletPanel.BtnPrimaryAction.clicked -= HandlePrimaryActionClicked;
+                UnregisterPanelCallbacks(tabletPanel);
+            }
+        }
+
+        private void UnregisterPanelCallbacks(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            if (connectClickCallback != null)
+            {
+                panel.BtnConnect.UnregisterCallback(connectClickCallback);
+            }
+
+            if (disconnectClickCallback != null)
+            {
+                panel.BtnDisconnect.UnregisterCallback(disconnectClickCallback);
+            }
+
+            if (primaryActionClickCallback != null)
+            {
+                panel.BtnQuickAction.UnregisterCallback(primaryActionClickCallback);
+                panel.BtnPrimaryAction.UnregisterCallback(primaryActionClickCallback);
             }
         }
 
@@ -463,6 +546,24 @@ namespace KineTutor3D.UI.RobotControlV3
             runtimeController?.ExecutePrimaryAction();
         }
 
+        private void HandleServoClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.EnableServo();
+        }
+
+        private void HandleRunClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.ExecutePrimaryAction();
+        }
+
+        private void HandleStopClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.StopMotion();
+        }
+
         private void HandlePauseClicked()
         {
             debugOverrideSnapshot = null;
@@ -473,6 +574,12 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             debugOverrideSnapshot = null;
             runtimeController?.SyncCurrentState();
+        }
+
+        private void HandleResetClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.ResetErrors();
         }
 
         private static PendantV3PreviewState.Kind MapStatusKind(RobotControlV3RuntimeStatusKind statusKind)

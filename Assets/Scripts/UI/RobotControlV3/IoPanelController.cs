@@ -108,16 +108,26 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void Register(PanelElements panel)
         {
-            panel.BtnGripperOpen.clicked += () => runtimeController.SetGripperOpen(true);
-            panel.BtnGripperClose.clicked += () => runtimeController.SetGripperOpen(false);
-            panel.BtnDo0On.clicked += () => runtimeController.SetRobotDigitalOutput(0, true);
-            panel.BtnDo0Off.clicked += () => runtimeController.SetRobotDigitalOutput(0, false);
-            panel.BtnDo1On.clicked += () => runtimeController.SetRobotDigitalOutput(1, true);
-            panel.BtnDo1Off.clicked += () => runtimeController.SetRobotDigitalOutput(1, false);
-            panel.BtnToolDo0On.clicked += () => runtimeController.SetToolDigitalOutput(0, true);
-            panel.BtnToolDo0Off.clicked += () => runtimeController.SetToolDigitalOutput(0, false);
-            panel.BtnToolDo1On.clicked += () => runtimeController.SetToolDigitalOutput(1, true);
-            panel.BtnToolDo1Off.clicked += () => runtimeController.SetToolDigitalOutput(1, false);
+            RegisterClick(panel.BtnGripperOpen, () => runtimeController.SetGripperOpen(true));
+            RegisterClick(panel.BtnGripperClose, () => runtimeController.SetGripperOpen(false));
+            RegisterClick(panel.BtnDo0On, () => runtimeController.SetRobotDigitalOutput(0, true));
+            RegisterClick(panel.BtnDo0Off, () => runtimeController.SetRobotDigitalOutput(0, false));
+            RegisterClick(panel.BtnDo1On, () => runtimeController.SetRobotDigitalOutput(1, true));
+            RegisterClick(panel.BtnDo1Off, () => runtimeController.SetRobotDigitalOutput(1, false));
+            RegisterClick(panel.BtnToolDo0On, () => runtimeController.SetToolDigitalOutput(0, true));
+            RegisterClick(panel.BtnToolDo0Off, () => runtimeController.SetToolDigitalOutput(0, false));
+            RegisterClick(panel.BtnToolDo1On, () => runtimeController.SetToolDigitalOutput(1, true));
+            RegisterClick(panel.BtnToolDo1Off, () => runtimeController.SetToolDigitalOutput(1, false));
+        }
+
+        private static void RegisterClick(Button button, System.Action handler)
+        {
+            if (button == null || handler == null)
+            {
+                return;
+            }
+
+            button.RegisterCallback<ClickEvent>(_ => handler());
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot snapshot)
@@ -162,16 +172,16 @@ namespace KineTutor3D.UI.RobotControlV3
             public readonly Label State = new("Gripper: --");
             public readonly Label Output = new("DO0 OFF / DO1 OFF");
             public readonly Label Feedback = new("주변장치 조작 전");
-            public readonly Button BtnGripperOpen = new() { text = "그리퍼 열기" };
-            public readonly Button BtnGripperClose = new() { text = "그리퍼 닫기" };
-            public readonly Button BtnDo0On = new() { text = "DO0 ON" };
-            public readonly Button BtnDo0Off = new() { text = "DO0 OFF" };
-            public readonly Button BtnDo1On = new() { text = "DO1 ON" };
-            public readonly Button BtnDo1Off = new() { text = "DO1 OFF" };
-            public readonly Button BtnToolDo0On = new() { text = "TDO0 ON" };
-            public readonly Button BtnToolDo0Off = new() { text = "TDO0 OFF" };
-            public readonly Button BtnToolDo1On = new() { text = "TDO1 ON" };
-            public readonly Button BtnToolDo1Off = new() { text = "TDO1 OFF" };
+            public readonly Button BtnGripperOpen = new() { name = "BtnIoGripperOpen", text = "그리퍼 열기" };
+            public readonly Button BtnGripperClose = new() { name = "BtnIoGripperClose", text = "그리퍼 닫기" };
+            public readonly Button BtnDo0On = new() { name = "BtnRobotDo0On", text = "DO0 ON" };
+            public readonly Button BtnDo0Off = new() { name = "BtnRobotDo0Off", text = "DO0 OFF" };
+            public readonly Button BtnDo1On = new() { name = "BtnRobotDo1On", text = "DO1 ON" };
+            public readonly Button BtnDo1Off = new() { name = "BtnRobotDo1Off", text = "DO1 OFF" };
+            public readonly Button BtnToolDo0On = new() { name = "BtnToolDo0On", text = "TDO0 ON" };
+            public readonly Button BtnToolDo0Off = new() { name = "BtnToolDo0Off", text = "TDO0 OFF" };
+            public readonly Button BtnToolDo1On = new() { name = "BtnToolDo1On", text = "TDO1 ON" };
+            public readonly Button BtnToolDo1Off = new() { name = "BtnToolDo1Off", text = "TDO1 OFF" };
 
             public PanelElements()
             {

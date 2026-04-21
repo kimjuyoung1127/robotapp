@@ -223,6 +223,34 @@
   - 현재 목표인 “실기기 전 시뮬레이션 가능 여부”는 통과다.
   - 실기 테스트 전 추가 조건은 pendant gripper direction, SDK readback, current tool coordinate 비교다.
 
+## Actual UI Click E2E Follow-up
+- 이전 `RobotLinkedButtonAudit pass=74; fail=0`은 `DebugBridge -> runtime` 경로 검증이다.
+- 추가로 `unityctl uitk click`로 화면 버튼을 실제 클릭해 `UI Toolkit ClickEvent -> controller -> runtime` 경로를 검증했다.
+- 실제 클릭에서 찾은 차이:
+  - 일부 동적 버튼이 `Button.clicked`만 사용해서 `unityctl uitk click`의 `ClickEvent` 검증에서 runtime handler가 실행되지 않았다.
+  - 상단 `Servo / Run / Stop / Reset`은 runtime 직접 진입점이 부족했다.
+  - I/O 동적 버튼은 이름이 없어 desktop/tablet 중복 locator를 안정적으로 고르기 어려웠다.
+- 수정:
+  - `ConnectionHomeController` 상단 버튼과 home panel 버튼을 `RegisterCallback<ClickEvent>` 기반으로 묶었다.
+  - `EasyMotionController`, `JointJogController`, `IoPanelController` 동적 로봇 연동 버튼도 `RegisterCallback<ClickEvent>`로 통일했다.
+  - I/O 버튼에 `BtnIoGripperOpen/Close`, `BtnRobotDo0/1On/Off`, `BtnToolDo0/1On/Off` 이름을 부여했다.
+- 실제 클릭 확인:
+  - `BtnConnect`: `connected=True`, `enabled=False`.
+  - `BtnServoEnable`: `connected=True`, `enabled=True`.
+  - `BtnPointPreview`: `pending=대기 명령: MoveJ`, `ghost=True`, `path=True`.
+  - `BtnPointApply`: `[DryRun Apply] 포인트 MoveJ 적용`, `pending=대기 중인 명령 없음`, `ghost=False`, `path=False`.
+  - `BtnRobotDo0On`: `robotDo=DO0 ON / DO1 OFF`.
+  - `BtnToolDo0On`: `toolDo=ToolDO0 ON / ToolDO1 OFF`.
+  - `BtnIoGripperOpen`: `Cmd Open`, SDK mock readback `position=100`.
+  - `BtnIoGripperClose`: `Cmd Close`, SDK mock readback `position=0`.
+- 재검증:
+  - `unityctl check --type compile --json`: pass.
+  - `console get-count`: error 0.
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`: `RobotLinkedButtonAudit pass=74; fail=0`.
+- 주의:
+  - Point 버튼은 `NavMotion + TabPointMove`에서 enabled가 되는 것이 현재 계약이다.
+  - `NavIo` 상태에서 `BtnPointApply`가 disabled로 보이는 것은 누락이 아니라 shell visibility 계약이다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.

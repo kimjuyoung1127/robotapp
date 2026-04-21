@@ -178,14 +178,24 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            panel.BtnEasyHome.clicked += () => SelectPresetAndPreview("Home");
-            panel.BtnEasyReady.clicked += () => SelectPresetAndPreview("Ready");
-            panel.BtnEasyFolded.clicked += () => SelectPresetAndPreview("Folded");
-            panel.BtnEasyZero.clicked += () => SelectPresetAndPreview("Zero");
-            panel.BtnEasyPreview.clicked += PreviewSelectedPreset;
-            panel.BtnEasyApply.clicked += ApplySelectedPreset;
-            panel.BtnGripperOpen.clicked += () => runtimeController?.SetGripperOpen(true);
-            panel.BtnGripperClose.clicked += () => runtimeController?.SetGripperOpen(false);
+            RegisterClick(panel.BtnEasyHome, () => SelectPresetAndPreview("Home"));
+            RegisterClick(panel.BtnEasyReady, () => SelectPresetAndPreview("Ready"));
+            RegisterClick(panel.BtnEasyFolded, () => SelectPresetAndPreview("Folded"));
+            RegisterClick(panel.BtnEasyZero, () => SelectPresetAndPreview("Zero"));
+            RegisterClick(panel.BtnEasyPreview, PreviewSelectedPreset);
+            RegisterClick(panel.BtnEasyApply, ApplySelectedPreset);
+            RegisterClick(panel.BtnGripperOpen, () => runtimeController?.SetGripperOpen(true));
+            RegisterClick(panel.BtnGripperClose, () => runtimeController?.SetGripperOpen(false));
+        }
+
+        private static void RegisterClick(Button button, System.Action handler)
+        {
+            if (button == null || handler == null)
+            {
+                return;
+            }
+
+            button.RegisterCallback<ClickEvent>(_ => handler());
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot data)

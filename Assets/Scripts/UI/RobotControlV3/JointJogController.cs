@@ -234,22 +234,32 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            panel.BtnModeSlider.clicked += () => SetMode(singleAxis: false);
-            panel.BtnModeSingleAxis.clicked += () => SetMode(singleAxis: true);
-            panel.BtnRestore.clicked += ResetFromPreview;
-            panel.BtnPreview.clicked += PreviewCurrentValues;
-            panel.BtnApply.clicked += ApplyCurrentValues;
+            RegisterClick(panel.BtnModeSlider, () => SetMode(singleAxis: false));
+            RegisterClick(panel.BtnModeSingleAxis, () => SetMode(singleAxis: true));
+            RegisterClick(panel.BtnRestore, ResetFromPreview);
+            RegisterClick(panel.BtnPreview, PreviewCurrentValues);
+            RegisterClick(panel.BtnApply, ApplyCurrentValues);
 
             for (var index = 0; index < panel.Rows.Length; index++)
             {
                 var capturedIndex = index;
-                panel.Rows[index].MinusButton.clicked += () => AdjustJoint(capturedIndex, -GetIncrementDegrees());
-                panel.Rows[index].PlusButton.clicked += () => AdjustJoint(capturedIndex, GetIncrementDegrees());
+                RegisterClick(panel.Rows[index].MinusButton, () => AdjustJoint(capturedIndex, -GetIncrementDegrees()));
+                RegisterClick(panel.Rows[index].PlusButton, () => AdjustJoint(capturedIndex, GetIncrementDegrees()));
                 panel.Rows[index].Slider.RegisterValueChangedCallback(evt => SetJointValue(capturedIndex, evt.newValue));
                 panel.Rows[index].Input.RegisterCallback<FocusInEvent>(_ => panel.Rows[capturedIndex].Input.SelectAll());
                 panel.Rows[index].Input.RegisterValueChangedCallback(evt => HandleTextChanged(capturedIndex, evt.newValue));
                 panel.Rows[index].Input.RegisterCallback<FocusOutEvent>(_ => SyncRowValue(panel.Rows[capturedIndex], capturedIndex));
             }
+        }
+
+        private static void RegisterClick(Button button, System.Action handler)
+        {
+            if (button == null || handler == null)
+            {
+                return;
+            }
+
+            button.RegisterCallback<ClickEvent>(_ => handler());
         }
 
         private void ApplyShellStateSnapshot()
