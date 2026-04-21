@@ -28,7 +28,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             state.GripperOpen = open;
-            state.GripperOpenRatio = open ? 1f : 0f;
+            state.GripperOpenRatio = 0f;
             state.LastPeripheralFeedback = open ? "[Mock Gripper] 열림" : "[Mock Gripper] 닫힘";
             SyncMockSdkGripper(open);
             return FairinoResult.Ok(state.LastPeripheralFeedback);

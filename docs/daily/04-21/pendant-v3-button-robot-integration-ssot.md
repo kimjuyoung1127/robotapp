@@ -188,6 +188,41 @@
   - pendant에서 gripper configuration/activation 상태를 확인하고 앱 readback과 비교한다.
   - 현장 확인 전에는 `MoveGripper` live 실행을 열지 않는다.
 
+## Robot-linked Button Simulation Audit
+- 요청 목적:
+  - 실기기 테스트 전, 화면에 보이는 로봇 연동 버튼이 Mock/RobotStage에서 시뮬레이션되는지 확인한다.
+  - 버튼당 최소 2개 관점으로 확인한다.
+- 자기리뷰:
+  - 이전 핑거 깨짐 원인은 SDK gripper position과 visual finger transform을 너무 빨리 결합한 것이다.
+  - 실기에서 `pos=0/100` 방향성이 확인되기 전까지 visual finger는 닫힌 TCP 기준에 고정한다.
+  - SDK 상태는 `GripperSdkSummary`로 따로 비교한다.
+  - 포인트 패널 visibility 계약은 `NavMotion + TabPointMove`다. `NavPoints`로 audit하면 저장 버튼이 닫힌 패널 상태로 판단된다.
+- 코드 보강:
+  - `RobotControlV3DebugBridge.RunRobotLinkedButtonSimulationAuditForDebug()` 추가.
+  - `JointJogController.NudgeJointForDebug()` 추가.
+  - `GetGripperVisualSummaryForDebug()`에 `fingerLeft` / `fingerRight` local position 추가.
+  - `GripperSummary`를 `Cmd`와 `Visual`로 분리.
+- 검증:
+  - `unityctl check --type compile --json`: pass.
+  - `script get-errors`: error 0.
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`: `RobotLinkedButtonAudit pass=74; fail=0`.
+- 포함한 로봇 연동 버튼군:
+  - `BtnConnect`, `BtnServoEnable`, `BtnSync`, `BtnStop`, `BtnStopBottom`, `BtnPause`, `BtnDryRun`.
+  - `BtnEasyHome`, `BtnEasyReady`, `BtnEasyFolded`, `BtnEasyZero`, `BtnEasyApply`.
+  - `BtnGripperOpen`, `BtnGripperClose`.
+  - `BtnJoint1~6Plus`, `BtnJoint1~6Minus`, `BtnJointPreview`, `BtnJointApply`, `BtnJointRestore`.
+  - `BtnTcp/BtnArrow X/Y/Z/RX/RY/RZ +/-`, `BtnTcpCoordBase/Tool/User`, `BtnTcpPreview`, `BtnTcpApply`.
+  - `BtnPointMoveL`, `BtnPointMoveJ`, `BtnPointPreview`, `BtnPointApply`, `BtnPointSave`, `BtnPointRecall`, `BtnPointRename`, `BtnPointExport`, `BtnPointDelete`, `BtnPointCleanup`.
+  - `DO0/DO1 ON/OFF`, `TDO0/TDO1 ON/OFF`.
+  - `BtnViewportBaseFrame`, `BtnViewportToolFrame`, `BtnViewportTrail`, `BtnViewportGhost`, `BtnViewportBoundary`, `BtnViewportCollision`, `BtnViewportCameraReset`.
+  - `BtnCoordModeJoint`, `BtnCoordModeTcp`, `BtnCoordModeBoth`.
+- 해석:
+  - 동일 runtime path를 공유하는 버튼은 묶어서 확인했다.
+    - 예: `BtnStop` / `BtnStopBottom`
+    - 예: `BtnTcpXPlus` / `BtnArrowXPlus`
+  - 현재 목표인 “실기기 전 시뮬레이션 가능 여부”는 통과다.
+  - 실기 테스트 전 추가 조건은 pendant gripper direction, SDK readback, current tool coordinate 비교다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.

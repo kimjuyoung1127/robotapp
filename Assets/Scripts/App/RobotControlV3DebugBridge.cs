@@ -1,4 +1,5 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
+using System.Text;
 using KineTutor3D.UI.RobotControlV3;
 using KineTutor3D.App.Fairino;
 using UnityEngine;
@@ -486,6 +487,203 @@ namespace KineTutor3D.App
         {
             var jointJog = GetJointJogController();
             return jointJog.SetJointInputForDebug(axisNumber, rawValue);
+        }
+
+        public static string NudgeJointForDebug(int axisNumber, int direction)
+        {
+            var jointJog = GetJointJogController();
+            return jointJog.NudgeJointForDebug(axisNumber, direction);
+        }
+
+        public static string RunRobotLinkedButtonSimulationAuditForDebug()
+        {
+            var runtime = GetRuntimeController();
+            var builder = new StringBuilder();
+            var passCount = 0;
+            var failCount = 0;
+
+            void AddCase(string buttonName, System.Action action, string stateNeedle, System.Func<string> secondCheck, string secondNeedle)
+            {
+                string state;
+                string second;
+                var pass = false;
+                try
+                {
+                    action();
+                    state = GetMovementStateSummaryForDebug();
+                    second = secondCheck != null ? secondCheck() : GetV3RuntimeSummary();
+                    pass = Contains(state, stateNeedle) && CheckSecond(second, secondNeedle);
+                }
+                catch (System.Exception ex)
+                {
+                    state = $"exception={ex.GetType().Name}";
+                    second = ex.Message;
+                }
+
+                if (pass)
+                {
+                    passCount++;
+                }
+                else
+                {
+                    failCount++;
+                }
+
+                builder.Append(pass ? "PASS" : "FAIL")
+                    .Append(" | ")
+                    .Append(buttonName)
+                    .Append(" | state=")
+                    .Append(Compact(state))
+                    .Append(" | check2=")
+                    .Append(Compact(second))
+                    .Append('\n');
+            }
+
+            bool Contains(string value, string needle)
+            {
+                return string.IsNullOrEmpty(needle) || (value != null && value.Contains(needle));
+            }
+
+            bool CheckSecond(string value, string needle)
+            {
+                if (string.IsNullOrEmpty(needle))
+                {
+                    return true;
+                }
+
+                if (needle.StartsWith("!", System.StringComparison.Ordinal))
+                {
+                    return value != null && !value.Contains(needle.Substring(1));
+                }
+
+                return value != null && value.Contains(needle);
+            }
+
+            string Compact(string value)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return string.Empty;
+                }
+
+                value = value.Replace('\n', ' ').Replace('\r', ' ');
+                return value.Length <= 260 ? value : value.Substring(0, 260) + "...";
+            }
+
+            string VisualCheck()
+            {
+                return GetGripperVisualSummaryForDebug();
+            }
+
+            string SdkCheck()
+            {
+                return GetGripperSdkSummaryForDebug(true);
+            }
+
+            string LayoutCheck()
+            {
+                return GetAuxLayoutSummaryForDebug();
+            }
+
+            string RowCheck(int axis)
+            {
+                return GetJointJogController().GetJointRowDebugSummary(axis);
+            }
+
+            string PointCheck()
+            {
+                return GetPointMoveController().GetPointListSummaryForDebug();
+            }
+
+            runtime.Disconnect();
+            AddCase("BtnConnect", () => runtime.ConnectDefault(), "status=ConnectedServoOff", GetV3RuntimeSummary, "connected=True");
+            AddCase("BtnServoEnable", () => runtime.EnableServo(), "status=ReadyToJog", GetV3RuntimeSummary, "enabled=True");
+            AddCase("BtnSync", () => runtime.SyncCurrentState(), "status=ReadyToJog", VisualCheck, "cameraVisible=True");
+            AddCase("BtnStop/BtnStopBottom", () => runtime.StopMotion(), "[Stop]", GetV3RuntimeSummary, "connected=True");
+            AddCase("BtnPause", () => runtime.TogglePause(), "Pause", GetV3RuntimeSummary, "connected=True");
+            AddCase("BtnDryRun-Off", () => runtime.ToggleDryRun(), "dryRun=False", GetV3RuntimeSummary, "dryRun=False");
+            AddCase("BtnDryRun-On", () => runtime.ToggleDryRun(), "dryRun=True", GetV3RuntimeSummary, "dryRun=True");
+
+            AddCase("BtnEasyHome", () => runtime.PreviewPreset("Home"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
+            AddCase("BtnEasyReady", () => runtime.PreviewPreset("Ready"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
+            AddCase("BtnEasyFolded", () => runtime.PreviewPreset("Folded"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
+            AddCase("BtnEasyZero", () => runtime.PreviewPreset("Zero"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
+            AddCase("BtnEasyApply", () => runtime.ApplyPreset("Ready"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
+            AddCase("BtnGripperClose", () => runtime.SetGripperOpen(false), "Cmd Close / Visual Closed", VisualCheck, "fingerLeft=(0,0,0)");
+            AddCase("BtnGripperOpen", () => runtime.SetGripperOpen(true), "Cmd Open / Visual Closed", SdkCheck, "position=100");
+
+            SetShellSelection("NavMotion", "TabJointJog", "BottomTabJointJog");
+            GetJointJogController().ForceInitialize();
+            for (var axis = 1; axis <= 6; axis++)
+            {
+                var capturedAxis = axis;
+                AddCase($"BtnJoint{axis}Plus", () => NudgeJointForDebug(capturedAxis, 1), "joints=[", () => RowCheck(capturedAxis), "!row=missing");
+                AddCase($"BtnJoint{axis}Minus", () => NudgeJointForDebug(capturedAxis, -1), "joints=[", () => RowCheck(capturedAxis), "!row=missing");
+            }
+
+            AddCase("BtnJointPreview", () => runtime.PreviewJointAngles(new[] { 5d, -35d, 10d, -55d, -80d, -20d }, "audit joint preview"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
+            AddCase("BtnJointApply", () => runtime.ApplyJointAngles(new[] { 5d, -35d, 10d, -55d, -80d, -20d }, "audit joint apply"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
+            AddCase("BtnJointRestore", () => runtime.RestoreJointPreview(), "[Restore]", VisualCheck, "cameraVisible=True");
+
+            SetShellSelection("NavMotion", "TabTcpJog", "BottomTabTcpJog");
+            GetTcpJogController().ForceInitialize();
+            var tcpAxes = new[] { "X", "Y", "Z", "RX", "RY", "RZ" };
+            foreach (var axis in tcpAxes)
+            {
+                var capturedAxis = axis;
+                AddCase($"BtnTcp{axis}Plus/BtnArrow{axis}Plus", () => NudgeTcpAxisForDebug(capturedAxis, 1), "pending=대기 명령: MoveL", GetTcpJogControllerSummary, $"activeAxis={capturedAxis}");
+                AddCase($"BtnTcp{axis}Minus/BtnArrow{axis}Minus", () => NudgeTcpAxisForDebug(capturedAxis, -1), "pending=대기 명령: MoveL", GetTcpJogControllerSummary, $"activeAxis={capturedAxis}");
+            }
+
+            AddCase("BtnTcpCoordBase", () => SetTcpCoordSystemForDebug("Base"), "status=", GetTcpJogControllerSummary, "coord=Base");
+            AddCase("BtnTcpCoordTool", () => SetTcpCoordSystemForDebug("Tool"), "status=", GetTcpJogControllerSummary, "coord=Tool");
+            AddCase("BtnTcpCoordUser", () => SetTcpCoordSystemForDebug("User"), "status=", GetTcpJogControllerSummary, "coord=User");
+            AddCase("BtnTcpPreview", () => runtime.PreviewTcpPose(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "audit tcp preview"), "pending=대기 명령: MoveL", VisualCheck, "cameraVisible=True");
+            AddCase("BtnTcpApply", () => runtime.ApplyTcpPose(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "audit tcp apply"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
+
+            SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            GetPointMoveController().ForceInitialize();
+            SetPointMoveValueForDebug("X", 540f);
+            SetPointMoveValueForDebug("Y", 130f);
+            SetPointMoveValueForDebug("Z", 440f);
+            SetPointMoveValueForDebug("RX", 180f);
+            SetPointMoveValueForDebug("RY", 0f);
+            SetPointMoveValueForDebug("RZ", 95f);
+            AddCase("BtnPointMoveL", () => SetPointMoveMotionKindForDebug("MoveL"), "feedback=", PointCheck, "points=");
+            AddCase("BtnPointPreview", () => PreviewPointMoveForDebug(), "pending=대기 명령: MoveL", PointCheck, "points=");
+            AddCase("BtnPointApply", () => ApplyPointMoveForDebug(), "[DryRun Apply]", PointCheck, "points=");
+            AddCase("BtnPointSave", () => { SetPointMoveNameForDebug("AUDIT_P"); SavePointMoveForDebug(); }, "feedback=", PointCheck, "AUDIT_P");
+            AddCase("BtnPointRecall", () => RecallPointMoveForDebug("AUDIT_P"), "feedback=", PointCheck, "active=AUDIT_P");
+            AddCase("BtnPointMoveJ", () => SetPointMoveMotionKindForDebug("MoveJ"), "feedback=", PointCheck, "active=AUDIT_P");
+            AddCase("BtnPointRename", () => RenamePointMoveForDebug("AUDIT_P", "AUDIT_RENAMED"), "feedback=", PointCheck, "AUDIT_RENAMED");
+            AddCase("BtnPointExport", () => ExportPointMoveForDebug(), "feedback=", PointCheck, "AUDIT_RENAMED");
+            AddCase("BtnPointDelete", () => DeletePointMoveForDebug("AUDIT_RENAMED"), "feedback=", PointCheck, "points=");
+            AddCase("BtnPointCleanup", () => CleanupPointMoveForDebug(), "feedback=", PointCheck, "count=0");
+
+            AddCase("BtnRobotDO0On", () => runtime.SetRobotDigitalOutput(0, true), "robotDo=DO0 ON", SdkCheck, "sdkGripper=");
+            AddCase("BtnRobotDO0Off", () => runtime.SetRobotDigitalOutput(0, false), "robotDo=DO0 OFF", SdkCheck, "sdkGripper=");
+            AddCase("BtnRobotDO1On", () => runtime.SetRobotDigitalOutput(1, true), "robotDo=DO0 OFF / DO1 ON", SdkCheck, "sdkGripper=");
+            AddCase("BtnRobotDO1Off", () => runtime.SetRobotDigitalOutput(1, false), "robotDo=DO0 OFF / DO1 OFF", SdkCheck, "sdkGripper=");
+            AddCase("BtnToolDO0On", () => runtime.SetToolDigitalOutput(0, true), "toolDo=ToolDO0 ON", SdkCheck, "sdkGripper=");
+            AddCase("BtnToolDO0Off", () => runtime.SetToolDigitalOutput(0, false), "toolDo=ToolDO0 OFF", SdkCheck, "sdkGripper=");
+            AddCase("BtnToolDO1On", () => runtime.SetToolDigitalOutput(1, true), "ToolDO1 ON", SdkCheck, "sdkGripper=");
+            AddCase("BtnToolDO1Off", () => runtime.SetToolDigitalOutput(1, false), "ToolDO1 OFF", SdkCheck, "sdkGripper=");
+
+            AddCase("BtnViewportBaseFrame", () => runtime.SetBaseFrameVisible(false), "status=", VisualCheck, "cameraVisible=True");
+            AddCase("BtnViewportToolFrame", () => runtime.SetToolFrameVisible(false), "status=", VisualCheck, "cameraVisible=True");
+            AddCase("BtnViewportTrail", () => runtime.SetTrailVisible(false), "status=", VisualCheck, "cameraVisible=True");
+            AddCase("BtnViewportGhost", () => runtime.SetGhostVisible(false), "status=", VisualCheck, "cameraVisible=True");
+            AddCase("BtnViewportBoundary", () => runtime.SetWorkspaceBoundaryVisible(true), "status=", LayoutCheck, "viewportHorizontalVisible=False");
+            AddCase("BtnViewportCollision", () => runtime.SetCollisionVisible(true), "status=", LayoutCheck, "viewportHorizontalVisible=False");
+            AddCase("BtnViewportCameraReset", () => runtime.ResetStageCamera(), "status=", VisualCheck, "cameraVisible=True");
+
+            AddCase("BtnCoordModeJoint", () => SetCoordStripModeForDebug("Joint"), "status=", () => SetCoordStripModeForDebug("Joint"), "jointHidden=False");
+            AddCase("BtnCoordModeTcp", () => SetCoordStripModeForDebug("TCP"), "status=", () => SetCoordStripModeForDebug("TCP"), "tcpHidden=False");
+            AddCase("BtnCoordModeBoth", () => SetCoordStripModeForDebug("Both"), "status=", () => SetCoordStripModeForDebug("Both"), "jointHidden=False");
+
+            runtime.Disconnect();
+            builder.Insert(0, $"RobotLinkedButtonAudit pass={passCount}; fail={failCount}\n");
+            return builder.ToString();
         }
 
         public static string GetPanelControllerSummary()

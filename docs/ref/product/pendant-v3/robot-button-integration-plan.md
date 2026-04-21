@@ -263,3 +263,42 @@
 - 다음 단계:
   - 실제 FR5 연결 후 `GetGripperSdkSummaryForDebug(true)`로 SDK method/readback만 먼저 확인한다.
   - 사용자가 현장 안전을 확인하기 전까지 `MoveGripper` live 실행은 열지 않는다.
+
+## 2026-04-21 Robot-linked Button Simulation Audit
+- 목적:
+  - 실기기 테스트 전, 화면에 보이는 로봇 연동 버튼들이 Mock/RobotStage/SDK-comparison state에서 시뮬레이션되는지 확인한다.
+  - 동일 runtime path를 공유하는 버튼은 묶어서 검증한다.
+    - 예: `BtnStop` / `BtnStopBottom`
+    - 예: `BtnTcpXPlus` / `BtnArrowXPlus`
+- 자기리뷰:
+  - `SDK gripper pos=100`을 visual finger open ratio로 바로 연결하면 템플릿에서 수동 조정한 닫힌 finger TCP 기준이 깨진다.
+  - 따라서 live 방향성 검증 전까지 visual finger는 닫힌 기준으로 고정하고, SDK mock/readback은 `GripperSdkSummary`로 분리한다.
+  - `PointMoveController`는 `NavMotion + TabPointMove`에서 열리는 계약이다. `NavPoints`는 shell navigation label일 수 있으나 PointMove panel visibility 기준이 아니다.
+  - audit은 각 버튼당 두 관점 이상을 본다.
+    - runtime movement summary
+    - visual gripper/stage summary
+    - SDK gripper summary
+    - joint row summary
+    - point list summary
+    - layout summary
+- 구현:
+  - `RunRobotLinkedButtonSimulationAuditForDebug()` 추가.
+  - `NudgeJointForDebug()` 추가.
+  - gripper summary는 `Cmd Open/Close`와 `Visual Closed/Open`을 분리해서 표시한다.
+- 검증 결과:
+  - `unityctl check --type compile --json`: pass.
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`: `pass=74; fail=0`.
+  - 포함 영역:
+    - Connect / Servo / Sync / Stop / Pause / DryRun
+    - Easy Home / Ready / Folded / Zero / Apply
+    - Gripper Open / Close
+    - Joint J1~J6 +/- / Preview / Apply / Restore
+    - TCP X/Y/Z/RX/RY/RZ +/- / coord / preview / apply
+    - Point MoveL/MoveJ / Preview / Apply / Save / Recall / Rename / Export / Delete / Cleanup
+    - Robot DO0/DO1, ToolDO0/ToolDO1
+    - Viewport Base/Tool/Trail/Ghost/Boundary/Collision/Camera
+    - CoordStrip Joint/TCP/Both
+- 실기 전 남은 조건:
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`가 계속 green이어야 한다.
+  - 실제 FR5에서는 먼저 `GetGripperSdkSummaryForDebug(true)` readback만 수행한다.
+  - pendant gripper direction과 SDK `pos=0/100` 의미가 확인되기 전까지 visual finger open/close를 live truth로 쓰지 않는다.

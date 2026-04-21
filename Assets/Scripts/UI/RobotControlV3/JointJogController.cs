@@ -137,6 +137,18 @@ namespace KineTutor3D.UI.RobotControlV3
             return BuildRowDebugSummary(axisNumber, row);
         }
 
+        public string NudgeJointForDebug(int axisNumber, int direction)
+        {
+            var row = GetActiveRow(axisNumber);
+            if (row == null)
+            {
+                return $"axis={axisNumber}; row=missing";
+            }
+
+            AdjustJoint(axisNumber - 1, Mathf.Sign(direction == 0 ? 1 : direction) * GetIncrementDegrees());
+            return BuildRowDebugSummary(axisNumber, row);
+        }
+
         private bool TryInitialize()
         {
             document ??= GetComponent<UIDocument>();

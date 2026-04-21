@@ -146,7 +146,9 @@ namespace KineTutor3D.App.Fairino
             var viewport = stageCamera != null && hasBounds ? stageCamera.WorldToViewportPoint(bounds.center) : Vector3.zero;
             var tcpLocal = endEffectorAttachment.TcpFrame != null ? endEffectorAttachment.TcpFrame.localPosition : Vector3.zero;
             var modelLocal = endEffectorAttachment.ModelRoot != null ? endEffectorAttachment.ModelRoot.localPosition : Vector3.zero;
-            return $"attached=True; active={root.gameObject.activeInHierarchy}; renderers={renderers.Length}; activeRenderers={activeRendererCount}; meshFilters={meshFilters.Length}; local=({local.x:0.###},{local.y:0.###},{local.z:0.###}); rot=({euler.x:0.#},{euler.y:0.#},{euler.z:0.#}); scale=({root.localScale.x:0.###},{root.localScale.y:0.###},{root.localScale.z:0.###}); tcpLocal=({tcpLocal.x:0.####},{tcpLocal.y:0.####},{tcpLocal.z:0.####}); modelLocal=({modelLocal.x:0.####},{modelLocal.y:0.####},{modelLocal.z:0.####}); boundsCenter=({bounds.center.x:0.###},{bounds.center.y:0.###},{bounds.center.z:0.###}); boundsSize=({bounds.size.x:0.###},{bounds.size.y:0.###},{bounds.size.z:0.###}); viewport=({viewport.x:0.###},{viewport.y:0.###},{viewport.z:0.###}); cameraVisible={cameraVisible}; openRatio={endEffectorAttachment.GripperOpenRatio:0.00}";
+            var fingerLeftLocal = endEffectorAttachment.FingerLeft != null ? endEffectorAttachment.FingerLeft.localPosition : Vector3.zero;
+            var fingerRightLocal = endEffectorAttachment.FingerRight != null ? endEffectorAttachment.FingerRight.localPosition : Vector3.zero;
+            return $"attached=True; active={root.gameObject.activeInHierarchy}; renderers={renderers.Length}; activeRenderers={activeRendererCount}; meshFilters={meshFilters.Length}; local=({local.x:0.###},{local.y:0.###},{local.z:0.###}); rot=({euler.x:0.#},{euler.y:0.#},{euler.z:0.#}); scale=({root.localScale.x:0.###},{root.localScale.y:0.###},{root.localScale.z:0.###}); tcpLocal=({tcpLocal.x:0.####},{tcpLocal.y:0.####},{tcpLocal.z:0.####}); modelLocal=({modelLocal.x:0.####},{modelLocal.y:0.####},{modelLocal.z:0.####}); fingerLeft=({fingerLeftLocal.x:0.####},{fingerLeftLocal.y:0.####},{fingerLeftLocal.z:0.####}); fingerRight=({fingerRightLocal.x:0.####},{fingerRightLocal.y:0.####},{fingerRightLocal.z:0.####}); boundsCenter=({bounds.center.x:0.###},{bounds.center.y:0.###},{bounds.center.z:0.###}); boundsSize=({bounds.size.x:0.###},{bounds.size.y:0.###},{bounds.size.z:0.###}); viewport=({viewport.x:0.###},{viewport.y:0.###},{viewport.z:0.###}); cameraVisible={cameraVisible}; openRatio={endEffectorAttachment.GripperOpenRatio:0.00}";
         }
 
         public string GetGripperSdkSummaryForDebug(bool includeReadback)
@@ -1445,7 +1447,7 @@ namespace KineTutor3D.App.Fairino
             var peripheral = peripheralFacade.Snapshot;
             snapshot.GripperOpenRatio = peripheral.GripperOpenRatio;
             snapshot.GripperVisualAttached = peripheral.GripperVisualAttached;
-            snapshot.GripperSummary = $"Gripper: {(peripheral.GripperOpen ? "Open" : "Closed")} ({peripheral.GripperOpenRatio:0.00})";
+            snapshot.GripperSummary = $"Gripper: Cmd {(peripheral.GripperOpen ? "Open" : "Close")} / Visual {(peripheral.GripperOpenRatio > 0.001f ? "Open" : "Closed")} ({peripheral.GripperOpenRatio:0.00})";
             snapshot.RobotDoSummary = $"DO0 {(peripheral.RobotDigitalOutputs[0] ? "ON" : "OFF")} / DO1 {(peripheral.RobotDigitalOutputs[1] ? "ON" : "OFF")}";
             snapshot.ToolDoSummary = $"ToolDO0 {(peripheral.ToolDigitalOutputs[0] ? "ON" : "OFF")} / ToolDO1 {(peripheral.ToolDigitalOutputs[1] ? "ON" : "OFF")}";
             snapshot.PeripheralFeedback = peripheral.LastPeripheralFeedback;
