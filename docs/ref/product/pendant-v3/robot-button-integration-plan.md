@@ -331,3 +331,28 @@
 - 계약:
   - PointMove 버튼은 `NavMotion + TabPointMove`에서 활성화된다.
   - `NavIo`에서 Point 버튼이 disabled처럼 보이는 상태는 panel visibility 계약상 정상이다.
+
+## Missing / Pending Tests Before Live Robot
+- `P0 필수`: actual UI click full matrix.
+  - 현재는 대표 actual click + 전체 runtime audit 조합이다.
+  - 다음에는 74개 로봇 연동 버튼을 desktop locator 기준으로 자동 순회하고, 각 버튼마다 before/after summary를 저장한다.
+- `P0 필수`: tablet/bottom sheet actual click matrix.
+  - `BottomTabHome/Motion/Point/Io`, tablet sheet의 Easy/Joint/TCP/Point/I/O 버튼을 별도 locator로 검증한다.
+  - desktop과 같은 runtime path를 타더라도 tablet hit target/visibility는 별도 UX 리스크다.
+- `P0 필수`: popup confirm/cancel E2E.
+  - `Servo`, `Run`, `Reset`, `Stop`, fault recovery popup의 open/cancel/confirm 경로를 실제 클릭으로 확인한다.
+  - runtime handler가 동작해도 popup policy가 깨지면 pendant UX로는 실패다.
+- `P0 필수`: RobotStage screenshot evidence.
+  - Joint jog, TCP jog, Point preview/apply 후 `front / side / iso` 중 2개 이상에서 robot pose, ghost, predicted path가 보이는지 캡처한다.
+- `P1 후속`: viewport toolbar actual click matrix.
+  - `Base / Tool / Path / Ghost / Bound / Coll / Cam` 화면 클릭 후 stage flag, layout summary, clipped count를 함께 확인한다.
+- `P1 후속`: Point MoveJ production behavior.
+  - saved joint target 우선 경로와 numerical IK fallback을 분리해 테스트한다.
+  - orientation, unreachable target, joint limit, singularity, collision guard는 아직 production gate가 아니다.
+- `P1 후속`: Safety/fault state actual flow.
+  - fault preview/forced fault 상태에서 recovery/detail/reset/close 버튼의 visual state와 runtime state를 검증한다.
+- `P2 실기 게이트`: live SDK readback-only.
+  - 실제 FR5에서는 먼저 `GetGripperSdkSummaryForDebug(true)`만 수행한다.
+  - pendant readback과 SDK readback의 gripper activation, position, speed, current, voltage, temperature를 비교한다.
+- `P2 실기 게이트`: live movement/IO command.
+  - `MoveJ`, `MoveL`, DO/ToolDO, `MoveGripper` live 실행은 safety checklist, speed limit, E-stop, operator confirm, DryRun preview evidence가 모두 준비된 뒤에만 연다.

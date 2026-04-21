@@ -251,6 +251,32 @@
   - Point 버튼은 `NavMotion + TabPointMove`에서 enabled가 되는 것이 현재 계약이다.
   - `NavIo` 상태에서 `BtnPointApply`가 disabled로 보이는 것은 누락이 아니라 shell visibility 계약이다.
 
+## Missing Test Inventory
+- 실제 UI 클릭을 모든 74개 버튼에 대해 1:1로 자동 순회하지는 않았다.
+  - 대표 클릭 E2E는 통과했다.
+  - 전체 커버리지는 `DebugBridge -> runtime` audit으로 보강했다.
+- Tablet/bottom sheet 실제 클릭은 아직 대표 검증만 남아 있다.
+  - Desktop panel locator 중심으로 검증했다.
+  - `BottomTab*`, `BtnRunBottom`, `BtnStopBottom`, tablet sheet 안의 Point/I/O 버튼 actual click matrix가 필요하다.
+- Popup confirm flow는 별도 E2E가 필요하다.
+  - `Servo`, `Run`, `Reset`, `Stop`, fault recovery popup open/confirm/cancel 경로를 실제 클릭으로 확인해야 한다.
+  - 현재 runtime direct handler는 통과했지만, confirm popup UX 정책은 별도다.
+- View toolbar는 runtime audit은 통과했지만 actual click 대표만 부족하다.
+  - `Base / Tool / Path / Ghost / Bound / Coll / Cam` 버튼을 화면에서 눌렀을 때 stage flag와 layout이 동시에 유지되는지 확인해야 한다.
+- RobotStage visual capture는 이번 actual click 루프에서 새 스크린샷을 남기지 않았다.
+  - 최소 `front / side / iso` 중 2각도에서 Joint/TCP/Point preview 후 ghost/path/robot pose 캡처가 필요하다.
+- Run/Step/Undo/Redo는 아직 제품 의미가 partial이다.
+  - sequence/program queue가 없으므로 “버튼 클릭 가능”과 “상용 pendant식 실행 의미”는 다르다.
+  - Phase 4 전에는 full pass로 치면 안 된다.
+- Point MoveJ production IK 검증은 아직 부족하다.
+  - 현재는 saved joint target 우선 + numerical XYZ IK fallback이다.
+  - RX/RY/RZ orientation, singularity, joint limit margin, collision, unreachable target failure UI가 필요하다.
+- Safety/fault scenario actual test가 부족하다.
+  - fault 상태 강제 진입 후 reset/recovery/detail 버튼의 화면 클릭과 runtime state 변화 검증이 필요하다.
+- Live robot tests는 의도적으로 미실행이다.
+  - 실제 FR5 이동, live `MoveJ/MoveL`, live DO/ToolDO, live `MoveGripper`는 Phase 6 안전 게이트 전까지 금지다.
+  - 실기 전 1순위는 `GetGripperSdkSummaryForDebug(true)` readback-only 비교다.
+
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.
 - Live 실기 이동은 별도 Phase 6 안전 게이트 전까지 금지한다.
