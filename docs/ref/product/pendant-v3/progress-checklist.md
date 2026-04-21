@@ -19,20 +19,20 @@
 | `1B` Tablet 셸 | done | tablet class + bottom sheet 구조 |
 | `1C` 로컬 상태 | done | `PendantV3LocalState` + `LocalSettingsStore` |
 | `2A-1` 연결 홈 | done | ConnectionHome 시안 + preview 상태 |
-| `2A-2` 상태/좌표 패널 | in_progress | StatusCard/CoordStrip 완료, desktop polish ongoing |
-| `2B-1` 쉬운 조작 | in_progress | EasyMotion host/직행 기본상태 복구 + compact no-horizontal QA 완료, 패널 polish ongoing |
-| `2B-2` 관절 조그 | in_progress | panel/controller/scene wiring + compact no-horizontal QA 완료, polish ongoing |
-| `2B-3` TCP 조그 | in_progress | panel/controller/overlay wiring + 2줄 compact no-horizontal QA 완료, polish ongoing |
-| `2B-4` 포인트 이동 | in_progress | 최소 scaffold + App motion runtime facade + desktop/tablet actual `BtnPointApply` MoveL dispatch 확인 완료, invalid-input smoke 완료, MoveJ hold UX lock 완료 / MoveJ dispatch pending |
-| `2C-1` 안전/진단 | in_progress | safety diagnostics panel/fault overlay scaffold + scene wiring + actual preview-state smoke 완료, action wiring/policy 연동은 후속 |
-| `2C-2` 뷰포트 보조 UI | in_progress | viewport toolbar + workspace boundary/collision visual scaffold 완료, visualization 실데이터/정책 연동은 후속 |
-| `2D` 팝업/도움말 | in_progress | popup coordinator + confirm/unsaved + move/warning/recovery scaffold + help-panel·WhyItMoved 최소 scaffold 완료, policy 연동/도움말 심화 후속 |
+| `2A-2` 상태/좌표 패널 | done | StatusCard/CoordStrip + detail routing + actual click matrix 통과 |
+| `2B-1` 쉬운 조작 | done | EasyMotion + Zero preset + actual click matrix 통과 |
+| `2B-2` 관절 조그 | done | Joint jog preview/apply/restore + actual click matrix 통과 |
+| `2B-3` TCP 조그 | done | TCP jog + Cartesian arrows + actual click matrix 통과 |
+| `2B-4` 포인트 이동 | in_progress | MoveL/MoveJ preview/apply, save/recall/list/delete/rename/export/cleanup 연결 완료. Production IK guard는 아직 product-pending |
+| `2C-1` 안전/진단 | done | safety/fault actual flow `5/5 PASS`, fault overlay popup route 확인 |
+| `2C-2` 뷰포트 보조 UI | in_progress | toolbar/frame/path/ghost/bound/coll/cam actual click matrix 통과. 실데이터 boundary/collision은 후속 |
+| `2D` 팝업/도움말 | done | popup confirm/cancel E2E `10/10 PASS`, status detail help routing 확인 |
 | `3A` binder / scene bootstrap | done | binder/coordinator scaffold + authoring/summary/play smoke 완료 |
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | pending | Undo/Redo, autoreconnect, button integration matrix 미착수 |
-| `3C` mock e2e | pending | 버튼-로봇 Mock e2e 미착수 |
+| `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, program/sequence history는 후속 |
+| `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -72,7 +72,7 @@
 
 - `robot-button-integration-plan.md`를 버튼-로봇 연동 기준 문서로 추가했다.
 - 모든 V3 조작 버튼은 `wired / partial / stub / pending / excluded` 상태로 비교한다.
-- 현재 high-priority gap은 `I/O`, `Program Run/Step`, `Point MoveJ`, `Point 저장/호출`, `Gripper live/mock state`, `Boundary/Collision real data`이다.
+- 현재 high-priority gap은 `Program Run/Step queue`, `Point MoveJ production IK guard`, `Boundary/Collision real data`, `Live command safety gate`이다.
 - `GetMovementStateSummaryForDebug()`, `Zero preset`, `CoordStrip mode`는 1차 연결 완료했다.
 - Easy/Joint/TCP/Cartesian 대표 전후 state matrix와 Point MoveL DryRun preview/apply까지 확인했다.
 - Joint preview target이 runtime snapshot `JointValues`로 전달되게 수정해서 보조패널 row와 로봇 preview 상태가 같은 값을 본다.
@@ -83,7 +83,14 @@
 - Point rename/export/persistence cleanup을 연결했다.
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
-- 다음 구현 순서는 live SDK/ROS command contract로 잠근다.
+- live SDK gripper capability/readback scaffold를 연결했다.
+- Desktop actual UI click matrix `95/95 PASS`.
+- Tablet/bottom representative actual click matrix `16/16 PASS`.
+- Popup confirm/cancel E2E `10/10 PASS`.
+- Safety/Fault actual flow `5/5 PASS`.
+- Point MoveJ production guard matrix `6/6 PASS`.
+- RobotStage screenshot evidence 3장 생성.
+- Live SDK readback gate 생성: `readbackOk=True`, live command는 operator safety confirm 전까지 차단.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
 ## Done Checklist
@@ -110,7 +117,7 @@
 - [x] `StatusCard / CoordStrip / ActionHint / WhyItMoved` 텍스트 잘림 visual smoke 확인
 - [x] EasyMotion 보조패널 compact layout에서 horizontal scroll/clipping 0건 확인
 - [x] `BtnEasyZero`를 `Home` alias에서 분리하고 `Zero` preset preview 경로 확인
-- [ ] placeholder 잔여 텍스트 제거 최종 확인
+- [x] placeholder 잔여 텍스트 제거 최종 확인
 
 ### `2B-2` 관절 조그 kickoff
 - [x] `joint-jog-panel.uxml` 생성
@@ -152,8 +159,8 @@
 - [x] `MoveL` mock command dispatch debug 경로 연결
 - [x] actual `BtnPointApply` click 기준 `MoveL` dispatch feedback 반영 확인
 - [x] `PointMoveController -> RobotControlMotionRuntime` facade로 connect/enable/move 정책 분리
-- [ ] `MoveJ` 실제 command dispatch 연결
-- [x] `MoveJ` 보류 UX lock (`MoveJ` 상태에서 `BtnPointApply` 비활성 + 문구 명시)
+- [x] `MoveJ` 실제 command dispatch 연결
+- [x] `MoveJ` 보류 UX lock은 해제됨. 현재는 saved joint target 우선 + numerical XYZ IK fallback으로 preview/apply 가능
 - [x] PointMove guard rail 5-lock 적용
   - `MoveJ` 상태 apply 비활성 + `적용 (MoveJ 준비중)` 문구
   - `MoveL` 상태만 apply 활성
@@ -179,6 +186,7 @@
 - [x] Point list/select/delete UX 최소 연결
 - [x] Point rename/export/persistence cleanup
 - [ ] Production IK policy (orientation, 다중해, singularity, collision guard)
+  - 현재 guard matrix에서는 `product-pending`으로 명시하고 실기 이동 gate에서 제외한다.
 
 ### Button integration Phase 3
 - [x] `robottemplete` 최신 확인 (`git pull --ff-only`: already up to date)
@@ -189,7 +197,8 @@
 - [x] EasyMotion 그리퍼 버튼을 runtime peripheral facade로 변경
 - [x] Gripper open/close, DO, ToolDO debug state 검증
 - [x] PGEA attached visual prefab 이관/연결
-- [ ] live SDK/ROS gripper command contract
+- [x] live SDK gripper capability/readback scaffold
+- [ ] live SDK/ROS gripper command safety gate
 
 ### `2C-1` 안전/진단 scaffold
 - [x] `safety-diagnostics-panel.uxml` / `.uss` 생성
@@ -202,8 +211,9 @@
   - `Ready`: safe banner + fault overlay hidden
   - `Unsynced`: warning banner + fault overlay hidden
   - `Fault`: danger banner + fault overlay visible + fault summary 텍스트 확인
-- [ ] 복구 버튼 action wiring (현재는 enable/label 상태 반영까지만)
-- [ ] fault close/reset 정책을 App 계층 policy와 연결
+- [x] 복구 버튼 action wiring smoke (`RunSafetyFaultActualFlowForDebug`: `5/5 PASS`)
+- [x] fault close/reset popup route 확인
+- [ ] 실제 컨트롤러 fault 주입/readback 기반 policy 연결
 
 ### `2C-2` 뷰포트 보조 UI scaffold
 - [x] `viewport-toolbar.uxml` / `.uss` 생성
@@ -238,6 +248,8 @@
   - `BtnPopupConfirm` actual click -> `popupActive=False`, focus 복귀 확인
   - debug `move` / `recovery` popup open -> title/confirm text 확인
 - [x] `help-panel.uxml` / `.uss` 생성
+- [x] popup confirm/cancel E2E (`RunPopupConfirmCancelE2EForDebug`: `10/10 PASS`)
+- [x] status fault/safety detail help routing actual flow 확인
 - [x] `HelpPanelController.cs` 생성
 - [x] `WhyItMovedController.cs` 생성
 - [x] `NavHelp` actual click -> help panel visible / work tab bar hidden
