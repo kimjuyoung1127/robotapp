@@ -82,7 +82,8 @@
 - Point list/select/delete 최소 UX를 연결했다.
 - Point rename/export/persistence cleanup을 연결했다.
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
-- 다음 구현 순서는 PGEA attached visual prefab 이관/연결 -> live SDK/ROS command contract로 잠근다.
+- PGEA attached visual prefab 이관/연결을 완료했다.
+- 다음 구현 순서는 live SDK/ROS command contract로 잠근다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
 ## Done Checklist
@@ -187,7 +188,7 @@
 - [x] `IoPanelController` mock I/O + gripper panel 연결
 - [x] EasyMotion 그리퍼 버튼을 runtime peripheral facade로 변경
 - [x] Gripper open/close, DO, ToolDO debug state 검증
-- [ ] PGEA attached visual prefab 이관/연결
+- [x] PGEA attached visual prefab 이관/연결
 - [ ] live SDK/ROS gripper command contract
 
 ### `2C-1` 안전/진단 scaffold

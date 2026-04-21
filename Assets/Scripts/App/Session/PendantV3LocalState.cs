@@ -27,6 +27,7 @@ namespace KineTutor3D.App
         public int JogIncrement;
         public float DesktopSplitRatio;
         public bool IsTabletSheetExpanded;
+        public bool HasShownFirstRunGuide;
 
         public static PendantV3LocalState Default()
         {
@@ -40,6 +41,7 @@ namespace KineTutor3D.App
                 JogIncrement = DefaultJogIncrement,
                 DesktopSplitRatio = DefaultSplitRatio,
                 IsTabletSheetExpanded = true,
+                HasShownFirstRunGuide = false,
             };
         }
 
@@ -67,9 +69,25 @@ namespace KineTutor3D.App
             return state;
         }
 
+        public static PendantV3LocalState DeepCopy(PendantV3LocalState state)
+        {
+            return Normalize(new PendantV3LocalState
+            {
+                ActiveNavSection = state.ActiveNavSection,
+                ActiveWorkTab = state.ActiveWorkTab,
+                ActiveTabletTab = state.ActiveTabletTab,
+                CoordSystem = state.CoordSystem,
+                SpeedPercent = state.SpeedPercent,
+                JogIncrement = state.JogIncrement,
+                DesktopSplitRatio = state.DesktopSplitRatio,
+                IsTabletSheetExpanded = state.IsTabletSheetExpanded,
+                HasShownFirstRunGuide = state.HasShownFirstRunGuide,
+            });
+        }
+
         public string ToDebugSummary()
         {
-            return $"nav={ActiveNavSection}; work={ActiveWorkTab}; tablet={ActiveTabletTab}; coord={CoordSystem}; speed={SpeedPercent}; increment={JogIncrement}; split={DesktopSplitRatio:F2}; sheetExpanded={IsTabletSheetExpanded}";
+            return $"nav={ActiveNavSection}; work={ActiveWorkTab}; tablet={ActiveTabletTab}; coord={CoordSystem}; speed={SpeedPercent}; increment={JogIncrement}; split={DesktopSplitRatio:F2}; sheetExpanded={IsTabletSheetExpanded}; firstRunGuide={HasShownFirstRunGuide}";
         }
 
         private static string NormalizeCoordSystem(string coordSystem)

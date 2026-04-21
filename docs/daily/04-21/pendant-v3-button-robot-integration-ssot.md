@@ -34,7 +34,7 @@
 8. `[done]` Point list/select/delete UX 최소 연결.
 9. `[done]` Point rename/export/persistence cleanup.
 10. `[done]` I/O/Gripper mock/live-gated state facade 1차 연결.
-11. `[next]` PGEA attached visual prefab 이관/연결.
+11. `[done]` PGEA attached visual prefab 이관/연결.
 12. `[next]` live SDK/ROS command contract.
 
 ## Phase 1 Start Verification
@@ -135,12 +135,13 @@
   - 실제 live SDK/ROS gripper command는 robottemplete에서도 미착수라 아직 실기 명령을 보내지 않는다.
 
 ## Next Visual Lock
-- 다음은 live SDK가 아니라 visual 이관이다.
-- `robottemplete`의 PGEA attached 성공 구조를 기준으로 `robotapp2` RobotStage control robot에 visual을 붙인다.
-- 성공 기준:
-  - `ToolMount -> PGEA_100_40` 계층이 control robot 아래에 존재한다.
-  - `SetGripperOpenForDebug(true/false)`가 snapshot과 finger transform을 함께 바꾼다.
-  - TCP calibration은 pending으로 유지하고 visual-only임을 문서화한다.
+- PGEA attached visual 이관 완료.
+- `robottemplete`의 PGEA 성공 구조를 기준으로 `robotapp2` RobotStage control robot에 visual을 런타임 부착한다.
+- 검증 결과:
+  - `SetGripperOpenForDebug(true)`: `gripper=Gripper: Open (1.00); gripperVisual=True`
+  - `SetGripperOpenForDebug(false)`: `gripper=Gripper: Closed (0.00); gripperVisual=True`
+  - `unityctl check --type compile --json`: pass
+- TCP calibration은 pending으로 유지하고 visual-only로 문서화한다.
 
 ## Verification Policy
 - Mock+Unity 시뮬 기준으로 먼저 전부 닫는다.

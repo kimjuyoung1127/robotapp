@@ -240,34 +240,10 @@ namespace KineTutor3D.EditorTools
                 layoutController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3LayoutController>();
             }
 
-            var contextPanelTabController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.ContextPanelTabController>();
-            if (contextPanelTabController == null)
-            {
-                contextPanelTabController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.ContextPanelTabController>();
-            }
-
             var shellStateController = documentObject.GetComponent<KineTutor3D.UI.RobotControlV3.PendantV3ShellStateController>();
             if (shellStateController == null)
             {
                 shellStateController = documentObject.AddComponent<KineTutor3D.UI.RobotControlV3.PendantV3ShellStateController>();
-            }
-
-            var connectionSessionAdapter = documentObject.GetComponent<KineTutor3D.App.Fairino.PendantV3ConnectionSessionAdapter>();
-            if (connectionSessionAdapter == null)
-            {
-                connectionSessionAdapter = documentObject.AddComponent<KineTutor3D.App.Fairino.PendantV3ConnectionSessionAdapter>();
-            }
-
-            var visualizationOrchestrator = documentObject.GetComponent<KineTutor3D.App.PendantV3VisualizationOrchestrator>();
-            if (visualizationOrchestrator == null)
-            {
-                visualizationOrchestrator = documentObject.AddComponent<KineTutor3D.App.PendantV3VisualizationOrchestrator>();
-            }
-
-            var visualizationDriver = documentObject.GetComponent<KineTutor3D.Visualization.PendantV3VisualizationDriver>();
-            if (visualizationDriver == null)
-            {
-                visualizationDriver = documentObject.AddComponent<KineTutor3D.Visualization.PendantV3VisualizationDriver>();
             }
 
             var sceneCoordinator = documentObject.GetComponent<KineTutor3D.App.PendantV3SceneCoordinator>();
@@ -539,11 +515,7 @@ namespace KineTutor3D.EditorTools
             documentBridge.enabled = true;
             inputContract.enabled = true;
             layoutController.enabled = true;
-            contextPanelTabController.enabled = true;
             shellStateController.enabled = true;
-            connectionSessionAdapter.enabled = true;
-            visualizationOrchestrator.enabled = true;
-            visualizationDriver.enabled = true;
             sceneCoordinator.enabled = true;
             connectionHomeController.enabled = true;
             binder.enabled = true;

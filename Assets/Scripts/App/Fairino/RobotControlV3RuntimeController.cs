@@ -15,6 +15,10 @@ namespace KineTutor3D.App.Fairino
     public sealed class RobotControlV3RuntimeController : MonoBehaviour
     {
         private const float StageCameraFov = 32f;
+        private const string PgeaAttachmentResourcePath = "EndEffectors/PGEA_100_40";
+        private const string PgeaAttachmentId = "PGEA_100_40";
+        private static readonly Vector3 PgeaAttachmentLocalPosition = new(0.003f, 0.1676f, 0.031f);
+        private static readonly Quaternion PgeaAttachmentLocalRotation = Quaternion.Euler(0f, 0f, -91.6f);
 
         private readonly Stack<double[]> undoJointHistory = new();
         private readonly Stack<double[]> redoJointHistory = new();
@@ -875,6 +879,7 @@ namespace KineTutor3D.App.Fairino
             {
                 controlRobotInstance = existing.gameObject;
                 StabilizeControlRobot(controlRobotInstance);
+                EnsureEndEffectorAttachment();
                 return;
             }
 
@@ -893,6 +898,7 @@ namespace KineTutor3D.App.Fairino
             controlRobotInstance.transform.localRotation = Quaternion.identity;
             RepairVisualMeshes(controlRobotInstance);
             StabilizeControlRobot(controlRobotInstance);
+            EnsureEndEffectorAttachment();
         }
 
         private void EnsureJointDriver()
@@ -947,9 +953,80 @@ namespace KineTutor3D.App.Fairino
             predictedPathRenderer = EnsureComponent<PredictedPathRenderer>(pathHost.gameObject);
             predictedPathRenderer.ClearPath();
 
-            endEffectorAttachment = controlRobotInstance != null
-                ? controlRobotInstance.GetComponentInChildren<FR5EndEffectorAttachment>(true)
-                : null;
+            EnsureEndEffectorAttachment();
+        }
+
+        private void EnsureEndEffectorAttachment()
+        {
+            if (controlRobotInstance == null)
+            {
+                return;
+            }
+
+            endEffectorAttachment = controlRobotInstance.GetComponentInChildren<FR5EndEffectorAttachment>(true);
+            if (endEffectorAttachment != null)
+            {
+                peripheralFacade?.SetGripperVisualAttached(true);
+                return;
+            }
+
+            var wrist = FindChildRecursive(controlRobotInstance.transform, "wrist3_link");
+            if (wrist == null)
+            {
+                peripheralFacade?.SetGripperVisualAttached(false);
+                return;
+            }
+
+            var toolMount = wrist.Find("ToolMount");
+            if (toolMount == null)
+            {
+                toolMount = new GameObject("ToolMount").transform;
+                toolMount.SetParent(wrist, false);
+                toolMount.localPosition = Vector3.zero;
+                toolMount.localRotation = Quaternion.identity;
+                toolMount.localScale = Vector3.one;
+            }
+
+            var existing = toolMount.Find(PgeaAttachmentId);
+            if (existing != null)
+            {
+                endEffectorAttachment = existing.GetComponent<FR5EndEffectorAttachment>()
+                    ?? existing.gameObject.AddComponent<FR5EndEffectorAttachment>();
+                ConfigureEndEffectorAttachment(existing);
+                peripheralFacade?.SetGripperVisualAttached(true);
+                return;
+            }
+
+            var prefab = Resources.Load<GameObject>(PgeaAttachmentResourcePath);
+            if (prefab == null)
+            {
+                peripheralFacade?.SetGripperVisualAttached(false);
+                return;
+            }
+
+            var instance = Instantiate(prefab, toolMount);
+            instance.name = PgeaAttachmentId;
+            ConfigureEndEffectorAttachment(instance.transform);
+            peripheralFacade?.SetGripperVisualAttached(true);
+        }
+
+        private void ConfigureEndEffectorAttachment(Transform attachmentRoot)
+        {
+            attachmentRoot.localPosition = PgeaAttachmentLocalPosition;
+            attachmentRoot.localRotation = PgeaAttachmentLocalRotation;
+            attachmentRoot.localScale = Vector3.one;
+
+            var visualRoot = attachmentRoot.Find("VisualRoot");
+            var tcpFrame = attachmentRoot.Find("TcpFrame");
+            var model = visualRoot != null ? visualRoot.Find("PGEA-100-40_Model") : null;
+            var fingerLeft = model != null ? model.Find("finger_left") : null;
+            var fingerRight = model != null ? model.Find("finger_right") : null;
+
+            endEffectorAttachment = attachmentRoot.GetComponent<FR5EndEffectorAttachment>()
+                ?? attachmentRoot.gameObject.AddComponent<FR5EndEffectorAttachment>();
+            endEffectorAttachment.Configure(PgeaAttachmentId, visualRoot, tcpFrame);
+            endEffectorAttachment.SetFingers(fingerLeft, fingerRight);
+            endEffectorAttachment.SetGripperOpen(peripheralFacade?.Snapshot.GripperOpenRatio ?? 0f);
         }
 
         private void ApplyGripperVisual(float openRatio)
@@ -1618,6 +1695,30 @@ namespace KineTutor3D.App.Fairino
             for (var i = 0; i < root.childCount; i++)
             {
                 var found = FindBaseLink(root.GetChild(i));
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        private static Transform FindChildRecursive(Transform root, string childName)
+        {
+            if (root == null || string.IsNullOrWhiteSpace(childName))
+            {
+                return null;
+            }
+
+            if (root.name == childName)
+            {
+                return root;
+            }
+
+            for (var i = 0; i < root.childCount; i++)
+            {
+                var found = FindChildRecursive(root.GetChild(i), childName);
                 if (found != null)
                 {
                     return found;

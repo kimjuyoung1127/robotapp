@@ -106,7 +106,7 @@
 8. `[done]` Point list/select/delete UX 최소 연결.
 9. `[done]` Point rename/export and persistence cleanup policy.
 10. `[done]` I/O/Gripper mock/live-gated state facade 설계 및 1차 연결.
-11. `[next]` PGEA attached visual prefab 이관/연결.
+11. `[done]` PGEA attached visual prefab 이관/연결.
 12. `[next]` live SDK/ROS command contract.
 
 ## 2026-04-21 Phase 1 Start Result
@@ -211,12 +211,16 @@
   - live SDK/ROS gripper command는 robottemplete에서도 미착수로 문서화돼 있어, 아직 실제 실기 명령은 보내지 않는다.
 
 ## Next Visual Step Lock
-- 다음 구현은 live SDK가 아니라 PGEA visual 이관이다.
-- 가져올 기준:
+- PGEA visual 이관 완료.
+- 가져온 기준:
   - `robottemplete/Assets/Runtime/Resources/EndEffectors/PGEA_100_40.prefab`
-  - `robottemplete/Assets/Runtime/Resources/Robots/FAIRINO_FR5_Control_PGEA10040.prefab`의 `ToolMount -> PGEA_100_40` 구조
+  - `ToolMount -> PGEA_100_40` 구조
   - `FR5EndEffectorAttachment`의 `finger_left/finger_right` 참조와 `SetGripperOpen(float)` 동작
-- 목표:
-  - `robotapp2` RobotStage control robot에 PGEA visual이 붙는다.
-  - `SetGripperOpenForDebug(true/false)`에서 snapshot뿐 아니라 finger transform도 열린/닫힌다.
-  - TCP calibration은 아직 pending으로 두고 visual-only 상태를 명시한다.
+- 구현 결과:
+  - `robotapp2` RobotStage control robot의 `wrist3_link/ToolMount` 아래에 PGEA visual을 런타임 부착한다.
+  - `SetGripperOpenForDebug(true/false)`에서 snapshot과 `FR5EndEffectorAttachment` finger transform을 함께 갱신한다.
+  - TCP calibration은 아직 pending이며 visual-only 상태다.
+- 검증:
+  - `SetGripperOpenForDebug(true)`: `gripper=Gripper: Open (1.00); gripperVisual=True`
+  - `SetGripperOpenForDebug(false)`: `gripper=Gripper: Closed (0.00); gripperVisual=True`
+  - `unityctl check --type compile --json`: pass
