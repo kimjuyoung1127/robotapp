@@ -96,6 +96,54 @@ namespace KineTutor3D.App.Fairino
             return $"initialized={initialized}; connected={connectionService?.Client.IsConnected ?? false}; enabled={connectionService?.Client.IsEnabled ?? false}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; selected={lastSelectedPartName}; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; grid={(stageFloorGrid != null)}; gizmo={(partSelectionGizmo != null)}; initError={lastInitializationError}";
         }
 
+        public string GetGripperVisualSummaryForDebug()
+        {
+            ForceInitialize();
+            EnsureEndEffectorAttachment();
+            if (endEffectorAttachment == null)
+            {
+                return "attached=False";
+            }
+
+            var root = endEffectorAttachment.transform;
+            var renderers = root.GetComponentsInChildren<Renderer>(true);
+            var meshFilters = root.GetComponentsInChildren<MeshFilter>(true);
+            var activeRendererCount = 0;
+            var hasBounds = false;
+            var bounds = new Bounds(root.position, Vector3.zero);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var renderer = renderers[i];
+                if (renderer == null || !renderer.enabled || !renderer.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                activeRendererCount++;
+                if (!hasBounds)
+                {
+                    bounds = renderer.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            var cameraVisible = false;
+            if (stageCamera != null && hasBounds)
+            {
+                var view = stageCamera.WorldToViewportPoint(bounds.center);
+                cameraVisible = view.z > 0f && view.x >= 0f && view.x <= 1f && view.y >= 0f && view.y <= 1f;
+            }
+
+            var local = root.localPosition;
+            var euler = root.localEulerAngles;
+            var viewport = stageCamera != null && hasBounds ? stageCamera.WorldToViewportPoint(bounds.center) : Vector3.zero;
+            return $"attached=True; active={root.gameObject.activeInHierarchy}; renderers={renderers.Length}; activeRenderers={activeRendererCount}; meshFilters={meshFilters.Length}; local=({local.x:0.###},{local.y:0.###},{local.z:0.###}); rot=({euler.x:0.#},{euler.y:0.#},{euler.z:0.#}); scale=({root.localScale.x:0.###},{root.localScale.y:0.###},{root.localScale.z:0.###}); boundsCenter=({bounds.center.x:0.###},{bounds.center.y:0.###},{bounds.center.z:0.###}); boundsSize=({bounds.size.x:0.###},{bounds.size.y:0.###},{bounds.size.z:0.###}); viewport=({viewport.x:0.###},{viewport.y:0.###},{viewport.z:0.###}); cameraVisible={cameraVisible}; openRatio={endEffectorAttachment.GripperOpenRatio:0.00}";
+        }
+
         public void SetStageTargetTexture(RenderTexture texture)
         {
             if (stageCamera == null)
@@ -967,6 +1015,7 @@ namespace KineTutor3D.App.Fairino
             if (endEffectorAttachment != null)
             {
                 peripheralFacade?.SetGripperVisualAttached(true);
+                ResetStageCamera();
                 return;
             }
 
@@ -994,6 +1043,7 @@ namespace KineTutor3D.App.Fairino
                     ?? existing.gameObject.AddComponent<FR5EndEffectorAttachment>();
                 ConfigureEndEffectorAttachment(existing);
                 peripheralFacade?.SetGripperVisualAttached(true);
+                ResetStageCamera();
                 return;
             }
 
@@ -1008,6 +1058,7 @@ namespace KineTutor3D.App.Fairino
             instance.name = PgeaAttachmentId;
             ConfigureEndEffectorAttachment(instance.transform);
             peripheralFacade?.SetGripperVisualAttached(true);
+            ResetStageCamera();
         }
 
         private void ConfigureEndEffectorAttachment(Transform attachmentRoot)
@@ -1039,6 +1090,7 @@ namespace KineTutor3D.App.Fairino
             if (endEffectorAttachment != null)
             {
                 endEffectorAttachment.SetGripperOpen(openRatio);
+                ResetStageCamera();
             }
 
             peripheralFacade?.SetGripperVisualAttached(endEffectorAttachment != null);

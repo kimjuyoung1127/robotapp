@@ -339,6 +339,12 @@ namespace KineTutor3D.App
             return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
         }
 
+        public static string GetGripperVisualSummaryForDebug()
+        {
+            var runtime = GetRuntimeController();
+            return runtime.GetGripperVisualSummaryForDebug();
+        }
+
         public static string SetRobotDoForDebug(int channel, bool value)
         {
             var result = GetRuntimeController().SetRobotDigitalOutput(channel, value);
