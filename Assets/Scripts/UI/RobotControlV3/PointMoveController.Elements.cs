@@ -27,6 +27,9 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnRecall = root.Q<Button>("BtnPointRecall");
                 BtnDelete = root.Q<Button>("BtnPointDelete");
                 BtnRename = root.Q<Button>("BtnPointRename");
+                BtnUp = root.Q<Button>("BtnPointUp");
+                BtnDown = root.Q<Button>("BtnPointDown");
+                BtnOverwrite = root.Q<Button>("BtnPointOverwrite");
                 BtnExport = root.Q<Button>("BtnPointExport");
                 BtnCleanup = root.Q<Button>("BtnPointCleanup");
                 BtnPreview = root.Q<Button>("BtnPointPreview");
@@ -78,6 +81,9 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnRecall { get; }
             public Button BtnDelete { get; }
             public Button BtnRename { get; }
+            public Button BtnUp { get; }
+            public Button BtnDown { get; }
+            public Button BtnOverwrite { get; }
             public Button BtnExport { get; }
             public Button BtnCleanup { get; }
             public Button BtnPreview { get; }

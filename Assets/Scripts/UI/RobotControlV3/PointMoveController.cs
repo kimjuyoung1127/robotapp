@@ -130,6 +130,20 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string MovePointForDebug(string pointName, int direction)
+        {
+            RecallPoint(pointName);
+            MovePointInSequence(direction);
+            return GetDebugSummary();
+        }
+
+        public string OverwritePointWithReadbackForDebug(string pointName)
+        {
+            RecallPoint(pointName);
+            OverwriteSelectedPointWithCurrentReadback();
+            return GetDebugSummary();
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -243,6 +257,9 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnRecall, () => RecallPoint(panel.PointNameInput?.value));
             RegisterClick(panel.BtnDelete, () => DeletePoint(panel.PointNameInput?.value));
             RegisterClick(panel.BtnRename, () => RenamePoint(recalledPoint?.name, panel.PointNameInput?.value));
+            RegisterClick(panel.BtnUp, () => MovePointInSequence(-1));
+            RegisterClick(panel.BtnDown, () => MovePointInSequence(1));
+            RegisterClick(panel.BtnOverwrite, OverwriteSelectedPointWithCurrentReadback);
             RegisterClick(panel.BtnExport, ExportPoints);
             RegisterClick(panel.BtnCleanup, CleanupPoints);
             RegisterClick(panel.BtnPreview, PreviewMotionCandidate);
@@ -312,6 +329,9 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnApply.SetEnabled(canApply);
             panel.BtnDelete.SetEnabled(recalledPoint != null || HasNamedPoint(panel.PointNameInput?.value));
             panel.BtnRename.SetEnabled(recalledPoint != null);
+            panel.BtnUp.SetEnabled(CanMoveSelectedPoint(-1));
+            panel.BtnDown.SetEnabled(CanMoveSelectedPoint(1));
+            panel.BtnOverwrite.SetEnabled(recalledPoint != null);
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(HasAnyPoint());
             panel.BtnApply.text = IsMoveLDispatchMode()
@@ -642,6 +662,71 @@ namespace KineTutor3D.UI.RobotControlV3
             SetFeedback($"[Rename] {fromName} -> {toName}");
         }
 
+        private void MovePointInSequence(int direction)
+        {
+            var sequence = LoadPointSequenceIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                SetFeedback("순서를 바꿀 저장 포인트가 없다.");
+                return;
+            }
+
+            var index = FindWaypointIndex(sequence, recalledPoint?.name);
+            var targetIndex = index + (direction < 0 ? -1 : 1);
+            if (index < 0 || targetIndex < 0 || targetIndex >= sequence.waypoints.Length)
+            {
+                SetFeedback("이 방향으로 더 이동할 수 없다.");
+                return;
+            }
+
+            var temp = sequence.waypoints[index];
+            sequence.waypoints[index] = sequence.waypoints[targetIndex];
+            sequence.waypoints[targetIndex] = temp;
+            if (!WaypointStore.Save(sequence))
+            {
+                SetFeedback("포인트 순서 저장 실패");
+                return;
+            }
+
+            recalledPoint = CloneWaypoint(sequence.waypoints[targetIndex]);
+            SetFeedback($"[Order] {recalledPoint.name} {targetIndex + 1}번째로 이동");
+        }
+
+        private void OverwriteSelectedPointWithCurrentReadback()
+        {
+            var sequence = LoadPointSequenceIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0 || recalledPoint == null)
+            {
+                SetFeedback("덮어쓸 저장 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            var index = FindWaypointIndex(sequence, recalledPoint.name);
+            if (index < 0)
+            {
+                SetFeedback($"{recalledPoint.name} 포인트를 찾지 못했다.");
+                return;
+            }
+
+            var waypoint = sequence.waypoints[index];
+            waypoint.jointsDeg = ReadCurrentSnapshotJoints();
+            waypoint.tcpMm = ReadCurrentSnapshotTcp();
+            sequence.waypoints[index] = waypoint;
+            if (!WaypointStore.Save(sequence))
+            {
+                SetFeedback("포인트 덮어쓰기 저장 실패");
+                return;
+            }
+
+            recalledPoint = CloneWaypoint(waypoint);
+            for (var valueIndex = 0; valueIndex < currentValues.Length && valueIndex < recalledPoint.tcpMm.Length; valueIndex++)
+            {
+                currentValues[valueIndex] = (float)recalledPoint.tcpMm[valueIndex];
+            }
+
+            SetFeedback($"[Overwrite] {recalledPoint.name} 현재 readback으로 갱신");
+        }
+
         private void ExportPoints()
         {
             var sequence = LoadPointSequenceIfExists();
@@ -868,6 +953,19 @@ namespace KineTutor3D.UI.RobotControlV3
             return sequence?.waypoints != null && sequence.waypoints.Length > 0;
         }
 
+        private bool CanMoveSelectedPoint(int direction)
+        {
+            if (recalledPoint == null)
+            {
+                return false;
+            }
+
+            var sequence = LoadPointSequenceIfExists();
+            var index = FindWaypointIndex(sequence, recalledPoint.name);
+            var targetIndex = index + (direction < 0 ? -1 : 1);
+            return index >= 0 && sequence?.waypoints != null && targetIndex >= 0 && targetIndex < sequence.waypoints.Length;
+        }
+
         private static WaypointSequence LoadPointSequenceIfExists()
         {
             var names = WaypointStore.LoadAllNames();
@@ -892,6 +990,21 @@ namespace KineTutor3D.UI.RobotControlV3
         private double[] ReadCurrentSnapshotJoints()
         {
             var values = runtimeController?.CurrentSnapshot.JointValues;
+            var result = new double[6];
+            for (var index = 0; index < result.Length; index++)
+            {
+                if (values == null || index >= values.Length || !double.TryParse(values[index], NumberStyles.Float, CultureInfo.InvariantCulture, out result[index]))
+                {
+                    result[index] = 0.0;
+                }
+            }
+
+            return result;
+        }
+
+        private double[] ReadCurrentSnapshotTcp()
+        {
+            var values = runtimeController?.CurrentSnapshot.TcpValues;
             var result = new double[6];
             for (var index = 0; index < result.Length; index++)
             {

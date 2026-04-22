@@ -74,6 +74,9 @@
             <ui:Button name="BtnPointRecall" text="불러오기" class="rc-point-action-button" />
             <ui:Button name="BtnPointDelete" text="삭제" class="rc-point-action-button" />
             <ui:Button name="BtnPointRename" text="이름" class="rc-point-action-button" />
+            <ui:Button name="BtnPointUp" text="위로" class="rc-point-action-button" />
+            <ui:Button name="BtnPointDown" text="아래" class="rc-point-action-button" />
+            <ui:Button name="BtnPointOverwrite" text="덮어쓰기" class="rc-point-action-button" />
             <ui:Button name="BtnPointExport" text="내보내기" class="rc-point-action-button" />
             <ui:Button name="BtnPointCleanup" text="정리" class="rc-point-action-button" />
             <ui:Button name="BtnPointPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />

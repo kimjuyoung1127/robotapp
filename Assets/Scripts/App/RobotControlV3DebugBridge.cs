@@ -431,6 +431,18 @@ namespace KineTutor3D.App
             return pointMove.RenamePointForDebug(oldName, newName);
         }
 
+        public static string MovePointMoveForDebug(string pointName, int direction)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.MovePointForDebug(pointName, direction);
+        }
+
+        public static string OverwritePointMoveWithReadbackForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.OverwritePointWithReadbackForDebug(pointName);
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -1427,6 +1439,24 @@ namespace KineTutor3D.App
                 null,
                 () => store.BuildSummary(),
                 "SEQ_B");
+
+            AddCase(
+                "move-second-point-up-persists",
+                () => MovePointMoveForDebug("SEQ_B", -1),
+                () => GetPointMoveListSummaryForDebug() + " | " + store.BuildSummary(),
+                "0:SEQ_B");
+
+            AddCase(
+                "overwrite-selected-point-with-readback",
+                () =>
+                {
+                    runtime.SimulateManualReadbackForDebug(
+                        new[] { 22.0, -28.0, 8.0, -42.0, -74.0, -8.0 },
+                        new[] { 522.0, 158.0, 436.0, 180.0, 0.0, 90.0 });
+                    OverwritePointMoveWithReadbackForDebug("SEQ_B");
+                },
+                () => GetPointMoveControllerSummary() + " | " + store.BuildSummary(),
+                "x=522.0");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

@@ -658,6 +658,13 @@ Done when:
 - P2 can move above P1 and persisted order is reflected after reload.
 - Selected point can be overwritten with current readback and persists after reload.
 
+Status:
+
+- Done on 2026-04-22.
+- `RunTeachingSequenceMatrixForDebug()`: `11/11 PASS`.
+- Artifact: `Artifacts/robotcontrolv3-teaching-sequence-runtime.json`.
+- Self-review: order/overwrite lives in `PointMoveController` authoring UI, sequence state remains in App/Fairino runtime, and execution-time edit locking remains future work because current sequence run is synchronous.
+
 ### Phase C2 - Easy Editing
 
 Goal: reduce friction compared with commercial pendants.
