@@ -1489,6 +1489,143 @@ namespace KineTutor3D.App
             return CompleteGenericMatrix(payload, "robotcontrolv3-function-actual-click-matrix.json", "FunctionActualClickMatrix");
         }
 
+        public static string RunTeachingActualClickMotionMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "teaching-actual-click-motion",
+            };
+
+            var suffix = System.DateTime.Now.Ticks.ToString();
+            var pointA = $"CLICK_A_{suffix}";
+            var pointB = $"CLICK_B_{suffix}";
+            var functionName = $"CLICK_FUNC_{suffix}";
+
+            void SeedClickSequence()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = pointA,
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 542.2, 135.2, 433.3, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = pointB,
+                    jointsDeg = new[] { 14.0, -35.0, 12.0, -50.0, -80.0, -16.0 },
+                    tcpMm = new[] { 499.2, 171.5, 268.3, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+                ClearFunctionPointSelectionForDebug();
+                AddSelectedPointToFunctionForDebug(pointA);
+                AddSelectedPointToFunctionForDebug(pointB);
+                CreateTeachingFunctionForDebug(functionName);
+                SelectTeachingFunctionForDebug(functionName);
+                runtime.SyncCurrentState();
+            }
+
+            void AddClickMotionCase(string name, System.Action setup, string buttonName, string expected, bool requirePoseDelta = true)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = expected ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = BuildStagePoseSignature(runtime);
+                    result.message = ClickUiButton(buttonName, "desktop", out var found, out var enabled, out var path);
+                    result.path = path;
+                    result.after = BuildStagePoseSignature(runtime);
+                    var hasExpected = string.IsNullOrEmpty(expected) || result.after.Contains(expected);
+                    var hasPoseDelta = !requirePoseDelta || !string.Equals(result.before, result.after, System.StringComparison.Ordinal);
+                    result.passed = found
+                        && enabled
+                        && result.message.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && hasExpected
+                        && hasPoseDelta;
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found ? "locator" : !enabled ? "disabled" : !hasPoseDelta ? "pose-static" : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddClickMotionCase("point-preview-click-updates-stage-signature", () =>
+            {
+                SeedClickSequence();
+                SetPointMoveMotionKindForDebug("MoveL");
+                SetPointMoveValueForDebug("X", 540f);
+                SetPointMoveValueForDebug("Y", 130f);
+                SetPointMoveValueForDebug("Z", 440f);
+                SetPointMoveValueForDebug("RX", 180f);
+                SetPointMoveValueForDebug("RY", 0f);
+                SetPointMoveValueForDebug("RZ", 95f);
+            }, "BtnPointPreview", "pending=대기 명령: MoveL");
+
+            AddClickMotionCase("point-apply-click-clears-preview", () =>
+            {
+                SeedClickSequence();
+                SetPointMoveMotionKindForDebug("MoveL");
+                SetPointMoveValueForDebug("X", 540f);
+                SetPointMoveValueForDebug("Y", 130f);
+                SetPointMoveValueForDebug("Z", 440f);
+                SetPointMoveValueForDebug("RX", 180f);
+                SetPointMoveValueForDebug("RY", 0f);
+                SetPointMoveValueForDebug("RZ", 95f);
+                PreviewPointMoveForDebug();
+            }, "BtnPointApply", "[DryRun Apply]");
+
+            AddClickMotionCase("bottom-run-click-executes-sequence", () =>
+            {
+                SeedClickSequence();
+                runtime.SyncCurrentState();
+            }, "BtnRun", "[Teaching Run]");
+
+            AddClickMotionCase("point-run-from-selected-click-executes-tail", () =>
+            {
+                SeedClickSequence();
+                RecallPointMoveForDebug(pointA);
+            }, "BtnPointRunFromSelected", "[Teaching From]");
+
+            AddClickMotionCase("function-run-click-executes-routine", () =>
+            {
+                SeedClickSequence();
+                SelectTeachingFunctionForDebug(functionName);
+            }, "BtnFunctionRun", "[Function Run]");
+
+            AddClickMotionCase("function-run-from-selected-click-executes-tail", () =>
+            {
+                SeedClickSequence();
+                SelectTeachingFunctionForDebug(functionName);
+                RecallPointMoveForDebug(pointB);
+            }, "BtnFunctionRunFromSelected", "[Function From]");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-actual-click-motion.json", "TeachingActualClickMotion");
+        }
+
         public static string RunPopupConfirmCancelE2EForDebug()
         {
             var payload = new GenericMatrixPayload
@@ -2344,6 +2481,11 @@ namespace KineTutor3D.App
             return $"status={snapshot.StatusKind}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; feedback={snapshot.LastFeedback}; joints=[{string.Join(",", snapshot.JointValues)}]; tcp=[{string.Join(",", snapshot.TcpValues)}]; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; gripper={snapshot.GripperSummary}; gripperVisual={snapshot.GripperVisualAttached}; robotDo={snapshot.RobotDoSummary}; toolDo={snapshot.ToolDoSummary}; peripheral={snapshot.PeripheralFeedback}; gripperSdk={snapshot.GripperSdkSummary}; selected={snapshot.SelectedPartName}; liveBlocked={snapshot.LiveBlockedReason}";
         }
 
+        public static string GetStagePoseSignatureForDebug()
+        {
+            return BuildStagePoseSignature(GetRuntimeController());
+        }
+
         public static string GetRobotStageRenderSummary()
         {
             var scene = SceneManager.GetActiveScene();
@@ -2830,6 +2972,15 @@ namespace KineTutor3D.App
             var joints = snapshot.JointValues != null ? string.Join(",", snapshot.JointValues) : string.Empty;
             var tcp = snapshot.TcpValues != null ? string.Join(",", snapshot.TcpValues) : string.Empty;
             return $"joints={joints};tcp={tcp}";
+        }
+
+        private static string BuildStagePoseSignature(RobotControlV3RuntimeController runtime)
+        {
+            var snapshot = runtime.CurrentSnapshot;
+            var joints = snapshot.JointValues != null ? string.Join(",", snapshot.JointValues) : string.Empty;
+            var tcp = snapshot.TcpValues != null ? string.Join(",", snapshot.TcpValues) : string.Empty;
+            var visual = GetGripperVisualSummaryForDebug();
+            return $"status={snapshot.StatusKind};pending={snapshot.PendingCommandSummary};feedback={snapshot.LastFeedback};joints={joints};tcp={tcp};ghost={snapshot.HasGhostPreview};path={snapshot.HasPredictedPath};visual=[{visual}]";
         }
 
         private static string CompleteGenericMatrix(GenericMatrixPayload payload, string artifactName, string label)

@@ -320,6 +320,29 @@
 - 안정화:
   - stale/short `previewTcpPose`가 target marker를 인덱싱해 직접 씬 재진입 matrix를 깨는 문제를 방어했다.
 
+## 2026-04-22 Input Text + Teaching Actual Click Motion QA
+
+- Text input visibility:
+  - V3 TextField 내부 입력 텍스트를 검정색으로 고정했다.
+  - 적용 범위는 `PendantV3` root 아래 `unity-base-text-field__input` / `unity-text-input`이다.
+  - Screenshot evidence: `Artifacts/pendant-v3-input-text-black.png`
+- Teaching actual click motion QA:
+  - `GetStagePoseSignatureForDebug()`를 추가했다.
+  - `RunTeachingActualClickMotionMatrixForDebug()`를 추가했다.
+  - 실제 UI Toolkit `ClickEvent` 후 `status/pending/feedback/joints/tcp/ghost/path/visual` signature가 바뀌는지 검증한다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingActualClickMotionMatrixForDebug()`: `6/6 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunActualUiClickMatrixForDebug()`: `113/113 PASS`
+  - `RunRobotLinkedButtonSimulationAuditForDebug()`: `74/74 PASS`
+  - `RunStageScreenshotEvidenceForDebug()`: `ready-front`, `ready-side`, `tcp-iso` screenshots generated
+  - `RunPointMoveJProductionGuardMatrixForDebug()`: `6/6 PASS`
+- 테스트 스킬:
+  - `unity-ui-mcp-guard`와 `unity-cli-qa-validation`을 참고했다.
+  - 이 저장소의 현행 SSOT는 `unityctl`이므로 새 스킬 생성 없이 기존 성공 패턴을 `RobotControlV3DebugBridge` matrix로 확장했다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

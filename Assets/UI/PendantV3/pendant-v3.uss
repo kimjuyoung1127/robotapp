@@ -28,6 +28,7 @@
     --rc-highlight-shadow: rgba(255, 180, 40, 0.22);
     --rc-highlight-fill: rgba(255, 180, 40, 0.16);
     --rc-highlight-text: rgb(255, 225, 150);
+    --rc-input-text: rgb(0, 0, 0);
 }
 
 .rc-root {
@@ -35,6 +36,14 @@
     flex-direction: column;
     background-color: var(--rc-backdrop);
     color: var(--rc-title-text);
+}
+
+.rc-root .unity-base-text-field__input {
+    color: var(--rc-input-text);
+}
+
+.rc-root .unity-text-input {
+    color: var(--rc-input-text);
 }
 
 .rc-top-status-bar {
