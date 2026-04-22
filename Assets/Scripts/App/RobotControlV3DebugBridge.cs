@@ -331,6 +331,11 @@ namespace KineTutor3D.App
                 new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 });
         }
 
+        public static string GetTeachingSequenceSummaryForDebug()
+        {
+            return GetRuntimeController().LoadTeachingSequenceForDebug();
+        }
+
         public static string SetPointMoveMotionKindForDebug(string motionKind)
         {
             var pointMove = GetPointMoveController();
@@ -1281,6 +1286,119 @@ namespace KineTutor3D.App
                 "active=READBACK_A");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-manual-readback-teaching.json", "ManualReadbackTeaching");
+        }
+
+        public static string RunTeachingSequenceMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "teaching-sequence-runtime",
+            };
+
+            var runtime = GetRuntimeController();
+            var store = new TeachingPointStoreAdapter();
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : runtime.LoadTeachingSequenceForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            void SeedSequence()
+            {
+                runtime.Disconnect();
+                runtime.ConnectDefault();
+                runtime.EnableServo();
+                if (!runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "SEQ_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "SEQ_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                store.Save(sequence);
+                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            }
+
+            AddCase(
+                "load-sequence-count",
+                SeedSequence,
+                () => runtime.LoadTeachingSequenceForDebug(),
+                "count=2");
+
+            AddCase(
+                "select-first-point",
+                () => runtime.SelectTeachingPointForDebug(0),
+                () => runtime.LoadTeachingSequenceForDebug() + " | " + runtime.SelectTeachingPointForDebug(0),
+                "name=SEQ_A");
+
+            AddCase(
+                "select-second-point",
+                () => runtime.SelectTeachingPointForDebug(1),
+                () => runtime.SelectTeachingPointForDebug(1),
+                "name=SEQ_B");
+
+            AddCase(
+                "preview-selected-point",
+                () => runtime.PreviewSelectedTeachingPointForDebug(),
+                GetMovementStateSummaryForDebug,
+                "pending=대기 명령: MoveJ");
+
+            AddCase(
+                "execute-selected-point-dryrun",
+                () => runtime.ExecuteSelectedTeachingPointForDebug(),
+                GetMovementStateSummaryForDebug,
+                "[DryRun Apply]");
+
+            AddCase(
+                "store-summary",
+                null,
+                () => store.BuildSummary(),
+                "SEQ_B");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }
 
         public static string RunSafetyFaultActualFlowForDebug()

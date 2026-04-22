@@ -31,7 +31,7 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, product live confirm token 완료, manual readback simulation gate `6/6 PASS`, `PendantV3Points` sequence execution 후속 |
+| `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime adapter `6/6 PASS`, BottomBar run/step binding 후속 |
 | `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
@@ -98,6 +98,8 @@
 - `Run/Move` 확인 팝업에서 DryRun은 승인 생략, non-DryRun은 1회성 token 표시 후 확인 시 live gate 승인으로 승격한다.
 - Manual readback teaching simulation matrix `6/6 PASS`.
 - Mock readback이 `FairinoConnectionService.OnStateUpdated` 경로를 타고 RobotStage/좌표/포인트 저장/recall에 반영되는 것을 확인했다.
+- Teaching sequence runtime matrix `6/6 PASS`.
+- `PendantV3Points`를 load/select/preview/execute 할 수 있는 runtime adapter를 연결했다.
 - live motion은 manual readback simulation, product confirm, production IK policy가 준비될 때까지 gate에서 차단한다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
@@ -117,7 +119,7 @@
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Program Run/Step queue`: `PendantV3Points`를 실행 가능한 teaching sequence로 승격한다.
+  - `Program Run/Step queue`: BottomBar `Run/Step/Stop`을 `PendantV3Points` sequence runtime에 연결한다.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:

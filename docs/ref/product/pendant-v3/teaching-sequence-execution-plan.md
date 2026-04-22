@@ -605,6 +605,13 @@ Done when:
 - Debug call can create two points, load sequence, select point 0/1, preview selected point.
 - Point names are unique and duplicate save attempts replace or reject explicitly.
 
+Status:
+
+- Done on 2026-04-22.
+- `RunTeachingSequenceMatrixForDebug()`: `6/6 PASS`.
+- Artifact: `Artifacts/robotcontrolv3-teaching-sequence-runtime.json`.
+- Self-review: sequence selection/preview/execute state lives in `App/Fairino/Teaching`, UI remains view-only, and BottomBar semantics are not changed until Phase B.
+
 ### Phase B - Bottom Bar Run/Step Binding
 
 Goal: make existing `Run`, `Step▶`, `Step◀`, `Stop` meaningful for saved points.

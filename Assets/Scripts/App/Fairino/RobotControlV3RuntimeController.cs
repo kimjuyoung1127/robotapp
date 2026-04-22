@@ -47,6 +47,7 @@ namespace KineTutor3D.App.Fairino
         private LiveCommandSafetyGate liveCommandSafetyGate;
         private ManualReadbackTeachingProbe manualReadbackTeachingProbe;
         private TeachingPointStoreAdapter teachingPointStoreAdapter;
+        private TeachingSequenceRuntime teachingSequenceRuntime;
         private RobotKinematicsFacade previewKinematicsFacade;
         private FR5EndEffectorAttachment endEffectorAttachment;
         private Camera stageCamera;
@@ -270,6 +271,40 @@ namespace KineTutor3D.App.Fairino
         {
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
             return teachingPointStoreAdapter.BuildSummary();
+        }
+
+        public string LoadTeachingSequenceForDebug()
+        {
+            ForceInitialize();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Load();
+            return teachingSequenceRuntime.ToDebugSummary();
+        }
+
+        public string SelectTeachingPointForDebug(int index)
+        {
+            ForceInitialize();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Select(index);
+            return teachingSequenceRuntime.ToDebugSummary();
+        }
+
+        public string PreviewSelectedTeachingPointForDebug()
+        {
+            ForceInitialize();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            var result = teachingSequenceRuntime.PreviewSelected(PreviewTeachingWaypoint);
+            RefreshSnapshot();
+            return $"{result.Message}; {teachingSequenceRuntime.ToDebugSummary()}; {GetDebugSummary()}";
+        }
+
+        public string ExecuteSelectedTeachingPointForDebug()
+        {
+            ForceInitialize();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            var result = teachingSequenceRuntime.ExecuteSelected(ExecuteTeachingWaypoint);
+            RefreshSnapshot();
+            return $"{result.Message}; {teachingSequenceRuntime.ToDebugSummary()}; {GetDebugSummary()}";
         }
 
         public string ResolvePendingLiveCommandKindForProduct()
@@ -1255,6 +1290,36 @@ namespace KineTutor3D.App.Fairino
             liveCommandSafetyGate ??= new LiveCommandSafetyGate();
             manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+        }
+
+        private FairinoResult PreviewTeachingWaypoint(Waypoint point)
+        {
+            if (point == null)
+            {
+                return FairinoResult.Fail(-94, "teaching point missing");
+            }
+
+            if (string.Equals(point.moveType, "MoveL", StringComparison.OrdinalIgnoreCase))
+            {
+                PreviewTcpPose(point.tcpMm, $"Teaching {point.name} MoveL preview");
+                return FairinoResult.Ok($"preview MoveL {point.name}");
+            }
+
+            PreviewJointAngles(point.jointsDeg, $"Teaching {point.name} MoveJ preview");
+            return FairinoResult.Ok($"preview MoveJ {point.name}");
+        }
+
+        private FairinoResult ExecuteTeachingWaypoint(Waypoint point)
+        {
+            if (point == null)
+            {
+                return FairinoResult.Fail(-95, "teaching point missing");
+            }
+
+            return string.Equals(point.moveType, "MoveL", StringComparison.OrdinalIgnoreCase)
+                ? ApplyTcpPose(point.tcpMm, $"Teaching {point.name} MoveL")
+                : ApplyJointAngles(point.jointsDeg, $"Teaching {point.name} MoveJ");
         }
 
         private void BindConnectionEvents()
