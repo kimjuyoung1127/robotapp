@@ -31,8 +31,8 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected `26/26 PASS`, function/group plan locked |
-| `3C` mock e2e | done | Desktop actual click `105/105 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1 `31/31 PASS` |
+| `3C` mock e2e | done | Desktop actual click `110/110 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -250,6 +250,31 @@
   - `unityctl check --type compile`: pass
 - 다음 우선순위는 Function v1 scaffold다.
 
+## 2026-04-22 Function v1 Scaffold
+
+- `TeachingFunctionStore`를 추가했다.
+- Function 저장 위치:
+  - `Application.persistentDataPath/teaching-functions`
+- Function UI는 Point/Teaching 패널 안의 compact `함수` 카드로 추가했다.
+- 지원 기능:
+  - function store
+  - create from current ordered `PendantV3Points`
+  - list
+  - detail with ordered point refs
+  - rename
+  - duplicate
+  - delete
+  - RunOnce DryRun
+- 멀티 선택 포인트 UI가 아직 없어서, v1 create는 현재 저장된 포인트 순서 전체를 함수로 묶는다.
+- 제조사 Program/Lua/script 실행은 계속 제외다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSequenceMatrixForDebug()`: `31/31 PASS`
+  - `RunActualUiClickMatrixForDebug()`: `110/110 PASS`
+  - `GetAuxLayoutSummaryForDebug()` on PointMove: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- 콘솔에는 기존 unityctl IPC pipe 로그와 store 저장/삭제 로그만 있고, 기능 matrix failure는 없다.
+- 다음 우선순위는 function v1 polish 또는 IO/gripper sequence block 설계다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
@@ -261,12 +286,12 @@
   - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
 - 바로 재실행할 핵심 matrix:
   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-  - `RunActualUiClickMatrixForDebug()` -> `105/105 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `110/110 PASS`
   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Function v1 scaffold`: function store + create/list/detail + RunOnce DryRun.
+  - `Function v1 polish`: create-from-selected-points UI, missing-ref warning polish, function RunFromSelected.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:

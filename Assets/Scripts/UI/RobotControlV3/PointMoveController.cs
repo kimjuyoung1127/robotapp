@@ -43,6 +43,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDwellInvalid;
         private string pendingConfirmKind = string.Empty;
         private string pendingConfirmName = string.Empty;
+        private string selectedFunctionName = string.Empty;
         private bool debugSequenceEditLocked;
         private bool isDesktopVisible;
         private bool isTabletVisible;
@@ -197,6 +198,53 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string CreateFunctionForDebug(string functionName)
+        {
+            SetFunctionName(functionName);
+            CreateFunctionFromSequence();
+            return GetFunctionDebugSummary();
+        }
+
+        public string SelectFunctionForDebug(string functionName)
+        {
+            SelectFunction(functionName);
+            return GetFunctionDebugSummary();
+        }
+
+        public string RenameFunctionForDebug(string functionName)
+        {
+            SetFunctionName(functionName);
+            RenameSelectedFunction();
+            return GetFunctionDebugSummary();
+        }
+
+        public string DuplicateFunctionForDebug()
+        {
+            DuplicateSelectedFunction();
+            return GetFunctionDebugSummary();
+        }
+
+        public string DeleteFunctionForDebug()
+        {
+            DeleteSelectedFunction();
+            return GetFunctionDebugSummary();
+        }
+
+        public string RunFunctionForDebug()
+        {
+            RunSelectedFunction();
+            return GetFunctionDebugSummary();
+        }
+
+        public string GetFunctionDebugSummary()
+        {
+            var summary = runtimeController != null ? runtimeController.GetTeachingFunctionSummaryForDebug() : "functions=missing";
+            var detail = !string.IsNullOrWhiteSpace(selectedFunctionName) && runtimeController != null
+                ? runtimeController.GetTeachingFunctionDetailForDebug(selectedFunctionName)
+                : "function=none";
+            return $"selectedFunction={selectedFunctionName}; {summary}; {detail}; feedback={lastFeedback}";
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -321,6 +369,11 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnSpeedFast, () => SetSelectedSpeedPreset("fast"));
             RegisterClick(panel.BtnTimingApply, ApplySelectedPointTiming);
             RegisterClick(panel.BtnLoop, ToggleTeachingLoop);
+            RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
+            RegisterClick(panel.BtnFunctionRun, RunSelectedFunction);
+            RegisterClick(panel.BtnFunctionRename, RenameSelectedFunction);
+            RegisterClick(panel.BtnFunctionDuplicate, DuplicateSelectedFunction);
+            RegisterClick(panel.BtnFunctionDelete, DeleteSelectedFunction);
             RegisterClick(panel.BtnExport, ExportPoints);
             RegisterClick(panel.BtnCleanup, CleanupPoints);
             RegisterClick(panel.BtnPreview, PreviewMotionCandidate);
@@ -386,6 +439,7 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyLoopState(panel);
             RebuildPointList(panel);
             ApplyPointDetail(panel);
+            ApplyFunctionPanel(panel);
             panel.FeedbackSummary.text = lastFeedback;
             var canPreview = CanPreview() && IsAnyPanelVisible();
             var canApply = CanApply() && IsAnyPanelVisible();
@@ -405,6 +459,11 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnLoop.SetEnabled(HasAnyPoint() && !IsSequenceEditLocked());
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
+            panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
+            panel.BtnFunctionRun.SetEnabled(canApply && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionRename.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionDuplicate.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionDelete.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
             panel.BtnApply.text = IsMoveLDispatchMode()
                 ? (CanApply() ? "적용" : "적용 (연결 대기)")
                 : (CanApply() ? "적용 (MoveJ)" : "적용 (연결 대기)");
@@ -414,6 +473,203 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 panel.ValueInputs[index].SetValueWithoutNotify(currentValues[index].ToString("0.0", CultureInfo.InvariantCulture));
                 panel.ValueInputs[index].EnableInClassList("rc-point-cell-input--danger", index == lastInvalidIndex);
+            }
+        }
+
+        private void CreateFunctionFromSequence()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 생성을 잠근다. Stop 후 다시 묶어라.");
+                return;
+            }
+
+            var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
+            var functionName = panel?.FunctionNameInput?.value?.Trim();
+            if (string.IsNullOrWhiteSpace(functionName))
+            {
+                SetFeedback("함수 이름을 먼저 넣어라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.CreateTeachingFunctionFromSequence(functionName)
+                : "runtime missing";
+            selectedFunctionName = functionName;
+            SelectFirstExistingFunctionIfNeeded();
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void RunSelectedFunction()
+        {
+            if (string.IsNullOrWhiteSpace(selectedFunctionName))
+            {
+                SetFeedback("실행할 함수를 먼저 선택해라.");
+                return;
+            }
+
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 실행을 새로 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.ExecuteTeachingFunctionOnceDryRun(selectedFunctionName)
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void RenameSelectedFunction()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 이름 변경을 잠근다. Stop 후 다시 수정해라.");
+                return;
+            }
+
+            var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
+            var newName = panel?.FunctionNameInput?.value?.Trim();
+            if (string.IsNullOrWhiteSpace(selectedFunctionName) || string.IsNullOrWhiteSpace(newName))
+            {
+                SetFeedback("선택된 함수와 새 이름이 필요하다.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.RenameTeachingFunctionForDebug(selectedFunctionName, newName)
+                : "runtime missing";
+            selectedFunctionName = newName;
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void DuplicateSelectedFunction()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 복사를 잠근다. Stop 후 다시 복사해라.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedFunctionName))
+            {
+                SetFeedback("복사할 함수를 먼저 선택해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.DuplicateTeachingFunctionForDebug(selectedFunctionName)
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void DeleteSelectedFunction()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 삭제를 잠근다. Stop 후 다시 삭제해라.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedFunctionName))
+            {
+                SetFeedback("삭제할 함수를 먼저 선택해라.");
+                return;
+            }
+
+            var deletedName = selectedFunctionName;
+            var result = runtimeController != null
+                ? runtimeController.DeleteTeachingFunctionForDebug(deletedName)
+                : "runtime missing";
+            selectedFunctionName = string.Empty;
+            SelectFirstExistingFunctionIfNeeded();
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void SelectFunction(string functionName)
+        {
+            selectedFunctionName = functionName?.Trim() ?? string.Empty;
+            SetFunctionName(selectedFunctionName);
+            SetFeedback(string.IsNullOrWhiteSpace(selectedFunctionName)
+                ? "선택된 함수가 없다."
+                : $"[Function] {selectedFunctionName} 선택");
+            ApplyAll();
+        }
+
+        private void SetFunctionName(string functionName)
+        {
+            var safeName = functionName?.Trim() ?? string.Empty;
+            desktopPanel?.FunctionNameInput?.SetValueWithoutNotify(safeName);
+            tabletPanel?.FunctionNameInput?.SetValueWithoutNotify(safeName);
+        }
+
+        private void SelectFirstExistingFunctionIfNeeded()
+        {
+            if (runtimeController == null)
+            {
+                return;
+            }
+
+            var names = runtimeController.GetTeachingFunctionNames();
+            if (names.Length == 0)
+            {
+                selectedFunctionName = string.Empty;
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedFunctionName) || System.Array.IndexOf(names, selectedFunctionName) < 0)
+            {
+                selectedFunctionName = names[0];
+                SetFunctionName(selectedFunctionName);
+            }
+        }
+
+        private void ApplyFunctionPanel(PanelElements panel)
+        {
+            if (panel?.FunctionSummary == null)
+            {
+                return;
+            }
+
+            SelectFirstExistingFunctionIfNeeded();
+            panel.FunctionSummary.text = runtimeController != null
+                ? runtimeController.GetTeachingFunctionSummaryForDebug()
+                : "functions=missing";
+            panel.FunctionDetail.text = !string.IsNullOrWhiteSpace(selectedFunctionName) && runtimeController != null
+                ? runtimeController.GetTeachingFunctionDetailForDebug(selectedFunctionName)
+                : "함수를 선택하면 참조 포인트가 보인다.";
+            RebuildFunctionList(panel);
+        }
+
+        private void RebuildFunctionList(PanelElements panel)
+        {
+            if (panel?.FunctionListContainer == null)
+            {
+                return;
+            }
+
+            panel.FunctionListContainer.Clear();
+            var names = runtimeController != null
+                ? runtimeController.GetTeachingFunctionNames()
+                : System.Array.Empty<string>();
+            var visibleCount = System.Math.Min(names.Length, 5);
+            for (var index = 0; index < visibleCount; index++)
+            {
+                var functionName = names[index];
+                var button = new Button(() => SelectFunction(functionName))
+                {
+                    text = functionName
+                };
+                button.AddToClassList("rc-point-list-button");
+                button.EnableInClassList(
+                    "rc-point-list-button--active",
+                    string.Equals(selectedFunctionName, functionName, System.StringComparison.OrdinalIgnoreCase));
+                panel.FunctionListContainer.Add(button);
             }
         }
 

@@ -33,6 +33,15 @@ namespace KineTutor3D.UI.RobotControlV3
                 DwellInput = root.Q<TextField>("PointDwellInput");
                 BtnTimingApply = root.Q<Button>("BtnPointTimingApply");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
+                FunctionNameInput = root.Q<TextField>("FunctionNameInput");
+                FunctionSummary = root.Q<Label>("FunctionSummary");
+                FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
+                FunctionDetail = root.Q<Label>("FunctionDetail");
+                BtnFunctionCreate = root.Q<Button>("BtnFunctionCreate");
+                BtnFunctionRun = root.Q<Button>("BtnFunctionRun");
+                BtnFunctionRename = root.Q<Button>("BtnFunctionRename");
+                BtnFunctionDuplicate = root.Q<Button>("BtnFunctionDuplicate");
+                BtnFunctionDelete = root.Q<Button>("BtnFunctionDelete");
                 BtnRestore = root.Q<Button>("BtnPointRestore");
                 BtnSave = root.Q<Button>("BtnPointSave");
                 BtnRecall = root.Q<Button>("BtnPointRecall");
@@ -100,6 +109,15 @@ namespace KineTutor3D.UI.RobotControlV3
             public TextField DwellInput { get; }
             public Button BtnTimingApply { get; }
             public Label FeedbackSummary { get; }
+            public TextField FunctionNameInput { get; }
+            public Label FunctionSummary { get; }
+            public VisualElement FunctionListContainer { get; }
+            public Label FunctionDetail { get; }
+            public Button BtnFunctionCreate { get; }
+            public Button BtnFunctionRun { get; }
+            public Button BtnFunctionRename { get; }
+            public Button BtnFunctionDuplicate { get; }
+            public Button BtnFunctionDelete { get; }
             public Button BtnRestore { get; }
             public Button BtnSave { get; }
             public Button BtnRecall { get; }

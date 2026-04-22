@@ -53,10 +53,10 @@
 - Stored point order can be changed from V3 with `위로` / `아래로`.
 - Selected point can be overwritten with current readback while preserving name/move type/speed/dwell.
 - Actual UI click matrix covers point reorder/overwrite buttons.
+- Function v1 scaffold supports function store, create/list/detail, rename/duplicate/delete, and RunOnce DryRun.
 
 ### Still Missing / Next Slices
 
-- Function/group model inside `NavPoints`.
 - IO/gripper sequence blocks.
 - Stable point IDs, if name-based v1 becomes limiting.
 - Production IK policy for live `MoveJ` beyond saved joint targets.
@@ -891,6 +891,39 @@ Status:
   - rename / duplicate / delete function
   - run function once in DryRun
 - Self-review: the plan keeps functions inside `NavPoints`, avoids a new Program tab, and does not reopen live motion gates.
+
+### Phase E1 - Function v1 Scaffold
+
+Goal: make the planned `TeachingFunction` model usable without opening manufacturer program scope.
+
+Tasks:
+
+- Add function store. [Done]
+- Create function from current saved point sequence. [Done]
+- List functions. [Done]
+- Show function detail with ordered point refs. [Done]
+- Rename function. [Done]
+- Duplicate function. [Done]
+- Delete function. [Done]
+- Run function once in DryRun. [Done]
+
+Done when:
+
+- User can create a function from current saved points.
+- User can select a function and inspect refs.
+- User can rename, duplicate, delete, and run the function once in DryRun.
+
+Status:
+
+- Done on 2026-04-22.
+- Added `TeachingFunctionStore`.
+- Function data persists under `Application.persistentDataPath/teaching-functions`.
+- Function UI lives inside the Point/Teaching panel as a compact `함수` card.
+- First create action uses current ordered `PendantV3Points` as the function source because multi-select point UI is not implemented yet.
+- `RunTeachingSequenceMatrixForDebug()`: `31/31 PASS`.
+- `RunActualUiClickMatrixForDebug()`: `110/110 PASS`.
+- Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
+- Self-review: function storage/runtime lives in App/Fairino, visible function controls stay in `PointMoveController`, and no Program tab or live motion gate was opened.
 
 ---
 

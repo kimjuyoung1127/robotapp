@@ -48,6 +48,7 @@ namespace KineTutor3D.App.Fairino
         private ManualReadbackTeachingProbe manualReadbackTeachingProbe;
         private TeachingPointStoreAdapter teachingPointStoreAdapter;
         private TeachingSequenceRuntime teachingSequenceRuntime;
+        private TeachingFunctionStore teachingFunctionStore;
         private RobotKinematicsFacade previewKinematicsFacade;
         private FR5EndEffectorAttachment endEffectorAttachment;
         private Camera stageCamera;
@@ -385,6 +386,170 @@ namespace KineTutor3D.App.Fairino
         public string ExecuteTeachingSequenceFromPointForDebug(string pointName)
         {
             return ExecuteTeachingSequenceFromPoint(pointName);
+        }
+
+        public string CreateTeachingFunctionFromSequence(string functionName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Function] 묶을 저장 포인트가 없다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var function = teachingFunctionStore.CreateFromSequence(teachingFunctionStore.BuildUniqueName(functionName), sequence);
+            if (function == null || !teachingFunctionStore.Save(function))
+            {
+                PushFeedback("[Function] 함수 저장 실패");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            PushFeedback($"[Function] {function.name} 생성 · {function.steps.Length}개 포인트");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildDetail(function.name)}";
+        }
+
+        public string GetTeachingFunctionSummaryForDebug()
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            return teachingFunctionStore.BuildSummary();
+        }
+
+        public string[] GetTeachingFunctionNames()
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            return teachingFunctionStore.LoadAllNames();
+        }
+
+        public string GetTeachingFunctionDetailForDebug(string functionName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            return teachingFunctionStore.BuildDetail(functionName);
+        }
+
+        public string RenameTeachingFunctionForDebug(string oldName, string newName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            var ok = teachingFunctionStore.Rename(oldName, newName);
+            PushFeedback(ok ? $"[Function] {oldName} -> {newName}" : "[Function] 이름 변경 실패");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
+        }
+
+        public string DuplicateTeachingFunctionForDebug(string sourceName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            var copy = teachingFunctionStore.Duplicate(sourceName);
+            PushFeedback(copy != null ? $"[Function] {sourceName} 복사 -> {copy.name}" : "[Function] 복사 실패");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
+        }
+
+        public string DeleteTeachingFunctionForDebug(string functionName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            var ok = teachingFunctionStore.Delete(functionName);
+            PushFeedback(ok ? $"[Function] {functionName} 삭제" : "[Function] 삭제 실패");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
+        }
+
+        public string ExecuteTeachingFunctionOnceDryRun(string functionName)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var function = teachingFunctionStore.Load(functionName);
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (function?.steps == null || function.steps.Length == 0)
+            {
+                PushFeedback($"[Function Run] {functionName} 함수가 비어 있다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Function Run] 참조할 저장 포인트가 없다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var restoreDryRun = !snapshot.DryRunEnabled;
+            if (restoreDryRun)
+            {
+                ToggleDryRun();
+            }
+
+            var executed = 0;
+            for (var index = 0; index < function.steps.Length; index++)
+            {
+                var step = function.steps[index];
+                if (step == null || !step.enabled)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(step.kind, "PointRef", StringComparison.OrdinalIgnoreCase))
+                {
+                    PushFeedback($"[Function Run] {step.kind} step은 v1에서 제외다.");
+                    if (restoreDryRun && snapshot.DryRunEnabled)
+                    {
+                        ToggleDryRun();
+                    }
+
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+
+                var point = FindWaypoint(sequence, step.refName);
+                if (point == null)
+                {
+                    PushFeedback($"[Function Run] {step.refName} 포인트를 찾지 못했다.");
+                    if (restoreDryRun && snapshot.DryRunEnabled)
+                    {
+                        ToggleDryRun();
+                    }
+
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+
+                var result = ExecuteTeachingWaypoint(point);
+                if (!result.IsSuccess)
+                {
+                    PushFeedback($"[Function Run] {function.name} {index + 1}/{function.steps.Length} 실패 · {result.Message}");
+                    if (restoreDryRun && snapshot.DryRunEnabled)
+                    {
+                        ToggleDryRun();
+                    }
+
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+
+                executed++;
+            }
+
+            if (restoreDryRun && snapshot.DryRunEnabled)
+            {
+                ToggleDryRun();
+            }
+
+            PushFeedback($"[Function Run] {function.name} DryRun {executed}개 포인트 실행 완료");
+            RefreshSnapshot();
+            return snapshot.LastFeedback;
         }
 
         public string ResolvePendingLiveCommandKindForProduct()
@@ -1471,6 +1636,7 @@ namespace KineTutor3D.App.Fairino
             manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
             teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingFunctionStore ??= new TeachingFunctionStore();
         }
 
         private FairinoResult PreviewTeachingWaypoint(Waypoint point)
@@ -1519,6 +1685,12 @@ namespace KineTutor3D.App.Fairino
             }
 
             return -1;
+        }
+
+        private static Waypoint FindWaypoint(WaypointSequence sequence, string pointName)
+        {
+            var index = FindWaypointIndex(sequence, pointName);
+            return index >= 0 ? sequence.waypoints[index] : null;
         }
 
         private void BindWaypointRunnerEvents()

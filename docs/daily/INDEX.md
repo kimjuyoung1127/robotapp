@@ -150,3 +150,4 @@
 - [pendant-v3-phase-d-loop-mode.md](./04-22/pendant-v3-phase-d-loop-mode.md)
 - [pendant-v3-run-from-selected.md](./04-22/pendant-v3-run-from-selected.md)
 - [pendant-v3-phase-e-function-group-planning.md](./04-22/pendant-v3-phase-e-function-group-planning.md)
+- [pendant-v3-function-v1-scaffold.md](./04-22/pendant-v3-function-v1-scaffold.md)

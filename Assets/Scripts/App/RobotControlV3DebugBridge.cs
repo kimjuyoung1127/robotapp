@@ -503,6 +503,48 @@ namespace KineTutor3D.App
             return GetRuntimeController().ExecuteTeachingSequenceFromPointForDebug(pointName);
         }
 
+        public static string CreateTeachingFunctionForDebug(string functionName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.CreateFunctionForDebug(functionName);
+        }
+
+        public static string SelectTeachingFunctionForDebug(string functionName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SelectFunctionForDebug(functionName);
+        }
+
+        public static string RenameTeachingFunctionForDebug(string functionName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RenameFunctionForDebug(functionName);
+        }
+
+        public static string DuplicateTeachingFunctionForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DuplicateFunctionForDebug();
+        }
+
+        public static string DeleteTeachingFunctionForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DeleteFunctionForDebug();
+        }
+
+        public static string RunTeachingFunctionForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RunFunctionForDebug();
+        }
+
+        public static string GetTeachingFunctionUiSummaryForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.GetFunctionDebugSummary();
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -1038,6 +1080,45 @@ namespace KineTutor3D.App
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetPointMoveControllerSummary, "[Teaching From]");
+
+            AddCase("BtnFunctionCreate", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+            }, GetTeachingFunctionUiSummaryForDebug, "functions=");
+
+            AddCase("BtnFunctionRun", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                CreateTeachingFunctionForDebug("AUDIT_FUNC_UI");
+            }, GetTeachingFunctionUiSummaryForDebug, "[Function Run]");
+
+            AddCase("BtnFunctionRename", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                CreateTeachingFunctionForDebug("AUDIT_FUNC_RENAME");
+            }, GetTeachingFunctionUiSummaryForDebug, "AUDIT_FUNC_RENAME");
+
+            AddCase("BtnFunctionDuplicate", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                CreateTeachingFunctionForDebug("AUDIT_FUNC_DUP");
+            }, GetTeachingFunctionUiSummaryForDebug, "COPY");
+
+            AddCase("BtnFunctionDelete", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                CreateTeachingFunctionForDebug("AUDIT_FUNC_DELETE");
+            }, GetTeachingFunctionUiSummaryForDebug, "삭제");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
@@ -1737,6 +1818,36 @@ namespace KineTutor3D.App
                 () => RunTeachingSequenceFromPointForDebug("SEQ_MISSING"),
                 GetMovementStateSummaryForDebug,
                 "찾지 못했다");
+
+            AddCase(
+                "function-create-list-detail",
+                () => CreateTeachingFunctionForDebug("FUNC_PICK"),
+                GetTeachingFunctionUiSummaryForDebug,
+                "function=FUNC_PICK");
+
+            AddCase(
+                "function-rename",
+                () => RenameTeachingFunctionForDebug("FUNC_PICK_RENAMED"),
+                GetTeachingFunctionUiSummaryForDebug,
+                "FUNC_PICK_RENAMED");
+
+            AddCase(
+                "function-duplicate",
+                () => DuplicateTeachingFunctionForDebug(),
+                GetTeachingFunctionUiSummaryForDebug,
+                "COPY");
+
+            AddCase(
+                "function-run-once-dryrun",
+                () => RunTeachingFunctionForDebug(),
+                GetMovementStateSummaryForDebug,
+                "[Function Run]");
+
+            AddCase(
+                "function-delete",
+                () => DeleteTeachingFunctionForDebug(),
+                GetTeachingFunctionUiSummaryForDebug,
+                "삭제");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

@@ -185,6 +185,19 @@
     max-width: 100%;
 }
 
+.rc-point-function-card {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-function-actions {
+    margin-top: 6px;
+}
+
 .rc-point-detail-title {
     font-size: 12px;
     -unity-font-style: bold;
