@@ -7,10 +7,10 @@
 }
 
 .rc-point-header {
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: stretch;
     min-width: 0;
 }
 
@@ -18,17 +18,44 @@
     flex-direction: row;
     flex-wrap: wrap;
     min-width: 0;
+    margin-top: 6px;
 }
 
 .rc-point-motion-button {
+    flex-grow: 1;
     min-width: 56px;
     min-height: 30px;
-    margin-left: 6px;
+    margin-left: 0;
+    margin-right: 4px;
     margin-bottom: 4px;
 }
 
 .rc-point-motion-button--active {
     background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-subview-tabs {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin-top: 10px;
+    min-width: 0;
+}
+
+.rc-point-subview-tab {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 30px;
+    margin-right: 2px;
+    font-size: 11px;
+}
+
+.rc-point-subview-tab--active {
+    background-color: rgba(80, 140, 255, 0.28);
+}
+
+.rc-point-subview {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .rc-point-name-row {
@@ -49,6 +76,14 @@
     flex-grow: 1;
     min-width: 120px;
     min-height: 32px;
+}
+
+.rc-point-primary-save {
+    min-height: 38px;
+    margin-top: 8px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: rgba(80, 140, 255, 0.32);
 }
 
 .rc-point-name-input--danger {
@@ -126,6 +161,15 @@
     max-width: 100%;
 }
 
+.rc-point-execution-card {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+    min-width: 0;
+    max-width: 100%;
+}
+
 .rc-point-list {
     flex-direction: column;
     flex-wrap: nowrap;
@@ -148,6 +192,42 @@
 
 .rc-point-list-button--active {
     background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-row {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 6px;
+    padding: 6px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.035);
+}
+
+.rc-point-row--active {
+    background-color: rgba(80, 140, 255, 0.16);
+}
+
+.rc-point-row-summary {
+    font-size: 10px;
+    white-space: normal;
+    min-width: 0;
+}
+
+.rc-point-row-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 5px;
+    min-width: 0;
+}
+
+.rc-point-row-button {
+    flex-grow: 1;
+    width: 45%;
+    min-width: 0;
+    min-height: 26px;
+    margin-right: 2px;
+    margin-bottom: 4px;
+    font-size: 9px;
 }
 
 .rc-point-loop-row {
@@ -254,6 +334,11 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     margin-top: 12px;
+}
+
+.rc-point-action-row--left {
+    justify-content: flex-start;
+    margin-top: 6px;
 }
 
 .rc-point-action-button {

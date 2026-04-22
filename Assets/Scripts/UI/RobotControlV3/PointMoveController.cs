@@ -16,6 +16,9 @@ namespace KineTutor3D.UI.RobotControlV3
     public sealed partial class PointMoveController : MonoBehaviour
     {
         private const string PointSequenceName = "PendantV3Points";
+        private const string PointSubviewName = "Point";
+        private const string SequenceSubviewName = "Sequence";
+        private const string FunctionSubviewName = "Function";
 
         [SerializeField] private UIDocument document;
         [SerializeField] private VisualTreeAsset pointMoveTemplate;
@@ -39,6 +42,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
         private string activeNavSection = PendantV3LocalState.DefaultNavSection;
+        private string activeTeachingSubview = PointSubviewName;
         private string activeCoordSystem = PendantV3LocalState.DefaultCoordSystem;
         private string motionKind = "MoveJ";
         private string selectedSpeedPreset = "medium";
@@ -215,6 +219,13 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetFunctionDebugSummary();
         }
 
+        public string SetFunctionNameForDebug(string functionName)
+        {
+            SetFunctionName(functionName);
+            ApplyAll();
+            return GetFunctionDebugSummary();
+        }
+
         public string RenameFunctionForDebug(string functionName)
         {
             SetFunctionName(functionName);
@@ -305,7 +316,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var runtimeRobot = motionRuntime?.RobotId ?? "none";
             var canPreviewAction = CanPreview() && IsAnyPanelVisible();
             var canApplyAction = CanApply() && IsAnyPanelVisible();
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; subview={activeTeachingSubview}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         private bool TryInitialize()
@@ -378,6 +389,9 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnCoordBase, () => SetCoordSystem("Base"));
             RegisterClick(panel.BtnCoordTool, () => SetCoordSystem("Tool"));
             RegisterClick(panel.BtnCoordUser, () => SetCoordSystem("User"));
+            RegisterClick(panel.BtnPointSubview, () => SetTeachingSubview(PointSubviewName));
+            RegisterClick(panel.BtnSequenceSubview, () => SetTeachingSubview(SequenceSubviewName));
+            RegisterClick(panel.BtnFunctionSubview, () => SetTeachingSubview(FunctionSubviewName));
             RegisterClick(panel.BtnMoveJ, () => SetMotionKind("MoveJ"));
             RegisterClick(panel.BtnMoveL, () => SetMotionKind("MoveL"));
             RegisterClick(panel.BtnRestore, RestoreFromPreview);
@@ -394,6 +408,10 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnSpeedFast, () => SetSelectedSpeedPreset("fast"));
             RegisterClick(panel.BtnTimingApply, ApplySelectedPointTiming);
             RegisterClick(panel.BtnLoop, ToggleTeachingLoop);
+            RegisterClick(panel.BtnRunSequence, RunActiveSequence);
+            RegisterClick(panel.BtnStepBack, StepTeachingBackward);
+            RegisterClick(panel.BtnStepForward, StepTeachingForward);
+            RegisterClick(panel.BtnStopSequence, StopTeachingSequence);
             RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
             RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
             RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
@@ -455,6 +473,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnCoordUser.EnableInClassList("rc-point-coord-button--active", activeCoordSystem == "User");
             panel.BtnMoveJ.EnableInClassList("rc-point-motion-button--active", motionKind == "MoveJ");
             panel.BtnMoveL.EnableInClassList("rc-point-motion-button--active", motionKind == "MoveL");
+            ApplySubviewVisibility(panel);
             var isTeachingSurface = activeNavSection == "NavPoints";
             if (panel.Title != null)
             {
@@ -493,6 +512,10 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnOverwrite.SetEnabled(canEdit && recalledPoint != null);
             panel.BtnTimingApply.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
             panel.BtnLoop.SetEnabled(HasAnyPoint() && !IsSequenceEditLocked());
+            panel.BtnRunSequence.SetEnabled(canApply && HasAnyPoint());
+            panel.BtnStepBack.SetEnabled(canApply && HasAnyPoint());
+            panel.BtnStepForward.SetEnabled(canApply && HasAnyPoint());
+            panel.BtnStopSequence.SetEnabled(runtimeController != null);
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
@@ -513,6 +536,82 @@ namespace KineTutor3D.UI.RobotControlV3
                 panel.ValueInputs[index].SetValueWithoutNotify(currentValues[index].ToString("0.0", CultureInfo.InvariantCulture));
                 panel.ValueInputs[index].EnableInClassList("rc-point-cell-input--danger", index == lastInvalidIndex);
             }
+        }
+
+        private void SetTeachingSubview(string subviewName)
+        {
+            activeTeachingSubview = subviewName == SequenceSubviewName || subviewName == FunctionSubviewName
+                ? subviewName
+                : PointSubviewName;
+            ApplyAll();
+        }
+
+        private void ApplySubviewVisibility(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            var showPoint = activeTeachingSubview == PointSubviewName;
+            var showSequence = activeTeachingSubview == SequenceSubviewName;
+            var showFunction = activeTeachingSubview == FunctionSubviewName;
+            panel.BtnPointSubview?.EnableInClassList("rc-point-subview-tab--active", showPoint);
+            panel.BtnSequenceSubview?.EnableInClassList("rc-point-subview-tab--active", showSequence);
+            panel.BtnFunctionSubview?.EnableInClassList("rc-point-subview-tab--active", showFunction);
+            panel.PointSubview?.EnableInClassList("rc-hidden", !showPoint);
+            panel.SequenceSubview?.EnableInClassList("rc-hidden", !showSequence);
+            panel.FunctionSubview?.EnableInClassList("rc-hidden", !showFunction);
+            panel.PointEditSubview?.EnableInClassList("rc-hidden", !showPoint);
+            panel.PointEditActions?.EnableInClassList("rc-hidden", !showPoint);
+        }
+
+        private void RunActiveSequence()
+        {
+            if (runtimeController == null)
+            {
+                SetFeedback("시퀀스 실행 runtime을 찾지 못했다.");
+                return;
+            }
+
+            runtimeController.ExecutePrimaryAction();
+            SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+        }
+
+        private void StepTeachingBackward()
+        {
+            if (runtimeController == null)
+            {
+                SetFeedback("Step 실행 runtime을 찾지 못했다.");
+                return;
+            }
+
+            runtimeController.StepBackward();
+            SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+        }
+
+        private void StepTeachingForward()
+        {
+            if (runtimeController == null)
+            {
+                SetFeedback("Step 실행 runtime을 찾지 못했다.");
+                return;
+            }
+
+            runtimeController.StepForward();
+            SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+        }
+
+        private void StopTeachingSequence()
+        {
+            if (runtimeController == null)
+            {
+                SetFeedback("Stop runtime을 찾지 못했다.");
+                return;
+            }
+
+            var result = runtimeController.StopMotion();
+            SetFeedback(result.Message);
         }
 
         private void CreateFunctionFromSequence()
@@ -754,6 +853,13 @@ namespace KineTutor3D.UI.RobotControlV3
             var functionNames = runtimeController != null
                 ? runtimeController.GetTeachingFunctionNames()
                 : System.Array.Empty<string>();
+            if (panel.FunctionBuildSummary != null)
+            {
+                panel.FunctionBuildSummary.text = selectedFunctionPointNames.Count == 0
+                    ? "선택한 포인트 0개 → 포인트 row의 후보 버튼으로 추가"
+                    : $"선택한 포인트 {selectedFunctionPointNames.Count}개 → 함수 만들기";
+            }
+
             panel.FunctionSummary.text = string.IsNullOrWhiteSpace(selectedFunctionName)
                 ? $"함수: {functionNames.Length}개"
                 : $"함수: {functionNames.Length}개 / 선택: {selectedFunctionName}";
@@ -829,7 +935,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 var functionName = names[index];
                 var button = new Button(() => SelectFunction(functionName))
                 {
-                    text = functionName
+                    text = ShortDisplayName(functionName)
                 };
                 button.AddToClassList("rc-point-list-button");
                 button.EnableInClassList(
@@ -1675,15 +1781,25 @@ namespace KineTutor3D.UI.RobotControlV3
                 }
 
                 var capturedName = waypoint.name;
-                var button = new Button(() => RecallPoint(capturedName))
-                {
-                    text = $"{waypoint.name} · {waypoint.moveType}"
-                };
-                button.AddToClassList("rc-point-list-button");
-                button.EnableInClassList(
-                    "rc-point-list-button--active",
+                var row = new VisualElement();
+                row.AddToClassList("rc-point-row");
+                row.EnableInClassList(
+                    "rc-point-row--active",
                     recalledPoint != null && string.Equals(recalledPoint.name, waypoint.name, System.StringComparison.OrdinalIgnoreCase));
-                panel.PointListContainer.Add(button);
+                row.RegisterCallback<ClickEvent>(_ => RecallPoint(capturedName));
+
+                var summary = new Label(BuildPointRowSummary(waypoint));
+                summary.AddToClassList("rc-point-row-summary");
+                row.Add(summary);
+
+                var actions = new VisualElement();
+                actions.AddToClassList("rc-point-row-actions");
+                actions.Add(CreatePointRowButton("BtnPointRowMove", "이동", () => MovePointRow(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowPreview", "미리보기", () => PreviewPointRow(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowEdit", "수정", () => EditPointRow(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowFunctionCandidate", "후보", () => AddPointRowToFunction(capturedName)));
+                row.Add(actions);
+                panel.PointListContainer.Add(row);
             }
 
             if (waypoints.Length > visibleCount)
@@ -1706,6 +1822,69 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             return $"count={waypoints.Length}; active={recalledPoint?.name ?? "none"}; points=[{string.Join(",", names)}]";
+        }
+
+        private static string BuildPointRowSummary(Waypoint waypoint)
+        {
+            var speed = string.IsNullOrWhiteSpace(waypoint.speedPreset) ? "medium" : waypoint.speedPreset;
+            var dwell = waypoint.dwellSec.ToString("0.0", CultureInfo.InvariantCulture);
+            var tcp = waypoint.tcpMm != null && waypoint.tcpMm.Length >= 3
+                ? $"TCP {waypoint.tcpMm[0]:0.#}/{waypoint.tcpMm[1]:0.#}/{waypoint.tcpMm[2]:0.#}"
+                : "TCP -";
+            var joint = waypoint.jointsDeg != null && waypoint.jointsDeg.Length > 0
+                ? $"J1 {waypoint.jointsDeg[0]:0.#}"
+                : "J -";
+            return $"{ShortDisplayName(waypoint.name)} · {waypoint.moveType} · {speed} · dwell {dwell}s · {tcp} · {joint}";
+        }
+
+        private static string ShortDisplayName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return "-";
+            }
+
+            var trimmed = value.Trim();
+            return trimmed.Length <= 18
+                ? trimmed
+                : trimmed.Substring(0, 15) + "...";
+        }
+
+        private static Button CreatePointRowButton(string name, string text, System.Action clicked)
+        {
+            var button = new Button
+            {
+                name = name,
+                text = text
+            };
+            button.RegisterCallback<ClickEvent>(_ => clicked?.Invoke());
+            button.AddToClassList("rc-point-row-button");
+            return button;
+        }
+
+        private void MovePointRow(string pointName)
+        {
+            RecallPoint(pointName);
+            ApplyMotionCandidate();
+        }
+
+        private void PreviewPointRow(string pointName)
+        {
+            RecallPoint(pointName);
+            PreviewMotionCandidate();
+        }
+
+        private void EditPointRow(string pointName)
+        {
+            RecallPoint(pointName);
+            activeTeachingSubview = PointSubviewName;
+            SetFeedback($"[Edit] {pointName} 수정 대상 선택");
+        }
+
+        private void AddPointRowToFunction(string pointName)
+        {
+            RecallPoint(pointName);
+            AddSelectedPointToFunction();
         }
 
         private void ApplyPointDetail(PanelElements panel)

@@ -515,6 +515,12 @@ namespace KineTutor3D.App
             return pointMove.SelectFunctionForDebug(functionName);
         }
 
+        public static string SetTeachingFunctionNameForDebug(string functionName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetFunctionNameForDebug(functionName);
+        }
+
         public static string RenameTeachingFunctionForDebug(string functionName)
         {
             var pointMove = GetPointMoveController();
@@ -1624,6 +1630,122 @@ namespace KineTutor3D.App
             }, "BtnFunctionRunFromSelected", "[Function From]");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-actual-click-motion.json", "TeachingActualClickMotion");
+        }
+
+        public static string RunTeachingSubviewActualClickMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "teaching-subview-actual-click",
+            };
+
+            var suffix = System.DateTime.Now.Ticks.ToString();
+            var pointA = $"UX_A_{suffix}";
+            var pointB = $"UX_B_{suffix}";
+            var saveName = $"UX_SAVE_{suffix}";
+            var functionName = $"UX_FUNC_{suffix}";
+
+            void Seed()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = pointA,
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 542.2, 135.2, 433.3, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = pointB,
+                    jointsDeg = new[] { 14.0, -35.0, 12.0, -50.0, -80.0, -16.0 },
+                    tcpMm = new[] { 499.2, 171.5, 268.3, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+                ClearFunctionPointSelectionForDebug();
+                SetPointMoveNameForDebug(saveName);
+            }
+
+            void AddClickCase(string name, System.Action setup, string buttonName, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = summary?.Invoke() ?? string.Empty;
+                    result.message = ClickUiButton(buttonName, "desktop", out var found, out var enabled, out var path);
+                    result.path = path;
+                    result.after = summary?.Invoke() ?? string.Empty;
+                    result.passed = found
+                        && enabled
+                        && result.message.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found ? "locator" : !enabled ? "disabled" : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddClickCase("point-subview-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPointSubview", GetPointMoveControllerSummary, "subview=Point");
+
+            AddClickCase("sequence-subview-click", Seed, "BtnSequenceSubview", GetPointMoveControllerSummary, "subview=Sequence");
+            AddClickCase("function-subview-click", Seed, "BtnFunctionSubview", GetPointMoveControllerSummary, "subview=Function");
+
+            AddClickCase("primary-save-click", Seed, "BtnPointSave", GetPointMoveListSummaryForDebug, saveName);
+
+            AddClickCase("point-row-preview-click", Seed, "BtnPointRowPreview", GetMovementStateSummaryForDebug, "pending=대기 명령");
+            AddClickCase("point-row-move-click", Seed, "BtnPointRowMove", GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddClickCase("point-row-edit-click", Seed, "BtnPointRowEdit", GetPointMoveControllerSummary, "[Edit]");
+
+            AddClickCase("sequence-run-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPointRunSequence", GetMovementStateSummaryForDebug, "[Teaching Run]");
+
+            AddClickCase("sequence-loop-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPointLoop", GetTeachingLoopSummaryForDebug, "loopEnabled=True");
+
+            AddClickCase("function-candidate-create-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowFunctionCandidate", "desktop", out _, out _, out _);
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
+                SetTeachingFunctionNameForDebug(functionName);
+            }, "BtnFunctionCreate", GetTeachingFunctionUiSummaryForDebug, $"function={functionName}");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-subview-actual-click.json", "TeachingSubviewActualClick");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()

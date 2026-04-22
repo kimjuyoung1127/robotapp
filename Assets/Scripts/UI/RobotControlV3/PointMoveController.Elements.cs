@@ -11,7 +11,16 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 Title = root.Q<Label>("PointPanelTitle");
                 Hint = root.Q<Label>("PointMoveHint");
+                BtnPointSubview = root.Q<Button>("BtnPointSubview");
+                BtnSequenceSubview = root.Q<Button>("BtnSequenceSubview");
+                BtnFunctionSubview = root.Q<Button>("BtnFunctionSubview");
+                PointSubview = root.Q<VisualElement>("PointSubview");
+                SequenceSubview = root.Q<VisualElement>("SequenceSubview");
+                FunctionSubview = root.Q<VisualElement>("FunctionSubview");
+                PointEditSubview = root.Q<VisualElement>("PointEditSubview");
+                PointEditActions = root.Q<VisualElement>("PointEditActions");
                 PointNameInput = root.Q<TextField>("PointNameInput");
+                BtnPrimarySave = root.Q<Button>("BtnPointSave") ?? root.Q<Button>("BtnPointPrimarySave");
                 BtnCoordBase = root.Q<Button>("BtnPointCoordBase");
                 BtnCoordTool = root.Q<Button>("BtnPointCoordTool");
                 BtnCoordUser = root.Q<Button>("BtnPointCoordUser");
@@ -22,6 +31,10 @@ namespace KineTutor3D.UI.RobotControlV3
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
                 StoreSummary = root.Q<Label>("PointStoreSummary");
                 BtnLoop = root.Q<Button>("BtnPointLoop");
+                BtnRunSequence = root.Q<Button>("BtnPointRunSequence");
+                BtnStepBack = root.Q<Button>("BtnPointStepBack");
+                BtnStepForward = root.Q<Button>("BtnPointStepForward");
+                BtnStopSequence = root.Q<Button>("BtnPointStopSequence");
                 LoopStatus = root.Q<Label>("PointLoopStatus");
                 PointListContainer = root.Q<VisualElement>("PointListContainer");
                 DetailTitle = root.Q<Label>("PointDetailTitle");
@@ -35,6 +48,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnTimingApply = root.Q<Button>("BtnPointTimingApply");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
+                FunctionBuildSummary = root.Q<Label>("FunctionBuildSummary");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
                 FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
                 FunctionSelectionSummary = root.Q<Label>("FunctionSelectionSummary");
@@ -48,7 +62,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnFunctionDuplicate = root.Q<Button>("BtnFunctionDuplicate");
                 BtnFunctionDelete = root.Q<Button>("BtnFunctionDelete");
                 BtnRestore = root.Q<Button>("BtnPointRestore");
-                BtnSave = root.Q<Button>("BtnPointSave");
+                BtnSave = BtnPrimarySave;
                 BtnRecall = root.Q<Button>("BtnPointRecall");
                 BtnDelete = root.Q<Button>("BtnPointDelete");
                 BtnRename = root.Q<Button>("BtnPointRename");
@@ -92,7 +106,16 @@ namespace KineTutor3D.UI.RobotControlV3
 
             public Label Title { get; }
             public Label Hint { get; }
+            public Button BtnPointSubview { get; }
+            public Button BtnSequenceSubview { get; }
+            public Button BtnFunctionSubview { get; }
+            public VisualElement PointSubview { get; }
+            public VisualElement SequenceSubview { get; }
+            public VisualElement FunctionSubview { get; }
+            public VisualElement PointEditSubview { get; }
+            public VisualElement PointEditActions { get; }
             public TextField PointNameInput { get; }
+            public Button BtnPrimarySave { get; }
             public Button BtnCoordBase { get; }
             public Button BtnCoordTool { get; }
             public Button BtnCoordUser { get; }
@@ -103,6 +126,10 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label PreviewSummary { get; }
             public Label StoreSummary { get; }
             public Button BtnLoop { get; }
+            public Button BtnRunSequence { get; }
+            public Button BtnStepBack { get; }
+            public Button BtnStepForward { get; }
+            public Button BtnStopSequence { get; }
             public Label LoopStatus { get; }
             public VisualElement PointListContainer { get; }
             public Label DetailTitle { get; }
@@ -116,6 +143,7 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnTimingApply { get; }
             public Label FeedbackSummary { get; }
             public TextField FunctionNameInput { get; }
+            public Label FunctionBuildSummary { get; }
             public Label FunctionSummary { get; }
             public VisualElement FunctionListContainer { get; }
             public Label FunctionSelectionSummary { get; }

@@ -343,6 +343,35 @@
   - `unity-ui-mcp-guard`와 `unity-cli-qa-validation`을 참고했다.
   - 이 저장소의 현행 SSOT는 `unityctl`이므로 새 스킬 생성 없이 기존 성공 패턴을 `RobotControlV3DebugBridge` matrix로 확장했다.
 
+## 2026-04-22 Teaching Subview UX Reorganization
+
+- `NavPoints` 내부를 `포인트 / 시퀀스 / 함수` segmented subview로 분리했다.
+- 상단 primary action을 `현재 위치 저장`으로 승격했다.
+- 포인트 row에 바로 `이동`, `미리보기`, `수정`, `후보` 액션을 추가했다.
+- 실행 관련 버튼을 `시퀀스` subview 안의 실행 band로 모았다.
+  - `Run`
+  - `Step◀`
+  - `Step▶`
+  - `Stop`
+  - `선택부터`
+  - `반복 ON/OFF`
+- Function flow를 `선택한 포인트 N개 → 함수 만들기`로 표시했다.
+- 긴 point/function 이름은 row/list 표시에서 줄이고 detail/debug data에는 원본을 유지한다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `10/10 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingActualClickMotionMatrixForDebug()`: `6/6 PASS`
+  - `GetAuxLayoutSummaryForDebug()`: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- Screenshot evidence:
+  - `Artifacts/pendant-v3-subview-points.png`
+  - `Artifacts/pendant-v3-subview-sequence.png`
+  - `Artifacts/pendant-v3-subview-function.png`
+- 참고:
+  - 전체 `RunActualUiClickMatrixForDebug()`는 현재 케이스 수가 커져 unityctl IPC 30초 제한에 걸릴 수 있다.
+  - 이번 UX 변경 회귀는 subview/function/teaching motion split matrix로 닫았다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
