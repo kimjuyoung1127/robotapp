@@ -474,6 +474,24 @@ namespace KineTutor3D.App
             return pointMove.SetSequenceEditLockedForDebug(locked);
         }
 
+        public static string TogglePointMoveLoopForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ToggleLoopForDebug();
+        }
+
+        public static string SetTeachingLoopForDebug(bool enabled)
+        {
+            var runtime = GetRuntimeController();
+            runtime.SetTeachingLoopEnabled(enabled);
+            return runtime.GetTeachingLoopSummaryForDebug();
+        }
+
+        public static string GetTeachingLoopSummaryForDebug()
+        {
+            return GetRuntimeController().GetTeachingLoopSummaryForDebug();
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -822,6 +840,7 @@ namespace KineTutor3D.App
                 runtime.Disconnect();
                 runtime.ConnectDefault();
                 runtime.EnableServo();
+                runtime.SetTeachingLoopEnabled(false);
                 if (!runtime.CurrentSnapshot.DryRunEnabled)
                 {
                     runtime.ToggleDryRun();
@@ -993,6 +1012,13 @@ namespace KineTutor3D.App
                 RecallPointMoveForDebug("AUDIT_UI_A");
                 SetPointMoveTimingForDebug("slow", 2.5);
             }, GetPointMoveDetailForDebug, "dwell=2.5");
+
+            AddCase("BtnPointLoop", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+            }, GetTeachingLoopSummaryForDebug, "loopEnabled=True");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
@@ -1472,6 +1498,7 @@ namespace KineTutor3D.App
                     runtime.ToggleDryRun();
                 }
 
+                runtime.SetTeachingLoopEnabled(false);
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -1549,6 +1576,7 @@ namespace KineTutor3D.App
                 "run-fallback-executes-sequence",
                 () =>
                 {
+                    runtime.SetTeachingLoopEnabled(false);
                     runtime.SyncCurrentState();
                     runtime.ExecutePrimaryAction();
                 },
@@ -1646,6 +1674,34 @@ namespace KineTutor3D.App
                 () => SetPointMoveEditLockedForDebug(false),
                 GetPointMoveControllerSummary,
                 "editLocked=False");
+
+            AddCase(
+                "loop-toggle-visible-state",
+                () => TogglePointMoveLoopForDebug(),
+                GetTeachingLoopSummaryForDebug,
+                "loopEnabled=True");
+
+            AddCase(
+                "loop-run-starts-runner",
+                () =>
+                {
+                    runtime.SyncCurrentState();
+                    runtime.ExecutePrimaryAction();
+                },
+                () => GetTeachingLoopSummaryForDebug() + " | " + GetMovementStateSummaryForDebug(),
+                "[Teaching Loop]");
+
+            AddCase(
+                "loop-stop-ends-runner",
+                () => runtime.StopMotion(),
+                () => GetTeachingLoopSummaryForDebug() + " | " + GetMovementStateSummaryForDebug(),
+                "runnerState=Idle");
+
+            AddCase(
+                "loop-toggle-off",
+                () => TogglePointMoveLoopForDebug(),
+                GetTeachingLoopSummaryForDebug,
+                "loopEnabled=False");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

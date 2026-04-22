@@ -184,6 +184,12 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string ToggleLoopForDebug()
+        {
+            ToggleTeachingLoop();
+            return GetDebugSummary();
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -307,6 +313,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnSpeedMedium, () => SetSelectedSpeedPreset("medium"));
             RegisterClick(panel.BtnSpeedFast, () => SetSelectedSpeedPreset("fast"));
             RegisterClick(panel.BtnTimingApply, ApplySelectedPointTiming);
+            RegisterClick(panel.BtnLoop, ToggleTeachingLoop);
             RegisterClick(panel.BtnExport, ExportPoints);
             RegisterClick(panel.BtnCleanup, CleanupPoints);
             RegisterClick(panel.BtnPreview, PreviewMotionCandidate);
@@ -368,6 +375,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 : "이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인";
             panel.PreviewSummary.text = BuildDeltaSummary(panel.PointNameInput.value);
             panel.StoreSummary.text = BuildStoreSummary();
+            ApplyLoopState(panel);
             RebuildPointList(panel);
             ApplyPointDetail(panel);
             panel.FeedbackSummary.text = lastFeedback;
@@ -385,6 +393,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnDown.SetEnabled(canEdit && CanMoveSelectedPoint(1));
             panel.BtnOverwrite.SetEnabled(canEdit && recalledPoint != null);
             panel.BtnTimingApply.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
+            panel.BtnLoop.SetEnabled(HasAnyPoint() && !IsSequenceEditLocked());
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnApply.text = IsMoveLDispatchMode()
@@ -397,6 +406,37 @@ namespace KineTutor3D.UI.RobotControlV3
                 panel.ValueInputs[index].SetValueWithoutNotify(currentValues[index].ToString("0.0", CultureInfo.InvariantCulture));
                 panel.ValueInputs[index].EnableInClassList("rc-point-cell-input--danger", index == lastInvalidIndex);
             }
+        }
+
+        private void ToggleTeachingLoop()
+        {
+            if (runtimeController == null)
+            {
+                SetFeedback("반복 실행 상태를 바꿀 runtime을 찾지 못했다.");
+                return;
+            }
+
+            var enabled = runtimeController.ToggleTeachingLoopEnabled();
+            SetFeedback(enabled
+                ? "[Loop] 반복 실행 ON · Run을 누르면 저장 포인트를 반복한다."
+                : "[Loop] 반복 실행 OFF · Run은 한 번만 실행한다.");
+            ApplyAll();
+        }
+
+        private void ApplyLoopState(PanelElements panel)
+        {
+            if (panel?.BtnLoop == null)
+            {
+                return;
+            }
+
+            var loopEnabled = runtimeController != null && runtimeController.IsTeachingLoopEnabled;
+            var running = runtimeController != null && runtimeController.IsTeachingSequenceRunning;
+            panel.BtnLoop.text = loopEnabled ? "반복 ON" : "반복 OFF";
+            panel.BtnLoop.EnableInClassList("rc-point-loop-button--active", loopEnabled);
+            panel.LoopStatus.text = loopEnabled
+                ? running ? "반복 실행: 진행 중 · Stop으로 종료" : "반복 실행: 켜짐 · Run으로 시작"
+                : "반복 실행: 꺼짐";
         }
 
         private void HandleDwellChanged(string rawValue)

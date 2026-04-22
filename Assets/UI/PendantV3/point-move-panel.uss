@@ -150,6 +150,32 @@
     background-color: rgba(80, 140, 255, 0.22);
 }
 
+.rc-point-loop-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-loop-button {
+    min-width: 72px;
+    min-height: 28px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    font-size: 10px;
+}
+
+.rc-point-loop-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-loop-status {
+    flex-grow: 1;
+    min-width: 96px;
+}
+
 .rc-point-detail-card {
     margin-top: 6px;
     padding: 7px;

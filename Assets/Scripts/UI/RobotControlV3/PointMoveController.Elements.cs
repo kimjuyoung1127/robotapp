@@ -20,6 +20,8 @@ namespace KineTutor3D.UI.RobotControlV3
                 MotionSummary = root.Q<Label>("PointMotionSummary");
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
                 StoreSummary = root.Q<Label>("PointStoreSummary");
+                BtnLoop = root.Q<Button>("BtnPointLoop");
+                LoopStatus = root.Q<Label>("PointLoopStatus");
                 PointListContainer = root.Q<VisualElement>("PointListContainer");
                 DetailTitle = root.Q<Label>("PointDetailTitle");
                 DetailMeta = root.Q<Label>("PointDetailMeta");
@@ -84,6 +86,8 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label MotionSummary { get; }
             public Label PreviewSummary { get; }
             public Label StoreSummary { get; }
+            public Button BtnLoop { get; }
+            public Label LoopStatus { get; }
             public VisualElement PointListContainer { get; }
             public Label DetailTitle { get; }
             public Label DetailMeta { get; }

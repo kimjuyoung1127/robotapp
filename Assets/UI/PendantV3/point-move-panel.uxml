@@ -64,6 +64,10 @@
             <ui:Label name="PointMotionSummary" text="이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact" />
             <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact" />
             <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:VisualElement class="rc-point-loop-row">
+                <ui:Button name="BtnPointLoop" text="반복 OFF" class="rc-point-loop-button" />
+                <ui:Label name="PointLoopStatus" text="반복 실행: 꺼짐" class="rc-panel-copy rc-panel-copy--compact rc-point-loop-status" />
+            </ui:VisualElement>
             <ui:VisualElement name="PointListContainer" class="rc-point-list" />
             <ui:VisualElement name="PointDetailCard" class="rc-point-detail-card">
                 <ui:Label name="PointDetailTitle" text="선택된 포인트 없음" class="rc-point-detail-title" />

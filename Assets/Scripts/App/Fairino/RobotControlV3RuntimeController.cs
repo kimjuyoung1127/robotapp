@@ -65,6 +65,8 @@ namespace KineTutor3D.App.Fairino
         private bool showWorkspaceBoundary;
         private bool showCollision;
         private bool isPaused;
+        private bool teachingLoopEnabled;
+        private bool waypointRunnerEventsBound;
         private bool initialized;
         private string lastInitializationError = string.Empty;
         private string lastSelectedPartName = "없음";
@@ -84,7 +86,9 @@ namespace KineTutor3D.App.Fairino
         internal Camera StageCamera => stageCamera;
         internal bool IsInitialized => initialized;
         internal FairinoConnectionService ConnectionServiceForDebug => connectionService;
-        public bool IsTeachingSequenceRunning => teachingSequenceRuntime?.State.IsRunning ?? false;
+        public bool IsTeachingSequenceRunning => waypointRunner != null && waypointRunner.State != WaypointCycleRunner.RunState.Idle
+            || (teachingSequenceRuntime?.State.IsRunning ?? false);
+        public bool IsTeachingLoopEnabled => teachingLoopEnabled;
 
         private void OnEnable()
         {
@@ -94,6 +98,7 @@ namespace KineTutor3D.App.Fairino
         private void OnDisable()
         {
             UnbindConnectionEvents();
+            UnbindWaypointRunnerEvents();
             initialized = false;
         }
 
@@ -279,7 +284,28 @@ namespace KineTutor3D.App.Fairino
             ForceInitialize();
             teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
             teachingSequenceRuntime.Load();
-            return teachingSequenceRuntime.ToDebugSummary();
+            return $"{teachingSequenceRuntime.ToDebugSummary()}; {GetTeachingLoopSummaryForDebug()}";
+        }
+
+        public string GetTeachingLoopSummaryForDebug()
+        {
+            var runnerState = waypointRunner != null ? waypointRunner.State.ToString() : "missing";
+            var runnerIndex = waypointRunner != null ? waypointRunner.CurrentIndex : -1;
+            var runnerTotal = waypointRunner != null ? waypointRunner.TotalCount : 0;
+            return $"loopEnabled={teachingLoopEnabled}; runnerState={runnerState}; runnerIndex={runnerIndex}; runnerTotal={runnerTotal}; isTeachingRunning={IsTeachingSequenceRunning}";
+        }
+
+        public bool SetTeachingLoopEnabled(bool enabled)
+        {
+            teachingLoopEnabled = enabled;
+            PushFeedback(enabled ? "[Teaching Loop] 반복 실행 ON" : "[Teaching Loop] 반복 실행 OFF");
+            RefreshSnapshot();
+            return teachingLoopEnabled;
+        }
+
+        public bool ToggleTeachingLoopEnabled()
+        {
+            return SetTeachingLoopEnabled(!teachingLoopEnabled);
         }
 
         public string SelectTeachingPointForDebug(int index)
@@ -1176,6 +1202,32 @@ namespace KineTutor3D.App.Fairino
                 return false;
             }
 
+            if (teachingLoopEnabled)
+            {
+                var sequence = teachingPointStoreAdapter.LoadIfExists();
+                if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+                {
+                    return false;
+                }
+
+                if (waypointRunner == null)
+                {
+                    EnsureRuntimeHelpers();
+                }
+
+                if (waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+                {
+                    PushFeedback("[Teaching Loop] 이미 반복 실행 중이다. Stop 후 다시 실행해라.");
+                    RefreshSnapshot();
+                    return true;
+                }
+
+                waypointRunner.PlayLoop(sequence, snapshot.DryRunEnabled || connectionService == null || connectionService.IsMockMode);
+                PushFeedback($"[Teaching Loop] {teachingSequenceRuntime.Count}개 포인트 반복 실행 시작");
+                RefreshSnapshot();
+                return true;
+            }
+
             for (var index = 0; index < teachingSequenceRuntime.Count; index++)
             {
                 teachingSequenceRuntime.Select(index);
@@ -1360,6 +1412,7 @@ namespace KineTutor3D.App.Fairino
             presetAnimator = EnsureComponent<PresetTransitionAnimator>(gameObject);
             waypointRunner = EnsureComponent<WaypointCycleRunner>(gameObject);
             waypointRunner.Inject(connectionService, config, presetAnimator);
+            BindWaypointRunnerEvents();
             peripheralFacade ??= new RobotControlPeripheralFacade(connectionService);
             liveCommandSafetyGate ??= new LiveCommandSafetyGate();
             manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
@@ -1394,6 +1447,81 @@ namespace KineTutor3D.App.Fairino
             return string.Equals(point.moveType, "MoveL", StringComparison.OrdinalIgnoreCase)
                 ? ApplyTcpPose(point.tcpMm, $"Teaching {point.name} MoveL")
                 : ApplyJointAngles(point.jointsDeg, $"Teaching {point.name} MoveJ");
+        }
+
+        private void BindWaypointRunnerEvents()
+        {
+            if (waypointRunner == null || presetAnimator == null || waypointRunnerEventsBound)
+            {
+                return;
+            }
+
+            waypointRunner.OnWaypointReached += OnWaypointRunnerReached;
+            waypointRunner.OnSequenceComplete += OnWaypointRunnerComplete;
+            waypointRunner.OnError += OnWaypointRunnerError;
+            waypointRunner.OnFrameUpdated += OnWaypointRunnerFrameUpdated;
+            presetAnimator.OnFrameUpdated += OnWaypointRunnerFrameUpdated;
+            waypointRunnerEventsBound = true;
+        }
+
+        private void UnbindWaypointRunnerEvents()
+        {
+            if (!waypointRunnerEventsBound)
+            {
+                return;
+            }
+
+            if (waypointRunner != null)
+            {
+                waypointRunner.OnWaypointReached -= OnWaypointRunnerReached;
+                waypointRunner.OnSequenceComplete -= OnWaypointRunnerComplete;
+                waypointRunner.OnError -= OnWaypointRunnerError;
+                waypointRunner.OnFrameUpdated -= OnWaypointRunnerFrameUpdated;
+            }
+
+            if (presetAnimator != null)
+            {
+                presetAnimator.OnFrameUpdated -= OnWaypointRunnerFrameUpdated;
+            }
+
+            waypointRunnerEventsBound = false;
+        }
+
+        private void OnWaypointRunnerReached(int index, string pointName)
+        {
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Select(index);
+            PushFeedback($"[Teaching Loop] {index + 1}/{waypointRunner.TotalCount} {pointName} 도달");
+            RefreshSnapshot();
+        }
+
+        private void OnWaypointRunnerComplete()
+        {
+            PushFeedback(teachingLoopEnabled ? "[Teaching Loop] 반복 실행 정지" : "[Teaching Run] 시퀀스 완료");
+            RefreshSnapshot();
+        }
+
+        private void OnWaypointRunnerError(string message)
+        {
+            PushFeedback($"[Teaching Loop] {message}");
+            RefreshSnapshot();
+        }
+
+        private void OnWaypointRunnerFrameUpdated(double[] jointAnglesDeg)
+        {
+            if (jointAnglesDeg == null || jointAnglesDeg.Length < templateDefinition.JointCount)
+            {
+                return;
+            }
+
+            currentState = new FairinoRobotState(jointAnglesDeg, ComputeTcpPoseFromJoints(jointAnglesDeg), isRobotEnabled: connectionService.Client.IsEnabled);
+            templateDefinition.PosePresetProvider?.UpdateCurrent(jointAnglesDeg);
+            previewJointAnglesDeg = null;
+            previewTcpPose = null;
+            previewUsesJointPose = false;
+            requestStageRefocus = true;
+            ApplyVisualState();
+            RefreshSnapshot();
         }
 
         private void BindConnectionEvents()

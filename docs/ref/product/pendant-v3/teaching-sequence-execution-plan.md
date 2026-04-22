@@ -724,15 +724,31 @@ Goal: repeat saved points safely.
 
 Tasks:
 
-- Add loop toggle state.
-- `Run` uses `PlayLoop` when loop mode is ON.
-- `Stop` ends loop.
-- Status shows loop mode.
+- Add loop toggle state. [Done]
+- `Run` uses `PlayLoop` when loop mode is ON. [Done]
+- `Stop` ends loop. [Done]
+- Status shows loop mode. [Done]
 
 Done when:
 
 - DryRun loop starts and can be stopped.
 - Visible loop UI can wait until this is green.
+
+Status:
+
+- Done on 2026-04-22.
+- Added visible `반복 ON/OFF` toggle and loop status in the Point/Teaching panel.
+- `Run` keeps pending preview priority; when no pending preview exists and loop mode is ON, saved `PendantV3Points` starts through `WaypointCycleRunner.PlayLoop`.
+- `Stop` stops the runner and returns runner state to idle.
+- Runtime exposes loop state through:
+  - `IsTeachingLoopEnabled`
+  - `IsTeachingSequenceRunning`
+  - `GetTeachingLoopSummaryForDebug()`
+- Runner frame updates are bridged back into V3 RobotStage/readback-style snapshot updates during loop playback.
+- `RunTeachingSequenceMatrixForDebug()`: `24/24 PASS`.
+- `RunActualUiClickMatrixForDebug()`: `104/104 PASS`.
+- Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
+- Self-review: loop control state lives in App/Fairino runtime, visible loop control stays in `PointMoveController`, and BottomBar was not crowded with a new loop button.
 
 ### Phase E - Function / Group Planning
 
@@ -793,7 +809,7 @@ Cases:
 
 Keep these green:
 
-- `RunActualUiClickMatrixForDebug()` -> `98/98 PASS`
+- `RunActualUiClickMatrixForDebug()` -> `104/104 PASS`
 - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
 - `RunProductLiveConfirmTokenMatrixForDebug()` -> `4/4 PASS`
 
