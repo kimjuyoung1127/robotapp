@@ -142,3 +142,4 @@
 - [pendant-v3-teaching-sequence-execution-plan.md](./04-22/pendant-v3-teaching-sequence-execution-plan.md)
 - [pendant-v3-manual-readback-teaching-phase0.md](./04-22/pendant-v3-manual-readback-teaching-phase0.md)
 - [pendant-v3-teaching-sequence-runtime-phase-a.md](./04-22/pendant-v3-teaching-sequence-runtime-phase-a.md)
+- [pendant-v3-teaching-sequence-run-step-phase-b.md](./04-22/pendant-v3-teaching-sequence-run-step-phase-b.md)

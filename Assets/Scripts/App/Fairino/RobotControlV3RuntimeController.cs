@@ -595,6 +595,11 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult StopMotion()
         {
+            if (waypointRunner != null && waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                waypointRunner.Stop();
+            }
+
             var result = connectionService.StopMotion();
             PushFeedback(result.IsSuccess ? "[Stop] 모션 정지" : result.Message);
             RefreshSnapshot();
@@ -673,12 +678,24 @@ namespace KineTutor3D.App.Fairino
 
         public void StepBackward()
         {
-            UndoPreview();
+            if (PreviewTeachingStep(delta: -1))
+            {
+                return;
+            }
+
+            PushFeedback("이전 티칭 포인트가 없다.");
+            RefreshSnapshot();
         }
 
         public void StepForward()
         {
-            RedoPreview();
+            if (PreviewTeachingStep(delta: 1))
+            {
+                return;
+            }
+
+            PushFeedback("다음 티칭 포인트가 없다.");
+            RefreshSnapshot();
         }
 
         public void PreviewPreset(string presetName)
@@ -1117,7 +1134,11 @@ namespace KineTutor3D.App.Fairino
                     ResetErrors();
                     break;
                 default:
-                    PushFeedback("현재 상태에서는 추가 조작을 바로 시작하면 된다.");
+                    if (!TryRunTeachingSequenceOnce())
+                    {
+                        PushFeedback("실행할 저장 포인트가 없다.");
+                    }
+
                     RefreshSnapshot();
                     break;
             }
@@ -1143,6 +1164,58 @@ namespace KineTutor3D.App.Fairino
             }
 
             return false;
+        }
+
+        private bool TryRunTeachingSequenceOnce()
+        {
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Load();
+            if (teachingSequenceRuntime.Count <= 0)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < teachingSequenceRuntime.Count; index++)
+            {
+                teachingSequenceRuntime.Select(index);
+                var result = teachingSequenceRuntime.ExecuteSelected(ExecuteTeachingWaypoint);
+                if (!result.IsSuccess)
+                {
+                    PushFeedback($"[Teaching Run] {index + 1}/{teachingSequenceRuntime.Count} 실패 · {result.Message}");
+                    RefreshSnapshot();
+                    return true;
+                }
+            }
+
+            PushFeedback($"[Teaching Run] {teachingSequenceRuntime.Count}개 포인트 실행 완료");
+            RefreshSnapshot();
+            return true;
+        }
+
+        private bool PreviewTeachingStep(int delta)
+        {
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Load();
+            if (teachingSequenceRuntime.Count <= 0)
+            {
+                return false;
+            }
+
+            if (delta >= 0)
+            {
+                teachingSequenceRuntime.SelectNext();
+            }
+            else
+            {
+                teachingSequenceRuntime.SelectPrevious();
+            }
+
+            var result = teachingSequenceRuntime.PreviewSelected(PreviewTeachingWaypoint);
+            PushFeedback(result.IsSuccess
+                ? $"[Teaching Step] {teachingSequenceRuntime.State.SelectedIndex + 1}/{teachingSequenceRuntime.Count} 미리보기"
+                : result.Message);
+            RefreshSnapshot();
+            return true;
         }
 
         private LiveCommandSafetyGateResult EvaluateLiveCommandSafety(

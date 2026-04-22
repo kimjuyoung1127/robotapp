@@ -634,6 +634,13 @@ Done when:
 - `Step▶` does not execute motion in this slice.
 - `Stop` returns runner to idle.
 
+Status:
+
+- Done on 2026-04-22.
+- `RunTeachingSequenceMatrixForDebug()`: `9/9 PASS`.
+- Artifact: `Artifacts/robotcontrolv3-teaching-sequence-runtime.json`.
+- Self-review: Run keeps pending-preview priority, Step buttons are preview-only, and no visible Loop UI was added in this phase.
+
 ### Phase C - Order Editing
 
 Goal: make point order editable.

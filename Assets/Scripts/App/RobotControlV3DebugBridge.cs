@@ -1393,6 +1393,36 @@ namespace KineTutor3D.App
                 "[DryRun Apply]");
 
             AddCase(
+                "step-forward-previews-next-point",
+                () =>
+                {
+                    runtime.SelectTeachingPointForDebug(0);
+                    runtime.StepForward();
+                },
+                () => runtime.LoadTeachingSequenceForDebug() + " | " + GetMovementStateSummaryForDebug(),
+                "selected=1");
+
+            AddCase(
+                "step-back-previews-previous-point",
+                () =>
+                {
+                    runtime.SelectTeachingPointForDebug(1);
+                    runtime.StepBackward();
+                },
+                () => runtime.LoadTeachingSequenceForDebug() + " | " + GetMovementStateSummaryForDebug(),
+                "selected=0");
+
+            AddCase(
+                "run-fallback-executes-sequence",
+                () =>
+                {
+                    runtime.SyncCurrentState();
+                    runtime.ExecutePrimaryAction();
+                },
+                GetMovementStateSummaryForDebug,
+                "[Teaching Run]");
+
+            AddCase(
                 "store-summary",
                 null,
                 () => store.BuildSummary(),
