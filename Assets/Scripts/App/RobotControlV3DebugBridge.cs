@@ -443,6 +443,19 @@ namespace KineTutor3D.App
             return pointMove.OverwritePointWithReadbackForDebug(pointName);
         }
 
+        public static string DuplicatePointMoveForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DuplicatePointForDebug(pointName);
+        }
+
+        public static string GetPointMoveDetailForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            pointMove.ForceInitialize();
+            return pointMove.GetSelectedPointDetailForDebug();
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -896,6 +909,14 @@ namespace KineTutor3D.App
                     SavePointMoveForDebug();
                 }, GetPointMoveListSummaryForDebug, "points=");
             }
+
+            AddCase("BtnPointDuplicate", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetPointMoveListSummaryForDebug, "AUDIT_UI_A_COPY");
 
             AddCase("BtnPointUp", () =>
             {
@@ -1505,6 +1526,18 @@ namespace KineTutor3D.App
                 },
                 () => GetPointMoveControllerSummary() + " | " + store.BuildSummary(),
                 "x=522.0");
+
+            AddCase(
+                "duplicate-selected-point",
+                () => DuplicatePointMoveForDebug("SEQ_B"),
+                () => GetPointMoveListSummaryForDebug() + " | " + store.BuildSummary(),
+                "SEQ_B_COPY");
+
+            AddCase(
+                "selected-point-detail-ui",
+                () => RecallPointMoveForDebug("SEQ_B_COPY"),
+                GetPointMoveDetailForDebug,
+                "speed=medium");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

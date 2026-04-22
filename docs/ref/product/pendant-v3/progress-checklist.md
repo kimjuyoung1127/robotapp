@@ -31,8 +31,8 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite `11/11 PASS`, duplicate/speed/dwell 후속 |
-| `3C` mock e2e | done | Desktop actual click `98/98 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate `13/13 PASS`, speed/dwell edit 후속 |
+| `3C` mock e2e | done | Desktop actual click `99/99 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -132,23 +132,55 @@
   - stable point IDs if v1 name keys become limiting
 - 다음 실행 우선순위는 `Phase C2 - Easy Editing`이다.
 
+## 2026-04-22 Phase C2 Easy Editing Start
+
+- PointMove selected point detail UI를 추가했다.
+  - name
+  - move type
+  - speed preset
+  - dwell
+  - saved joints
+  - saved TCP
+- `복사` 버튼을 추가했다.
+  - 선택 포인트를 바로 다음 순서에 복제한다.
+  - 이름은 `원본_COPY`, 충돌 시 `원본_COPY_2`로 고유화한다.
+  - 일반 save의 사용자 입력 이름 정책은 그대로 유지한다.
+- 저장 정책을 SSOT와 다시 맞췄다.
+  - normal point save는 포인트 이름만 검증한다.
+  - dirty coordinate input은 저장값에 섞이지 않고, 저장 차단 조건도 아니다.
+  - saved joints/TCP는 계속 current readback snapshot에서만 온다.
+- QA helper를 추가했다.
+  - `DuplicatePointMoveForDebug(string pointName)`
+  - `GetPointMoveDetailForDebug()`
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSequenceMatrixForDebug()`: `13/13 PASS`
+  - `RunActualUiClickMatrixForDebug()`: `99/99 PASS`
+  - `GetAuxLayoutSummaryForDebug()` on PointMove: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- 콘솔에는 기존 unityctl IPC pipe 로그가 남았고, 기능 matrix failure는 없다.
+- 다음 C2 잔여 범위:
+  - speed/dwell editing
+  - delete/overwrite consequence confirmation copy
+  - duplicate-name overwrite confirmation
+  - execution-time edit lock in visible UI
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
 - 최신 구현 커밋 기준:
-  - `64e81e2 Fix Pendant V3 point save review issues`
+  - `767e9fc Reconcile Pendant V3 teaching sequence SSOT`
 - 첫 확인 명령:
   - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
   - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
   - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
 - 바로 재실행할 핵심 matrix:
   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-  - `RunActualUiClickMatrixForDebug()` -> `98/98 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `99/99 PASS`
   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Easy point editing`: duplicate point, duplicate-name confirm, point detail UI, speed/dwell detail display.
+  - `Easy point editing`: speed/dwell edit, delete/overwrite confirm copy, duplicate-name confirm.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:

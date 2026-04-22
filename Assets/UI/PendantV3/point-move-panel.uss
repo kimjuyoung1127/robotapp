@@ -150,6 +150,29 @@
     background-color: rgba(80, 140, 255, 0.22);
 }
 
+.rc-point-detail-card {
+    margin-top: 6px;
+    padding: 7px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.035);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-detail-title {
+    font-size: 12px;
+    -unity-font-style: bold;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+}
+
+.rc-point-detail-line {
+    white-space: normal;
+    min-width: 0;
+    max-width: 100%;
+}
+
 .rc-point-action-row {
     flex-direction: row;
     flex-wrap: wrap;

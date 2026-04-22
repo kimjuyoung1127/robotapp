@@ -686,8 +686,8 @@ Goal: reduce friction compared with commercial pendants.
 
 Tasks:
 
-- Add duplicate point.
-- Add speed/dwell detail display.
+- Add duplicate point. [Done]
+- Add speed/dwell detail display. [Done for selected point detail]
 - Add speed/dwell editing after run/step is stable.
 - Add delete/overwrite confirmation copy that explains the consequence.
 - Add duplicate-name overwrite confirm flow.
@@ -695,6 +695,21 @@ Tasks:
 Done when:
 
 - User can copy a point, touch up with current readback, and rerun sequence without leaving `NavPoints`.
+
+Status:
+
+- In progress on 2026-04-22.
+- Added selected point detail UI showing name, move type, speed preset, dwell, saved joints, and saved TCP.
+- Added `복사` action for the selected point.
+- Tightened readback-save policy so normal point save validates the point name but does not validate or consume dirty coordinate inputs.
+- Duplicate action inserts a uniquely named copy directly after the source point:
+  - `PICK_1` -> `PICK_1_COPY`
+  - `PICK_1_COPY` already exists -> `PICK_1_COPY_2`
+- Point save still requires user-entered name; duplicate auto-suffix is scoped to the copy action only.
+- `RunTeachingSequenceMatrixForDebug()`: `13/13 PASS`.
+- `RunActualUiClickMatrixForDebug()`: `99/99 PASS`.
+- Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
+- Self-review: detail/duplicate stays in `PointMoveController` authoring UI, runtime sequence state remains under App/Fairino, and no live motion gate was opened.
 
 ### Phase D - Loop Mode
 

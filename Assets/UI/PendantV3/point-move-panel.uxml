@@ -65,6 +65,12 @@
             <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact" />
             <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact" />
             <ui:VisualElement name="PointListContainer" class="rc-point-list" />
+            <ui:VisualElement name="PointDetailCard" class="rc-point-detail-card">
+                <ui:Label name="PointDetailTitle" text="선택된 포인트 없음" class="rc-point-detail-title" />
+                <ui:Label name="PointDetailMeta" text="포인트를 선택하면 이동 방식과 속도/대기 시간이 보인다." class="rc-panel-copy rc-panel-copy--compact" />
+                <ui:Label name="PointDetailJoints" text="J: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:Label name="PointDetailTcp" text="TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+            </ui:VisualElement>
             <ui:Label name="PointFeedbackSummary" text="아직 실행한 명령이 없다." class="rc-panel-copy rc-panel-copy--compact" />
         </ui:VisualElement>
 
@@ -74,6 +80,7 @@
             <ui:Button name="BtnPointRecall" text="불러오기" class="rc-point-action-button" />
             <ui:Button name="BtnPointDelete" text="삭제" class="rc-point-action-button" />
             <ui:Button name="BtnPointRename" text="이름" class="rc-point-action-button" />
+            <ui:Button name="BtnPointDuplicate" text="복사" class="rc-point-action-button" />
             <ui:Button name="BtnPointUp" text="위로" class="rc-point-action-button" />
             <ui:Button name="BtnPointDown" text="아래" class="rc-point-action-button" />
             <ui:Button name="BtnPointOverwrite" text="덮어쓰기" class="rc-point-action-button" />

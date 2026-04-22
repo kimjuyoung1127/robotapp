@@ -21,12 +21,17 @@ namespace KineTutor3D.UI.RobotControlV3
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
                 StoreSummary = root.Q<Label>("PointStoreSummary");
                 PointListContainer = root.Q<VisualElement>("PointListContainer");
+                DetailTitle = root.Q<Label>("PointDetailTitle");
+                DetailMeta = root.Q<Label>("PointDetailMeta");
+                DetailJoints = root.Q<Label>("PointDetailJoints");
+                DetailTcp = root.Q<Label>("PointDetailTcp");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
                 BtnRestore = root.Q<Button>("BtnPointRestore");
                 BtnSave = root.Q<Button>("BtnPointSave");
                 BtnRecall = root.Q<Button>("BtnPointRecall");
                 BtnDelete = root.Q<Button>("BtnPointDelete");
                 BtnRename = root.Q<Button>("BtnPointRename");
+                BtnDuplicate = root.Q<Button>("BtnPointDuplicate");
                 BtnUp = root.Q<Button>("BtnPointUp");
                 BtnDown = root.Q<Button>("BtnPointDown");
                 BtnOverwrite = root.Q<Button>("BtnPointOverwrite");
@@ -75,12 +80,17 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label PreviewSummary { get; }
             public Label StoreSummary { get; }
             public VisualElement PointListContainer { get; }
+            public Label DetailTitle { get; }
+            public Label DetailMeta { get; }
+            public Label DetailJoints { get; }
+            public Label DetailTcp { get; }
             public Label FeedbackSummary { get; }
             public Button BtnRestore { get; }
             public Button BtnSave { get; }
             public Button BtnRecall { get; }
             public Button BtnDelete { get; }
             public Button BtnRename { get; }
+            public Button BtnDuplicate { get; }
             public Button BtnUp { get; }
             public Button BtnDown { get; }
             public Button BtnOverwrite { get; }

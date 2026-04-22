@@ -144,6 +144,18 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string DuplicatePointForDebug(string pointName)
+        {
+            RecallPoint(pointName);
+            DuplicateSelectedPoint();
+            return GetDebugSummary();
+        }
+
+        public string GetSelectedPointDetailForDebug()
+        {
+            return BuildPointDetailDebugSummary();
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -257,6 +269,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnRecall, () => RecallPoint(panel.PointNameInput?.value));
             RegisterClick(panel.BtnDelete, () => DeletePoint(panel.PointNameInput?.value));
             RegisterClick(panel.BtnRename, () => RenamePoint(recalledPoint?.name, panel.PointNameInput?.value));
+            RegisterClick(panel.BtnDuplicate, DuplicateSelectedPoint);
             RegisterClick(panel.BtnUp, () => MovePointInSequence(-1));
             RegisterClick(panel.BtnDown, () => MovePointInSequence(1));
             RegisterClick(panel.BtnOverwrite, OverwriteSelectedPointWithCurrentReadback);
@@ -321,6 +334,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.PreviewSummary.text = BuildDeltaSummary(panel.PointNameInput.value);
             panel.StoreSummary.text = BuildStoreSummary();
             RebuildPointList(panel);
+            ApplyPointDetail(panel);
             panel.FeedbackSummary.text = lastFeedback;
             var canPreview = CanPreview() && IsAnyPanelVisible();
             var canApply = CanApply() && IsAnyPanelVisible();
@@ -329,6 +343,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnApply.SetEnabled(canApply);
             panel.BtnDelete.SetEnabled(recalledPoint != null || HasNamedPoint(panel.PointNameInput?.value));
             panel.BtnRename.SetEnabled(recalledPoint != null);
+            panel.BtnDuplicate.SetEnabled(recalledPoint != null);
             panel.BtnUp.SetEnabled(CanMoveSelectedPoint(-1));
             panel.BtnDown.SetEnabled(CanMoveSelectedPoint(1));
             panel.BtnOverwrite.SetEnabled(recalledPoint != null);
@@ -527,14 +542,12 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            if (!TryReadActivePanelValues(out var target, out var validationMessage))
+            if (!TryReadActivePointName(out var pointName, out var validationMessage))
             {
                 SetFeedback(validationMessage);
                 return;
             }
 
-            var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
-            var pointName = panel?.PointNameInput?.value?.Trim();
             var waypoint = new Waypoint
             {
                 name = pointName,
@@ -660,6 +673,41 @@ namespace KineTutor3D.UI.RobotControlV3
             recalledPoint = CloneWaypoint(sequence.waypoints[oldIndex]);
             SetPointName(toName);
             SetFeedback($"[Rename] {fromName} -> {toName}");
+        }
+
+        private void DuplicateSelectedPoint()
+        {
+            var sequence = LoadPointSequenceIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0 || recalledPoint == null)
+            {
+                SetFeedback("복사할 저장 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            var sourceIndex = FindWaypointIndex(sequence, recalledPoint.name);
+            if (sourceIndex < 0)
+            {
+                SetFeedback($"{recalledPoint.name} 포인트를 찾지 못했다.");
+                return;
+            }
+
+            var duplicate = CloneWaypoint(sequence.waypoints[sourceIndex]);
+            duplicate.name = BuildUniqueDuplicateName(sequence, duplicate.name);
+            InsertWaypointAfter(sequence, duplicate, sourceIndex);
+            if (!WaypointStore.Save(sequence))
+            {
+                SetFeedback("포인트 복사 저장 실패");
+                return;
+            }
+
+            recalledPoint = CloneWaypoint(duplicate);
+            SetPointName(recalledPoint.name);
+            for (var valueIndex = 0; valueIndex < currentValues.Length && valueIndex < recalledPoint.tcpMm.Length; valueIndex++)
+            {
+                currentValues[valueIndex] = (float)recalledPoint.tcpMm[valueIndex];
+            }
+
+            SetFeedback($"[Duplicate] {sequence.waypoints[sourceIndex].name} -> {recalledPoint.name}");
         }
 
         private void MovePointInSequence(int direction)
@@ -861,6 +909,31 @@ namespace KineTutor3D.UI.RobotControlV3
             return true;
         }
 
+        private bool TryReadActivePointName(out string pointName, out string validationMessage)
+        {
+            var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
+            pointName = panel?.PointNameInput?.value?.Trim() ?? string.Empty;
+            validationMessage = "포인트 이름 검증 통과";
+            isPointNameInvalid = false;
+
+            if (panel == null)
+            {
+                validationMessage = "포인트 이동 패널을 찾지 못했다.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(pointName))
+            {
+                isPointNameInvalid = true;
+                ApplyPanel(desktopPanel);
+                ApplyPanel(tabletPanel);
+                validationMessage = "포인트 이름을 먼저 넣어라.";
+                return false;
+            }
+
+            return true;
+        }
+
         private string BuildDeltaSummary(string pointName)
         {
             var preview = connectionHomeController.CurrentPreviewDefinition;
@@ -939,6 +1012,38 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             return $"count={waypoints.Length}; active={recalledPoint?.name ?? "none"}; points=[{string.Join(",", names)}]";
+        }
+
+        private void ApplyPointDetail(PanelElements panel)
+        {
+            if (panel?.DetailTitle == null)
+            {
+                return;
+            }
+
+            if (recalledPoint == null)
+            {
+                panel.DetailTitle.text = "선택된 포인트 없음";
+                panel.DetailMeta.text = "포인트를 선택하면 이동 방식과 속도/대기 시간이 보인다.";
+                panel.DetailJoints.text = "J: -";
+                panel.DetailTcp.text = "TCP: -";
+                return;
+            }
+
+            panel.DetailTitle.text = recalledPoint.name;
+            panel.DetailMeta.text = $"{NormalizeMoveType(recalledPoint.moveType)} · {NormalizeSpeedPreset(recalledPoint.speedPreset)} · dwell {recalledPoint.dwellSec:0.0}s";
+            panel.DetailJoints.text = $"J: {FormatVector(recalledPoint.jointsDeg, "0.0")}";
+            panel.DetailTcp.text = $"TCP: {FormatTcp(recalledPoint.tcpMm)}";
+        }
+
+        private string BuildPointDetailDebugSummary()
+        {
+            if (recalledPoint == null)
+            {
+                return "detail=none";
+            }
+
+            return $"detail={recalledPoint.name}; moveType={NormalizeMoveType(recalledPoint.moveType)}; speed={NormalizeSpeedPreset(recalledPoint.speedPreset)}; dwell={recalledPoint.dwellSec:0.0}; joints=[{FormatVector(recalledPoint.jointsDeg, "0.0")}]; tcp=[{FormatTcp(recalledPoint.tcpMm)}]";
         }
 
         private bool HasNamedPoint(string pointName)
@@ -1070,6 +1175,77 @@ namespace KineTutor3D.UI.RobotControlV3
                 speedPreset = waypoint?.speedPreset ?? "medium",
                 dwellSec = waypoint?.dwellSec ?? 0.0
             };
+        }
+
+        private static void InsertWaypointAfter(WaypointSequence sequence, Waypoint waypoint, int sourceIndex)
+        {
+            var existing = sequence.waypoints ?? System.Array.Empty<Waypoint>();
+            var insertIndex = Mathf.Clamp(sourceIndex + 1, 0, existing.Length);
+            var expanded = new Waypoint[existing.Length + 1];
+            if (insertIndex > 0)
+            {
+                System.Array.Copy(existing, 0, expanded, 0, insertIndex);
+            }
+
+            expanded[insertIndex] = CloneWaypoint(waypoint);
+            if (insertIndex < existing.Length)
+            {
+                System.Array.Copy(existing, insertIndex, expanded, insertIndex + 1, existing.Length - insertIndex);
+            }
+
+            sequence.waypoints = expanded;
+        }
+
+        private static string BuildUniqueDuplicateName(WaypointSequence sequence, string sourceName)
+        {
+            var safeSource = string.IsNullOrWhiteSpace(sourceName) ? "Point" : sourceName.Trim();
+            var baseName = $"{safeSource}_COPY";
+            var candidate = baseName;
+            var suffix = 2;
+            while (FindWaypointIndex(sequence, candidate) >= 0)
+            {
+                candidate = $"{baseName}_{suffix}";
+                suffix++;
+            }
+
+            return candidate;
+        }
+
+        private static string FormatVector(double[] values, string format)
+        {
+            if (values == null || values.Length == 0)
+            {
+                return "-";
+            }
+
+            var count = System.Math.Min(values.Length, 6);
+            var parts = new string[count];
+            for (var index = 0; index < count; index++)
+            {
+                parts[index] = values[index].ToString(format, CultureInfo.InvariantCulture);
+            }
+
+            return string.Join(" / ", parts);
+        }
+
+        private static string FormatTcp(double[] values)
+        {
+            if (values == null || values.Length < 6)
+            {
+                return "-";
+            }
+
+            return $"X {values[0]:0.0} / Y {values[1]:0.0} / Z {values[2]:0.0} / RX {values[3]:0.0} / RY {values[4]:0.0} / RZ {values[5]:0.0}";
+        }
+
+        private static string NormalizeMoveType(string value)
+        {
+            return string.Equals(value, "MoveL", System.StringComparison.OrdinalIgnoreCase) ? "MoveL" : "MoveJ";
+        }
+
+        private static string NormalizeSpeedPreset(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "medium" : value.Trim();
         }
 
         private static int AxisIndexFromLabel(string axisLabel)
