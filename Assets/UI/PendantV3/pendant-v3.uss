@@ -191,6 +191,13 @@
     overflow: hidden;
 }
 
+.rc-work-tab-bar--dock {
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
 .rc-tab {
     flex-grow: 1;
     flex-shrink: 1;

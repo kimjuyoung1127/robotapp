@@ -1918,7 +1918,7 @@ namespace KineTutor3D.App
             {
                 EnsureRuntimeReady(runtime);
                 SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
-            }, GetShellControllerSummary, "workTabs=4/4");
+            }, GetShellControllerSummary, "workTabs=4/4; workTabParent=ControlDockHost; workTabDockClass=True; workTabHidden=False");
 
             AddCase("joint-tab-visible-and-routes-controller", () =>
             {
@@ -1939,6 +1939,11 @@ namespace KineTutor3D.App
             {
                 SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
             }, GetShellControllerSummary, "bottomTabs=7/7");
+
+            AddCase("non-motion-hides-motion-subtabs", () =>
+            {
+                SetShellSelection("NavPoints", "TabEasyMotion", "BottomTabPointMove");
+            }, GetShellControllerSummary, "workTabHidden=True");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-motion-tab-exposure.json", "MotionTabExposure");
         }

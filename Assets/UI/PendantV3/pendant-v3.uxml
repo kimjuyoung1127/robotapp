@@ -42,10 +42,10 @@
 
             <ui:VisualElement name="MainContent" class="rc-main-content">
                 <ui:VisualElement name="WorkTabBar" class="rc-work-tab-bar" view-data-key="pendant-v3-work-tab-bar">
-                    <ui:Button name="TabEasyMotion" text="쉬운 조작" class="rc-tab" />
+                    <ui:Button name="TabEasyMotion" text="기본" class="rc-tab" />
                     <ui:Button name="TabJointJog" text="관절" class="rc-tab" />
                     <ui:Button name="TabTcpJog" text="TCP" class="rc-tab" />
-                    <ui:Button name="TabPointMove" text="포인트 이동" class="rc-tab" />
+                    <ui:Button name="TabPointMove" text="좌표" class="rc-tab" />
                 </ui:VisualElement>
 
                 <ui:VisualElement name="MainSplit" class="rc-main-split" view-data-key="pendant-v3-main-split">

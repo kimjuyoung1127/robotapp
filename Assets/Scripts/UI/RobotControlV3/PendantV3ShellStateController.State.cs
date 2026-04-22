@@ -27,14 +27,28 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyPanelRoleMarkers();
             ApplyBottomSheetState();
             ApplyBottomBarState();
+            ApplyWorkTabBarVisibility();
             NotifyPanelControllers();
         }
 
         private void ApplyNavState()
         {
             SetActiveButton(navButtons, state.ActiveNavSection, "rc-nav-item--active");
+            ApplyWorkTabBarVisibility();
             ApplyWorkPanelHeaderState();
             NotifyPanelControllers();
+        }
+
+        private void ApplyWorkTabBarVisibility()
+        {
+            if (workTabBar == null)
+            {
+                return;
+            }
+
+            var visible = state.ActiveNavSection == "NavMotion";
+            workTabBar.EnableInClassList("rc-hidden", !visible);
+            workTabBar.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void ApplyWorkTabState()
@@ -242,6 +256,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 return "티칭 포인트";
             }
 
+            if (state.ActiveNavSection == "NavMotion")
+            {
+                return "조작";
+            }
+
             return state.ActiveWorkTab switch
             {
                 "TabJointJog" => "관절",
@@ -272,6 +291,11 @@ namespace KineTutor3D.UI.RobotControlV3
             if (state.ActiveNavSection == "NavPoints")
             {
                 return "저장 포인트, 순서 실행, 함수 묶음을 한곳에서 관리한다.";
+            }
+
+            if (state.ActiveNavSection == "NavMotion")
+            {
+                return "메인 로봇 뷰 · 조작 방식은 보조패널에서 고른다.";
             }
 
             return state.ActiveWorkTab switch

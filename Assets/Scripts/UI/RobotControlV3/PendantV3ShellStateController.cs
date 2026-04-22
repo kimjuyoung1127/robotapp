@@ -36,6 +36,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement bottomSheet;
         private VisualElement bottomTabBar;
         private VisualElement bottomSheetContent;
+        private VisualElement controlDockHost;
         private Label speedLabel;
         private Label coordSystemLabel;
         private Label workPanelTitle;
@@ -148,6 +149,7 @@ namespace KineTutor3D.UI.RobotControlV3
             bottomSheet = root.Q<VisualElement>("BottomSheet");
             bottomTabBar = root.Q<VisualElement>("BottomTabBar");
             bottomSheetContent = root.Q<VisualElement>("BottomSheetContent");
+            controlDockHost = root.Q<VisualElement>("ControlDockHost");
             speedLabel = root.Q<Label>("SpeedLabel");
             coordSystemLabel = root.Q<Label>("CoordSystemLabel");
             workPanelTitle = root.Q<Label>("WorkPanelTitle");
@@ -172,6 +174,19 @@ namespace KineTutor3D.UI.RobotControlV3
             tcpJogController = GetComponent<TcpJogController>();
             pointMoveController = GetComponent<PointMoveController>();
             ioPanelController = GetComponent<IoPanelController>();
+            PlaceWorkTabsInControlDock();
+        }
+
+        private void PlaceWorkTabsInControlDock()
+        {
+            if (workTabBar == null || controlDockHost == null || workTabBar.parent == controlDockHost)
+            {
+                return;
+            }
+
+            workTabBar.RemoveFromHierarchy();
+            controlDockHost.Insert(0, workTabBar);
+            workTabBar.EnableInClassList("rc-work-tab-bar--dock", true);
         }
 
         private void ConfigureSharedScrollViews()
@@ -276,7 +291,10 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private string BuildTabVisibilitySummary()
         {
-            return $"workTabs={CountVisibleTabs(workTabButtons, workTabBar)}/{workTabButtons.Count}; workTabDetail=[{BuildTabDetail(workTabButtons, workTabBar)}]; bottomTabs={CountVisibleTabs(bottomTabButtons, bottomTabBar)}/{bottomTabButtons.Count}; bottomTabDetail=[{BuildTabDetail(bottomTabButtons, bottomTabBar)}]";
+            var workTabHidden = workTabBar == null
+                || workTabBar.ClassListContains("rc-hidden")
+                || workTabBar.resolvedStyle.display == DisplayStyle.None;
+            return $"workTabs={CountVisibleTabs(workTabButtons, workTabBar)}/{workTabButtons.Count}; workTabParent={workTabBar?.parent?.name ?? "missing"}; workTabDockClass={workTabBar?.ClassListContains("rc-work-tab-bar--dock") ?? false}; workTabHidden={workTabHidden}; workTabDetail=[{BuildTabDetail(workTabButtons, workTabBar)}]; bottomTabs={CountVisibleTabs(bottomTabButtons, bottomTabBar)}/{bottomTabButtons.Count}; bottomTabDetail=[{BuildTabDetail(bottomTabButtons, bottomTabBar)}]";
         }
 
         private static int CountVisibleTabs(IReadOnlyList<Button> buttons, VisualElement parent)
