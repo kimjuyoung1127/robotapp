@@ -64,6 +64,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private PendantV3PreviewState.Kind previewState = PendantV3PreviewState.Kind.ConnectedServoOff;
         private RobotControlV3RuntimeSnapshot debugOverrideSnapshot;
         private bool isHomeActive;
+        private bool isPointsActive;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
 
@@ -100,6 +101,7 @@ namespace KineTutor3D.UI.RobotControlV3
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
         {
             isHomeActive = activeNavSection == "NavHome";
+            isPointsActive = activeNavSection == "NavPoints";
             if (!isInitialized)
             {
                 TryInitialize();
@@ -208,6 +210,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 ? shellStateController.GetStateSnapshot()
                 : PendantV3LocalState.Normalize(LocalSettingsStore.LoadOrDefault());
             isHomeActive = localState.ActiveNavSection == "NavHome";
+            isPointsActive = localState.ActiveNavSection == "NavPoints";
         }
 
         private void CacheShellElements()
@@ -386,7 +389,7 @@ namespace KineTutor3D.UI.RobotControlV3
             bottomSheetBody?.EnableInClassList("rc-hidden", false);
             homePanelHost?.EnableInClassList("rc-hidden", !isHomeActive);
             homeSheetHost?.EnableInClassList("rc-hidden", !isHomeActive);
-            workTabBar?.EnableInClassList("rc-hidden", isHomeActive);
+            workTabBar?.EnableInClassList("rc-hidden", isHomeActive || isPointsActive);
             bottomTabBar?.EnableInClassList("rc-hidden", isHomeActive);
 
             workPanelSummary?.EnableInClassList("rc-hidden", false);

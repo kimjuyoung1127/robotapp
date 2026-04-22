@@ -275,7 +275,8 @@
 - 자기리뷰:
   - `SDK gripper pos=100`을 visual finger open ratio로 바로 연결하면 템플릿에서 수동 조정한 닫힌 finger TCP 기준이 깨진다.
   - 따라서 live 방향성 검증 전까지 visual finger는 닫힌 기준으로 고정하고, SDK mock/readback은 `GripperSdkSummary`로 분리한다.
-  - `PointMoveController`는 `NavMotion + TabPointMove`에서 열리는 계약이다. `NavPoints`는 shell navigation label일 수 있으나 PointMove panel visibility 기준이 아니다.
+  - Historical note: 이 감사 당시에는 `PointMoveController`가 `NavMotion + TabPointMove`에서 열리는 계약이었다.
+  - Superseded by 2026-04-22 SSOT: 티칭 포인트/시퀀스/함수 UX는 `NavPoints`에서 열리며, `NavMotion + TabPointMove`는 좌표 직접 이동 호환 경로로만 남긴다.
   - audit은 각 버튼당 두 관점 이상을 본다.
     - runtime movement summary
     - visual gripper/stage summary

@@ -1378,7 +1378,7 @@ namespace KineTutor3D.App
             void SeedFunctionPoints()
             {
                 EnsureReady();
-                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -1691,7 +1691,7 @@ namespace KineTutor3D.App
                     runtime.ToggleDryRun();
                 }
 
-                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
                 GetPanelControllerSummary();
                 SetPointMoveNameForDebug("READBACK_A");
             }
@@ -1812,7 +1812,7 @@ namespace KineTutor3D.App
                     dwellSec = 0.0
                 });
                 store.Save(sequence);
-                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
             }
 
             AddCase(
@@ -1820,6 +1820,12 @@ namespace KineTutor3D.App
                 SeedSequence,
                 () => runtime.LoadTeachingSequenceForDebug(),
                 "count=2");
+
+            AddCase(
+                "navpoints-opens-teaching-point-panel",
+                () => SetShellSelection("NavPoints", "TabEasyMotion", "BottomTabEasyMotion"),
+                GetPointMoveControllerSummary,
+                "desktopVisible=True");
 
             AddCase(
                 "select-first-point",
@@ -2016,6 +2022,7 @@ namespace KineTutor3D.App
                 "function-create-list-detail",
                 () =>
                 {
+                    ClearFunctionPointSelectionForDebug();
                     AddSelectedPointToFunctionForDebug("SEQ_A");
                     AddSelectedPointToFunctionForDebug("SEQ_B");
                     CreateTeachingFunctionForDebug("FUNC_PICK");

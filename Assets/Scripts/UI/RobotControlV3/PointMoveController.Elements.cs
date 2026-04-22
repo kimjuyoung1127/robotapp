@@ -9,6 +9,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             public PanelElements(VisualElement root)
             {
+                Title = root.Q<Label>("PointPanelTitle");
                 Hint = root.Q<Label>("PointMoveHint");
                 PointNameInput = root.Q<TextField>("PointNameInput");
                 BtnCoordBase = root.Q<Button>("BtnPointCoordBase");
@@ -89,6 +90,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 };
             }
 
+            public Label Title { get; }
             public Label Hint { get; }
             public TextField PointNameInput { get; }
             public Button BtnCoordBase { get; }

@@ -152,3 +152,4 @@
 - [pendant-v3-phase-e-function-group-planning.md](./04-22/pendant-v3-phase-e-function-group-planning.md)
 - [pendant-v3-function-v1-scaffold.md](./04-22/pendant-v3-function-v1-scaffold.md)
 - [pendant-v3-function-v1-polish.md](./04-22/pendant-v3-function-v1-polish.md)
+- [pendant-v3-navpoints-teaching-panel-lock.md](./04-22/pendant-v3-navpoints-teaching-panel-lock.md)

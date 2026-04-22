@@ -198,6 +198,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string ResolvePanelTitle(PendantV3LocalState shellState)
         {
+            if (shellState.ActiveNavSection == "NavPoints")
+            {
+                return "티칭";
+            }
+
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => "관절",
@@ -224,6 +229,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string ResolveDescriptionSummary(PendantV3LocalState shellState, RobotControlV3RuntimeSnapshot snapshot)
         {
+            if (shellState.ActiveNavSection == "NavPoints")
+            {
+                return $"티칭 포인트 · {snapshot.PendingCommandSummary}";
+            }
+
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => $"관절 조그 · {snapshot.StatusMotion}",
@@ -235,6 +245,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string ResolveDescriptionDetail(PendantV3LocalState shellState, RobotControlV3RuntimeSnapshot snapshot)
         {
+            if (shellState.ActiveNavSection == "NavPoints")
+            {
+                return "저장 포인트, 시퀀스 실행, 함수 묶음은 포인트 탭에서 다룬다. 메인패널은 현재 로봇 위치와 고스트/경로 확인에 집중한다.";
+            }
+
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => "메인패널에서는 로봇만 보고, 관절값 입력/버튼은 보조패널에서만 만진다. 미리보기 후 적용 순서를 유지한다.",

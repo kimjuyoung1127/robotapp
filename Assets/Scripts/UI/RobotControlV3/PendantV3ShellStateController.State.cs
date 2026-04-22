@@ -33,23 +33,14 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ApplyNavState()
         {
             SetActiveButton(navButtons, state.ActiveNavSection, "rc-nav-item--active");
+            ApplyWorkPanelHeaderState();
             NotifyPanelControllers();
         }
 
         private void ApplyWorkTabState()
         {
             SetActiveButton(workTabButtons, state.ActiveWorkTab, "rc-tab--active");
-            var label = GetWorkTabLabel(state.ActiveWorkTab);
-            if (workPanelTitle != null)
-            {
-                workPanelTitle.text = label;
-            }
-
-            if (workPanelSummary != null)
-            {
-                workPanelSummary.text = string.Empty;
-                workPanelSummary.EnableInClassList("rc-hidden", true);
-            }
+            ApplyWorkPanelHeaderState();
 
             if (viewportPanelScroll != null)
             {
@@ -58,6 +49,21 @@ namespace KineTutor3D.UI.RobotControlV3
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             runtimeController?.ResetStageCamera();
             NotifyPanelControllers();
+        }
+
+        private void ApplyWorkPanelHeaderState()
+        {
+            if (workPanelTitle != null)
+            {
+                workPanelTitle.text = GetWorkPanelTitle(state);
+            }
+
+            if (workPanelSummary != null)
+            {
+                var summary = GetWorkPanelSummary(state);
+                workPanelSummary.text = summary;
+                workPanelSummary.EnableInClassList("rc-hidden", string.IsNullOrEmpty(summary));
+            }
         }
 
         private void ApplyBottomTabState()
@@ -229,9 +235,14 @@ namespace KineTutor3D.UI.RobotControlV3
             return 0;
         }
 
-        private static string GetWorkTabLabel(string buttonName)
+        private static string GetWorkPanelTitle(PendantV3LocalState state)
         {
-            return buttonName switch
+            if (state.ActiveNavSection == "NavPoints")
+            {
+                return "티칭 포인트";
+            }
+
+            return state.ActiveWorkTab switch
             {
                 "TabJointJog" => "관절",
                 "TabTcpJog" => "TCP",
@@ -256,9 +267,14 @@ namespace KineTutor3D.UI.RobotControlV3
             };
         }
 
-        private static string GetWorkTabSummary(string buttonName)
+        private static string GetWorkPanelSummary(PendantV3LocalState state)
         {
-            return buttonName switch
+            if (state.ActiveNavSection == "NavPoints")
+            {
+                return "저장 포인트, 순서 실행, 함수 묶음을 한곳에서 관리한다.";
+            }
+
+            return state.ActiveWorkTab switch
             {
                 "TabJointJog" => "메인 로봇 뷰 · 관절",
                 "TabTcpJog" => "메인 로봇 뷰 · TCP",

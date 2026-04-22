@@ -220,6 +220,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string GetDesktopTitle(PendantV3LocalState state)
         {
+            if (state.ActiveNavSection == "NavPoints")
+            {
+                return "티칭 포인트 패널";
+            }
+
             return state.ActiveNavSection == "NavHome"
                 ? "연결 홈"
                 : state.ActiveWorkTab switch
@@ -233,6 +238,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string GetDesktopSummary(PendantV3LocalState state)
         {
+            if (state.ActiveNavSection == "NavPoints")
+            {
+                return "포인트 저장, 조회, 수정, 순서 실행, 함수 묶음을 포인트 탭에서 한 번에 다룬다.";
+            }
+
             return state.ActiveNavSection == "NavHome"
                 ? "연결 상태와 다음 행동 추천을 먼저 읽는 홈 패널."
                 : state.ActiveWorkTab switch

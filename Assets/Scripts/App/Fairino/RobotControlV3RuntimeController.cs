@@ -2306,7 +2306,7 @@ namespace KineTutor3D.App.Fairino
                 predictedPathRenderer?.RenderPath(BuildCartesianPreviewPath(currentState.TcpPose, previewTcpPose));
             }
 
-            if (previewTcpPose != null && !previewUsesJointPose)
+            if (previewTcpPose != null && previewTcpPose.Length >= 3 && !previewUsesJointPose)
             {
                 targetMarkerVisual?.SetMarkersVisible(true);
                 if (targetMarkerVisual.TargetMarker != null)

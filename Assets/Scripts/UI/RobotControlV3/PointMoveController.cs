@@ -38,6 +38,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
+        private string activeNavSection = PendantV3LocalState.DefaultNavSection;
         private string activeCoordSystem = PendantV3LocalState.DefaultCoordSystem;
         private string motionKind = "MoveJ";
         private string selectedSpeedPreset = "medium";
@@ -76,8 +77,9 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
         {
-            isDesktopVisible = activeNavSection == "NavMotion" && activeWorkTab == "TabPointMove";
-            isTabletVisible = activeNavSection == "NavMotion" && activeTabletTab == "BottomTabPointMove";
+            isDesktopVisible = ShouldShowDesktopPanel(activeNavSection, activeWorkTab);
+            isTabletVisible = ShouldShowTabletPanel(activeNavSection, activeTabletTab);
+            this.activeNavSection = activeNavSection;
             activeCoordSystem = GetLocalState().CoordSystem;
             if (!isInitialized)
             {
@@ -334,9 +336,10 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             var localState = GetLocalState();
+            activeNavSection = localState.ActiveNavSection;
             activeCoordSystem = localState.CoordSystem;
-            isDesktopVisible = localState.ActiveNavSection == "NavMotion" && localState.ActiveWorkTab == "TabPointMove";
-            isTabletVisible = localState.ActiveNavSection == "NavMotion" && localState.ActiveTabletTab == "BottomTabPointMove";
+            isDesktopVisible = ShouldShowDesktopPanel(localState.ActiveNavSection, localState.ActiveWorkTab);
+            isTabletVisible = ShouldShowTabletPanel(localState.ActiveNavSection, localState.ActiveTabletTab);
             connectionHomeController.PreviewChanged -= ApplyPreview;
             connectionHomeController.PreviewChanged += ApplyPreview;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
@@ -452,9 +455,17 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnCoordUser.EnableInClassList("rc-point-coord-button--active", activeCoordSystem == "User");
             panel.BtnMoveJ.EnableInClassList("rc-point-motion-button--active", motionKind == "MoveJ");
             panel.BtnMoveL.EnableInClassList("rc-point-motion-button--active", motionKind == "MoveL");
-            panel.Hint.text = motionKind == "MoveL"
-                ? "직선 접근이 필요할 때는 MoveL 후보로 보고, 먼저 미리보기로 궤적 감각을 확인한다."
-                : "관절 기준으로 먼저 접근해도 되는 위치라면 MoveJ 후보로 빠르게 확인한다.";
+            var isTeachingSurface = activeNavSection == "NavPoints";
+            if (panel.Title != null)
+            {
+                panel.Title.text = isTeachingSurface ? "티칭 포인트" : "포인트 이동";
+            }
+
+            panel.Hint.text = isTeachingSurface
+                ? "수동으로 맞춘 현재 위치를 저장하고, 저장 포인트를 순서대로 실행하거나 함수로 묶는다."
+                : motionKind == "MoveL"
+                    ? "직선 접근이 필요할 때는 MoveL 후보로 보고, 먼저 미리보기로 궤적 감각을 확인한다."
+                    : "관절 기준으로 먼저 접근해도 되는 위치라면 MoveJ 후보로 빠르게 확인한다.";
             panel.CoordSummary.text = $"좌표계: {activeCoordSystem} / 현재 TCP 기준으로 시작";
             panel.MotionSummary.text = motionKind == "MoveL"
                 ? "이동 방식: MoveL / 공구 경로를 직선으로 먼저 확인"
@@ -926,6 +937,17 @@ namespace KineTutor3D.UI.RobotControlV3
 
             pointMovePanelHost?.EnableInClassList("rc-hidden", !isDesktopVisible);
             pointMoveSheetHost?.EnableInClassList("rc-hidden", !isTabletVisible);
+        }
+
+        private static bool ShouldShowDesktopPanel(string activeNavSection, string activeWorkTab)
+        {
+            return activeNavSection == "NavPoints" ||
+                activeNavSection == "NavMotion" && activeWorkTab == "TabPointMove";
+        }
+
+        private static bool ShouldShowTabletPanel(string activeNavSection, string activeTabletTab)
+        {
+            return activeNavSection == "NavPoints" || activeTabletTab == "BottomTabPointMove";
         }
 
         private void SetCoordSystem(string coordSystem)

@@ -3,7 +3,7 @@
     <ui:Style src="point-move-panel.uss" />
     <ui:VisualElement name="PointMoveRoot" class="rc-point-root">
         <ui:VisualElement class="rc-point-header">
-            <ui:Label text="포인트 이동" class="rc-panel-title" />
+            <ui:Label name="PointPanelTitle" text="포인트 이동" class="rc-panel-title" />
             <ui:VisualElement class="rc-point-motion-row">
                 <ui:Button name="BtnPointMoveJ" text="MoveJ" class="rc-point-motion-button rc-point-motion-button--active" />
                 <ui:Button name="BtnPointMoveL" text="MoveL" class="rc-point-motion-button" />

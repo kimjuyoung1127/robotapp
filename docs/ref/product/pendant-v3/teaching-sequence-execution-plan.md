@@ -429,6 +429,13 @@ Required additions:
 - Row click selects and recalls point.
 - Point names must be unique in v1.
 
+### NavPoints Visibility Lock
+
+- `NavPoints` opens the teaching point panel in the `ViewportHost` auxiliary panel.
+- `NavMotion > TabPointMove` remains a coordinate/direct point-move compatibility path.
+- Saved point authoring, ordered sequence execution, loop mode, run-from-selected, and function grouping must be reachable from `NavPoints` without first clicking the operation nav.
+- WorkTabBar is not the teaching navigation surface; when `NavPoints` is active the panel title should read as teaching/points, not motion.
+
 ### Function Subview
 
 The function feature stays inside `NavPoints`.

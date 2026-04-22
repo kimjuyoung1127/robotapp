@@ -301,6 +301,25 @@
   - 그래서 function 버튼 actual click은 `RunFunctionActualClickMatrixForDebug()`로 분리했다.
 - 다음 우선순위는 missing-ref repair UX 또는 IO/gripper sequence block 설계다.
 
+## 2026-04-22 NavPoints Teaching Panel Lock
+
+- SSOT 재확인: 티칭 포인트/시퀀스/함수 UX는 `NavPoints`에서 바로 열려야 한다.
+- 구현 보정:
+  - `NavPoints` 선택 시 `PointMoveController` desktop aux panel을 표시한다.
+  - `NavMotion > TabPointMove`는 좌표 직접 이동 호환 경로로 유지한다.
+  - `NavPoints` active 상태에서는 WorkTabBar를 숨기고 셸/패널 제목/도움말/보조 설명을 `티칭 포인트` 기준으로 표시한다.
+- 회귀 보호:
+  - `RunTeachingSequenceMatrixForDebug()`에 `navpoints-opens-teaching-point-panel` 케이스를 추가했다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `GetAuxLayoutSummaryForDebug()` on NavPoints: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- Screenshot evidence:
+  - `Artifacts/pendant-v3-navpoints-teaching-panel.png`
+- 안정화:
+  - stale/short `previewTcpPose`가 target marker를 인덱싱해 직접 씬 재진입 matrix를 깨는 문제를 방어했다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
