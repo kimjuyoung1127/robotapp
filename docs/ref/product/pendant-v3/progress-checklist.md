@@ -53,9 +53,11 @@
 - `WorkPanel` 내부는 `RobotStage` 단일 책임으로 잠근다.
   - `RobotStage`: 로봇 메시 + 프레임 + 고스트 + 트레일 + 바닥 격자 + 선택 XYZ 기즈모
 - 현재 선택 탭의 조작 UI는 `ViewportHost`의 보조 작업 패널로 이동한다.
+- `NavMotion`의 조작 모드는 상단 독립 탭이 아니라 `ControlDockHost` 내부 `기본 / 관절 / TCP / 좌표` subtab으로 표시한다.
+- `NavPoints` active 상태에서는 조작 subtab을 숨기고 `포인트 / 시퀀스 / 함수` 내부 subview만 표시한다.
 - `TCP 3D 화살표`, 특히 `Z / RX / RY / RZ` 조작은 로봇을 가리지 않게 `ViewportHost` 보조 패널에서만 노출한다.
 - `ViewportHost`는 상단 보조 툴바 + 공용 `ScrollView` 구조로 유지한다.
-- `관절 / 쉬운조작 / TCP / 포인트 이동`은 모두 같은 `RobotStage`를 공유하고, 보조 패널 쪽 내용만 교체한다.
+- `기본 / 관절 / TCP / 좌표`는 모두 같은 `RobotStage`를 공유하고, 보조 패널 쪽 내용만 교체한다.
 - 다음 구현 단위는 `고스트 / predicted path / 경계 / 충돌`을 실제 시각 데이터와 연결하는 것이다.
 
 ## 2026-04-21 Aux Compact Lock
@@ -67,6 +69,18 @@
 - Joint 조작행은 `J축+입력+값`, `슬라이더`, `- / +` 버튼 행으로 분리했다.
 - Point/Easy/Coord/Status/Safety 카드도 `min-width: 0`, `max-width: 100%`, wrap/compact 기준으로 맞췄다.
 - 재시작 후 `GetAuxLayoutSummaryForDebug()` 기준 `horizontalVisible=False`, `clipped=0`, `scrollShare>=0.88`을 확인했다.
+
+## 2026-04-22 Motion Subtabs Aux Panel Lock
+
+- `WorkTabBar`는 런타임에서 `ControlDockHost` 첫 줄로 이동한다.
+- `NavMotion` active 상태에서만 `기본 / 관절 / TCP / 좌표`를 표시한다.
+- `NavPoints` active 상태에서는 조작 subtab을 `display: none`으로 숨긴다.
+- `기본`은 기존 EasyMotion, `좌표`는 기존 PointMove 직접 좌표 이동 경로다.
+- `포인트` 좌측 탭은 티칭 포인트 저장/목록/시퀀스/함수 전용으로 유지한다.
+- 검증:
+  - `RunMotionTabExposureMatrixForDebug()` -> `6/6 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `113/113 PASS`
+  - `RunRobotLinkedButtonSimulationAuditForDebug()` -> `74/74 PASS`
 
 ## 2026-04-21 Button Integration SSOT
 
@@ -307,7 +321,7 @@
 - 구현 보정:
   - `NavPoints` 선택 시 `PointMoveController` desktop aux panel을 표시한다.
   - `NavMotion > TabPointMove`는 좌표 직접 이동 호환 경로로 유지한다.
-  - `NavPoints` active 상태에서는 WorkTabBar를 숨기고 셸/패널 제목/도움말/보조 설명을 `티칭 포인트` 기준으로 표시한다.
+  - `NavPoints` active 상태에서는 조작 내부 탭을 숨기고 셸/패널 제목/도움말/보조 설명을 `티칭 포인트` 기준으로 표시한다.
 - 회귀 보호:
   - `RunTeachingSequenceMatrixForDebug()`에 `navpoints-opens-teaching-point-panel` 케이스를 추가했다.
 - 검증 결과:
@@ -697,7 +711,7 @@
 - note: full EditMode 기준으로는 기존 red 묶음 외에 `MathReadinessPanelTests`/`OnboardingManagerTests`/`UIInventoryValidatorTests` 계열 실패가 같이 보였다.
 - note: play 검증 콘솔에는 gameplay 에러 없이 `unityctl` IPC 재연결 로그만 반복 관측됐다.
 - note: popup smoke 기준 `BtnPopupConfirm` actual click 뒤 `popupActive=False`, focus=`BtnPopupProbe` 복귀를 재확인했다.
-- note: `NavHelp` actual click 기준 `HelpPanelHost` visible, `WorkTabBar` hidden, `WhyItMovedSummary` 갱신까지 확인했다.
+- note: `NavHelp` actual click 기준 `HelpPanelHost` visible, 조작 내부 탭 hidden, `WhyItMovedSummary` 갱신까지 확인했다.
 - note: `BottomTabHelp` actual click 기준 `HelpSheetHost` visible, `BottomSheetTitle=BottomSheet · 도움말`, `BottomTabTcpJog` 복귀 시 `BottomSheetTitle=BottomSheet · TCP` 원복까지 확인했다.
 
 ## Source Docs

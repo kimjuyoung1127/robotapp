@@ -40,9 +40,9 @@
 │NavRail │              MainContent                    │   ContextPanel        │
 │ (72px) │                                             │   (320px)             │
 │        │                                             │                       │
-│ ┌────┐ │  ┌─ WorkTabBar ──────────────────────────┐ │  ┌─ CoordStrip ─────┐ │
-│ │ 🏠 │ │  │ [쉬운조작] [관절] [TCP] [포인트] ... │ │  │ J1: 0.0°         │ │
-│ │Home │ │  └──────────────────────────────────────┘ │  │ J2: -32.0°       │ │
+│ ┌────┐ │                                             │  ┌─ CoordStrip ─────┐ │
+│ │ 🏠 │ │                                             │  │ J1: 0.0°         │ │
+│ │Home │ │                                             │  │ J2: -32.0°       │ │
 │ ├────┤ │                                             │  │ J3: 84.0°        │ │
 │ │ 🔧 │ │  ┌─ WorkPanel ──────────────────────────┐ │  │ J4: 0.0°         │ │
 │ │조작 │ │  │ Header / Summary                     │ │  │ J5: 90.0°        │ │
@@ -55,13 +55,13 @@
 │ ├────┤ │  └──────────────────────────────────────┘ │  │ RX: 180.0°      │ │
 │ │ 📊 │ │                                             │  │ RY: 0.0°        │ │
 │ │상태 │ │  ┌─ ViewportHost (보조 작업 패널) ─────┐ │  │ RZ: 90.0°       │ │
-│ ├────┤ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │  └─────────────────┘ │
-│ │ ❓ │ │  │ scroll                                 │ │                       │
-│ │도움 │ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  ┌─ StatusCard ────┐ │
-│ └────┘ │  │ [관절 조그]                            │ │  │ 상태: 정지       │ │
-│        │  │ [TCP 조그]                             │ │  │ 모드: 수동       │ │
-│        │  │ [포인트 이동]                          │ │  │ Fault: 없음      │ │
-│        │  │ [복원] [미리보기] [적용]              │ │  │ Safety: 정상     │ │
+│ ├────┤ │  │ [기본] [관절] [TCP] [좌표]             │ │  └─────────────────┘ │
+│ │ ❓ │ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │                       │
+│ │도움 │ │  │ scroll                                 │ │  ┌─ StatusCard ────┐ │
+│ └────┘ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  │ 상태: 정지       │ │
+│        │  │ [선택된 조작 모드 콘텐츠]              │ │  │ 모드: 수동       │ │
+│        │  │ [복원] [미리보기] [적용]              │ │  │ Fault: 없음      │ │
+│        │  │                                         │ │  │ Safety: 정상     │ │
 │        │  └──────────────────────────────────────┘ │  ├─────────────────┤ │
 │        │                                             │  │ 다음 행동 추천   │ │
 │        │                                             │  │ "Sync를 먼저     │ │
@@ -81,7 +81,7 @@
 |------|------|------|------|
 | TopStatusBar | 100% | 56px | 고정, 스크롤 안 됨 |
 | NavRail | 72px | flex | 아이콘 + 짧은 레이블, 접기 가능 |
-| MainContent | flex (나머지) | flex | WorkTabBar(40px) + WorkPanel + ViewportHost(보조) |
+| MainContent | flex (나머지) | flex | WorkPanel + ViewportHost(보조) |
 | ContextPanel | 320px | flex | CoordStrip + StatusCard, 접기 가능 |
 | BottomBar | 100% | 48px | 고정, 실행 제어 전용 |
 
@@ -89,6 +89,8 @@
 - MainContent 내에서 `WorkPanel`이 메인 로봇 표시 패널을 맡는다.
 - `WorkPanel` 본체는 `RobotStage` 단일 영역으로 잠근다.
 - `ViewportHost`는 `보조 작업 패널`로 두고, 조작/도움말/연결 홈을 공용 스크롤 안에서 이어 붙인다.
+- `조작` active 상태에서만 내부 탭 `기본 / 관절 / TCP / 좌표`를 `ControlDockHost` 첫 줄에 표시한다.
+- `NavPoints` active 상태에서는 조작 내부 탭을 숨기고, 포인트 저장/시퀀스/함수 subview만 보인다.
 - 메인 `RobotStage`에는 로봇과 그에 직접 붙는 시각화만 보이게 둔다.
 - `Z / RX / RY / RZ`처럼 로봇을 가릴 수 있는 TCP 보조 조작 UI는 `ViewportHost` 공용 스크롤 안으로 이동시켜 겹침을 예방한다.
 - `ViewportHost`와 `ContextPanel`은 가로 스크롤을 쓰지 않는다.
@@ -161,7 +163,7 @@
 | 순서 | 아이콘 | 레이블 | 연결 패널 | 우선순위 |
 |------|--------|--------|-----------|----------|
 | 1 | 🏠 | Home | 연결 홈 + 상태 요약 | P0 |
-| 2 | 🔧 | 조작 | WorkTabBar (쉬운조작/관절/TCP) | P0 |
+| 2 | 🔧 | 조작 | 보조패널 내부 탭 (기본/관절/TCP/좌표) | P0 |
 | 3 | 📍 | 포인트 | 포인트 저장/호출/시퀀스 | P1 |
 | 4 | ⚡ | I/O | 디지털/아날로그 IO + 그리퍼 | P1 |
 | 5 | 📊 | 상태 | 세션 리포트 + 이벤트 로그 | P0 |
@@ -175,20 +177,20 @@
 
 ---
 
-## WorkTabBar 탭 구성 (조작 NavRail 선택 시)
+## 조작 내부 탭 구성 (조작 NavRail 선택 시)
 
 | 순서 | 레이블 | 내용 | 우선순위 |
 |------|--------|------|----------|
-| 1 | 쉬운 조작 | Home/Ready/Folded/Zero 프리셋 버튼 | P0 |
+| 1 | 기본 | Home/Ready/Folded/Zero 프리셋 버튼 + 그리퍼 | P0 |
 | 2 | 관절 | 6축 슬라이더 + 수치 입력 + 단일축 조그 | P0 |
 | 3 | TCP | Base/Tool/User 좌표계 선택 + XYZ/RPY 조그 | P0 |
-| 4 | 포인트 이동 | 목표 좌표 입력 → IK 계산 → 이동 | P0 |
-| - | 티칭 | 별도 WorkTabBar 탭으로 만들지 않음. `NavPoints` 내부 `포인트 / 시퀀스 / 함수` subview에서 처리 | P1 |
+| 4 | 좌표 | 목표 좌표 입력 → IK 계산 → 이동 | P0 |
+| - | 티칭 | 별도 조작 내부 탭으로 만들지 않음. `NavPoints` 내부 `포인트 / 시퀀스 / 함수` subview에서 처리 | P1 |
 
 ### Teaching / Points 확장 정책
 - 왼쪽 메인 Nav에는 새 `Program` 탭을 추가하지 않는다.
 - `NavPoints`가 포인트 저장, 시퀀스 실행, 후속 함수 묶음을 소유한다.
-- 조작 WorkTabBar는 `쉬운 조작 / 관절 / TCP / 포인트 이동`까지만 유지한다.
+- 조작 내부 탭은 `기본 / 관절 / TCP / 좌표`까지만 유지한다.
 - 저장 포인트 기반 실행 UI는 `ViewportHost` 보조패널의 `NavPoints` 내부 subview로 표시한다.
 
 ---
@@ -255,11 +257,12 @@ PendantV3Root (UIDocument)
 │   │   ├── NavItem[Status]
 │   │   └── NavItem[Help]
 │   ├── MainContent (flex: 1)
-│   │   ├── WorkTabBar
 │   │   ├── WorkPanel
 │   │   │   ├── RobotStage
-│   │   │   └── ControlDock
 │   │   └── ViewportHost (보조)
+│   │       └── ControlDock
+│   │           ├── MotionSubTabs (기본/관절/TCP/좌표, NavMotion 전용)
+│   │           └── ActivePanelHost
 │   └── ContextPanel
 │       ├── CoordStrip
 │       ├── StatusCard

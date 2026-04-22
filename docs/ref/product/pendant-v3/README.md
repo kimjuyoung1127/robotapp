@@ -277,7 +277,7 @@
 
 ### 포커스 / 네비게이션 잠금
 - 장식 요소는 `focusable = false`, `tabIndex = -1`을 기본으로 한다.
-- 기본 포커스 순서는 `TopStatusBar -> NavRail -> WorkTabBar -> WorkPanel -> ContextPanel -> BottomBar -> Popup`으로 고정한다.
+- 기본 포커스 순서는 `TopStatusBar -> NavRail -> 조작 내부 탭(ControlDockHost) -> WorkPanel -> ContextPanel -> BottomBar -> Popup`으로 고정한다.
 - 팝업이 열리면 포커스를 팝업 내부에 가두고, 닫힐 때 호출 버튼으로 포커스를 복원한다.
 - `Escape = 취소/닫기`, `Enter = 기본 확인`, 방향키/D-pad = 같은 레벨 이동을 기본 규칙으로 한다.
 
@@ -304,7 +304,7 @@
 - 10개 이상 반복 항목, 재정렬 가능 목록, 가상화가 필요한 목록은 `ScrollView` 대신 `ListView`를 우선 사용한다.
 - 기본 가상화 방식은 `FixedHeight`, `fixedItemHeight` 명시는 필수다. 가변 높이 콘텐츠일 때만 `DynamicHeight`를 허용한다.
 - 목록 갱신은 `RefreshItems`/`RefreshItem`을 기본으로 하고, `Rebuild`는 item template 또는 타입 변경 때만 허용한다.
-- 작업자용 주 탭(`NavRail`, `WorkTabBar`)은 재정렬을 허용하지 않는다.
+- 작업자용 주 탭(`NavRail`, 조작 내부 탭)은 재정렬을 허용하지 않는다.
 
 ### 성능 / 그래픽 자산 잠금
 - 패널/시트/팝업 애니메이션은 `translate`, `scale`, `opacity` 중심으로 구현하고 `width`, `height`, `top`, `left` 애니메이션은 금지한다.
@@ -335,7 +335,7 @@
 | NavRail | 72px (접힘 48px) |
 | ContextPanel | 320px |
 | BottomBar | 48px |
-| WorkTabBar | 40px |
+| 조작 내부 탭 | 40px, `ControlDockHost` 내부, `NavMotion` 전용 |
 | 패널 간격 | 4px (margin) |
 | 카드 패딩 | 12px |
 | 터치 최소 | 44x44px |
