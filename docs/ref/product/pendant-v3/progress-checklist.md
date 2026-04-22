@@ -75,9 +75,12 @@
 - `WorkTabBar`는 런타임에서 `ControlDockHost` 첫 줄로 이동한다.
 - `NavMotion` active 상태에서만 `기본 / 관절 / TCP / 좌표`를 표시한다.
 - `NavPoints` active 상태에서는 조작 subtab을 `display: none`으로 숨긴다.
+- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportToolbarHost -> ViewportDescriptionSection -> ViewportSelectionSection`로 잠근다.
+- 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, 보기 옵션/설명/선택 파츠 정보는 아래로 내린다.
 - `기본`은 기존 EasyMotion, `좌표`는 기존 PointMove 직접 좌표 이동 경로다.
 - `포인트` 좌측 탭은 티칭 포인트 저장/목록/시퀀스/함수 전용으로 유지한다.
 - 검증:
+  - `RunAuxPanelOrderMatrixForDebug()` -> `2/2 PASS`
   - `RunMotionTabExposureMatrixForDebug()` -> `6/6 PASS`
   - `RunActualUiClickMatrixForDebug()` -> `113/113 PASS`
   - `RunRobotLinkedButtonSimulationAuditForDebug()` -> `74/74 PASS`

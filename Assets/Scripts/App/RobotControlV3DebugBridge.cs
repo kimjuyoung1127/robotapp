@@ -3037,6 +3037,73 @@ namespace KineTutor3D.App
             return $"{viewportSummary}; {contextSummary}";
         }
 
+        public static string GetAuxPanelOrderSummaryForDebug()
+        {
+            var contract = GetInputContract();
+            var root = contract.GetComponent<UIDocument>()?.rootVisualElement;
+            if (root == null)
+            {
+                throw new MissingReferenceException("RobotControlV3 UIDocument root not found.");
+            }
+
+            var viewportScroll = root.Q<ScrollView>("ViewportPanelScroll");
+            var content = viewportScroll?.contentContainer;
+            var controlDock = root.Q<VisualElement>("ControlDockHost");
+            return $"viewportOrder=[{BuildDirectChildOrder(content)}]; controlDockOrder=[{BuildDirectChildOrder(controlDock)}]; {GetAuxLayoutSummaryForDebug()}";
+        }
+
+        public static string RunAuxPanelOrderMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "aux-panel-order",
+            };
+
+            void AddCase(string name, System.Action action, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = GetAuxPanelOrderSummaryForDebug();
+                    result.passed = result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            var runtime = GetRuntimeController();
+            AddCase("motion-tcp-controls-before-options", () =>
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavMotion", "TabTcpJog", "BottomTabTcpJog");
+            }, "viewportOrder=[ControlDockHost,CartesianArrowsOverlayHost,ViewportToolbarHost,ViewportDescriptionSection,ViewportSelectionSection]");
+
+            AddCase("motion-subtabs-first-inside-control-dock", () =>
+            {
+                SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
+            }, "controlDockOrder=[WorkTabBar,HomePanelHost,HelpPanelHost,EasyMotionPanelHost,JointJogPanelHost,TcpJogPanelHost,PointMovePanelHost,IoPanelHost]");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-aux-panel-order.json", "AuxPanelOrder");
+        }
+
         private static PendantV3InputContract GetInputContract()
         {
             var scene = SceneManager.GetActiveScene();
@@ -3156,6 +3223,24 @@ namespace KineTutor3D.App
                 scrollView.contentContainer,
                 scrollView.contentViewport?.worldBound ?? Rect.zero);
             return $"{label}Mode={scrollView.mode}; {label}Viewport={viewportWidth:F1}x{viewportHeight:F1}; {label}Content={contentWidth:F1}x{contentHeight:F1}; {label}ScrollShare={scrollShare:F2}; {label}HorizontalVisible={horizontalVisible}; {label}Clipped={clipped}";
+        }
+
+        private static string BuildDirectChildOrder(VisualElement parent)
+        {
+            if (parent == null)
+            {
+                return "missing";
+            }
+
+            var names = new List<string>();
+            using var iterator = parent.Children().GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                var child = iterator.Current;
+                names.Add(string.IsNullOrWhiteSpace(child.name) ? child.GetType().Name : child.name);
+            }
+
+            return string.Join(",", names);
         }
 
         private static int CountHorizontallyClippedDescendants(VisualElement element, Rect clipBounds)

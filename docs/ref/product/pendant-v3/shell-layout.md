@@ -56,11 +56,11 @@
 │ │ 📊 │ │                                             │  │ RY: 0.0°        │ │
 │ │상태 │ │  ┌─ ViewportHost (보조 작업 패널) ─────┐ │  │ RZ: 90.0°       │ │
 │ ├────┤ │  │ [기본] [관절] [TCP] [좌표]             │ │  └─────────────────┘ │
-│ │ ❓ │ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │                       │
-│ │도움 │ │  │ scroll                                 │ │  ┌─ StatusCard ────┐ │
-│ └────┘ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  │ 상태: 정지       │ │
-│        │  │ [선택된 조작 모드 콘텐츠]              │ │  │ 모드: 수동       │ │
-│        │  │ [복원] [미리보기] [적용]              │ │  │ Fault: 없음      │ │
+│ │ ❓ │ │  │ [선택된 조작 모드 콘텐츠]              │ │                       │
+│ │도움 │ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  ┌─ StatusCard ────┐ │
+│ └────┘ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │  │ 상태: 정지       │ │
+│        │  │ scroll                                 │ │  │ 모드: 수동       │ │
+│        │  │ [설명] [선택 파츠 정보]                │ │  │ Fault: 없음      │ │
 │        │  │                                         │ │  │ Safety: 정상     │ │
 │        │  └──────────────────────────────────────┘ │  ├─────────────────┤ │
 │        │                                             │  │ 다음 행동 추천   │ │
@@ -91,6 +91,8 @@
 - `ViewportHost`는 `보조 작업 패널`로 두고, 조작/도움말/연결 홈을 공용 스크롤 안에서 이어 붙인다.
 - `조작` active 상태에서만 내부 탭 `기본 / 관절 / TCP / 좌표`를 `ControlDockHost` 첫 줄에 표시한다.
 - `NavPoints` active 상태에서는 조작 내부 탭을 숨기고, 포인트 저장/시퀀스/함수 subview만 보인다.
+- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportToolbarHost -> ViewportDescriptionSection -> ViewportSelectionSection`로 잠근다.
+- 조작 화면에서는 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, `Base / Tool / Path / Ghost / Bound / Coll / Cam` 보기 옵션과 설명/선택 파츠 정보는 그 아래에 둔다.
 - 메인 `RobotStage`에는 로봇과 그에 직접 붙는 시각화만 보이게 둔다.
 - `Z / RX / RY / RZ`처럼 로봇을 가릴 수 있는 TCP 보조 조작 UI는 `ViewportHost` 공용 스크롤 안으로 이동시켜 겹침을 예방한다.
 - `ViewportHost`와 `ContextPanel`은 가로 스크롤을 쓰지 않는다.

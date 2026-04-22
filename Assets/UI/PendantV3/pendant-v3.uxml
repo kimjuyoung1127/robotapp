@@ -77,6 +77,16 @@
                             <ui:Label name="ViewportAuxHint" text="스크롤 본문" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
                         </ui:VisualElement>
                         <ui:ScrollView name="ViewportPanelScroll" mode="Vertical" class="rc-shared-scroll rc-viewport-scroll">
+                            <ui:VisualElement name="ControlDockHost" class="rc-control-dock-host">
+                                <ui:VisualElement name="HomePanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="HelpPanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="EasyMotionPanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="JointJogPanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="TcpJogPanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="PointMovePanelHost" class="rc-panel-host rc-hidden" />
+                                <ui:VisualElement name="IoPanelHost" class="rc-panel-host rc-hidden" />
+                            </ui:VisualElement>
+                            <ui:VisualElement name="CartesianArrowsOverlayHost" class="rc-viewport-overlay-host rc-hidden" />
                             <ui:VisualElement name="ViewportToolbarHost" class="rc-viewport-toolbar-host" />
                             <ui:VisualElement name="ViewportDescriptionSection" class="rc-accordion-card">
                                 <ui:Button name="BtnViewportDescriptionToggle" text="설명 펼치기" class="rc-accordion-toggle" />
@@ -92,16 +102,6 @@
                                     <ui:Label name="ViewportSelectionPose" text="XYZ -- / ROT --" class="rc-panel-copy rc-panel-copy--compact" />
                                     <ui:Label name="ViewportSelectionHint" text="메인 로봇을 클릭하면 선택 파츠 기준 정보를 여기서 본다." class="rc-panel-copy" />
                                 </ui:VisualElement>
-                            </ui:VisualElement>
-                            <ui:VisualElement name="CartesianArrowsOverlayHost" class="rc-viewport-overlay-host rc-hidden" />
-                            <ui:VisualElement name="ControlDockHost" class="rc-control-dock-host">
-                                <ui:VisualElement name="HomePanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="HelpPanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="EasyMotionPanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="JointJogPanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="TcpJogPanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="PointMovePanelHost" class="rc-panel-host rc-hidden" />
-                                <ui:VisualElement name="IoPanelHost" class="rc-panel-host rc-hidden" />
                             </ui:VisualElement>
                         </ui:ScrollView>
                     </ui:VisualElement>
