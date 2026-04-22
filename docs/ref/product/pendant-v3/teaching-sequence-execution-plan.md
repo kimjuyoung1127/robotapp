@@ -56,17 +56,10 @@
 
 ### Still Missing / Next Slices
 
-- Duplicate point action.
-- Duplicate-name overwrite confirmation before replacing an existing point.
-- Full point detail UI that visibly shows saved joints, TCP, move type, speed, and dwell in the panel.
-- Speed/dwell editing.
-- Delete/overwrite confirmation copy that explains the consequence in user language.
-- `선택 지점부터 실행` flow.
-- Visible loop toggle and loop status in the Point/Teaching panel.
-- Execution-time edit lock in visible UI for delete, reorder, rename, overwrite, and duplicate.
 - Function/group model inside `NavPoints`.
 - IO/gripper sequence blocks.
 - Stable point IDs, if name-based v1 becomes limiting.
+- Production IK policy for live `MoveJ` beyond saved joint targets.
 
 ---
 
@@ -369,6 +362,37 @@ lastSequenceFeedback: string
 
 Initial implementation can keep this state inside `RobotControlV3RuntimeController` or a small `TeachingSequenceRuntime` helper. If the code grows, split it into `Assets/Scripts/App/Fairino/Teaching/`.
 
+### Future Function Data
+
+`TeachingFunction`
+
+```text
+name: string
+description: string
+steps: TeachingFunctionStep[]
+created: string
+updated: string
+```
+
+`TeachingFunctionStep`
+
+```text
+kind: "PointRef" | "FunctionRef"
+refName: string
+enabled: bool
+note: string
+```
+
+First implementation should prefer `PointRef` only. `FunctionRef` is documented for future composition but can wait until simple groups are stable.
+
+Storage policy:
+
+- Functions are Unity teaching routines, not manufacturer programs.
+- Function names are unique.
+- Function steps reference existing point names in v1.
+- Missing point references show warning and block function execution until fixed.
+- Stable point IDs may replace name references later, but v1 does not depend on IDs.
+
 ---
 
 ## UX Contract
@@ -404,6 +428,53 @@ Required additions:
   - `선택 미리보기`
 - Row click selects and recalls point.
 - Point names must be unique in v1.
+
+### Function Subview
+
+The function feature stays inside `NavPoints`.
+
+It is not:
+
+- a new left-nav tab
+- a manufacturer program editor
+- Lua/script upload
+- a block programming surface
+
+First function UX:
+
+- show function list
+- create function from selected points
+- rename function
+- duplicate function
+- delete function
+- show ordered point references
+- run function once in DryRun
+- run function from selected step later if needed
+
+Beginner labels:
+
+- `함수` for the subview
+- `묶기` for create-from-selection
+- `함수 실행` for run once
+- `함수 복사`
+- `함수 이름`
+
+First useful examples:
+
+- `HomeReturn`
+- `Pick`
+- `Place`
+- `Inspect`
+
+Function detail should show:
+
+```text
+Pick
+3개 포인트
+1. APPROACH_PICK · MoveJ · medium
+2. PICK_DOWN · MoveL · slow
+3. PICK_UP · MoveL · slow
+```
 
 ### Bottom Bar
 
@@ -481,6 +552,15 @@ TCP: X 542.2 / Y 135.2 / Z 433.3 / RX 180.0 / RY 0.0 / RZ 90.0
 2. Run points repeatedly until Stop.
 3. First slice can expose loop through debug/API only if UI is not ready.
 4. UI loop toggle comes after run-once is stable.
+
+### Function
+
+1. Load a named `TeachingFunction`.
+2. Resolve enabled `PointRef` steps to current `PendantV3Points` entries.
+3. If any referenced point is missing, block execution and show the missing names.
+4. Execute the resolved point list with the same RunOnce semantics as sequence run.
+5. Loop can be added later after function RunOnce is stable.
+6. Live execution stays behind the same product confirm/live gate as point sequence execution.
 
 ---
 
@@ -784,16 +864,33 @@ Goal: prepare for commercial-style grouped teaching routines.
 
 Tasks:
 
-- Define `TeachingFunction` concept.
-- A function references ordered waypoint names or embeds a sequence.
-- Functions can be duplicated, renamed, deleted, and called later.
-- Function feature stays inside `NavPoints`.
-- First useful functions should be simple named groups like `Pick`, `Place`, `HomeReturn`.
+- Define `TeachingFunction` concept. [Done]
+- Decide v1 function step references. [Done]
+- Lock function UI placement inside `NavPoints`. [Done]
+- Lock non-goals against manufacturer Lua/program editing. [Done]
+- Define first useful functions like `Pick`, `Place`, `HomeReturn`. [Done]
+- Define first implementation slice. [Done]
 
 Done when:
 
-- Documented and scoped; no need to implement in this first slice.
+- Documented and scoped.
 - Function/group UI should be an internal `NavPoints` subview, not a new left-nav item.
+- Next implementation can begin without reopening naming, placement, or data model questions.
+
+Status:
+
+- Done on 2026-04-22.
+- `TeachingFunction` is a Unity teaching routine made of ordered point references.
+- V1 uses point-name references; stable IDs remain deferred.
+- First implementation uses `PointRef` only.
+- `FunctionRef`, IO/gripper steps, variables, conditions, and manufacturer program upload are excluded from the first function slice.
+- First implementation target:
+  - create function from selected points
+  - list functions
+  - view ordered point refs
+  - rename / duplicate / delete function
+  - run function once in DryRun
+- Self-review: the plan keeps functions inside `NavPoints`, avoids a new Program tab, and does not reopen live motion gates.
 
 ---
 
@@ -866,6 +963,6 @@ Keep these green:
 
 ## Deferred Design Questions
 
-- Function/group model: define `TeachingFunction` later after `WaypointSequence` run/step is stable.
+- Function/group model: `TeachingFunction` is defined in Phase E; implementation starts with Function v1 scaffold.
 - IO/gripper blocks: defer until point sequence run is stable.
 - Stable point IDs: consider after v1 name-based workflow proves useful.

@@ -31,7 +31,7 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected `26/26 PASS` |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected `26/26 PASS`, function/group plan locked |
 | `3C` mock e2e | done | Desktop actual click `105/105 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
@@ -223,11 +223,38 @@
 - 콘솔에는 기존 unityctl IPC pipe 로그가 남았고, 기능 matrix failure는 없다.
 - 다음 우선순위는 `Phase E - Function / Group Planning`이다.
 
+## 2026-04-22 Phase E Function / Group Planning
+
+- `TeachingFunction` 개념을 문서로 잠갔다.
+- Function은 제조사 program/Lua/script가 아니라 Unity teaching routine이다.
+- Function은 `NavPoints` 내부 `함수` subview에 둔다.
+- 새 left-nav `Program` 탭은 추가하지 않는다.
+- V1 function step은 `PointRef`만 사용한다.
+  - `FunctionRef`는 future composition으로만 문서화한다.
+  - IO/gripper steps, variables, IF/ELSE/LOOP blocks는 제외한다.
+- V1 reference는 point name 기반이다.
+  - stable point ID는 name 기반 workflow가 한계에 닿을 때 후속으로 검토한다.
+- 첫 구현 단위:
+  - selected points로 함수 생성
+  - function list
+  - ordered point refs detail
+  - rename / duplicate / delete function
+  - function RunOnce DryRun
+- 첫 예시 함수:
+  - `HomeReturn`
+  - `Pick`
+  - `Place`
+  - `Inspect`
+- 검증:
+  - `git diff --check`: pass
+  - `unityctl check --type compile`: pass
+- 다음 우선순위는 Function v1 scaffold다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
 - 최신 구현 커밋 기준:
-  - `f1cae6d Add Pendant V3 teaching loop mode`
+  - `522dcbe Add Pendant V3 run from selected`
 - 첫 확인 명령:
   - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
   - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
@@ -239,7 +266,7 @@
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Phase E - Function / Group Planning`.
+  - `Function v1 scaffold`: function store + create/list/detail + RunOnce DryRun.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:
