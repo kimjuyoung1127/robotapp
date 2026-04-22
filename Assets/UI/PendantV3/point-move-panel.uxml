@@ -98,6 +98,7 @@
             <ui:Button name="BtnPointExport" text="내보내기" class="rc-point-action-button" />
             <ui:Button name="BtnPointCleanup" text="정리" class="rc-point-action-button" />
             <ui:Button name="BtnPointPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />
+            <ui:Button name="BtnPointRunFromSelected" text="선택부터" class="rc-point-action-button rc-point-action-button--primary" />
             <ui:Button name="BtnPointApply" text="적용" class="rc-point-action-button rc-point-action-button--danger" />
         </ui:VisualElement>
     </ui:VisualElement>

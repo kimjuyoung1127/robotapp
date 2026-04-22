@@ -263,6 +263,10 @@ These decisions are no longer open questions for the first implementation slice.
 - `선택 실행` executes one selected point.
 - `선택 지점부터 실행` executes selected point through the end of the sequence.
 - If a step fails, restart should default to `선택 지점부터 실행` from the failed point.
+- Status: Done on 2026-04-22.
+- Visible UI label: `선택부터`.
+- Scope: runs once from the selected point through the end, even when loop mode is ON.
+- BottomBar remains unchanged; the action lives in the Point/Teaching panel.
 
 ### Coordinate Storage
 
@@ -750,6 +754,30 @@ Status:
 - Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
 - Self-review: loop control state lives in App/Fairino runtime, visible loop control stays in `PointMoveController`, and BottomBar was not crowded with a new loop button.
 
+### Phase D2 - Run From Selected
+
+Goal: support commercial pendant style run-from-line without exposing cursor jargon.
+
+Tasks:
+
+- Add visible `선택부터` action in the Point/Teaching panel. [Done]
+- Execute selected point through the end of `PendantV3Points`. [Done]
+- Keep explicit `선택부터` as one-shot execution, independent from loop mode. [Done]
+- Block when no selected point exists or another sequence runner is active. [Done]
+
+Done when:
+
+- User can select a saved point and run from that point to the end.
+- Missing selected point produces clear feedback.
+
+Status:
+
+- Done on 2026-04-22.
+- `RunTeachingSequenceMatrixForDebug()`: `26/26 PASS`.
+- `RunActualUiClickMatrixForDebug()`: `105/105 PASS`.
+- Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
+- Self-review: run-from-selected execution lives in App/Fairino runtime, visible action stays in `PointMoveController`, and no live motion gate was opened.
+
 ### Phase E - Function / Group Planning
 
 Goal: prepare for commercial-style grouped teaching routines.
@@ -809,7 +837,7 @@ Cases:
 
 Keep these green:
 
-- `RunActualUiClickMatrixForDebug()` -> `104/104 PASS`
+- `RunActualUiClickMatrixForDebug()` -> `105/105 PASS`
 - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
 - `RunProductLiveConfirmTokenMatrixForDebug()` -> `4/4 PASS`
 

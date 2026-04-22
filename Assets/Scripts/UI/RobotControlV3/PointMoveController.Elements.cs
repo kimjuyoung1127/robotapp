@@ -45,6 +45,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnExport = root.Q<Button>("BtnPointExport");
                 BtnCleanup = root.Q<Button>("BtnPointCleanup");
                 BtnPreview = root.Q<Button>("BtnPointPreview");
+                BtnRunFromSelected = root.Q<Button>("BtnPointRunFromSelected");
                 BtnApply = root.Q<Button>("BtnPointApply");
                 AxisLabels = new[]
                 {
@@ -111,6 +112,7 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnExport { get; }
             public Button BtnCleanup { get; }
             public Button BtnPreview { get; }
+            public Button BtnRunFromSelected { get; }
             public Button BtnApply { get; }
             public Label[] AxisLabels { get; }
             public Label[] AxisUnits { get; }

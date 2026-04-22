@@ -492,6 +492,17 @@ namespace KineTutor3D.App
             return GetRuntimeController().GetTeachingLoopSummaryForDebug();
         }
 
+        public static string RunPointMoveFromSelectedForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RunFromSelectedForDebug(pointName);
+        }
+
+        public static string RunTeachingSequenceFromPointForDebug(string pointName)
+        {
+            return GetRuntimeController().ExecuteTeachingSequenceFromPointForDebug(pointName);
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -1019,6 +1030,14 @@ namespace KineTutor3D.App
                 Select("NavMotion", "TabPointMove", "BottomTabPointMove");
                 SeedUiPointOrder();
             }, GetTeachingLoopSummaryForDebug, "loopEnabled=True");
+
+            AddCase("BtnPointRunFromSelected", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_B");
+            }, GetPointMoveControllerSummary, "[Teaching From]");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
@@ -1702,6 +1721,22 @@ namespace KineTutor3D.App
                 () => TogglePointMoveLoopForDebug(),
                 GetTeachingLoopSummaryForDebug,
                 "loopEnabled=False");
+
+            AddCase(
+                "run-from-selected-executes-tail",
+                () =>
+                {
+                    runtime.SetTeachingLoopEnabled(false);
+                    RunPointMoveFromSelectedForDebug("SEQ_B");
+                },
+                GetPointMoveControllerSummary,
+                "[Teaching From]");
+
+            AddCase(
+                "run-from-selected-missing-point",
+                () => RunTeachingSequenceFromPointForDebug("SEQ_MISSING"),
+                GetMovementStateSummaryForDebug,
+                "찾지 못했다");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

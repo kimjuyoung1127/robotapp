@@ -334,6 +334,59 @@ namespace KineTutor3D.App.Fairino
             return $"{result.Message}; {teachingSequenceRuntime.ToDebugSummary()}; {GetDebugSummary()}";
         }
 
+        public string ExecuteTeachingSequenceFromPoint(string pointName)
+        {
+            ForceInitialize();
+            teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
+            teachingSequenceRuntime.Load();
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Teaching From] 실행할 저장 포인트가 없다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var startIndex = FindWaypointIndex(sequence, pointName);
+            if (startIndex < 0)
+            {
+                PushFeedback($"[Teaching From] {pointName} 포인트를 찾지 못했다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (waypointRunner != null && waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                PushFeedback("[Teaching From] 실행 중인 반복이 있다. Stop 후 다시 실행해라.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var executed = 0;
+            for (var index = startIndex; index < sequence.waypoints.Length; index++)
+            {
+                teachingSequenceRuntime.Select(index);
+                var result = ExecuteTeachingWaypoint(sequence.waypoints[index]);
+                if (!result.IsSuccess)
+                {
+                    PushFeedback($"[Teaching From] {index + 1}/{sequence.waypoints.Length} 실패 · {result.Message}");
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+
+                executed++;
+            }
+
+            PushFeedback($"[Teaching From] {startIndex + 1}/{sequence.waypoints.Length}부터 {executed}개 포인트 실행 완료");
+            RefreshSnapshot();
+            return snapshot.LastFeedback;
+        }
+
+        public string ExecuteTeachingSequenceFromPointForDebug(string pointName)
+        {
+            return ExecuteTeachingSequenceFromPoint(pointName);
+        }
+
         public string ResolvePendingLiveCommandKindForProduct()
         {
             if (previewUsesJointPose && previewJointAnglesDeg != null)
@@ -1447,6 +1500,25 @@ namespace KineTutor3D.App.Fairino
             return string.Equals(point.moveType, "MoveL", StringComparison.OrdinalIgnoreCase)
                 ? ApplyTcpPose(point.tcpMm, $"Teaching {point.name} MoveL")
                 : ApplyJointAngles(point.jointsDeg, $"Teaching {point.name} MoveJ");
+        }
+
+        private static int FindWaypointIndex(WaypointSequence sequence, string pointName)
+        {
+            if (sequence?.waypoints == null || string.IsNullOrWhiteSpace(pointName))
+            {
+                return -1;
+            }
+
+            for (var index = 0; index < sequence.waypoints.Length; index++)
+            {
+                var waypoint = sequence.waypoints[index];
+                if (waypoint != null && string.Equals(waypoint.name, pointName.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         private void BindWaypointRunnerEvents()

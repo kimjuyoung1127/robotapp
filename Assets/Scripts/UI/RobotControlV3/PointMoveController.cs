@@ -190,6 +190,13 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string RunFromSelectedForDebug(string pointName)
+        {
+            RecallPoint(pointName);
+            RunFromSelectedPoint();
+            return GetDebugSummary();
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -317,6 +324,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnExport, ExportPoints);
             RegisterClick(panel.BtnCleanup, CleanupPoints);
             RegisterClick(panel.BtnPreview, PreviewMotionCandidate);
+            RegisterClick(panel.BtnRunFromSelected, RunFromSelectedPoint);
             RegisterClick(panel.BtnApply, ApplyMotionCandidate);
             panel.DwellInput?.RegisterValueChangedCallback(evt => HandleDwellChanged(evt.newValue));
             for (var index = 0; index < panel.ValueInputs.Length; index++)
@@ -384,6 +392,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var canEdit = !IsSequenceEditLocked();
             panel.BtnRestore.SetEnabled(canPreview);
             panel.BtnPreview.SetEnabled(canPreview);
+            panel.BtnRunFromSelected.SetEnabled(canApply && recalledPoint != null && !IsSequenceEditLocked());
             panel.BtnApply.SetEnabled(canApply);
             panel.BtnSave.SetEnabled(canEdit);
             panel.BtnDelete.SetEnabled(canEdit && (recalledPoint != null || HasNamedPoint(panel.PointNameInput?.value)));
@@ -421,6 +430,38 @@ namespace KineTutor3D.UI.RobotControlV3
                 ? "[Loop] 반복 실행 ON · Run을 누르면 저장 포인트를 반복한다."
                 : "[Loop] 반복 실행 OFF · Run은 한 번만 실행한다.");
             ApplyAll();
+        }
+
+        private void RunFromSelectedPoint()
+        {
+            if (!IsAnyPanelVisible())
+            {
+                SetFeedback("포인트 이동 패널이 열려 있을 때만 선택부터 실행할 수 있다.");
+                return;
+            }
+
+            if (recalledPoint == null)
+            {
+                SetFeedback("선택부터 실행할 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 선택부터 실행을 새로 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            if (!CanApply())
+            {
+                SetFeedback("연결 상태가 준비되지 않아 선택부터 실행할 수 없다.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.ExecuteTeachingSequenceFromPoint(recalledPoint.name)
+                : "runtime missing";
+            SetFeedback(result);
         }
 
         private void ApplyLoopState(PanelElements panel)
