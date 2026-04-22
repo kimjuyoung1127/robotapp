@@ -22,3 +22,4 @@ RobotControl V3의 포인트 저장, 시퀀스 실행, manual readback teaching 
 - `TeachingSequenceState.cs` — V3 teaching sequence 상태 요약 DTO.
 - `TeachingSequenceRuntime.cs` — `PendantV3Points` 선택/미리보기/단일 실행 상태 런타임.
 - `TeachingFunctionStore.cs` — Unity teaching function 저장/로드/요약 경계. 제조사 program/Lua 실행과 분리한다.
+- `TeachingPathRecorder.cs` — 현재 readback/current pose를 연속 샘플링해 Unity 재생용 웨이포인트 시퀀스로 저장한다.

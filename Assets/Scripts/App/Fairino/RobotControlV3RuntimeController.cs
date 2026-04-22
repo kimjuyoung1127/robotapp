@@ -49,6 +49,8 @@ namespace KineTutor3D.App.Fairino
         private TeachingPointStoreAdapter teachingPointStoreAdapter;
         private TeachingSequenceRuntime teachingSequenceRuntime;
         private TeachingFunctionStore teachingFunctionStore;
+        private TeachingPathRecorder teachingPathRecorder;
+        private WaypointSequence recordedPathSequence;
         private RobotKinematicsFacade previewKinematicsFacade;
         private FR5EndEffectorAttachment endEffectorAttachment;
         private Camera stageCamera;
@@ -58,6 +60,7 @@ namespace KineTutor3D.App.Fairino
         private FairinoRobotState currentState = FairinoRobotState.Zero();
         private double[] previewJointAnglesDeg;
         private double[] previewTcpPose;
+        private double[] previewTcpVisualJointAnglesDeg;
         private bool previewUsesJointPose;
         private bool showBaseFrame = true;
         private bool showToolFrame = true;
@@ -79,6 +82,7 @@ namespace KineTutor3D.App.Fairino
         private DateTime pendingLiveApprovalUntilUtc = DateTime.MinValue;
         private string pendingLiveApprovalToken = string.Empty;
         private bool pendingLiveApprovalRequired;
+        private const string RecordedPathSequenceName = "PendantV3RecordedPath";
 
         internal event Action<RobotControlV3RuntimeSnapshot> SnapshotChanged;
 
@@ -106,6 +110,10 @@ namespace KineTutor3D.App.Fairino
         private void Update()
         {
             connectionService?.Tick(Time.deltaTime);
+            if (teachingPathRecorder != null && teachingPathRecorder.Capture(currentState, Time.timeAsDouble))
+            {
+                RefreshSnapshot();
+            }
         }
 
         public bool ForceInitialize()
@@ -116,6 +124,80 @@ namespace KineTutor3D.App.Fairino
         public string GetDebugSummary()
         {
             return $"initialized={initialized}; connected={connectionService?.Client.IsConnected ?? false}; enabled={connectionService?.Client.IsEnabled ?? false}; dryRun={snapshot.DryRunEnabled}; pending={snapshot.PendingCommandSummary}; selected={lastSelectedPartName}; ghost={snapshot.HasGhostPreview}; path={snapshot.HasPredictedPath}; grid={(stageFloorGrid != null)}; gizmo={(partSelectionGizmo != null)}; initError={lastInitializationError}";
+        }
+
+        public string StartTeachingPathRecording()
+        {
+            if (!EnsureReadyForCommand("경로 기록 시작"))
+            {
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            teachingPathRecorder ??= new TeachingPathRecorder();
+            teachingPathRecorder.Start(Time.timeAsDouble);
+            teachingPathRecorder.Capture(currentState, Time.timeAsDouble, force: true);
+            recordedPathSequence = null;
+            PushFeedback("[Path Record] 기록 시작 · 현재 자세부터 샘플링");
+            RefreshSnapshot();
+            return GetTeachingPathRecordingSummaryForDebug();
+        }
+
+        public string StopTeachingPathRecording()
+        {
+            if (!EnsureReadyForCommand("경로 기록 중지"))
+            {
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            teachingPathRecorder ??= new TeachingPathRecorder();
+            teachingPathRecorder.Capture(currentState, Time.timeAsDouble, force: true);
+            teachingPathRecorder.Stop();
+            recordedPathSequence = teachingPathRecorder.BuildSequence(RecordedPathSequenceName);
+            var count = recordedPathSequence.waypoints?.Length ?? 0;
+            if (count >= 2)
+            {
+                WaypointStore.Save(recordedPathSequence);
+                PushFeedback($"[Path Record] 기록 저장 · {count}개 샘플 → {RecordedPathSequenceName}");
+            }
+            else
+            {
+                PushFeedback("[Path Record] 저장할 움직임이 부족하다. 최소 2개 자세가 필요함.");
+            }
+
+            RefreshSnapshot();
+            return GetTeachingPathRecordingSummaryForDebug();
+        }
+
+        public string CaptureTeachingPathFrameForDebug()
+        {
+            if (!EnsureReadyForCommand("경로 샘플 캡처"))
+            {
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            teachingPathRecorder ??= new TeachingPathRecorder();
+            teachingPathRecorder.Capture(currentState, Time.timeAsDouble, force: true);
+            RefreshSnapshot();
+            return GetTeachingPathRecordingSummaryForDebug();
+        }
+
+        public string PlayRecordedTeachingPathOnce()
+        {
+            return PlayRecordedTeachingPath(loop: false);
+        }
+
+        public string PlayRecordedTeachingPathLoop()
+        {
+            return PlayRecordedTeachingPath(loop: true);
+        }
+
+        public string GetTeachingPathRecordingSummaryForDebug()
+        {
+            var recorder = teachingPathRecorder?.ToDebugSummary() ?? "recording=False; samples=0";
+            var saved = ResolveRecordedPathSequence();
+            var savedCount = saved?.waypoints?.Length ?? 0;
+            var runnerState = waypointRunner != null ? waypointRunner.State.ToString() : "missing";
+            return $"{recorder}; saved={savedCount}; runner={runnerState}; sequence={RecordedPathSequenceName}; feedback={snapshot.LastFeedback}";
         }
 
         public string GetGripperVisualSummaryForDebug()
@@ -899,6 +981,7 @@ namespace KineTutor3D.App.Fairino
             var result = connectionService.Disconnect();
             previewJointAnglesDeg = null;
             previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = false;
             ApplyVisualState();
             PushFeedback($"[Disconnect] {result.Message}");
@@ -923,6 +1006,7 @@ namespace KineTutor3D.App.Fairino
                 templateDefinition.PosePresetProvider?.UpdateCurrent(result.Value.JointPosDeg);
                 previewJointAnglesDeg = null;
                 previewTcpPose = null;
+                previewTcpVisualJointAnglesDeg = null;
                 previewUsesJointPose = false;
                 requestStageRefocus = true;
                 ApplyVisualState();
@@ -1005,6 +1089,8 @@ namespace KineTutor3D.App.Fairino
 
             redoJointHistory.Push(CopyJointArray(previewJointAnglesDeg ?? currentState.JointPosDeg));
             previewJointAnglesDeg = undoJointHistory.Pop();
+            previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             ApplyVisualState();
             PushFeedback("[Undo] 이전 관절 프리뷰 복원");
@@ -1022,6 +1108,8 @@ namespace KineTutor3D.App.Fairino
 
             undoJointHistory.Push(CopyJointArray(previewJointAnglesDeg ?? currentState.JointPosDeg));
             previewJointAnglesDeg = redoJointHistory.Pop();
+            previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             ApplyVisualState();
             PushFeedback("[Redo] 다음 관절 프리뷰 복원");
@@ -1067,6 +1155,8 @@ namespace KineTutor3D.App.Fairino
 
             var presetValue = preset.Value;
             previewJointAnglesDeg = presetValue.JointAnglesDeg;
+            previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             RecordUndo(previewJointAnglesDeg);
             requestStageRefocus = true;
@@ -1103,6 +1193,8 @@ namespace KineTutor3D.App.Fairino
             }
 
             previewJointAnglesDeg = CopyJointArray(jointAnglesDeg);
+            previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             requestStageRefocus = true;
             ApplyVisualState();
@@ -1118,6 +1210,8 @@ namespace KineTutor3D.App.Fairino
             }
 
             previewJointAnglesDeg = CopyJointArray(currentState.JointPosDeg);
+            previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             requestStageRefocus = true;
             ApplyVisualState();
@@ -1146,6 +1240,8 @@ namespace KineTutor3D.App.Fairino
                 currentState = new FairinoRobotState(jointAnglesDeg, ComputeTcpPoseFromJoints(jointAnglesDeg), isRobotEnabled: connectionService.Client.IsEnabled);
                 templateDefinition.PosePresetProvider?.UpdateCurrent(jointAnglesDeg);
                 previewJointAnglesDeg = null;
+                previewTcpPose = null;
+                previewTcpVisualJointAnglesDeg = null;
                 previewUsesJointPose = false;
                 requestStageRefocus = true;
                 ApplyVisualState();
@@ -1180,6 +1276,8 @@ namespace KineTutor3D.App.Fairino
                 currentState = new FairinoRobotState(jointAnglesDeg, ComputeTcpPoseFromJoints(jointAnglesDeg), isRobotEnabled: connectionService.Client.IsEnabled);
                 templateDefinition.PosePresetProvider?.UpdateCurrent(jointAnglesDeg);
                 previewJointAnglesDeg = null;
+                previewTcpPose = null;
+                previewTcpVisualJointAnglesDeg = null;
                 previewUsesJointPose = false;
                 requestStageRefocus = true;
                 ApplyVisualState();
@@ -1202,6 +1300,9 @@ namespace KineTutor3D.App.Fairino
             }
 
             previewTcpPose = CopyPoseArray(tcpPose);
+            previewTcpVisualJointAnglesDeg = TrySolvePointMoveJoints(tcpPose, out var jointTarget).IsSuccess
+                ? jointTarget
+                : null;
             previewUsesJointPose = false;
             requestStageRefocus = true;
             ApplyVisualState();
@@ -1226,11 +1327,29 @@ namespace KineTutor3D.App.Fairino
 
             if (snapshot.DryRunEnabled)
             {
+                RecordUndo(currentState.JointPosDeg);
+                var solveResult = TrySolvePointMoveJoints(tcpPose, out var visualJointTarget);
+                if (solveResult.IsSuccess)
+                {
+                    currentState = new FairinoRobotState(visualJointTarget, CopyPoseArray(tcpPose), isRobotEnabled: connectionService.Client.IsEnabled);
+                    templateDefinition.PosePresetProvider?.UpdateCurrent(visualJointTarget);
+                    previewJointAnglesDeg = null;
+                    previewTcpPose = null;
+                    previewTcpVisualJointAnglesDeg = null;
+                    previewUsesJointPose = false;
+                    requestStageRefocus = true;
+                    ApplyVisualState();
+                    PushFeedback($"[DryRun Apply] {reason} · visual IK");
+                    RefreshSnapshot();
+                    return FairinoResult.Ok("DryRun TCP 적용");
+                }
+
                 previewTcpPose = CopyPoseArray(tcpPose);
+                previewTcpVisualJointAnglesDeg = null;
                 previewUsesJointPose = false;
                 requestStageRefocus = true;
                 ApplyVisualState();
-                PushFeedback($"[DryRun Apply] {reason}");
+                PushFeedback($"[DryRun Apply] {reason} · 시각 IK 실패, 목표 마커만 표시");
                 RefreshSnapshot();
                 return FairinoResult.Ok("DryRun TCP 적용");
             }
@@ -1259,6 +1378,7 @@ namespace KineTutor3D.App.Fairino
             if (result.IsSuccess)
             {
                 previewTcpPose = CopyPoseArray(tcpPose);
+                previewTcpVisualJointAnglesDeg = null;
                 previewUsesJointPose = false;
                 requestStageRefocus = true;
                 ApplyVisualState();
@@ -1290,6 +1410,7 @@ namespace KineTutor3D.App.Fairino
 
             previewJointAnglesDeg = jointTarget;
             previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = true;
             requestStageRefocus = true;
             ApplyVisualState();
@@ -1568,6 +1689,59 @@ namespace KineTutor3D.App.Fairino
             PushFeedback($"[Teaching Run] {teachingSequenceRuntime.Count}개 포인트 실행 완료");
             RefreshSnapshot();
             return true;
+        }
+
+        private string PlayRecordedTeachingPath(bool loop)
+        {
+            if (!EnsureReadyForCommand(loop ? "기록 루프 재생" : "기록 재생"))
+            {
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            var sequence = ResolveRecordedPathSequence();
+            if (sequence?.waypoints == null || sequence.waypoints.Length < 2)
+            {
+                PushFeedback("[Path Replay] 재생할 기록 경로가 없다. 기록 시작 → 이동 → 기록 중지 순서로 먼저 저장해라.");
+                RefreshSnapshot();
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            if (waypointRunner == null)
+            {
+                EnsureRuntimeHelpers();
+            }
+
+            if (waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                PushFeedback("[Path Replay] 이미 재생 중이다. Stop 후 다시 실행해라.");
+                RefreshSnapshot();
+                return GetTeachingPathRecordingSummaryForDebug();
+            }
+
+            if (loop)
+            {
+                waypointRunner.PlayLoop(sequence, dryRun: true);
+                PushFeedback($"[Path Replay] 기록 경로 루프 시작 · {sequence.waypoints.Length}개 샘플");
+            }
+            else
+            {
+                waypointRunner.PlayOnce(sequence, dryRun: true);
+                PushFeedback($"[Path Replay] 기록 경로 1회 재생 · {sequence.waypoints.Length}개 샘플");
+            }
+
+            RefreshSnapshot();
+            return GetTeachingPathRecordingSummaryForDebug();
+        }
+
+        private WaypointSequence ResolveRecordedPathSequence()
+        {
+            if (recordedPathSequence?.waypoints != null && recordedPathSequence.waypoints.Length > 0)
+            {
+                return recordedPathSequence;
+            }
+
+            recordedPathSequence = WaypointStore.Load(RecordedPathSequenceName);
+            return recordedPathSequence;
         }
 
         private bool PreviewTeachingStep(int delta)
@@ -1891,6 +2065,7 @@ namespace KineTutor3D.App.Fairino
             templateDefinition.PosePresetProvider?.UpdateCurrent(jointAnglesDeg);
             previewJointAnglesDeg = null;
             previewTcpPose = null;
+            previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = false;
             requestStageRefocus = true;
             ApplyVisualState();
@@ -2301,6 +2476,12 @@ namespace KineTutor3D.App.Fairino
                 ghostRobotVisual?.SetVisible(showGhost);
                 predictedPathRenderer?.RenderPath(BuildJointPreviewPath(currentState.JointPosDeg, previewJointAnglesDeg));
             }
+            else if (previewTcpVisualJointAnglesDeg != null && previewTcpVisualJointAnglesDeg.Length >= templateDefinition.JointCount && previewTcpPose != null)
+            {
+                ghostRobotVisual?.ApplyJointAngles(previewTcpVisualJointAnglesDeg);
+                ghostRobotVisual?.SetVisible(showGhost);
+                predictedPathRenderer?.RenderPath(BuildJointPreviewPath(currentState.JointPosDeg, previewTcpVisualJointAnglesDeg));
+            }
             else if (previewTcpPose != null && !previewUsesJointPose)
             {
                 predictedPathRenderer?.RenderPath(BuildCartesianPreviewPath(currentState.TcpPose, previewTcpPose));
@@ -2333,6 +2514,8 @@ namespace KineTutor3D.App.Fairino
         {
             var jointValues = previewUsesJointPose && previewJointAnglesDeg != null
                 ? CopyJointArray(previewJointAnglesDeg)
+                : previewTcpVisualJointAnglesDeg != null && previewTcpPose != null
+                    ? CopyJointArray(previewTcpVisualJointAnglesDeg)
                 : CopyJointArray(currentState.JointPosDeg);
             var tcpValues = ComputeDisplayedTcpPose();
             snapshot.HasPendingPreview = previewUsesJointPose || previewTcpPose != null;

@@ -354,6 +354,36 @@ namespace KineTutor3D.App
             return pointMove.ApplyForDebug();
         }
 
+        public static string StartTeachingPathRecordingForDebug()
+        {
+            return GetRuntimeController().StartTeachingPathRecording();
+        }
+
+        public static string StopTeachingPathRecordingForDebug()
+        {
+            return GetRuntimeController().StopTeachingPathRecording();
+        }
+
+        public static string CaptureTeachingPathFrameForDebug()
+        {
+            return GetRuntimeController().CaptureTeachingPathFrameForDebug();
+        }
+
+        public static string PlayRecordedTeachingPathOnceForDebug()
+        {
+            return GetRuntimeController().PlayRecordedTeachingPathOnce();
+        }
+
+        public static string PlayRecordedTeachingPathLoopForDebug()
+        {
+            return GetRuntimeController().PlayRecordedTeachingPathLoop();
+        }
+
+        public static string GetTeachingPathRecordingSummaryForDebug()
+        {
+            return GetRuntimeController().GetTeachingPathRecordingSummaryForDebug();
+        }
+
         public static string SetGripperOpenForDebug(bool open)
         {
             var result = GetRuntimeController().SetGripperOpen(open);
@@ -1737,6 +1767,27 @@ namespace KineTutor3D.App
                 ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
             }, "BtnPointLoop", GetTeachingLoopSummaryForDebug, "loopEnabled=True");
 
+            AddClickCase("path-record-start-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPathRecordStart", GetTeachingPathRecordingSummaryForDebug, "recording=True");
+
+            AddClickCase("path-record-stop-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+                StartTeachingPathRecordingForDebug();
+                GetRuntimeController().ApplyTcpPose(BuildOffsetTcpTarget(12.0, 0.0, 0.0), "actual-click path sample");
+                CaptureTeachingPathFrameForDebug();
+            }, "BtnPathRecordStop", GetTeachingPathRecordingSummaryForDebug, "saved=3");
+
+            AddClickCase("path-replay-loop-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPathReplayLoop", GetTeachingPathRecordingSummaryForDebug, "runner=Running");
+
             AddClickCase("function-candidate-create-click", () =>
             {
                 Seed();
@@ -1746,6 +1797,56 @@ namespace KineTutor3D.App
             }, "BtnFunctionCreate", GetTeachingFunctionUiSummaryForDebug, $"function={functionName}");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-subview-actual-click.json", "TeachingSubviewActualClick");
+        }
+
+        public static string RunTcpJogVisualMotionMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            EnsureRuntimeReady(runtime);
+            if (!runtime.CurrentSnapshot.DryRunEnabled)
+            {
+                runtime.ToggleDryRun();
+            }
+
+            var before = string.Join(",", runtime.CurrentSnapshot.JointValues);
+            var previewTarget = BuildOffsetTcpTarget(10.0, 0.0, 0.0);
+            runtime.PreviewTcpPose(previewTarget, "tcp visual matrix preview");
+            var preview = GetMovementStateSummaryForDebug();
+            runtime.ApplyTcpPose(previewTarget, "tcp visual matrix apply");
+            var after = GetMovementStateSummaryForDebug();
+            var afterJoints = string.Join(",", runtime.CurrentSnapshot.JointValues);
+            var pass = preview.Contains("pending=대기 명령: MoveL")
+                && preview.Contains("ghost=True")
+                && preview.Contains("path=True")
+                && after.Contains("[DryRun Apply]")
+                && !string.Equals(before, afterJoints, System.StringComparison.Ordinal);
+            return $"TcpJogVisualMotionMatrix pass={pass}; beforeJ=[{before}]; preview=[{preview}]; after=[{after}]";
+        }
+
+        public static string RunTeachingPathRecordingLoopMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            EnsureRuntimeReady(runtime);
+            if (!runtime.CurrentSnapshot.DryRunEnabled)
+            {
+                runtime.ToggleDryRun();
+            }
+
+            var start = runtime.StartTeachingPathRecording();
+            runtime.ApplyTcpPose(BuildOffsetTcpTarget(10.0, 0.0, 0.0), "record matrix sample A");
+            var sampleA = runtime.CaptureTeachingPathFrameForDebug();
+            runtime.ApplyTcpPose(BuildOffsetTcpTarget(10.0, 10.0, 0.0), "record matrix sample B");
+            var sampleB = runtime.CaptureTeachingPathFrameForDebug();
+            var stop = runtime.StopTeachingPathRecording();
+            var loop = runtime.PlayRecordedTeachingPathLoop();
+            var movement = GetMovementStateSummaryForDebug();
+            var pass = start.Contains("recording=True")
+                && sampleA.Contains("samples=2")
+                && sampleB.Contains("samples=3")
+                && stop.Contains("saved=4")
+                && loop.Contains("runner=Running");
+            runtime.StopMotion();
+            return $"TeachingPathRecordingLoopMatrix pass={pass}; start=[{start}]; sampleA=[{sampleA}]; sampleB=[{sampleB}]; stop=[{stop}]; loop=[{loop}]; movement=[{movement}]";
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()
@@ -3046,11 +3147,52 @@ namespace KineTutor3D.App
             };
         }
 
+        private static double[] BuildOffsetTcpTarget(double dxMm, double dyMm, double dzMm)
+        {
+            var snapshot = GetRuntimeController().CurrentSnapshot;
+            var target = new double[6];
+            for (var index = 0; index < target.Length; index++)
+            {
+                target[index] = ParseSnapshotValue(snapshot.TcpValues, index);
+            }
+
+            target[0] += dxMm;
+            target[1] += dyMm;
+            target[2] += dzMm;
+            return target;
+        }
+
+        private static double ParseSnapshotValue(string[] values, int index)
+        {
+            if (values == null || index < 0 || index >= values.Length)
+            {
+                return 0.0;
+            }
+
+            return double.TryParse(values[index], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsed)
+                ? parsed
+                : 0.0;
+        }
+
+        private static void SeedRecordedPath()
+        {
+            var runtime = GetRuntimeController();
+            EnsureRuntimeReady(runtime);
+            runtime.StartTeachingPathRecording();
+            runtime.ApplyTcpPose(BuildOffsetTcpTarget(10.0, 0.0, 0.0), "seed recorded path A");
+            runtime.CaptureTeachingPathFrameForDebug();
+            runtime.ApplyTcpPose(BuildOffsetTcpTarget(10.0, 10.0, 0.0), "seed recorded path B");
+            runtime.CaptureTeachingPathFrameForDebug();
+            runtime.StopTeachingPathRecording();
+        }
+
         private static void EnsureRuntimeReady(RobotControlV3RuntimeController runtime)
         {
+            runtime.StopMotion();
             runtime.Disconnect();
             runtime.ConnectDefault();
             runtime.EnableServo();
+            runtime.SetTeachingLoopEnabled(false);
             if (!runtime.CurrentSnapshot.DryRunEnabled)
             {
                 runtime.ToggleDryRun();

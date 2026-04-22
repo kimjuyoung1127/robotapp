@@ -412,6 +412,10 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnStepBack, StepTeachingBackward);
             RegisterClick(panel.BtnStepForward, StepTeachingForward);
             RegisterClick(panel.BtnStopSequence, StopTeachingSequence);
+            RegisterClick(panel.BtnPathRecordStart, StartPathRecording);
+            RegisterClick(panel.BtnPathRecordStop, StopPathRecording);
+            RegisterClick(panel.BtnPathReplayOnce, PlayRecordedPathOnce);
+            RegisterClick(panel.BtnPathReplayLoop, PlayRecordedPathLoop);
             RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
             RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
             RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
@@ -491,6 +495,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 : "이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인";
             panel.PreviewSummary.text = BuildDeltaSummary(panel.PointNameInput.value);
             panel.StoreSummary.text = BuildStoreSummary();
+            if (panel.PathRecordSummary != null)
+            {
+                panel.PathRecordSummary.text = FormatPathRecordSummary(runtimeController?.GetTeachingPathRecordingSummaryForDebug());
+            }
+
             ApplyLoopState(panel);
             RebuildPointList(panel);
             ApplyPointDetail(panel);
@@ -516,6 +525,10 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnStepBack.SetEnabled(canApply && HasAnyPoint());
             panel.BtnStepForward.SetEnabled(canApply && HasAnyPoint());
             panel.BtnStopSequence.SetEnabled(runtimeController != null);
+            panel.BtnPathRecordStart?.SetEnabled(canApply && !IsSequenceEditLocked());
+            panel.BtnPathRecordStop?.SetEnabled(runtimeController != null);
+            panel.BtnPathReplayOnce?.SetEnabled(canApply && !IsSequenceEditLocked());
+            panel.BtnPathReplayLoop?.SetEnabled(canApply && !IsSequenceEditLocked());
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
@@ -612,6 +625,60 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var result = runtimeController.StopMotion();
             SetFeedback(result.Message);
+        }
+
+        private void StartPathRecording()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 새 경로 기록을 시작하지 않는다. Stop 후 다시 해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.StartTeachingPathRecording()
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void StopPathRecording()
+        {
+            var result = runtimeController != null
+                ? runtimeController.StopTeachingPathRecording()
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void PlayRecordedPathOnce()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 기록 재생을 새로 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.PlayRecordedTeachingPathOnce()
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void PlayRecordedPathLoop()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 기록 루프를 새로 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.PlayRecordedTeachingPathLoop()
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
         }
 
         private void CreateFunctionFromSequence()
@@ -886,6 +953,23 @@ namespace KineTutor3D.UI.RobotControlV3
             return missingCount == "0" || string.IsNullOrWhiteSpace(missingCount)
                 ? $"{name} · {steps}개 포인트 · 누락 없음"
                 : $"{name} · {steps}개 포인트 · 누락 {missingCount}: {missing}";
+        }
+
+        private static string FormatPathRecordSummary(string rawSummary)
+        {
+            if (string.IsNullOrWhiteSpace(rawSummary))
+            {
+                return "기록: 대기 / 샘플 0개";
+            }
+
+            var recording = ExtractDebugValue(rawSummary, "recording=");
+            var samples = ExtractDebugValue(rawSummary, "samples=");
+            var saved = ExtractDebugValue(rawSummary, "saved=");
+            var runner = ExtractDebugValue(rawSummary, "runner=");
+            var state = string.Equals(recording, "True", System.StringComparison.OrdinalIgnoreCase)
+                ? "기록 중"
+                : "대기";
+            return $"기록: {state} / 샘플 {samples}개 / 저장 {saved}개 / 재생 {runner}";
         }
 
         private static string ExtractDebugValue(string raw, string key)
