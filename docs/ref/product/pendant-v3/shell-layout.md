@@ -89,6 +89,8 @@
 - MainContent 내에서 `WorkPanel`이 메인 로봇 표시 패널을 맡는다.
 - `WorkPanel` 본체는 `RobotStage` 단일 영역으로 잠근다.
 - `ViewportHost`는 `보조 작업 패널`로 두고, 조작/도움말/연결 홈을 공용 스크롤 안에서 이어 붙인다.
+- Desktop 폭 우선순위는 `WorkPanel(메인) > ViewportHost(보조) > ContextPanel(컨텐츠)`로 잠근다.
+- 기본 기준은 `ViewportHost` 최소 360px, `ContextPanel` 320px이다.
 - `조작` active 상태에서만 내부 탭 `기본 / 관절 / TCP / 좌표`를 `ControlDockHost` 첫 줄에 표시한다.
 - `NavPoints` active 상태에서는 조작 내부 탭을 숨기고, 포인트 저장/시퀀스/함수 subview만 보인다.
 - 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportToolbarHost -> ViewportDescriptionSection -> ViewportSelectionSection`로 잠근다.

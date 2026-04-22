@@ -5,6 +5,7 @@
 - `NavMotion`의 조작 모드를 상단 독립 WorkTabBar가 아니라 `ViewportHost > ControlDockHost` 내부 subtab으로 이동했다.
 - 사용자 노출 라벨은 `기본 / 관절 / TCP / 좌표`로 단순화했다.
 - 보조패널 표시 순서는 `조작 subtab/선택 모드 콘텐츠 -> TCP 3D 방향조작 -> 보기 옵션(Base/Tool/Path/Ghost/Bound/Coll/Cam) -> 설명/선택 파츠 정보`로 잠갔다.
+- Desktop 폭 우선순위는 `메인패널 > 보조패널 > 컨텐츠패널`로 잠갔다.
 - `NavPoints`에서는 조작 subtab을 숨기고, 티칭 전용 `포인트 / 시퀀스 / 함수` subview만 보이게 잠갔다.
 - `기본`은 EasyMotion, `좌표`는 기존 직접 좌표 이동(PointMove) 경로다.
 
@@ -12,6 +13,7 @@
 
 - `unityctl check --type compile`: PASS
 - `RunAuxPanelOrderMatrixForDebug()`: `2/2 PASS`
+- `GetPanelWidthHierarchySummaryForDebug()`: `main=489.3; aux=360.0; context=320.0; hierarchy=main>aux>context`
 - `RunMotionTabExposureMatrixForDebug()`: `6/6 PASS`
 - `RunPointMoveSurfaceSeparationMatrixForDebug()`: `2/2 PASS`
 - `RunTeachingSubviewActualClickMatrixForDebug()`: `13/13 PASS`

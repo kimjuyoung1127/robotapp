@@ -175,6 +175,31 @@ namespace KineTutor3D.App
                 : $"instanceId={shell.GetInstanceID()}; {shell.GetDebugSummary()}";
         }
 
+        public static string GetPanelWidthHierarchySummaryForDebug()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || scene.path != "Assets/Scenes/RobotControlV3.unity")
+            {
+                throw new System.InvalidOperationException($"RobotControlV3 scene must be active. Current: {scene.path}");
+            }
+
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var root = document?.rootVisualElement;
+            if (root == null)
+            {
+                return "UIDocument missing";
+            }
+
+            var workPanel = root.Q<VisualElement>("WorkPanel");
+            var viewportHost = root.Q<VisualElement>("ViewportHost");
+            var contextPanel = root.Q<VisualElement>("ContextPanel");
+            var main = workPanel?.worldBound.width ?? 0f;
+            var aux = viewportHost?.worldBound.width ?? 0f;
+            var context = contextPanel?.worldBound.width ?? 0f;
+            var valid = main > aux && aux > context;
+            return $"main={main:0.0}; aux={aux:0.0}; context={context:0.0}; hierarchy={(valid ? "main>aux>context" : "invalid")}";
+        }
+
         public static string GetSceneCoordinatorSummary()
         {
             var scene = SceneManager.GetActiveScene();

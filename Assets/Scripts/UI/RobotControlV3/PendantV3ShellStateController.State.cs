@@ -163,7 +163,10 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            var desktopSplitRatio = Mathf.Min(state.DesktopSplitRatio, PendantV3LocalState.DefaultSplitRatio);
+            var desktopSplitRatio = Mathf.Clamp(
+                state.DesktopSplitRatio,
+                PendantV3LocalState.DefaultSplitRatio,
+                PendantV3LocalState.MaxSplitRatio);
             workPanel.style.flexGrow = 1f - desktopSplitRatio;
             viewportHost.style.flexGrow = desktopSplitRatio;
         }
