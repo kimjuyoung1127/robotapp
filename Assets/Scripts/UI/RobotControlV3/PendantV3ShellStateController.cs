@@ -27,12 +27,14 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private VisualElement root;
         private VisualElement mainSplit;
+        private VisualElement workTabBar;
         private VisualElement workPanel;
         private VisualElement viewportHost;
         private ScrollView viewportPanelScroll;
         private Label workPanelDebugBadge;
         private VisualElement splitHandle;
         private VisualElement bottomSheet;
+        private VisualElement bottomTabBar;
         private VisualElement bottomSheetContent;
         private Label speedLabel;
         private Label coordSystemLabel;
@@ -103,7 +105,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var normalized = PendantV3LocalState.Normalize(state);
             var workPanelHighlighted = workPanel?.ClassListContains("rc-work-panel--debug-highlight") ?? false;
             var workPanelBadgeVisible = !(workPanelDebugBadge?.ClassListContains("rc-hidden") ?? true);
-            return $"{normalized.ToDebugSummary()}; workPanelHighlight={workPanelHighlighted}; workPanelBadgeVisible={workPanelBadgeVisible}";
+            return $"{normalized.ToDebugSummary()}; {BuildTabVisibilitySummary()}; workPanelHighlight={workPanelHighlighted}; workPanelBadgeVisible={workPanelBadgeVisible}";
         }
 
         public PendantV3LocalState GetStateSnapshot()
@@ -135,6 +137,7 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(bottomTabButtons, "BottomTabStatus");
             AddButton(bottomTabButtons, "BottomTabHelp");
 
+            workTabBar = root.Q<VisualElement>("WorkTabBar");
             mainSplit = root.Q<VisualElement>("MainSplit");
             workPanel = root.Q<VisualElement>("WorkPanel");
             viewportHost = root.Q<VisualElement>("ViewportHost");
@@ -143,6 +146,7 @@ namespace KineTutor3D.UI.RobotControlV3
             workPanelDebugBadge = root.Q<Label>("WorkPanelDebugBadge");
             splitHandle = root.Q<VisualElement>("MainSplitHandle");
             bottomSheet = root.Q<VisualElement>("BottomSheet");
+            bottomTabBar = root.Q<VisualElement>("BottomTabBar");
             bottomSheetContent = root.Q<VisualElement>("BottomSheetContent");
             speedLabel = root.Q<Label>("SpeedLabel");
             coordSystemLabel = root.Q<Label>("CoordSystemLabel");
@@ -268,6 +272,71 @@ namespace KineTutor3D.UI.RobotControlV3
                     button.UnregisterCallback<ClickEvent>(callback);
                 }
             }
+        }
+
+        private string BuildTabVisibilitySummary()
+        {
+            return $"workTabs={CountVisibleTabs(workTabButtons, workTabBar)}/{workTabButtons.Count}; workTabDetail=[{BuildTabDetail(workTabButtons, workTabBar)}]; bottomTabs={CountVisibleTabs(bottomTabButtons, bottomTabBar)}/{bottomTabButtons.Count}; bottomTabDetail=[{BuildTabDetail(bottomTabButtons, bottomTabBar)}]";
+        }
+
+        private static int CountVisibleTabs(IReadOnlyList<Button> buttons, VisualElement parent)
+        {
+            var count = 0;
+            for (var index = 0; index < buttons.Count; index++)
+            {
+                if (IsTabVisible(buttons[index], parent))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static string BuildTabDetail(IReadOnlyList<Button> buttons, VisualElement parent)
+        {
+            var parts = new string[buttons.Count];
+            for (var index = 0; index < buttons.Count; index++)
+            {
+                var button = buttons[index];
+                parts[index] = $"{button.name}:{(IsTabVisible(button, parent) ? "visible" : "hidden")}:clipped={IsTabClipped(button, parent)}";
+            }
+
+            return string.Join(",", parts);
+        }
+
+        private static bool IsTabVisible(Button button, VisualElement parent)
+        {
+            if (button == null || parent == null)
+            {
+                return false;
+            }
+
+            return button.resolvedStyle.display != DisplayStyle.None
+                && button.resolvedStyle.visibility != Visibility.Hidden
+                && parent.resolvedStyle.display != DisplayStyle.None
+                && !IsTabClipped(button, parent);
+        }
+
+        private static bool IsTabClipped(Button button, VisualElement parent)
+        {
+            if (button == null || parent == null)
+            {
+                return true;
+            }
+
+            var buttonBounds = button.worldBound;
+            var parentBounds = parent.worldBound;
+            if (buttonBounds.width <= 1f || buttonBounds.height <= 1f || parentBounds.width <= 1f || parentBounds.height <= 1f)
+            {
+                return false;
+            }
+
+            const float tolerance = 0.5f;
+            return buttonBounds.xMin < parentBounds.xMin - tolerance
+                || buttonBounds.xMax > parentBounds.xMax + tolerance
+                || buttonBounds.yMin < parentBounds.yMin - tolerance
+                || buttonBounds.yMax > parentBounds.yMax + tolerance;
         }
 
         private void OnNavClicked(ClickEvent evt)

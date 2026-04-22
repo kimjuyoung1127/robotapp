@@ -1876,6 +1876,73 @@ namespace KineTutor3D.App
             return CompleteGenericMatrix(payload, "robotcontrolv3-pointmove-surface-separation.json", "PointMoveSurfaceSeparation");
         }
 
+        public static string RunMotionTabExposureMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "motion-tab-exposure",
+            };
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary();
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            var runtime = GetRuntimeController();
+            AddCase("navmotion-shows-four-work-tabs", () =>
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
+            }, GetShellControllerSummary, "workTabs=4/4");
+
+            AddCase("joint-tab-visible-and-routes-controller", () =>
+            {
+                SetShellSelection("NavMotion", "TabJointJog", "BottomTabJointJog");
+            }, () => GetShellControllerSummary() + " | " + GetJointJogControllerSummary(), "desktopVisible=True");
+
+            AddCase("tcp-tab-visible-and-routes-controller", () =>
+            {
+                SetShellSelection("NavMotion", "TabTcpJog", "BottomTabTcpJog");
+            }, () => GetShellControllerSummary() + " | " + GetTcpJogControllerSummary(), "desktopVisible=True");
+
+            AddCase("pointmove-tab-visible-and-routes-controller", () =>
+            {
+                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            }, () => GetShellControllerSummary() + " | " + GetPointMoveControllerSummary(), "surface=MoveTarget");
+
+            AddCase("tablet-motion-tabs-visible", () =>
+            {
+                SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
+            }, GetShellControllerSummary, "bottomTabs=7/7");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-motion-tab-exposure.json", "MotionTabExposure");
+        }
+
         public static string RunTeachingPathRecordingLoopMatrixForDebug()
         {
             var runtime = GetRuntimeController();
