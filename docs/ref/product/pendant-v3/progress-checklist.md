@@ -106,11 +106,37 @@
 - live motion은 manual readback simulation, product confirm, production IK policy가 준비될 때까지 gate에서 차단한다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
+## 2026-04-22 Teaching Sequence SSOT Reconciliation
+
+- `teaching-sequence-execution-plan.md`의 Current State를 실제 구현 기준으로 재분류했다.
+- 완료로 잠근 범위:
+  - manual readback simulation: `RunManualReadbackTeachingMatrixForDebug()` -> `6/6 PASS`
+  - sequence load/select/preview/execute runtime: `RunTeachingSequenceMatrixForDebug()` -> `11/11 PASS`
+  - `Run` fallback: pending preview 우선 후 saved `PendantV3Points` RunOnce
+  - `Step▶/Step◀`: saved point selection + preview-only
+  - `Stop`: sequence runner/motion stop path
+  - point order editing: `위로` / `아래로`
+  - current readback overwrite: name/moveType/speed/dwell 보존, joints/TCP만 갱신
+  - actual UI click matrix: point reorder/overwrite buttons 포함 `98/98 PASS`
+- 아직 미구현으로 잠근 범위:
+  - duplicate point
+  - duplicate-name overwrite confirmation
+  - visible point detail UI for joints/TCP/moveType/speed/dwell
+  - speed/dwell editing
+  - delete/overwrite consequence confirmation copy
+  - `선택 지점부터 실행`
+  - visible loop toggle/status
+  - execution-time edit lock in visible UI
+  - function/group model
+  - IO/gripper sequence blocks
+  - stable point IDs if v1 name keys become limiting
+- 다음 실행 우선순위는 `Phase C2 - Easy Editing`이다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
-- 최신 커밋 기준:
-  - `853d6c5 Document RobotControl V3 next session handoff`
+- 최신 구현 커밋 기준:
+  - `64e81e2 Fix Pendant V3 point save review issues`
 - 첫 확인 명령:
   - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
   - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
@@ -122,7 +148,7 @@
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Easy point editing`: duplicate point, duplicate-name confirm, speed/dwell detail display.
+  - `Easy point editing`: duplicate point, duplicate-name confirm, point detail UI, speed/dwell detail display.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:

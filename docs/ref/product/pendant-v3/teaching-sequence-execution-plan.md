@@ -43,15 +43,30 @@
   - single point preview/apply
 - Saved joint target is preferred for recalled `MoveJ`.
 - `WaypointCycleRunner` already supports `PlayOnce`, `PlayLoop`, and `Stop`.
+- Unity/Mock manual readback can be simulated through `FairinoConnectionService.OnStateUpdated`.
+- Point save uses current readback joints/TCP, not dirty coordinate input.
+- `PendantV3Points` can be loaded into the V3 teaching sequence runtime.
+- V3 runtime tracks selected index, running state, loop flag, and selected point detail in debug summaries.
+- `BtnRun` executes pending preview first, then runs saved `PendantV3Points` once when no pending preview exists.
+- `BtnStepForward` / `BtnStepBack` select and preview saved points instead of preview undo/redo.
+- `BtnStop` stops the sequence runner/motion path.
+- Stored point order can be changed from V3 with `위로` / `아래로`.
+- Selected point can be overwritten with current readback while preserving name/move type/speed/dwell.
+- Actual UI click matrix covers point reorder/overwrite buttons.
 
-### Not Yet Wired
+### Still Missing / Next Slices
 
-- V3 `BtnRun` does not execute saved point sequence when no pending preview exists.
-- V3 `BtnStepForward` / `BtnStepBack` are currently preview undo/redo, not teaching sequence step controls.
-- `PendantV3Points` is not loaded into a V3 runtime execution queue.
-- Stored point order cannot be changed from V3.
-- There is no current sequence index, selected step, loop mode, or run status exposed in V3.
-- Point groups/functions are not modeled.
+- Duplicate point action.
+- Duplicate-name overwrite confirmation before replacing an existing point.
+- Full point detail UI that visibly shows saved joints, TCP, move type, speed, and dwell in the panel.
+- Speed/dwell editing.
+- Delete/overwrite confirmation copy that explains the consequence in user language.
+- `선택 지점부터 실행` flow.
+- Visible loop toggle and loop status in the Point/Teaching panel.
+- Execution-time edit lock in visible UI for delete, reorder, rename, overwrite, and duplicate.
+- Function/group model inside `NavPoints`.
+- IO/gripper sequence blocks.
+- Stable point IDs, if name-based v1 becomes limiting.
 
 ---
 

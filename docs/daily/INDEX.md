@@ -144,3 +144,4 @@
 - [pendant-v3-teaching-sequence-runtime-phase-a.md](./04-22/pendant-v3-teaching-sequence-runtime-phase-a.md)
 - [pendant-v3-teaching-sequence-run-step-phase-b.md](./04-22/pendant-v3-teaching-sequence-run-step-phase-b.md)
 - [pendant-v3-point-order-overwrite-phase-c.md](./04-22/pendant-v3-point-order-overwrite-phase-c.md)
+- [pendant-v3-teaching-sequence-ssot-reconciliation.md](./04-22/pendant-v3-teaching-sequence-ssot-reconciliation.md)
