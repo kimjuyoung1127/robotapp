@@ -85,6 +85,11 @@ namespace KineTutor3D.UI.RobotControlV3
             isTabletVisible = ShouldShowTabletPanel(activeNavSection, activeTabletTab);
             this.activeNavSection = activeNavSection;
             activeCoordSystem = GetLocalState().CoordSystem;
+            if (activeNavSection != "NavPoints")
+            {
+                activeTeachingSubview = PointSubviewName;
+            }
+
             if (!isInitialized)
             {
                 TryInitialize();
@@ -316,7 +321,8 @@ namespace KineTutor3D.UI.RobotControlV3
             var runtimeRobot = motionRuntime?.RobotId ?? "none";
             var canPreviewAction = CanPreview() && IsAnyPanelVisible();
             var canApplyAction = CanApply() && IsAnyPanelVisible();
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; subview={activeTeachingSubview}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            var panel = desktopPanel ?? tabletPanel;
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; surface={ResolveSurfaceDebugName()}; subview={activeTeachingSubview}; tabsHidden={IsHidden(panel?.SubviewTabs)}; motionRowHidden={IsHidden(panel?.MotionRow)}; coordGridHidden={IsHidden(panel?.CoordGrid)}; listHidden={IsHidden(panel?.PointListContainer)}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         private bool TryInitialize()
@@ -566,17 +572,93 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            var isTeachingSurface = activeNavSection == "NavPoints";
+            if (!isTeachingSurface)
+            {
+                SetHidden(panel.MotionRow, false);
+                SetHidden(panel.SubviewTabs, true);
+                SetHidden(panel.NameRow, true);
+                SetHidden(panel.BtnPrimarySave, true);
+                SetHidden(panel.PointSubview, false);
+                SetHidden(panel.SequenceSubview, true);
+                SetHidden(panel.FunctionSubview, true);
+                SetHidden(panel.CoordRow, false);
+                SetHidden(panel.CoordGrid, false);
+                SetHidden(panel.PointListContainer, true);
+                SetHidden(panel.PointEditSubview, false);
+                SetHidden(panel.DetailCard, true);
+                SetHidden(panel.PointEditActions, false);
+                ApplyMoveTargetActionVisibility(panel);
+                return;
+            }
+
             var showPoint = activeTeachingSubview == PointSubviewName;
             var showSequence = activeTeachingSubview == SequenceSubviewName;
             var showFunction = activeTeachingSubview == FunctionSubviewName;
+            SetHidden(panel.MotionRow, true);
+            SetHidden(panel.SubviewTabs, false);
+            SetHidden(panel.NameRow, false);
+            SetHidden(panel.BtnPrimarySave, false);
             panel.BtnPointSubview?.EnableInClassList("rc-point-subview-tab--active", showPoint);
             panel.BtnSequenceSubview?.EnableInClassList("rc-point-subview-tab--active", showSequence);
             panel.BtnFunctionSubview?.EnableInClassList("rc-point-subview-tab--active", showFunction);
             panel.PointSubview?.EnableInClassList("rc-hidden", !showPoint);
             panel.SequenceSubview?.EnableInClassList("rc-hidden", !showSequence);
             panel.FunctionSubview?.EnableInClassList("rc-hidden", !showFunction);
+            SetHidden(panel.CoordRow, true);
+            SetHidden(panel.CoordGrid, true);
+            SetHidden(panel.PointListContainer, false);
             panel.PointEditSubview?.EnableInClassList("rc-hidden", !showPoint);
+            SetHidden(panel.DetailCard, false);
             panel.PointEditActions?.EnableInClassList("rc-hidden", !showPoint);
+            ApplyTeachingActionVisibility(panel);
+        }
+
+        private static void ApplyMoveTargetActionVisibility(PanelElements panel)
+        {
+            SetHidden(panel.BtnRestore, false);
+            SetHidden(panel.BtnPreview, false);
+            SetHidden(panel.BtnApply, false);
+            SetHidden(panel.BtnRecall, true);
+            SetHidden(panel.BtnDelete, true);
+            SetHidden(panel.BtnRename, true);
+            SetHidden(panel.BtnDuplicate, true);
+            SetHidden(panel.BtnUp, true);
+            SetHidden(panel.BtnDown, true);
+            SetHidden(panel.BtnOverwrite, true);
+            SetHidden(panel.BtnExport, true);
+            SetHidden(panel.BtnCleanup, true);
+        }
+
+        private static void ApplyTeachingActionVisibility(PanelElements panel)
+        {
+            SetHidden(panel.BtnRestore, false);
+            SetHidden(panel.BtnPreview, false);
+            SetHidden(panel.BtnApply, false);
+            SetHidden(panel.BtnRecall, false);
+            SetHidden(panel.BtnDelete, false);
+            SetHidden(panel.BtnRename, false);
+            SetHidden(panel.BtnDuplicate, false);
+            SetHidden(panel.BtnUp, false);
+            SetHidden(panel.BtnDown, false);
+            SetHidden(panel.BtnOverwrite, false);
+            SetHidden(panel.BtnExport, false);
+            SetHidden(panel.BtnCleanup, false);
+        }
+
+        private static void SetHidden(VisualElement element, bool hidden)
+        {
+            element?.EnableInClassList("rc-hidden", hidden);
+        }
+
+        private static bool IsHidden(VisualElement element)
+        {
+            return element == null || element.ClassListContains("rc-hidden");
+        }
+
+        private string ResolveSurfaceDebugName()
+        {
+            return activeNavSection == "NavPoints" ? "Teaching" : "MoveTarget";
         }
 
         private void RunActiveSequence()

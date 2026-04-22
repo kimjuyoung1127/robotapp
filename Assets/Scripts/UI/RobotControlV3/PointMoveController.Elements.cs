@@ -11,6 +11,8 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 Title = root.Q<Label>("PointPanelTitle");
                 Hint = root.Q<Label>("PointMoveHint");
+                MotionRow = root.Q<VisualElement>(className: "rc-point-motion-row");
+                SubviewTabs = root.Q<VisualElement>(className: "rc-point-subview-tabs");
                 BtnPointSubview = root.Q<Button>("BtnPointSubview");
                 BtnSequenceSubview = root.Q<Button>("BtnSequenceSubview");
                 BtnFunctionSubview = root.Q<Button>("BtnFunctionSubview");
@@ -19,8 +21,12 @@ namespace KineTutor3D.UI.RobotControlV3
                 FunctionSubview = root.Q<VisualElement>("FunctionSubview");
                 PointEditSubview = root.Q<VisualElement>("PointEditSubview");
                 PointEditActions = root.Q<VisualElement>("PointEditActions");
+                DetailCard = root.Q<VisualElement>("PointDetailCard");
+                NameRow = root.Q<VisualElement>(className: "rc-point-name-row");
                 PointNameInput = root.Q<TextField>("PointNameInput");
                 BtnPrimarySave = root.Q<Button>("BtnPointSave") ?? root.Q<Button>("BtnPointPrimarySave");
+                CoordRow = root.Q<VisualElement>(className: "rc-point-coord-row");
+                CoordGrid = root.Q<VisualElement>(className: "rc-point-grid");
                 BtnCoordBase = root.Q<Button>("BtnPointCoordBase");
                 BtnCoordTool = root.Q<Button>("BtnPointCoordTool");
                 BtnCoordUser = root.Q<Button>("BtnPointCoordUser");
@@ -111,6 +117,8 @@ namespace KineTutor3D.UI.RobotControlV3
 
             public Label Title { get; }
             public Label Hint { get; }
+            public VisualElement MotionRow { get; }
+            public VisualElement SubviewTabs { get; }
             public Button BtnPointSubview { get; }
             public Button BtnSequenceSubview { get; }
             public Button BtnFunctionSubview { get; }
@@ -119,8 +127,12 @@ namespace KineTutor3D.UI.RobotControlV3
             public VisualElement FunctionSubview { get; }
             public VisualElement PointEditSubview { get; }
             public VisualElement PointEditActions { get; }
+            public VisualElement DetailCard { get; }
+            public VisualElement NameRow { get; }
             public TextField PointNameInput { get; }
             public Button BtnPrimarySave { get; }
+            public VisualElement CoordRow { get; }
+            public VisualElement CoordGrid { get; }
             public Button BtnCoordBase { get; }
             public Button BtnCoordTool { get; }
             public Button BtnCoordUser { get; }

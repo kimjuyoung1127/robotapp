@@ -1823,6 +1823,59 @@ namespace KineTutor3D.App
             return $"TcpJogVisualMotionMatrix pass={pass}; beforeJ=[{before}]; preview=[{preview}]; after=[{after}]";
         }
 
+        public static string RunPointMoveSurfaceSeparationMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "point-move-surface-separation",
+            };
+
+            void AddCase(string name, System.Action action, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = GetPointMoveControllerSummary();
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            var runtime = GetRuntimeController();
+            AddCase("motion-pointmove-is-move-target", () =>
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            }, "surface=MoveTarget; subview=Point; tabsHidden=True; motionRowHidden=False; coordGridHidden=False; listHidden=True");
+
+            AddCase("navpoints-is-teaching-point", () =>
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+            }, "surface=Teaching; subview=Point; tabsHidden=False; motionRowHidden=True; coordGridHidden=True; listHidden=False");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-pointmove-surface-separation.json", "PointMoveSurfaceSeparation");
+        }
+
         public static string RunTeachingPathRecordingLoopMatrixForDebug()
         {
             var runtime = GetRuntimeController();
