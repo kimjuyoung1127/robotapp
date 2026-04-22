@@ -756,7 +756,7 @@ Cases:
 
 Keep these green:
 
-- `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+- `RunActualUiClickMatrixForDebug()` -> `98/98 PASS`
 - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
 - `RunProductLiveConfirmTokenMatrixForDebug()` -> `4/4 PASS`
 

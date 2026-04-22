@@ -32,7 +32,7 @@
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
 | `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite `11/11 PASS`, duplicate/speed/dwell 후속 |
-| `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3C` mock e2e | done | Desktop actual click `98/98 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -86,7 +86,7 @@
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
 - live SDK gripper capability/readback scaffold를 연결했다.
-- Desktop actual UI click matrix `95/95 PASS`.
+- Desktop actual UI click matrix `98/98 PASS`.
 - Tablet/bottom representative actual click matrix `16/16 PASS`.
 - Popup confirm/cancel E2E `10/10 PASS`.
 - Safety/Fault actual flow `5/5 PASS`.
@@ -117,7 +117,7 @@
   - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
 - 바로 재실행할 핵심 matrix:
   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-  - `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `98/98 PASS`
   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
@@ -314,7 +314,7 @@
 2. `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
 3. 핵심 matrix 재실행
    - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-   - `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+   - `RunActualUiClickMatrixForDebug()` -> `98/98 PASS`
    - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
    - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
    - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`

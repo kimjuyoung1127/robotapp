@@ -24,7 +24,7 @@
 - `unityctl check --type compile --json`: pass
 - `RunTeachingSequenceMatrixForDebug()`: `11/11 PASS`
 - `RunManualReadbackTeachingMatrixForDebug()`: `6/6 PASS`
-- `RunActualUiClickMatrixForDebug()`: `95/95 PASS`
+- `RunActualUiClickMatrixForDebug()`: `98/98 PASS`
 
 ## Self Review
 

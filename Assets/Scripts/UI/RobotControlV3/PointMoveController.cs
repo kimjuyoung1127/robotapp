@@ -539,7 +539,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 name = pointName,
                 jointsDeg = ReadCurrentSnapshotJoints(),
-                tcpMm = target,
+                tcpMm = ReadCurrentSnapshotTcp(),
                 moveType = motionKind,
                 speedPreset = "medium",
                 dwellSec = 0.0
@@ -982,7 +982,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void SetPointName(string pointName)
         {
-            var safeName = string.IsNullOrWhiteSpace(pointName) ? "Point" : pointName.Trim();
+            var safeName = pointName?.Trim() ?? string.Empty;
             desktopPanel?.PointNameInput?.SetValueWithoutNotify(safeName);
             tabletPanel?.PointNameInput?.SetValueWithoutNotify(safeName);
         }

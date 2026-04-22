@@ -813,6 +813,30 @@ namespace KineTutor3D.App
                 SetPointMoveValueForDebug("RZ", 95f);
             }
 
+            void SeedUiPointOrder()
+            {
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "AUDIT_UI_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "AUDIT_UI_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+            }
+
             AddCase("BtnConnect", () => { runtime.Disconnect(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "connected=True");
             AddCase("BtnDisconnect", () => { runtime.ConnectDefault(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "connected=False");
             AddCase("BtnQuickAction", () => { runtime.Disconnect(); runtime.ConnectDefault(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "enabled=True");
@@ -872,6 +896,30 @@ namespace KineTutor3D.App
                     SavePointMoveForDebug();
                 }, GetPointMoveListSummaryForDebug, "points=");
             }
+
+            AddCase("BtnPointUp", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_B");
+            }, GetPointMoveListSummaryForDebug, "AUDIT_UI_B");
+
+            AddCase("BtnPointDown", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetPointMoveListSummaryForDebug, "AUDIT_UI_A");
+
+            AddCase("BtnPointOverwrite", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetPointMoveControllerSummary, "[Overwrite]");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {

@@ -391,7 +391,7 @@
 - 검증 결과:
   - `unityctl check --type compile --json`: pass.
   - `script get-errors`: error 0.
-  - Desktop actual UI click matrix: `ActualUiClickMatrix pass=95; fail=0`.
+  - Desktop actual UI click matrix: `ActualUiClickMatrix pass=98; fail=0`.
   - Tablet/bottom representative matrix: `TabletBottomClickMatrix pass=16; fail=0`.
 - Artifact:
   - `Artifacts/robotcontrolv3-actual-click-matrix-internal.json`
@@ -454,7 +454,7 @@
   - live command token은 1회성/단기 TTL로 취급한다.
 - 검증:
   - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
-  - `RunActualUiClickMatrixForDebug()`: `pass=95; fail=0`.
+  - `RunActualUiClickMatrixForDebug()`: `pass=98; fail=0`.
   - `RunPopupConfirmCancelE2EForDebug()`: `pass=10; fail=0`.
   - `RunSafetyFaultActualFlowForDebug()`: `pass=5; fail=0`.
   - `RunPointMoveJProductionGuardMatrixForDebug()`: `pass=6; fail=0`.
@@ -476,7 +476,7 @@
   - `RunProductLiveConfirmTokenMatrixForDebug()`: `pass=4; fail=0`.
   - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
   - `RunPopupConfirmCancelE2EForDebug()`: `pass=10; fail=0`.
-  - `RunActualUiClickMatrixForDebug()`: `pass=95; fail=0`.
+  - `RunActualUiClickMatrixForDebug()`: `pass=98; fail=0`.
 - 남은 실제 실기 단계:
   - manual readback simulation과 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.
   - 실제 FR5에서는 readback-only와 operator 현장 확인을 먼저 수행한다.
