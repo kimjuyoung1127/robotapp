@@ -9,7 +9,7 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-21 (KST)
+- 2026-04-22 (KST)
 
 ---
 
@@ -97,7 +97,7 @@
 - 보조패널 툴바는 `Base / Tool / Path / Ghost / Bound / Coll / Cam` compact chip grid로 유지한다.
 - TCP/Cartesian 조작행은 한 줄 고정 금지다. `축+값+단위` 상단, `- / +` 하단의 2줄 구조로 둔다.
 - 관절 조그는 `J축+입력+값`, `슬라이더`, `- / +` 버튼 행을 분리한다.
-- 최신 acceptance 기준은 `viewportHorizontalVisible=False`, `contextHorizontalVisible=False`, `viewportClipped=0`, `contextClipped=0`, `scrollShare>=0.67`이다.
+- 최신 acceptance 기준은 `viewportHorizontalVisible=False`, `contextHorizontalVisible=False`, `viewportClipped=0`, `contextClipped=0`, `scrollShare>=0.88`이다.
 
 ---
 
@@ -183,7 +183,13 @@
 | 2 | 관절 | 6축 슬라이더 + 수치 입력 + 단일축 조그 | P0 |
 | 3 | TCP | Base/Tool/User 좌표계 선택 + XYZ/RPY 조그 | P0 |
 | 4 | 포인트 이동 | 목표 좌표 입력 → IK 계산 → 이동 | P0 |
-| 5 | 티칭 | 포인트 시퀀스 편집/재생 | P1 |
+| - | 티칭 | 별도 WorkTabBar 탭으로 만들지 않음. `NavPoints` 내부 `포인트 / 시퀀스 / 함수` subview에서 처리 | P1 |
+
+### Teaching / Points 확장 정책
+- 왼쪽 메인 Nav에는 새 `Program` 탭을 추가하지 않는다.
+- `NavPoints`가 포인트 저장, 시퀀스 실행, 후속 함수 묶음을 소유한다.
+- 조작 WorkTabBar는 `쉬운 조작 / 관절 / TCP / 포인트 이동`까지만 유지한다.
+- 저장 포인트 기반 실행 UI는 `ViewportHost` 보조패널의 `NavPoints` 내부 subview로 표시한다.
 
 ---
 

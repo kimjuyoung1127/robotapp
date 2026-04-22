@@ -318,6 +318,11 @@ namespace KineTutor3D.App
             return popupCoordinator.OpenPopupForDebug(popupKind);
         }
 
+        public static string GetLiveCommandApprovalSummaryForDebug()
+        {
+            return GetRuntimeController().GetLiveCommandApprovalSummaryForDebug();
+        }
+
         public static string SetPointMoveMotionKindForDebug(string motionKind)
         {
             var pointMove = GetPointMoveController();
@@ -1077,6 +1082,96 @@ namespace KineTutor3D.App
             AddCase("unsaved-cancel", () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); }, "unsaved", "BtnPopupCancel", GetMovementStateSummaryForDebug, "pending=대기 명령");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-popup-confirm-cancel-e2e.json", "PopupConfirmCancelE2E");
+        }
+
+        public static string RunProductLiveConfirmTokenMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "product-live-confirm-token",
+            };
+
+            var runtime = GetRuntimeController();
+
+            void AddCase(string name, System.Action setup, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetLiveCommandApprovalSummaryForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            void EnsureLivePreview()
+            {
+                EnsureRuntimeReady(runtime);
+                runtime.PreviewPreset("Ready");
+                if (runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+            }
+
+            AddCase(
+                "dryrun-popup-skips-token",
+                () => { EnsureRuntimeReady(runtime); runtime.PreviewPreset("Ready"); },
+                () => OpenPopupForDebug("run"),
+                GetPopupCoordinatorSummary,
+                "approvalRequired=False");
+
+            AddCase(
+                "live-popup-displays-token",
+                EnsureLivePreview,
+                () => OpenPopupForDebug("run"),
+                GetPopupCoordinatorSummary,
+                "approvalRequired=True");
+
+            AddCase(
+                "cancel-revokes-pending-token",
+                EnsureLivePreview,
+                () =>
+                {
+                    OpenPopupForDebug("run");
+                    ClickUiButton("BtnPopupCancel", "desktop", out _, out _, out _);
+                },
+                GetLiveCommandApprovalSummaryForDebug,
+                "pending=False");
+
+            AddCase(
+                "confirm-grants-one-shot-token-and-mock-path-consumes",
+                EnsureLivePreview,
+                () =>
+                {
+                    OpenPopupForDebug("run");
+                    ClickUiButton("BtnPopupConfirm", "desktop", out _, out _, out _);
+                },
+                () => GetMovementStateSummaryForDebug() + " | approval=" + GetLiveCommandApprovalSummaryForDebug(),
+                "approved=False");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-product-live-confirm-token.json", "ProductLiveConfirmToken");
         }
 
         public static string RunSafetyFaultActualFlowForDebug()

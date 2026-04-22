@@ -19,7 +19,7 @@
 - [verify-v3.json](./verify-v3.json)
 
 ## Last Updated
-- 2026-04-06 (KST)
+- 2026-04-22 (KST)
 
 ## Context
 V2(uGUI) 셸이 플레이스홀더 상태로 존재하는 `codex/robotcontrol-shell` 브랜치에서,
@@ -1085,7 +1085,7 @@ unityctl play start → console get-entries → screenshot → play stop
 | 6 | CoordStrip 기본 표시 | `Both` (Joint + TCP 동시) | 초보자도 두 값을 동시에 봐야 이해 빠름 |
 | 7 | DryRun 기본값 | Live 첫 연결 시 **ON** | Safe By Default 원칙 |
 | 8 | 증분 기본값 | 초보자: 5°/5mm 고정, 전문가: 자유선택(기본 1°/1mm) | 모드별 분리 |
-| 9 | 포인트 저장 형식 | JSON, `Application.persistentDataPath/points/` | 이식성+가독성 최적. Inspector 편집 불필요 |
+| 9 | 포인트 저장 형식 | JSON, `Application.persistentDataPath/waypoints/PendantV3Points.json` | 기존 `WaypointStore` 재사용. Inspector 편집 불필요 |
 | 10 | 이벤트 로그 보존 | 최대 **200개**, FIFO 자동 삭제 | 메모리 안전 + 충분한 히스토리 |
 | 11 | 자동 재연결 최대 시도 | **10회** (3초 간격 = 30초) | 너무 짧으면 포기 빠름, 너무 길면 대기 피로 |
 | 12 | Undo 히스토리 깊이 | **50개** | 대부분의 세션을 커버하면서 메모리 안전 |

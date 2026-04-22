@@ -8,11 +8,12 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-22 (KST)
 
 ## SSOT 상태
-- **SSOT 제외**: "Program/Status/Application 고급기능은 메인 경로에서 제외"
-- V3에 포함 시 SSOT 업데이트 필요
+- **SSOT 분리**: 제조사 Lua/program load/run은 계속 제외한다.
+- Unity 내부 `PendantV3Points` teaching sequence 실행은 [teaching-sequence-execution-plan.md](./teaching-sequence-execution-plan.md)에서 관리한다.
+- V3 왼쪽 Nav에 별도 `Program` 탭은 추가하지 않는다. 실행/시퀀스 기능은 `NavPoints` 내부 subview로 확장한다.
 
 ---
 
@@ -63,5 +64,5 @@
 ## 확정 사항
 1. 제조사 Lua 프로그램 load/run → **제외** (SSOT 유지)
 2. Unity 내부 시퀀스 실행 → **Phase 5 블록 에디터**로 포함
-3. 실행 모니터링(BottomBar Step/Play/Stop) → Phase 5에서 구현
+3. 실행 모니터링(BottomBar Step/Play/Stop) → `PendantV3Points` sequence first slice에서 먼저 구현
 4. 제조사 프로그램 연동은 **P2 이후** 별도 검토

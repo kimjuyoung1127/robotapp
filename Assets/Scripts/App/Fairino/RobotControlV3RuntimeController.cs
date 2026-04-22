@@ -68,6 +68,11 @@ namespace KineTutor3D.App.Fairino
         private bool requestStageRefocus;
         private LiveCommandKind approvedLiveCommandKind = LiveCommandKind.ReadbackOnly;
         private DateTime approvedLiveCommandUntilUtc = DateTime.MinValue;
+        private string approvedLiveCommandToken = string.Empty;
+        private LiveCommandKind pendingLiveApprovalKind = LiveCommandKind.ReadbackOnly;
+        private DateTime pendingLiveApprovalUntilUtc = DateTime.MinValue;
+        private string pendingLiveApprovalToken = string.Empty;
+        private bool pendingLiveApprovalRequired;
 
         internal event Action<RobotControlV3RuntimeSnapshot> SnapshotChanged;
 
@@ -167,9 +172,100 @@ namespace KineTutor3D.App.Fairino
 
         public string GrantLiveCommandApprovalForDebug(string commandKind, int ttlSeconds = 15)
         {
-            approvedLiveCommandKind = ParseLiveCommandKind(commandKind);
-            approvedLiveCommandUntilUtc = DateTime.UtcNow.AddSeconds(Mathf.Clamp(ttlSeconds, 1, 60));
-            return $"approved={approvedLiveCommandKind}; expires={approvedLiveCommandUntilUtc:O}";
+            var kind = ParseLiveCommandKind(commandKind);
+            GrantLiveCommandApproval(kind, "DEBUG", ttlSeconds);
+            return $"approved={approvedLiveCommandKind}; token={approvedLiveCommandToken}; expires={approvedLiveCommandUntilUtc:O}";
+        }
+
+        public string BeginLiveCommandApprovalForProduct(string commandKind, int ttlSeconds = 30)
+        {
+            var kind = ParseLiveCommandKind(commandKind);
+            ClearPendingLiveApproval();
+            if (kind == LiveCommandKind.ReadbackOnly)
+            {
+                return "approvalRequired=False; kind=ReadbackOnly; token=none; reason=no live command pending";
+            }
+
+            pendingLiveApprovalKind = kind;
+            pendingLiveApprovalUntilUtc = DateTime.UtcNow.AddSeconds(Mathf.Clamp(ttlSeconds, 5, 90));
+            if (snapshot.DryRunEnabled)
+            {
+                pendingLiveApprovalRequired = false;
+                return $"approvalRequired=False; kind={kind}; token=DRYRUN; expires={pendingLiveApprovalUntilUtc:O}; reason=dry-run";
+            }
+
+            pendingLiveApprovalRequired = true;
+            pendingLiveApprovalToken = CreateShortToken();
+            PushFeedback($"[Live Confirm] {kind} 승인 토큰 {pendingLiveApprovalToken} 발급");
+            RefreshSnapshot();
+            return $"approvalRequired=True; kind={kind}; token={pendingLiveApprovalToken}; expires={pendingLiveApprovalUntilUtc:O}";
+        }
+
+        public bool TryConfirmLiveCommandApprovalForProduct(string token, out string summary)
+        {
+            if (!pendingLiveApprovalRequired)
+            {
+                summary = $"approved=False; approvalRequired=False; kind={pendingLiveApprovalKind}; token=DRYRUN";
+                ClearPendingLiveApproval();
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(pendingLiveApprovalToken)
+                || pendingLiveApprovalUntilUtc <= DateTime.UtcNow
+                || !string.Equals(pendingLiveApprovalToken, token, StringComparison.Ordinal))
+            {
+                summary = $"approved=False; reason=invalid-or-expired-token; expected={pendingLiveApprovalToken}; actual={token}";
+                ClearPendingLiveApproval();
+                PushFeedback("[Live Confirm] 승인 토큰이 만료되었거나 일치하지 않는다.");
+                RefreshSnapshot();
+                return false;
+            }
+
+            GrantLiveCommandApproval(pendingLiveApprovalKind, pendingLiveApprovalToken, Mathf.Max(1, (int)(pendingLiveApprovalUntilUtc - DateTime.UtcNow).TotalSeconds));
+            summary = $"approved=True; kind={approvedLiveCommandKind}; token={approvedLiveCommandToken}; expires={approvedLiveCommandUntilUtc:O}";
+            ClearPendingLiveApproval();
+            PushFeedback($"[Live Confirm] {approvedLiveCommandKind} 1회 승인 토큰 확인");
+            RefreshSnapshot();
+            return true;
+        }
+
+        public string ConfirmLiveCommandApprovalForDebug(string token)
+        {
+            return TryConfirmLiveCommandApprovalForProduct(token, out var summary)
+                ? summary
+                : summary;
+        }
+
+        public string CancelLiveCommandApprovalForProduct()
+        {
+            var summary = GetLiveCommandApprovalSummaryForDebug();
+            ClearPendingLiveApproval();
+            PushFeedback("[Live Confirm] 승인 요청 취소");
+            RefreshSnapshot();
+            return $"cancelled=True; before=[{summary}]";
+        }
+
+        public string GetLiveCommandApprovalSummaryForDebug()
+        {
+            var now = DateTime.UtcNow;
+            var pendingActive = pendingLiveApprovalUntilUtc > now && (pendingLiveApprovalRequired || pendingLiveApprovalKind != LiveCommandKind.ReadbackOnly);
+            var approvedActive = approvedLiveCommandUntilUtc > now && approvedLiveCommandKind != LiveCommandKind.ReadbackOnly;
+            return $"pending={pendingActive}; pendingRequired={pendingLiveApprovalRequired}; pendingKind={pendingLiveApprovalKind}; pendingToken={pendingLiveApprovalToken}; pendingExpires={pendingLiveApprovalUntilUtc:O}; approved={approvedActive}; approvedKind={approvedLiveCommandKind}; approvedToken={approvedLiveCommandToken}; approvedExpires={approvedLiveCommandUntilUtc:O}";
+        }
+
+        public string ResolvePendingLiveCommandKindForProduct()
+        {
+            if (previewUsesJointPose && previewJointAnglesDeg != null)
+            {
+                return LiveCommandKind.MoveJ.ToString();
+            }
+
+            if (!previewUsesJointPose && previewTcpPose != null)
+            {
+                return LiveCommandKind.MoveL.ToString();
+            }
+
+            return LiveCommandKind.ReadbackOnly.ToString();
         }
 
         public string GetLiveCommandSafetyGateSummaryForDebug(string commandKind)
@@ -1043,8 +1139,30 @@ namespace KineTutor3D.App.Fairino
                 return false;
             }
 
+            approvedLiveCommandKind = LiveCommandKind.ReadbackOnly;
             approvedLiveCommandUntilUtc = DateTime.MinValue;
+            approvedLiveCommandToken = string.Empty;
             return true;
+        }
+
+        private void GrantLiveCommandApproval(LiveCommandKind kind, string token, int ttlSeconds)
+        {
+            approvedLiveCommandKind = kind;
+            approvedLiveCommandToken = string.IsNullOrWhiteSpace(token) ? CreateShortToken() : token;
+            approvedLiveCommandUntilUtc = DateTime.UtcNow.AddSeconds(Mathf.Clamp(ttlSeconds, 1, 90));
+        }
+
+        private void ClearPendingLiveApproval()
+        {
+            pendingLiveApprovalKind = LiveCommandKind.ReadbackOnly;
+            pendingLiveApprovalUntilUtc = DateTime.MinValue;
+            pendingLiveApprovalToken = string.Empty;
+            pendingLiveApprovalRequired = false;
+        }
+
+        private static string CreateShortToken()
+        {
+            return Guid.NewGuid().ToString("N").Substring(0, 6).ToUpperInvariant();
         }
 
         private static LiveCommandKind ParseLiveCommandKind(string commandKind)

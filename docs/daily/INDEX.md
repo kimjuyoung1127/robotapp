@@ -136,3 +136,7 @@
 - [pendant-v3-button-robot-integration-ssot.md](./04-21/pendant-v3-button-robot-integration-ssot.md)
 - [doc-consistency-check-and-archive-pass.md](./04-21/doc-consistency-check-and-archive-pass.md)
 
+### 04-22
+- [pendant-v3-doc-consistency-refresh.md](./04-22/pendant-v3-doc-consistency-refresh.md)
+- [pendant-v3-product-live-confirm-token.md](./04-22/pendant-v3-product-live-confirm-token.md)
+- [pendant-v3-teaching-sequence-execution-plan.md](./04-22/pendant-v3-teaching-sequence-execution-plan.md)

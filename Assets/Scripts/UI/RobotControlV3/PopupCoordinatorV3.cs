@@ -46,6 +46,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private EventCallback<ClickEvent> recoveryClickCallback;
         private RobotControlV3RuntimeController runtimeController;
         private string activePopupKind = string.Empty;
+        private string pendingLiveApprovalToken = string.Empty;
+        private string pendingLiveApprovalSummary = string.Empty;
         private bool restoreFaultOverlayAfterPopup;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
@@ -79,7 +81,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var confirmText = popupConfirmButton?.text ?? "missing";
             var hostChildren = popupTemplateHost?.childCount ?? -1;
             var popupOpen = popupTemplateHost != null && popupTemplateHost.childCount > 0;
-            return $"initialized={isInitialized}; popupOpen={popupOpen}; title={title}; confirm={confirmText}; templateChildren={hostChildren}";
+            return $"initialized={isInitialized}; popupOpen={popupOpen}; title={title}; confirm={confirmText}; templateChildren={hostChildren}; liveApproval=[{pendingLiveApprovalSummary}]";
         }
 
         private bool TryInitialize()
@@ -397,6 +399,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var tree = template.CloneTree();
             popupTemplateHost.Add(tree);
             ApplyTemplateCopy(tree);
+            ApplyLiveApprovalToken(tree);
             SetFaultOverlaySuppressed(true);
             inputContract.OpenPopupProbeForDebug();
         }
@@ -406,14 +409,21 @@ namespace KineTutor3D.UI.RobotControlV3
             popupTemplateHost?.Clear();
             inputContract?.ClosePopupProbeForDebug();
             SetFaultOverlaySuppressed(false);
+            pendingLiveApprovalToken = string.Empty;
+            pendingLiveApprovalSummary = string.Empty;
             activePopupKind = string.Empty;
         }
 
         private void OnPopupButtonClicked(ClickEvent evt)
         {
-            if (evt.currentTarget == popupConfirmButton)
+            var confirmed = evt.currentTarget == popupConfirmButton;
+            if (confirmed)
             {
                 ExecuteConfirmedAction();
+            }
+            else
+            {
+                runtimeController?.CancelLiveCommandApprovalForProduct();
             }
 
             CloseActivePopup();
@@ -432,7 +442,10 @@ namespace KineTutor3D.UI.RobotControlV3
                     break;
                 case "run":
                 case "move":
-                    runtimeController?.ExecutePrimaryAction();
+                    if (ConfirmLiveApprovalIfNeeded())
+                    {
+                        runtimeController?.ExecutePrimaryAction();
+                    }
                     break;
                 case "warning":
                     runtimeController?.StopMotion();
@@ -486,6 +499,82 @@ namespace KineTutor3D.UI.RobotControlV3
             var isDanger = bool.TryParse(metaDanger?.text, out var parsedDanger) && parsedDanger;
             popupConfirmButton.EnableInClassList("rc-popup-button--danger", isDanger);
             popupConfirmButton.EnableInClassList("rc-popup-button--primary", !isDanger);
+        }
+
+        private void ApplyLiveApprovalToken(VisualElement tree)
+        {
+            pendingLiveApprovalToken = string.Empty;
+            pendingLiveApprovalSummary = string.Empty;
+            if (runtimeController == null || !IsLiveApprovalPopup())
+            {
+                return;
+            }
+
+            var commandKind = runtimeController.ResolvePendingLiveCommandKindForProduct();
+            pendingLiveApprovalSummary = runtimeController.BeginLiveCommandApprovalForProduct(commandKind);
+            pendingLiveApprovalToken = ExtractToken(pendingLiveApprovalSummary);
+            var label = new Label($"Live 승인: {FormatApprovalSummary(pendingLiveApprovalSummary)}")
+            {
+                name = "LiveApprovalTokenLabel",
+            };
+            label.AddToClassList("rc-popup-template-line");
+            label.AddToClassList("rc-popup-template-token");
+            var body = tree.Q<VisualElement>("ActionRunConfirmBody") ?? tree.Q<VisualElement>("MoveConfirmBody") ?? tree;
+            body.Add(label);
+        }
+
+        private bool ConfirmLiveApprovalIfNeeded()
+        {
+            if (runtimeController == null || !IsLiveApprovalPopup())
+            {
+                return true;
+            }
+
+            if (runtimeController.TryConfirmLiveCommandApprovalForProduct(pendingLiveApprovalToken, out var summary))
+            {
+                pendingLiveApprovalSummary = summary;
+                return true;
+            }
+
+            pendingLiveApprovalSummary = summary;
+            return false;
+        }
+
+        private static string ExtractToken(string summary)
+        {
+            const string tokenNeedle = "token=";
+            var tokenStart = summary.IndexOf(tokenNeedle, System.StringComparison.Ordinal);
+            if (tokenStart < 0)
+            {
+                return string.Empty;
+            }
+
+            tokenStart += tokenNeedle.Length;
+            var tokenEnd = summary.IndexOf(';', tokenStart);
+            return tokenEnd >= tokenStart
+                ? summary.Substring(tokenStart, tokenEnd - tokenStart)
+                : summary.Substring(tokenStart);
+        }
+
+        private bool IsLiveApprovalPopup()
+        {
+            return activePopupKind == "run" || activePopupKind == "move";
+        }
+
+        private static string FormatApprovalSummary(string summary)
+        {
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                return "토큰 없음";
+            }
+
+            return summary
+                .Replace("approvalRequired=True", "승인 필요")
+                .Replace("approvalRequired=False", "승인 생략")
+                .Replace("kind=", "명령=")
+                .Replace("token=", "토큰=")
+                .Replace("expires=", "만료=")
+                .Replace("reason=dry-run", "DryRun");
         }
     }
 }

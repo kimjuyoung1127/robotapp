@@ -6,7 +6,7 @@
 - 구현 전후에는 이 문서의 상태표와 `progress-checklist.md`를 비교한다.
 
 ## Last Updated
-- 2026-04-21 (KST)
+- 2026-04-22 (KST)
 
 ## References
 - FAIRINO SDK Manual: https://www.fairino.us/cobots-manual/sdk-manual
@@ -52,7 +52,7 @@
 | Safety Recovery | `BtnRecoveryPrimary`, fault overlay reset/close | `partial` | action policy + reset/close semantics 정리 | `ExecutePrimaryAction`, `ResetErrors` | Phase 2 |
 | View Toolbar | `Base`, `Tool`, `Path`, `Ghost`, `Bound`, `Coll`, `Cam` | `partial` | frame/ghost/path/bound/collision real visual state | visualization helpers | Phase 5 |
 | Program Blocks | none yet | `pending` | MoveJ/MoveL/MoveC/Wait/IO block queue | future program model | Phase 4/5 |
-| Live SDK Gate | no UI gate yet | `pending` | SDK/robot version, speed, E-stop, confirm checklist | `LiveFairinoClient`, official SDK | Phase 6 |
+| Live SDK Gate | readback-only + command safety gate + product confirm token scaffold | `partial` | manual readback simulation + production IK + real-device readback comparison | `LiveFairinoClient`, `LiveCommandSafetyGate`, official SDK | Manual readback / Phase 6 |
 
 ## Phase Plan
 
@@ -86,7 +86,7 @@
 
 ### Phase 6: Live SDK Gate
 - Live 이동 전 SDK version, robot software version, safety state, speed, E-stop, DryRun preview를 모두 확인한다.
-- Mock e2e 전부 green 전에는 Live MoveJ/MoveL/IO/Gripper 실행 금지다.
+- Mock e2e와 live command safety gate scaffold는 green이지만, 실제 Live MoveJ/MoveL/IO/Gripper는 manual readback simulation, operator confirm UX, production IK policy가 준비될 때까지 계속 금지다.
 
 ## Verification Rules
 - 각 Phase 시작 전 `unityctl check --type compile --json`.
@@ -108,7 +108,9 @@
 10. `[done]` I/O/Gripper mock/live-gated state facade 설계 및 1차 연결.
 11. `[done]` PGEA attached visual prefab 이관/연결.
 12. `[done]` live SDK gripper capability/readback contract scaffold.
-13. `[next]` 실기 gripper command safety gate + pendant/SDK readback comparison.
+13. `[done]` live SDK readback-only gate + live command safety gate scaffold.
+14. `[done]` operator confirm product UX token scaffold.
+15. `[next]` manual readback teaching simulation, teaching sequence run/step, production IK policy.
 
 ## 2026-04-21 Phase 1 Start Result
 - `GetMovementStateSummaryForDebug()` callable 노출 확인.
@@ -443,12 +445,12 @@
 - Runtime 연결:
   - `ApplyJointAngles`, `ApplyTcpPose`, `SetRobotDigitalOutput`, `SetToolDigitalOutput`, `SetGripperOpen`의 live 경로 앞에 safety gate를 배치했다.
   - DryRun과 Mock은 기존 시뮬레이션 동작을 유지한다.
-  - 실제 Live는 operator confirm token, speed cap, readback, boundary/collision, production IK 조건이 맞지 않으면 SDK 호출 전에 차단한다.
+  - 실제 Live는 operator confirm token, speed cap, readback, production IK 조건이 맞지 않으면 SDK 호출 전에 차단한다.
 - 보수적 기본값:
   - live speed cap: `10%`.
   - Point MoveJ numerical XYZ IK fallback은 live 금지.
   - saved joint target 기반 MoveJ만 live 후보가 될 수 있다.
-  - boundary/collision real data가 아직 없으면 live motion은 차단된다.
+  - boundary/collision은 현재 hard gate가 아니라 warning/future로 둔다.
   - live command token은 1회성/단기 TTL로 취급한다.
 - 검증:
   - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
@@ -461,5 +463,20 @@
   - `Artifacts/robotcontrolv3-live-command-safety-gate.json`
 - 남은 실제 실기 단계:
   - 실제 FR5에서 readback-only를 먼저 수행한다.
-  - operator safety confirm UI/token을 제품 UX로 승격한다.
-  - boundary/collision real data와 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.
+  - manual readback simulation과 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.
+
+## 2026-04-22 Product Live Confirm Token
+- 구현:
+  - `Run/Move` 확인 팝업이 열릴 때 현재 pending command 기준으로 product live approval token을 생성한다.
+  - DryRun이면 `approvalRequired=False`, non-DryRun이면 `approvalRequired=True`와 6자리 token을 팝업 body에 표시한다.
+  - 확인 버튼을 누를 때만 token을 live gate 승인으로 승격하고, 취소하면 pending token을 폐기한다.
+  - token은 live gate 평가에서 한 번 소비되면 즉시 사라진다.
+- 검증:
+  - `unityctl check --type compile --json`: pass.
+  - `RunProductLiveConfirmTokenMatrixForDebug()`: `pass=4; fail=0`.
+  - `RunLiveCommandSafetyGateMatrixForDebug()`: `pass=12; fail=0`.
+  - `RunPopupConfirmCancelE2EForDebug()`: `pass=10; fail=0`.
+  - `RunActualUiClickMatrixForDebug()`: `pass=95; fail=0`.
+- 남은 실제 실기 단계:
+  - manual readback simulation과 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.
+  - 실제 FR5에서는 readback-only와 operator 현장 확인을 먼저 수행한다.

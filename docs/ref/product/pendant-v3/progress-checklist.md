@@ -6,7 +6,7 @@
 - daily log와 달리 "지금 어디까지 왔는지"만 짧게 유지한다.
 
 ## Last Updated
-- 2026-04-21 (KST)
+- 2026-04-22 (KST)
 
 ## Current Phase Snapshot
 
@@ -31,7 +31,7 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, program/sequence history는 후속 |
+| `3B` 로컬 서비스 | in_progress | Undo/Redo/Step 기본 preview history는 연결, product live confirm token 완료, `PendantV3Points` sequence execution + manual readback simulation gate plan 추가 |
 | `3C` mock e2e | done | Desktop actual click `95/95 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
@@ -72,7 +72,9 @@
 
 - `robot-button-integration-plan.md`를 버튼-로봇 연동 기준 문서로 추가했다.
 - 모든 V3 조작 버튼은 `wired / partial / stub / pending / excluded` 상태로 비교한다.
-- 현재 high-priority gap은 `Program Run/Step queue`, `Point MoveJ production IK policy`, `Boundary/Collision real data`, `Operator live confirm UX`이다.
+- 현재 high-priority gap은 `Program Run/Step queue`, `Point MoveJ production IK policy`, `Boundary/Collision warning-only future`이다.
+- 실기기 연동 전 필수 gate는 `manual readback -> RobotStage -> 값 표시 -> 포인트 저장 -> DryRun replay` Unity/Mock 시뮬레이션이다.
+- Teaching sequence v1 잠금: 저장은 readback 기준, `Step▶/Step◀`는 preview only, `Run`은 pending preview 우선 후 sequence run, 순서 변경은 위/아래 버튼, point name은 unique key로 본다.
 - `GetMovementStateSummaryForDebug()`, `Zero preset`, `CoordStrip mode`는 1차 연결 완료했다.
 - Easy/Joint/TCP/Cartesian 대표 전후 state matrix와 Point MoveL DryRun preview/apply까지 확인했다.
 - Joint preview target이 runtime snapshot `JointValues`로 전달되게 수정해서 보조패널 row와 로봇 preview 상태가 같은 값을 본다.
@@ -92,14 +94,16 @@
 - RobotStage screenshot evidence 3장 생성.
 - Live SDK readback gate 생성: `readbackOk=True`, live command는 operator safety confirm 전까지 차단.
 - Live command safety gate matrix `12/12 PASS`.
-- live motion은 boundary/collision real data와 production IK policy가 준비될 때까지 gate에서 차단한다.
+- Product live confirm token matrix `4/4 PASS`.
+- `Run/Move` 확인 팝업에서 DryRun은 승인 생략, non-DryRun은 1회성 token 표시 후 확인 시 live gate 승인으로 승격한다.
+- live motion은 manual readback simulation, product confirm, production IK policy가 준비될 때까지 gate에서 차단한다.
 - Live 실기 이동은 Phase 6 전까지 금지한다.
 
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
 - 최신 커밋 기준:
-  - `9ad78f5 Add RobotControl V3 live command safety gate`
+  - `853d6c5 Document RobotControl V3 next session handoff`
 - 첫 확인 명령:
   - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
   - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
@@ -111,12 +115,12 @@
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Operator live confirm UX`: 실제 제품 팝업에서 1회성 live token을 발급하고 표시한다.
-  - `Boundary/Collision real data`: 현재 토글/표시가 아니라 safety gate 입력으로 쓸 실제 판정 데이터를 만든다.
+  - `Manual readback teaching simulation`: 실기기 수동 이동 readback 루프를 Unity/Mock에서 먼저 증명한다.
+  - `Program Run/Step queue`: `PendantV3Points`를 실행 가능한 teaching sequence로 승격한다.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
-  - `Program Run/Step queue`: 단일 pending preview 실행을 넘어 step queue를 정의한다.
+  - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:
-  - 실제 FR5 `MoveJ / MoveL / DO / ToolDO / MoveGripper`를 operator safety confirm UX, boundary/collision real data, production IK policy 없이 열지 않는다.
+  - 실제 FR5 `MoveJ / MoveL / DO / ToolDO / MoveGripper`를 manual readback simulation, operator safety confirm UX, production IK policy 없이 열지 않는다.
   - live command를 열기 전에 `RunLiveSdkReadbackGateForDebug()` readback-only부터 수행한다.
 
 ## Done Checklist
@@ -225,7 +229,8 @@
 - [x] PGEA attached visual prefab 이관/연결
 - [x] live SDK gripper capability/readback scaffold
 - [x] live command safety gate scaffold (`RunLiveCommandSafetyGateMatrixForDebug`: `12/12 PASS`)
-- [ ] live SDK/ROS command operator confirm UX
+- [x] product operator confirm token UX (`RunProductLiveConfirmTokenMatrixForDebug`: `4/4 PASS`)
+- [ ] live SDK/ROS command real-device readback comparison
 
 ### `2C-1` 안전/진단 scaffold
 - [x] `safety-diagnostics-panel.uxml` / `.uss` 생성
@@ -299,18 +304,23 @@
 
 ## Next Verification Loop
 
-1. `unityctl check --type compile`
-2. `play` 시작 규칙 확인
+1. `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
+2. `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
+3. 핵심 matrix 재실행
+   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
+   - `RunActualUiClickMatrixForDebug()` -> `95/95 PASS`
+   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
+   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
+   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
+4. `play` 시작 규칙 확인
    - 기본값 `Always Start From Onboarding = true`
    - direct V3 검증이 필요하면 QA용으로만 일시 해제하고, 종료 후 복구
-3. 다음 세션 시작 전에 **표시 대상 패널 확정**
-   - `WorkPanel`을 메인 로봇 표시 패널로 유지
-   - `ViewportHost`는 보조 패널로만 취급
-4. 확정한 패널 기준으로만 구현
-   - 세션 중간에 `ViewportHost 유지 ↔ 내장형`을 다시 뒤집지 않음
-5. `Onboarding -> V3 버튼 -> RobotControlV3` 자연 진입 경로 먼저 복구
-6. 그 다음에야 `WorkPanel` 안 `RobotStage` 위치에 로봇 렌더를 붙임
-7. 패널 결정과 라우팅이 잠기기 전에는 `RT/RawImage bridge`, `camera safe framing`, `툴바 no-fly-zone` 재실험 금지
+5. 다음 구현은 handoff 우선순위를 따른다.
+   - `Manual readback teaching simulation`
+   - `Program Run/Step queue`
+   - `Point MoveJ production IK policy`
+   - `Boundary/Collision warning-only future`
+6. live command는 operator confirm UX와 production IK policy 없이 열지 않는다.
 
 ## Latest Test Result
 

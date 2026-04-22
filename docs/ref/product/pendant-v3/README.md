@@ -12,7 +12,7 @@
 - [robot-button-integration-plan.md](./robot-button-integration-plan.md) — V3 버튼-로봇 연동 SSOT
 
 ## Last Updated
-- 2026-04-21 (KST)
+- 2026-04-22 (KST)
 
 ---
 
@@ -24,7 +24,7 @@
 3. **UI 먼저, 기능 나중에**: 셸 + 패널 레이아웃 완성 → V1에서 로직 가져오거나 새로 추가
 4. **모듈식 문서**: 기능별 와이어프레임을 별도 파일로 분리, 이 README가 인덱스
 
-### 현재 실행 스냅샷 (2026-04-20)
+### 현재 실행 스냅샷 (2026-04-22)
 - `2C-1` 안전/진단: 배너 + fault overlay + diagnostics scaffold 완료, action/policy wiring 후속
 - `2C-2` 뷰포트 보조 UI: viewport toolbar + boundary/collision visual scaffold 완료, visualization 실데이터 연동 후속
 - `2D` 팝업/도움말: confirm/unsaved + move/warning/recovery + help-panel/WhyItMoved 최소 scaffold 완료, `first-run guide`와 정책 심화 후속
@@ -53,9 +53,28 @@
   - `robot-button-integration-plan.md`를 버튼 연동 SSOT로 추가했다.
   - 모든 V3 버튼은 `wired / partial / stub / pending / excluded` 중 하나로 분류한다.
   - 구현은 `V2 성공패턴(구조/검증)` + `FAIRINO 공식 SDK 기능 범위` + `V3 문서/레이아웃 잠금`을 같이 비교하며 진행한다.
-  - Live 실기 이동은 Mock e2e 완료 전까지 금지한다.
+  - Mock e2e와 live command safety gate scaffold는 통과했다.
+  - Live 실기 이동은 `manual readback simulation`, `operator confirm UX`, `production IK policy`가 준비될 때까지 계속 금지한다.
+- 2026-04-22 문서 정합성 잠금
+  - 최신 handoff 기준 커밋은 `853d6c5 Document RobotControl V3 next session handoff`다.
+  - 이후 우선순위는 teaching sequence/readback 기반을 먼저 보는 방향으로 재정렬했다.
+- 2026-04-22 product live confirm token
+  - `Run/Move` 확인 팝업에서 non-DryRun 명령용 1회성 live token을 발급/표시한다.
+  - 확인 버튼은 token을 live gate 승인으로 승격하고, 취소는 token을 폐기한다.
+  - 이후 논의에서 boundary/collision은 hard gate가 아니라 warning/future로 내리고, teaching sequence/readback 기반을 먼저 보기로 조정했다.
+- 2026-04-22 teaching sequence execution plan
+  - `PendantV3Points`를 단순 저장 목록에서 실행 가능한 티칭 시퀀스로 승격하는 전체 계획을 추가했다.
+  - 오늘 이후 우선순위는 boundary/collision보다 `Program Run/Step queue`와 point sequence execution을 먼저 본다.
+  - 실기기 연동 전에는 Unity/Mock에서 `manual readback -> RobotStage -> 값 표시 -> 포인트 저장 -> DryRun replay` 루프를 먼저 통과해야 한다.
+  - Teaching sequence v1은 `readback 저장`, `Step preview only`, `Run pending-first then sequence`, `위/아래 순서변경`, `unique point name`으로 잠근다.
+  - 왼쪽 Nav에는 새 `Program` 탭을 추가하지 않고, 기존 `NavPoints`를 `포인트 / 시퀀스 / 함수` 내부 확장 구조로 승격한다.
+  - 기존 상용 티칭펜던트보다 쉬운 UX를 목표로 `현재 위치로 덮어쓰기`, readable point detail, `선택 지점부터 실행`, 쉬운 함수명(`Pick`, `Place`)을 계획에 포함한다.
+  - 포인트 이름은 사용자 입력으로 잠그고, 빈 이름 저장 금지, 중복 이름은 확인 후 덮어쓰기, 실행 중 편집 금지, 실패 시 즉시 정지로 정한다.
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
 - 오늘 구현 로그:
+  - `docs/daily/04-22/pendant-v3-teaching-sequence-execution-plan.md`
+  - `docs/daily/04-22/pendant-v3-product-live-confirm-token.md`
+  - `docs/daily/04-22/pendant-v3-doc-consistency-refresh.md`
   - `docs/daily/04-21/pendant-v3-button-robot-integration-ssot.md`
   - `docs/daily/04-21/pendant-v3-aux-compact-no-horizontal-scroll.md`
   - `docs/daily/04-20/pendant-v3-workpanel-robot-display-lock.md`
@@ -146,14 +165,14 @@
 | 좌표 표시 | [feature-coordinates.md](./feature-coordinates.md) | ViewState에 정의 |
 | E-stop/정지 계열 | [feature-safety-controls.md](./feature-safety-controls.md) | V2 버튼 있음 |
 | 에러 진단/복구 | [feature-diagnostics.md](./feature-diagnostics.md) | V2 플레이스홀더 |
-| 3D 프리뷰/디지털 트윈 | [feature-3d-viewport.md](./feature-3d-viewport.md) | Phase 5에서 구현 |
+| 3D 프리뷰/디지털 트윈 | [feature-3d-viewport.md](./feature-3d-viewport.md) | RobotStage/toolbar scaffold wired, boundary/collision warning-only future |
 
 ### P1 - 선택 (V3 평가 후 순차 추가)
 
 | 기능 | 문서 | SSOT 상태 |
 |------|------|-----------|
-| 포인트 저장/호출 | [feature-points-teaching.md](./feature-points-teaching.md) | SSOT 추가 필요 |
-| IO/그리퍼 제어 | [feature-io-peripherals.md](./feature-io-peripherals.md) | SSOT 추가 필요 |
+| 포인트 저장/호출 | [feature-points-teaching.md](./feature-points-teaching.md) | PointMove v1 wired, production IK/sequence policy pending |
+| IO/그리퍼 제어 | [feature-io-peripherals.md](./feature-io-peripherals.md) | mock/live-gated facade wired, live command UX pending |
 | 초보자/전문가 모드 | [feature-user-modes.md](./feature-user-modes.md) | BeginnerMode 확장 |
 | Undo/Redo + 히스토리 | [feature-history.md](./feature-history.md) | Roadmap P1 |
 
@@ -305,7 +324,7 @@
 | 색상 테마 | 다크 고정 (V2 Colors) |
 | 아이콘 | PNG 64x64 @2x 투명배경 |
 | 텍스트 리소스 | ScriptableObject (`PendantLocalization.asset`) — Inspector 수정 가능, 후속 다국어 |
-| 포인트 저장 | JSON, `persistentDataPath/points/` |
+| 포인트 저장 | JSON, `persistentDataPath/waypoints/PendantV3Points.json` |
 | Undo 깊이 | 50개 |
 | 이벤트 로그 | 200개 FIFO |
 | 자동 재연결 | 10회 (3초 간격) |
@@ -424,7 +443,7 @@
 - [feature-3d-viewport.md](./feature-3d-viewport.md) — 3D 디지털 트윈 + 프리뷰 + 궤적
 
 ### P1 선택 기능
-- [feature-points-teaching.md](./feature-points-teaching.md) — 포인트 저장/호출/시퀀스
+- [feature-points-teaching.md](./feature-points-teaching.md) — 포인트 저장/호출/시퀀스 (`NavPoints` 내부 확장)
 - [feature-io-peripherals.md](./feature-io-peripherals.md) — IO/그리퍼/외부장치
 - [feature-user-modes.md](./feature-user-modes.md) — 초보자/전문가 모드
 - [feature-history.md](./feature-history.md) — Undo/Redo + 포즈 히스토리
@@ -438,6 +457,7 @@
 ### 전략
 - [migration-strategy.md](./migration-strategy.md) — V1/V2 재사용 + V3 전환 계획
 - [implementation-plan.md](./implementation-plan.md) — **전체 구현 플랜** (Pre~Phase 8, 잠금 변수 + 운영 규칙 A~R)
+- [teaching-sequence-execution-plan.md](./teaching-sequence-execution-plan.md) — `PendantV3Points` 실행 시퀀스 승격 계획
 - [context-panel-density-remediation-plan.md](./context-panel-density-remediation-plan.md) — 오른쪽 컬럼 과밀 원인과 페이즈별 해결 계획
 - [phase-3a-binder-scene-bootstrap-lock.md](./phase-3a-binder-scene-bootstrap-lock.md) — 3A 1차 범위 잠금과 책임 분리
 - [progress-checklist.md](./progress-checklist.md) — **현재 진행률 체크리스트**

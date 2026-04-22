@@ -8,11 +8,54 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-03 (KST)
+- 2026-04-22 (KST)
 
 ## SSOT 상태
-- **SSOT 추가 필요**: 현재 SSOT에 포인트 관리 범위가 정의되어 있지 않음
-- V1 Backlog에 "선택" 항목으로 존재
+- **SSOT 확정**: V3 PointMove v1에서 save/recall/list/delete/rename/export/cleanup이 wired 상태다.
+- 저장소는 기존 `WaypointStore`를 재사용하며 V3 sequence 이름은 `PendantV3Points`다.
+- 현재 production gap은 `PendantV3Points`를 실행 가능한 teaching sequence로 승격하는 것이다.
+- 전체 실행 계획은 [teaching-sequence-execution-plan.md](./teaching-sequence-execution-plan.md)를 SSOT로 본다.
+- 확장 방향은 새 왼쪽 `Program` 탭이 아니라 기존 `NavPoints` 내부의 `포인트 / 시퀀스 / 함수` subview다.
+
+---
+
+## Navigation Expansion Policy
+
+- 왼쪽 메인 Nav는 현재 `NavPoints`를 유지한다.
+- `NavPoints`의 의미는 "포인트 저장"에서 "티칭 포인트 + 실행 시퀀스"로 확장한다.
+- 제조사 Lua/program 기능과 혼동되는 별도 `Program` left-nav는 만들지 않는다.
+- 상용 티칭펜던트식 확장은 `NavPoints` 내부 subview로 나눈다.
+  - `포인트`: 저장, 호출, 조회, 수정, 삭제.
+  - `시퀀스`: 순서 조정, Step, Run, Stop, Loop.
+  - `함수`: 여러 티칭 포인트 묶음, 후속 기능.
+
+## Ease-Of-Use Policy
+
+- 기존 상용 티칭펜던트보다 쉬운 흐름을 목표로 한다.
+- 사용자는 position register, program node, script 용어를 몰라도 포인트를 저장하고 실행할 수 있어야 한다.
+- 포인트 상세는 반드시 사람이 읽기 쉬워야 한다.
+  - 이름
+  - MoveJ/MoveL
+  - Joint
+  - TCP
+  - speed
+  - dwell
+- 상용 pendant의 touch-up은 `현재 위치로 덮어쓰기`로 제공한다.
+- `Run From Selected`는 `선택 지점부터 실행`으로 표현한다.
+- 함수화는 `함수` subview에서 `Pick`, `Place`, `HomeReturn` 같은 현장 언어를 우선한다.
+
+## Locked V1 Behavior
+
+- 포인트 이름은 사용자 입력이다.
+- 빈 이름은 저장하지 않고 명확한 안내를 보여준다.
+- 중복 이름은 확인 후 기존 포인트를 덮어쓴다.
+- 덮어쓰기는 기존 순서를 유지한다.
+- `현재 위치로 덮어쓰기`는 `jointsDeg`와 `tcpMm`만 바꾸고 `moveType`, `speedPreset`, `dwellSec`는 유지한다.
+- 기본 저장 moveType은 `MoveJ`다.
+- v1 저장 기준 좌표계는 Base다.
+- 실행 중에는 삭제, 순서 변경, 이름 변경, 덮어쓰기, 복사를 잠근다.
+- 시퀀스 실행 중 실패하면 즉시 정지하고 실패한 포인트를 선택 상태로 남긴다.
+- 포인트 목록은 사용자 순서를 유지하며 이름순 자동 정렬을 하지 않는다.
 
 ---
 
@@ -72,7 +115,7 @@
 
 ---
 
-## 티칭 시퀀스 편집 (WorkTabBar > 티칭)
+## 티칭 시퀀스 편집 (NavPoints > 시퀀스)
 
 ```text
 ┌─ 티칭 시퀀스 ────────────────────────────────┐
