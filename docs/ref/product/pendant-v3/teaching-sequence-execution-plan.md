@@ -573,6 +573,13 @@ Done when:
 
 - Matrix proves readback -> RobotStage -> values -> save -> recall works without live hardware.
 
+Status:
+
+- Done on 2026-04-22.
+- `RunManualReadbackTeachingMatrixForDebug()`: `6/6 PASS`.
+- Artifact: `Artifacts/robotcontrolv3-manual-readback-teaching.json`.
+- Self-review: readback simulation lives in `App/Fairino/Teaching`, uses `FairinoConnectionService.OnStateUpdated`, and does not write UI fields directly.
+
 ### Phase A - Sequence Runtime Adapter
 
 Goal: make `PendantV3Points` loadable as a V3 execution queue.

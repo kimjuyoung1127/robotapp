@@ -45,6 +45,8 @@ namespace KineTutor3D.App.Fairino
         private WaypointCycleRunner waypointRunner;
         private RobotControlPeripheralFacade peripheralFacade;
         private LiveCommandSafetyGate liveCommandSafetyGate;
+        private ManualReadbackTeachingProbe manualReadbackTeachingProbe;
+        private TeachingPointStoreAdapter teachingPointStoreAdapter;
         private RobotKinematicsFacade previewKinematicsFacade;
         private FR5EndEffectorAttachment endEffectorAttachment;
         private Camera stageCamera;
@@ -251,6 +253,23 @@ namespace KineTutor3D.App.Fairino
             var pendingActive = pendingLiveApprovalUntilUtc > now && (pendingLiveApprovalRequired || pendingLiveApprovalKind != LiveCommandKind.ReadbackOnly);
             var approvedActive = approvedLiveCommandUntilUtc > now && approvedLiveCommandKind != LiveCommandKind.ReadbackOnly;
             return $"pending={pendingActive}; pendingRequired={pendingLiveApprovalRequired}; pendingKind={pendingLiveApprovalKind}; pendingToken={pendingLiveApprovalToken}; pendingExpires={pendingLiveApprovalUntilUtc:O}; approved={approvedActive}; approvedKind={approvedLiveCommandKind}; approvedToken={approvedLiveCommandToken}; approvedExpires={approvedLiveCommandUntilUtc:O}";
+        }
+
+        public string SimulateManualReadbackForDebug(double[] jointsDeg, double[] tcpMm)
+        {
+            ForceInitialize();
+            manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
+            var result = manualReadbackTeachingProbe.SimulateManualMove(jointsDeg, tcpMm);
+            RefreshSnapshot();
+            return result.IsSuccess
+                ? $"manualReadback=True; {FormatRobotStateForDebug(result.Value)}; {GetDebugSummary()}"
+                : $"manualReadback=False; error={result.Message}; {GetDebugSummary()}";
+        }
+
+        public string GetTeachingPointStoreSummaryForDebug()
+        {
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            return teachingPointStoreAdapter.BuildSummary();
         }
 
         public string ResolvePendingLiveCommandKindForProduct()
@@ -1165,6 +1184,11 @@ namespace KineTutor3D.App.Fairino
             return Guid.NewGuid().ToString("N").Substring(0, 6).ToUpperInvariant();
         }
 
+        private static string FormatRobotStateForDebug(FairinoRobotState state)
+        {
+            return $"joints=[{string.Join(",", FormatValues(state.JointPosDeg, "0.0"))}]; tcp=[{string.Join(",", FormatValues(state.TcpPose, "0.0"))}]; enabled={state.IsRobotEnabled}; mode={state.RobotMode}; fault={state.MainErrorCode}/{state.SubErrorCode}";
+        }
+
         private static LiveCommandKind ParseLiveCommandKind(string commandKind)
         {
             return commandKind switch
@@ -1229,6 +1253,8 @@ namespace KineTutor3D.App.Fairino
             waypointRunner.Inject(connectionService, config, presetAnimator);
             peripheralFacade ??= new RobotControlPeripheralFacade(connectionService);
             liveCommandSafetyGate ??= new LiveCommandSafetyGate();
+            manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
         }
 
         private void BindConnectionEvents()

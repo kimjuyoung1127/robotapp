@@ -430,6 +430,41 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// Mock에서 외부 수동 이동 readback을 재현하고 기존 상태 갱신 이벤트로 발행합니다.
+        /// </summary>
+        public FairinoResult<FairinoRobotState> SimulateExternalReadbackForDebug(double[] jointsDeg, double[] tcpPose)
+        {
+            if (client is not MockFairinoClient mockClient)
+            {
+                return FairinoResult<FairinoRobotState>.Fail(-81, "manual readback simulation은 Mock 클라이언트에서만 지원합니다.");
+            }
+
+            var applyResult = mockClient.SimulateExternalReadback(jointsDeg, tcpPose);
+            if (!applyResult.IsSuccess)
+            {
+                OnError?.Invoke(applyResult);
+                return FairinoResult<FairinoRobotState>.Fail(applyResult.ErrorCode, applyResult.Message);
+            }
+
+            var result = client.ReadState();
+            if (result.IsSuccess)
+            {
+                lastState = result.Value;
+                lastSafetyCode = result.Value.SafetyCode;
+                lastRealtimeStateSamplePeriodMs = result.Value.RealtimeStateSamplePeriodMs;
+                lastCoordContext = new FairinoCoordContext(result.Value.ToolId, result.Value.UserId, lastCoordContext.ToolPose, lastCoordContext.WObjPose);
+                lastControllerFault = new FairinoControllerFault(result.Value.MainErrorCode, result.Value.SubErrorCode, result.Value.IsSafetyStop);
+                OnStateUpdated?.Invoke(lastState);
+            }
+            else
+            {
+                OnError?.Invoke(new FairinoResult(result.ErrorCode, result.Message));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 상태 폴링 간격을 설정합니다 (초 단위).
         /// </summary>
         public void SetPollInterval(float seconds)

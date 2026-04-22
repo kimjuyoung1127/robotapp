@@ -156,6 +156,31 @@ namespace KineTutor3D.App.Fairino
         }
 
         /// <summary>
+        /// 외부 수동 이동으로 들어온 readback 상태를 Mock 내부 상태에 반영합니다.
+        /// </summary>
+        public FairinoResult SimulateExternalReadback(double[] jointPosDeg, double[] tcpPose)
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            if (jointPosDeg == null || jointPosDeg.Length != 6)
+            {
+                return FairinoResult.Fail(-3, "6축 관절 값이 필요합니다.");
+            }
+
+            if (tcpPose == null || tcpPose.Length != 6)
+            {
+                return FairinoResult.Fail(-4, "6축 TCP 포즈가 필요합니다.");
+            }
+
+            Array.Copy(jointPosDeg, currentJointPosDeg, 6);
+            Array.Copy(tcpPose, currentTcpPose, 6);
+            return FairinoResult.Ok("Mock manual readback 적용");
+        }
+
+        /// <summary>
         /// 모든 동작을 정지합니다 (Mock: 즉시 성공).
         /// </summary>
         public FairinoResult StopMotion()

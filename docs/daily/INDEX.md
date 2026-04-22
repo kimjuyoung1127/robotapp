@@ -140,3 +140,4 @@
 - [pendant-v3-doc-consistency-refresh.md](./04-22/pendant-v3-doc-consistency-refresh.md)
 - [pendant-v3-product-live-confirm-token.md](./04-22/pendant-v3-product-live-confirm-token.md)
 - [pendant-v3-teaching-sequence-execution-plan.md](./04-22/pendant-v3-teaching-sequence-execution-plan.md)
+- [pendant-v3-manual-readback-teaching-phase0.md](./04-22/pendant-v3-manual-readback-teaching-phase0.md)

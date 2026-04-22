@@ -323,6 +323,14 @@ namespace KineTutor3D.App
             return GetRuntimeController().GetLiveCommandApprovalSummaryForDebug();
         }
 
+        public static string SimulateManualReadbackForDebug()
+        {
+            var runtime = GetRuntimeController();
+            return runtime.SimulateManualReadbackForDebug(
+                new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 });
+        }
+
         public static string SetPointMoveMotionKindForDebug(string motionKind)
         {
             var pointMove = GetPointMoveController();
@@ -1172,6 +1180,107 @@ namespace KineTutor3D.App
                 "approved=False");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-product-live-confirm-token.json", "ProductLiveConfirmToken");
+        }
+
+        public static string RunManualReadbackTeachingMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "manual-readback-teaching",
+            };
+
+            var runtime = GetRuntimeController();
+            var joints = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 };
+            var tcp = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 };
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetMovementStateSummaryForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            void PreparePointPanel()
+            {
+                runtime.Disconnect();
+                runtime.ConnectDefault();
+                runtime.EnableServo();
+                if (!runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+
+                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                GetPanelControllerSummary();
+                SetPointMoveNameForDebug("READBACK_A");
+            }
+
+            AddCase(
+                "simulate-readback-updates-runtime",
+                PreparePointPanel,
+                () => runtime.SimulateManualReadbackForDebug(joints, tcp),
+                "manualReadback=True");
+
+            AddCase(
+                "snapshot-reflects-readback-joints",
+                () => runtime.SimulateManualReadbackForDebug(joints, tcp),
+                GetMovementStateSummaryForDebug,
+                "12.0,-38.0,18.0");
+
+            AddCase(
+                "robotstage-summary-present-after-readback",
+                () => runtime.SimulateManualReadbackForDebug(joints, tcp),
+                GetRobotStageRenderSummary,
+                "initialized=True");
+
+            AddCase(
+                "point-save-stores-readback",
+                () =>
+                {
+                    runtime.SimulateManualReadbackForDebug(joints, tcp);
+                    SetPointMoveNameForDebug("READBACK_A");
+                    SavePointMoveForDebug();
+                },
+                () => GetMovementStateSummaryForDebug() + " | points=" + GetPointMoveListSummaryForDebug(),
+                "READBACK_A");
+
+            AddCase(
+                "store-summary-includes-readback-point",
+                null,
+                () => runtime.GetTeachingPointStoreSummaryForDebug(),
+                "READBACK_A");
+
+            AddCase(
+                "recall-saved-readback-point",
+                () => RecallPointMoveForDebug("READBACK_A"),
+                () => GetPointMoveControllerSummary() + " | " + GetPointMoveListSummaryForDebug(),
+                "active=READBACK_A");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-manual-readback-teaching.json", "ManualReadbackTeaching");
         }
 
         public static string RunSafetyFaultActualFlowForDebug()
