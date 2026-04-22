@@ -25,6 +25,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 DetailMeta = root.Q<Label>("PointDetailMeta");
                 DetailJoints = root.Q<Label>("PointDetailJoints");
                 DetailTcp = root.Q<Label>("PointDetailTcp");
+                BtnSpeedSlow = root.Q<Button>("BtnPointSpeedSlow");
+                BtnSpeedMedium = root.Q<Button>("BtnPointSpeedMedium");
+                BtnSpeedFast = root.Q<Button>("BtnPointSpeedFast");
+                DwellInput = root.Q<TextField>("PointDwellInput");
+                BtnTimingApply = root.Q<Button>("BtnPointTimingApply");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
                 BtnRestore = root.Q<Button>("BtnPointRestore");
                 BtnSave = root.Q<Button>("BtnPointSave");
@@ -84,6 +89,11 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label DetailMeta { get; }
             public Label DetailJoints { get; }
             public Label DetailTcp { get; }
+            public Button BtnSpeedSlow { get; }
+            public Button BtnSpeedMedium { get; }
+            public Button BtnSpeedFast { get; }
+            public TextField DwellInput { get; }
+            public Button BtnTimingApply { get; }
             public Label FeedbackSummary { get; }
             public Button BtnRestore { get; }
             public Button BtnSave { get; }

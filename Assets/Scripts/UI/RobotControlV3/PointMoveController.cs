@@ -38,6 +38,12 @@ namespace KineTutor3D.UI.RobotControlV3
         private PanelElements tabletPanel;
         private string activeCoordSystem = PendantV3LocalState.DefaultCoordSystem;
         private string motionKind = "MoveJ";
+        private string selectedSpeedPreset = "medium";
+        private double selectedDwellSec;
+        private bool isDwellInvalid;
+        private string pendingConfirmKind = string.Empty;
+        private string pendingConfirmName = string.Empty;
+        private bool debugSequenceEditLocked;
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
@@ -156,6 +162,28 @@ namespace KineTutor3D.UI.RobotControlV3
             return BuildPointDetailDebugSummary();
         }
 
+        public string SetPointTimingForDebug(string speedPreset, double dwellSec)
+        {
+            SetSelectedSpeedPreset(speedPreset);
+            selectedDwellSec = dwellSec;
+            isDwellInvalid = false;
+            ApplyAll();
+            return GetDebugSummary();
+        }
+
+        public string ApplyPointTimingForDebug()
+        {
+            ApplySelectedPointTiming();
+            return GetSelectedPointDetailForDebug();
+        }
+
+        public string SetSequenceEditLockedForDebug(bool locked)
+        {
+            debugSequenceEditLocked = locked;
+            ApplyAll();
+            return GetDebugSummary();
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -170,6 +198,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public string SetPointNameForDebug(string pointName)
         {
+            ClearPendingConfirmation();
             SetPointName(pointName);
             ApplyAll();
             return GetDebugSummary();
@@ -180,6 +209,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var index = AxisIndexFromLabel(axisLabel);
             currentValues[index] = value;
             recalledPoint = null;
+            ClearPendingConfirmation();
             ApplyAll();
             return GetDebugSummary();
         }
@@ -190,7 +220,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var runtimeRobot = motionRuntime?.RobotId ?? "none";
             var canPreviewAction = CanPreview() && IsAnyPanelVisible();
             var canApplyAction = CanApply() && IsAnyPanelVisible();
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; motion={motionKind}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         private bool TryInitialize()
@@ -273,10 +303,15 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnUp, () => MovePointInSequence(-1));
             RegisterClick(panel.BtnDown, () => MovePointInSequence(1));
             RegisterClick(panel.BtnOverwrite, OverwriteSelectedPointWithCurrentReadback);
+            RegisterClick(panel.BtnSpeedSlow, () => SetSelectedSpeedPreset("slow"));
+            RegisterClick(panel.BtnSpeedMedium, () => SetSelectedSpeedPreset("medium"));
+            RegisterClick(panel.BtnSpeedFast, () => SetSelectedSpeedPreset("fast"));
+            RegisterClick(panel.BtnTimingApply, ApplySelectedPointTiming);
             RegisterClick(panel.BtnExport, ExportPoints);
             RegisterClick(panel.BtnCleanup, CleanupPoints);
             RegisterClick(panel.BtnPreview, PreviewMotionCandidate);
             RegisterClick(panel.BtnApply, ApplyMotionCandidate);
+            panel.DwellInput?.RegisterValueChangedCallback(evt => HandleDwellChanged(evt.newValue));
             for (var index = 0; index < panel.ValueInputs.Length; index++)
             {
                 var capturedIndex = index;
@@ -338,17 +373,20 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.FeedbackSummary.text = lastFeedback;
             var canPreview = CanPreview() && IsAnyPanelVisible();
             var canApply = CanApply() && IsAnyPanelVisible();
+            var canEdit = !IsSequenceEditLocked();
             panel.BtnRestore.SetEnabled(canPreview);
             panel.BtnPreview.SetEnabled(canPreview);
             panel.BtnApply.SetEnabled(canApply);
-            panel.BtnDelete.SetEnabled(recalledPoint != null || HasNamedPoint(panel.PointNameInput?.value));
-            panel.BtnRename.SetEnabled(recalledPoint != null);
-            panel.BtnDuplicate.SetEnabled(recalledPoint != null);
-            panel.BtnUp.SetEnabled(CanMoveSelectedPoint(-1));
-            panel.BtnDown.SetEnabled(CanMoveSelectedPoint(1));
-            panel.BtnOverwrite.SetEnabled(recalledPoint != null);
+            panel.BtnSave.SetEnabled(canEdit);
+            panel.BtnDelete.SetEnabled(canEdit && (recalledPoint != null || HasNamedPoint(panel.PointNameInput?.value)));
+            panel.BtnRename.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnDuplicate.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnUp.SetEnabled(canEdit && CanMoveSelectedPoint(-1));
+            panel.BtnDown.SetEnabled(canEdit && CanMoveSelectedPoint(1));
+            panel.BtnOverwrite.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnTimingApply.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
             panel.BtnExport.SetEnabled(HasAnyPoint());
-            panel.BtnCleanup.SetEnabled(HasAnyPoint());
+            panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnApply.text = IsMoveLDispatchMode()
                 ? (CanApply() ? "적용" : "적용 (연결 대기)")
                 : (CanApply() ? "적용 (MoveJ)" : "적용 (연결 대기)");
@@ -359,6 +397,27 @@ namespace KineTutor3D.UI.RobotControlV3
                 panel.ValueInputs[index].SetValueWithoutNotify(currentValues[index].ToString("0.0", CultureInfo.InvariantCulture));
                 panel.ValueInputs[index].EnableInClassList("rc-point-cell-input--danger", index == lastInvalidIndex);
             }
+        }
+
+        private void HandleDwellChanged(string rawValue)
+        {
+            if (!double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                || double.IsNaN(parsed)
+                || double.IsInfinity(parsed)
+                || parsed < 0.0
+                || parsed > 600.0)
+            {
+                isDwellInvalid = true;
+                ApplyPanel(desktopPanel);
+                ApplyPanel(tabletPanel);
+                return;
+            }
+
+            selectedDwellSec = parsed;
+            isDwellInvalid = false;
+            ClearPendingConfirmation();
+            ApplyPanel(desktopPanel);
+            ApplyPanel(tabletPanel);
         }
 
         private void ApplyVisibility()
@@ -423,6 +482,7 @@ namespace KineTutor3D.UI.RobotControlV3
             recalledPoint = null;
             lastInvalidIndex = -1;
             isPointNameInvalid = false;
+            ClearPendingConfirmation();
             ApplyPanel(desktopPanel);
             ApplyPanel(tabletPanel);
         }
@@ -536,6 +596,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void SaveCurrentPoint()
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 포인트 저장/편집을 잠근다. Stop 후 다시 저장해라.");
+                return;
+            }
+
             if (!IsAnyPanelVisible())
             {
                 SetFeedback("포인트 이동 패널이 열려 있을 때만 저장할 수 있다.");
@@ -548,17 +614,26 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            var sequence = LoadPointSequenceIfExists() ?? WaypointStore.CreateEmpty(PointSequenceName);
+            var existingIndex = FindWaypointIndex(sequence, pointName);
+            var existingPoint = existingIndex >= 0 ? sequence.waypoints[existingIndex] : null;
             var waypoint = new Waypoint
             {
                 name = pointName,
                 jointsDeg = ReadCurrentSnapshotJoints(),
                 tcpMm = ReadCurrentSnapshotTcp(),
                 moveType = motionKind,
-                speedPreset = "medium",
-                dwellSec = 0.0
+                speedPreset = NormalizeSpeedPreset(existingPoint?.speedPreset ?? "medium"),
+                dwellSec = existingPoint?.dwellSec ?? 0.0
             };
 
-            var sequence = LoadPointSequenceIfExists() ?? WaypointStore.CreateEmpty(PointSequenceName);
+            if (existingIndex >= 0 && !IsPendingConfirmation("save-overwrite", pointName))
+            {
+                SetPendingConfirmation("save-overwrite", pointName);
+                SetFeedback($"[Confirm] {pointName} 이름이 이미 있다. 같은 이름으로 저장하려면 저장을 한 번 더 눌러 기존 위치를 덮어쓴다.");
+                return;
+            }
+
             ReplaceWaypoint(sequence, waypoint);
             if (!WaypointStore.Save(sequence))
             {
@@ -566,6 +641,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            ClearPendingConfirmation();
             recalledPoint = CloneWaypoint(waypoint);
             SetFeedback($"[Save] {pointName} 저장 · saved joint target 포함");
         }
@@ -586,6 +662,10 @@ namespace KineTutor3D.UI.RobotControlV3
             recalledPoint = CloneWaypoint(waypoint);
             SetPointName(recalledPoint.name);
             motionKind = recalledPoint.moveType == "MoveL" ? "MoveL" : "MoveJ";
+            selectedSpeedPreset = NormalizeSpeedPreset(recalledPoint.speedPreset);
+            selectedDwellSec = recalledPoint.dwellSec;
+            isDwellInvalid = false;
+            ClearPendingConfirmation();
             for (var index = 0; index < currentValues.Length && index < recalledPoint.tcpMm.Length; index++)
             {
                 currentValues[index] = (float)recalledPoint.tcpMm[index];
@@ -596,6 +676,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void DeletePoint(string requestedName)
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 삭제를 잠근다. Stop 후 다시 삭제해라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
             {
@@ -610,6 +696,13 @@ namespace KineTutor3D.UI.RobotControlV3
             if (index < 0)
             {
                 SetFeedback($"{pointName} 포인트를 찾지 못했다.");
+                return;
+            }
+
+            if (!IsPendingConfirmation("delete", pointName))
+            {
+                SetPendingConfirmation("delete", pointName);
+                SetFeedback($"[Confirm] {pointName} 삭제 예정. 이 포인트는 순서 목록에서 제거된다. 삭제를 한 번 더 누르면 실행한다.");
                 return;
             }
 
@@ -629,11 +722,18 @@ namespace KineTutor3D.UI.RobotControlV3
                 recalledPoint = null;
             }
 
+            ClearPendingConfirmation();
             SetFeedback($"[Delete] {deletedName} 삭제");
         }
 
         private void RenamePoint(string oldName, string newName)
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 이름 변경을 잠근다. Stop 후 다시 수정해라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
             {
@@ -670,6 +770,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            ClearPendingConfirmation();
             recalledPoint = CloneWaypoint(sequence.waypoints[oldIndex]);
             SetPointName(toName);
             SetFeedback($"[Rename] {fromName} -> {toName}");
@@ -677,6 +778,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void DuplicateSelectedPoint()
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 복사를 잠근다. Stop 후 다시 복사해라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             if (sequence?.waypoints == null || sequence.waypoints.Length == 0 || recalledPoint == null)
             {
@@ -700,6 +807,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            ClearPendingConfirmation();
             recalledPoint = CloneWaypoint(duplicate);
             SetPointName(recalledPoint.name);
             for (var valueIndex = 0; valueIndex < currentValues.Length && valueIndex < recalledPoint.tcpMm.Length; valueIndex++)
@@ -712,6 +820,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void MovePointInSequence(int direction)
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 순서 변경을 잠근다. Stop 후 다시 이동해라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
             {
@@ -736,12 +850,19 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            ClearPendingConfirmation();
             recalledPoint = CloneWaypoint(sequence.waypoints[targetIndex]);
             SetFeedback($"[Order] {recalledPoint.name} {targetIndex + 1}번째로 이동");
         }
 
         private void OverwriteSelectedPointWithCurrentReadback()
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 덮어쓰기를 잠근다. Stop 후 다시 덮어써라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             if (sequence?.waypoints == null || sequence.waypoints.Length == 0 || recalledPoint == null)
             {
@@ -753,6 +874,13 @@ namespace KineTutor3D.UI.RobotControlV3
             if (index < 0)
             {
                 SetFeedback($"{recalledPoint.name} 포인트를 찾지 못했다.");
+                return;
+            }
+
+            if (!IsPendingConfirmation("overwrite", recalledPoint.name))
+            {
+                SetPendingConfirmation("overwrite", recalledPoint.name);
+                SetFeedback($"[Confirm] {recalledPoint.name} 현재 readback으로 덮어쓰기 예정. 이름/MoveType/speed/dwell은 유지하고 joints/TCP만 바뀐다. 덮어쓰기를 한 번 더 눌러라.");
                 return;
             }
 
@@ -772,7 +900,53 @@ namespace KineTutor3D.UI.RobotControlV3
                 currentValues[valueIndex] = (float)recalledPoint.tcpMm[valueIndex];
             }
 
+            ClearPendingConfirmation();
             SetFeedback($"[Overwrite] {recalledPoint.name} 현재 readback으로 갱신");
+        }
+
+        private void ApplySelectedPointTiming()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 포인트 편집을 잠근다. Stop 후 다시 수정해라.");
+                return;
+            }
+
+            var sequence = LoadPointSequenceIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0 || recalledPoint == null)
+            {
+                SetFeedback("속도/대기를 수정할 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            if (isDwellInvalid || selectedDwellSec < 0.0 || selectedDwellSec > 600.0)
+            {
+                isDwellInvalid = true;
+                ApplyAll();
+                SetFeedback("대기 시간은 0~600초 사이 숫자로 넣어라.");
+                return;
+            }
+
+            var index = FindWaypointIndex(sequence, recalledPoint.name);
+            if (index < 0)
+            {
+                SetFeedback($"{recalledPoint.name} 포인트를 찾지 못했다.");
+                return;
+            }
+
+            var waypoint = sequence.waypoints[index];
+            waypoint.speedPreset = NormalizeSpeedPreset(selectedSpeedPreset);
+            waypoint.dwellSec = selectedDwellSec;
+            sequence.waypoints[index] = waypoint;
+            if (!WaypointStore.Save(sequence))
+            {
+                SetFeedback("속도/대기 저장 실패");
+                return;
+            }
+
+            ClearPendingConfirmation();
+            recalledPoint = CloneWaypoint(waypoint);
+            SetFeedback($"[Timing] {recalledPoint.name} · {recalledPoint.speedPreset} · dwell {recalledPoint.dwellSec:0.0}s");
         }
 
         private void ExportPoints()
@@ -796,6 +970,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void CleanupPoints()
         {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 정리를 잠근다. Stop 후 다시 정리해라.");
+                return;
+            }
+
             var sequence = LoadPointSequenceIfExists();
             var count = sequence?.waypoints?.Length ?? 0;
             if (count == 0)
@@ -1031,9 +1211,14 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             panel.DetailTitle.text = recalledPoint.name;
-            panel.DetailMeta.text = $"{NormalizeMoveType(recalledPoint.moveType)} · {NormalizeSpeedPreset(recalledPoint.speedPreset)} · dwell {recalledPoint.dwellSec:0.0}s";
+            panel.DetailMeta.text = $"{NormalizeMoveType(recalledPoint.moveType)} · {selectedSpeedPreset} · dwell {selectedDwellSec:0.0}s";
             panel.DetailJoints.text = $"J: {FormatVector(recalledPoint.jointsDeg, "0.0")}";
             panel.DetailTcp.text = $"TCP: {FormatTcp(recalledPoint.tcpMm)}";
+            panel.BtnSpeedSlow.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "slow");
+            panel.BtnSpeedMedium.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "medium");
+            panel.BtnSpeedFast.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "fast");
+            panel.DwellInput.SetValueWithoutNotify(selectedDwellSec.ToString("0.0", CultureInfo.InvariantCulture));
+            panel.DwellInput.EnableInClassList("rc-point-dwell-input--danger", isDwellInvalid);
         }
 
         private string BuildPointDetailDebugSummary()
@@ -1177,6 +1362,36 @@ namespace KineTutor3D.UI.RobotControlV3
             };
         }
 
+        private void SetSelectedSpeedPreset(string speedPreset)
+        {
+            selectedSpeedPreset = NormalizeSpeedPreset(speedPreset);
+            ClearPendingConfirmation();
+            ApplyAll();
+        }
+
+        private bool IsSequenceEditLocked()
+        {
+            return debugSequenceEditLocked || (runtimeController != null && runtimeController.IsTeachingSequenceRunning);
+        }
+
+        private void SetPendingConfirmation(string kind, string pointName)
+        {
+            pendingConfirmKind = kind ?? string.Empty;
+            pendingConfirmName = pointName?.Trim() ?? string.Empty;
+        }
+
+        private bool IsPendingConfirmation(string kind, string pointName)
+        {
+            return string.Equals(pendingConfirmKind, kind, System.StringComparison.Ordinal)
+                && string.Equals(pendingConfirmName, pointName?.Trim() ?? string.Empty, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ClearPendingConfirmation()
+        {
+            pendingConfirmKind = string.Empty;
+            pendingConfirmName = string.Empty;
+        }
+
         private static void InsertWaypointAfter(WaypointSequence sequence, Waypoint waypoint, int sourceIndex)
         {
             var existing = sequence.waypoints ?? System.Array.Empty<Waypoint>();
@@ -1245,7 +1460,12 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string NormalizeSpeedPreset(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "medium" : value.Trim();
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                "slow" => "slow",
+                "fast" => "fast",
+                _ => "medium",
+            };
         }
 
         private static int AxisIndexFromLabel(string axisLabel)

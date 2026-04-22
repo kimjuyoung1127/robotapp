@@ -84,6 +84,7 @@ namespace KineTutor3D.App.Fairino
         internal Camera StageCamera => stageCamera;
         internal bool IsInitialized => initialized;
         internal FairinoConnectionService ConnectionServiceForDebug => connectionService;
+        public bool IsTeachingSequenceRunning => teachingSequenceRuntime?.State.IsRunning ?? false;
 
         private void OnEnable()
         {

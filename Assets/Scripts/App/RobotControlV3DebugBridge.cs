@@ -456,6 +456,24 @@ namespace KineTutor3D.App
             return pointMove.GetSelectedPointDetailForDebug();
         }
 
+        public static string SetPointMoveTimingForDebug(string speedPreset, double dwellSec)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetPointTimingForDebug(speedPreset, dwellSec);
+        }
+
+        public static string ApplyPointMoveTimingForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ApplyPointTimingForDebug();
+        }
+
+        public static string SetPointMoveEditLockedForDebug(bool locked)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetSequenceEditLockedForDebug(locked);
+        }
+
         public static string ExportPointMoveForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -940,7 +958,41 @@ namespace KineTutor3D.App
                 Select("NavMotion", "TabPointMove", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
-            }, GetPointMoveControllerSummary, "[Overwrite]");
+            }, GetPointMoveControllerSummary, "[Confirm]");
+
+            AddCase("BtnPointSpeedSlow", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetPointMoveControllerSummary, "speed=slow");
+
+            AddCase("BtnPointSpeedMedium", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+                SetPointMoveTimingForDebug("fast", 1.2);
+            }, GetPointMoveControllerSummary, "speed=medium");
+
+            AddCase("BtnPointSpeedFast", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetPointMoveControllerSummary, "speed=fast");
+
+            AddCase("BtnPointTimingApply", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+                SetPointMoveTimingForDebug("slow", 2.5);
+            }, GetPointMoveDetailForDebug, "dwell=2.5");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
@@ -1523,6 +1575,7 @@ namespace KineTutor3D.App
                         new[] { 22.0, -28.0, 8.0, -42.0, -74.0, -8.0 },
                         new[] { 522.0, 158.0, 436.0, 180.0, 0.0, 90.0 });
                     OverwritePointMoveWithReadbackForDebug("SEQ_B");
+                    OverwritePointMoveWithReadbackForDebug("SEQ_B");
                 },
                 () => GetPointMoveControllerSummary() + " | " + store.BuildSummary(),
                 "x=522.0");
@@ -1538,6 +1591,61 @@ namespace KineTutor3D.App
                 () => RecallPointMoveForDebug("SEQ_B_COPY"),
                 GetPointMoveDetailForDebug,
                 "speed=medium");
+
+            AddCase(
+                "edit-speed-dwell-persists",
+                () =>
+                {
+                    RecallPointMoveForDebug("SEQ_B_COPY");
+                    SetPointMoveTimingForDebug("fast", 2.5);
+                    ApplyPointMoveTimingForDebug();
+                },
+                GetPointMoveDetailForDebug,
+                "dwell=2.5");
+
+            AddCase(
+                "delete-confirm-copy",
+                () => DeletePointMoveForDebug("SEQ_B_COPY"),
+                GetPointMoveControllerSummary,
+                "[Confirm]");
+
+            AddCase(
+                "delete-second-click-removes",
+                () => DeletePointMoveForDebug("SEQ_B_COPY"),
+                () => GetPointMoveListSummaryForDebug() + " | " + GetPointMoveControllerSummary(),
+                "[Delete]");
+
+            AddCase(
+                "duplicate-name-save-requires-confirm",
+                () =>
+                {
+                    SetPointMoveNameForDebug("SEQ_B");
+                    SavePointMoveForDebug();
+                },
+                GetPointMoveControllerSummary,
+                "pendingConfirm=save-overwrite:SEQ_B");
+
+            AddCase(
+                "duplicate-name-save-second-click-overwrites",
+                () => SavePointMoveForDebug(),
+                GetPointMoveControllerSummary,
+                "[Save] SEQ_B");
+
+            AddCase(
+                "edit-lock-blocks-point-editing",
+                () =>
+                {
+                    SetPointMoveEditLockedForDebug(true);
+                    DuplicatePointMoveForDebug("SEQ_B");
+                },
+                GetPointMoveControllerSummary,
+                "editLocked=True");
+
+            AddCase(
+                "edit-lock-release-restores-editing",
+                () => SetPointMoveEditLockedForDebug(false),
+                GetPointMoveControllerSummary,
+                "editLocked=False");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-sequence-runtime.json", "TeachingSequenceRuntime");
         }

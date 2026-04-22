@@ -173,6 +173,43 @@
     max-width: 100%;
 }
 
+.rc-point-timing-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-timing-button {
+    flex-grow: 1;
+    min-width: 46px;
+    min-height: 28px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    font-size: 10px;
+}
+
+.rc-point-timing-button--active {
+    background-color: rgba(80, 140, 255, 0.22);
+}
+
+.rc-point-timing-button--primary {
+    background-color: rgba(80, 140, 255, 0.16);
+}
+
+.rc-point-dwell-input {
+    flex-grow: 1;
+    min-width: 56px;
+    min-height: 28px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.rc-point-dwell-input--danger {
+    background-color: rgba(255, 70, 70, 0.16);
+}
+
 .rc-point-action-row {
     flex-direction: row;
     flex-wrap: wrap;

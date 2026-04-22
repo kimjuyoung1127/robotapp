@@ -70,6 +70,13 @@
                 <ui:Label name="PointDetailMeta" text="포인트를 선택하면 이동 방식과 속도/대기 시간이 보인다." class="rc-panel-copy rc-panel-copy--compact" />
                 <ui:Label name="PointDetailJoints" text="J: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:Label name="PointDetailTcp" text="TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:VisualElement class="rc-point-timing-row">
+                    <ui:Button name="BtnPointSpeedSlow" text="느림" class="rc-point-timing-button" />
+                    <ui:Button name="BtnPointSpeedMedium" text="중간" class="rc-point-timing-button rc-point-timing-button--active" />
+                    <ui:Button name="BtnPointSpeedFast" text="빠름" class="rc-point-timing-button" />
+                    <ui:TextField name="PointDwellInput" value="0.0" class="rc-point-dwell-input" />
+                    <ui:Button name="BtnPointTimingApply" text="속도/대기" class="rc-point-timing-button rc-point-timing-button--primary" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="PointFeedbackSummary" text="아직 실행한 명령이 없다." class="rc-panel-copy rc-panel-copy--compact" />
         </ui:VisualElement>

@@ -31,8 +31,8 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate `13/13 PASS`, speed/dwell edit 후속 |
-| `3C` mock e2e | done | Desktop actual click `99/99 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock `20/20 PASS` |
+| `3C` mock e2e | done | Desktop actual click `103/103 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -164,23 +164,45 @@
   - duplicate-name overwrite confirmation
   - execution-time edit lock in visible UI
 
+## 2026-04-22 Phase C2 Easy Editing Complete
+
+- Speed/dwell editing을 추가했다.
+  - `slow / medium / fast` 선택
+  - dwell seconds 입력
+  - 선택 포인트에 speed/dwell 저장
+- 위험 편집은 2-click 확인으로 잠갔다.
+  - delete: 첫 클릭은 "순서 목록에서 제거" 안내, 두 번째 클릭이 실제 삭제
+  - overwrite: 첫 클릭은 "joints/TCP만 readback으로 교체, name/moveType/speed/dwell 유지" 안내, 두 번째 클릭이 실제 덮어쓰기
+  - duplicate-name save: 첫 저장은 기존 이름 덮어쓰기 안내, 두 번째 저장이 기존 포인트를 같은 순서에서 교체
+- 실행 중 편집 lock을 추가했다.
+  - save/delete/rename/duplicate/reorder/overwrite/cleanup/timing edit 잠금
+  - 현재 RunOnce는 동기 실행이라 짧게 끝나지만, loop/async 실행 전 UI 정책을 먼저 잠갔다.
+- Runtime은 `IsTeachingSequenceRunning`만 노출하고, 편집 UX 판단은 `PointMoveController`가 담당한다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSequenceMatrixForDebug()`: `20/20 PASS`
+  - `RunActualUiClickMatrixForDebug()`: `103/103 PASS`
+  - `GetAuxLayoutSummaryForDebug()` on PointMove: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- 콘솔에는 기존 unityctl IPC pipe 로그가 남았고, 기능 matrix failure는 없다.
+- 다음 우선순위는 `Phase D - Loop Mode` 또는 `Run From Selected` 중 하나다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
 - 최신 구현 커밋 기준:
-  - `767e9fc Reconcile Pendant V3 teaching sequence SSOT`
+  - `dae7dda Add Pendant V3 point detail duplicate editing`
 - 첫 확인 명령:
   - `unityctl status --project C:\Users\ezen601\Desktop\Jason\robotapp2 --wait --json`
   - `unityctl check --project C:\Users\ezen601\Desktop\Jason\robotapp2 --type compile --json`
   - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
 - 바로 재실행할 핵심 matrix:
   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-  - `RunActualUiClickMatrixForDebug()` -> `99/99 PASS`
+  - `RunActualUiClickMatrixForDebug()` -> `103/103 PASS`
   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`
 - 다음 구현 우선순위:
-  - `Easy point editing`: speed/dwell edit, delete/overwrite confirm copy, duplicate-name confirm.
+  - `Phase D Loop Mode` 또는 `Run From Selected`.
   - `Point MoveJ production IK policy`: saved joint target 외 numerical IK fallback은 계속 live 금지한다.
   - `Boundary/Collision`: 지금은 hard gate가 아니라 warning/future로 둔다.
 - 절대 금지:

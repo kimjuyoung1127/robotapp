@@ -146,3 +146,4 @@
 - [pendant-v3-point-order-overwrite-phase-c.md](./04-22/pendant-v3-point-order-overwrite-phase-c.md)
 - [pendant-v3-teaching-sequence-ssot-reconciliation.md](./04-22/pendant-v3-teaching-sequence-ssot-reconciliation.md)
 - [pendant-v3-phase-c2-detail-duplicate.md](./04-22/pendant-v3-phase-c2-detail-duplicate.md)
+- [pendant-v3-phase-c2-editing-locks.md](./04-22/pendant-v3-phase-c2-editing-locks.md)
