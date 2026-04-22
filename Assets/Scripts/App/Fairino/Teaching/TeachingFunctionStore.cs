@@ -70,6 +70,36 @@ namespace KineTutor3D.App.Fairino
             };
         }
 
+        public TeachingFunction CreateFromPointRefs(string functionName, string[] pointNames, string sourceName)
+        {
+            if (pointNames == null || pointNames.Length == 0)
+            {
+                return null;
+            }
+
+            var steps = new TeachingFunctionStep[pointNames.Length];
+            for (var index = 0; index < pointNames.Length; index++)
+            {
+                steps[index] = new TeachingFunctionStep
+                {
+                    kind = PointRefKind,
+                    refName = pointNames[index]?.Trim() ?? string.Empty,
+                    enabled = true,
+                    note = string.Empty
+                };
+            }
+
+            var now = DateTime.Now.ToString("O");
+            return new TeachingFunction
+            {
+                name = NormalizeName(functionName),
+                description = $"Created from selected points in {sourceName}",
+                steps = steps,
+                created = now,
+                updated = now
+            };
+        }
+
         public bool Save(TeachingFunction function)
         {
             if (function == null || string.IsNullOrWhiteSpace(function.name))

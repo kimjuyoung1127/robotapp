@@ -31,8 +31,8 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1 `31/31 PASS` |
-| `3C` mock e2e | done | Desktop actual click `110/110 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1-polish `33/33 PASS` |
+| `3C` mock e2e | done | Desktop actual click baseline `110/110 PASS`, function actual click `8/8 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -275,6 +275,32 @@
 - 콘솔에는 기존 unityctl IPC pipe 로그와 store 저장/삭제 로그만 있고, 기능 matrix failure는 없다.
 - 다음 우선순위는 function v1 polish 또는 IO/gripper sequence block 설계다.
 
+## 2026-04-22 Function v1 Polish
+
+- Function create-from-selected-points UI를 추가했다.
+  - `선택 추가`
+  - `선택 초기화`
+  - 후보 summary
+- Function RunFromSelected를 추가했다.
+  - `함수 선택부터`
+  - 선택된 포인트 ref가 함수 안에 없으면 명확한 feedback을 낸다.
+- Missing-ref warning을 함수 detail에 추가했다.
+  - `missingCount`
+  - missing ref names
+- Aux panel 화면용 function copy를 raw debug list에서 짧은 요약으로 바꿨다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSequenceMatrixForDebug()`: `33/33 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `GetAuxLayoutSummaryForDebug()` on PointMove: `viewportHorizontalVisible=False`, `viewportClipped=0`, `contextHorizontalVisible=False`, `contextClipped=0`
+- Screenshot evidence:
+  - `Artifacts/pendant-v3-function-polish-final.png`
+  - `Artifacts/pendant-v3-function-polish-action-buttons.png`
+- 참고:
+  - 전체 `RunActualUiClickMatrixForDebug()`는 케이스가 길어져 unityctl IPC 30초 응답 제한에 걸릴 수 있다.
+  - 그래서 function 버튼 actual click은 `RunFunctionActualClickMatrixForDebug()`로 분리했다.
+- 다음 우선순위는 missing-ref repair UX 또는 IO/gripper sequence block 설계다.
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
@@ -286,7 +312,7 @@
   - direct V3 QA가 필요하면 `Always Start From Onboarding=false`로 잠깐 끄고 `Assets/Scenes/RobotControlV3.unity`에서 Play 후 반드시 원복한다.
 - 바로 재실행할 핵심 matrix:
   - `RunLiveCommandSafetyGateMatrixForDebug()` -> `12/12 PASS`
-  - `RunActualUiClickMatrixForDebug()` -> `110/110 PASS`
+  - `RunFunctionActualClickMatrixForDebug()` -> `8/8 PASS`
   - `RunTabletBottomActualClickMatrixForDebug()` -> `16/16 PASS`
   - `RunPopupConfirmCancelE2EForDebug()` -> `10/10 PASS`
   - `RunSafetyFaultActualFlowForDebug()` -> `5/5 PASS`

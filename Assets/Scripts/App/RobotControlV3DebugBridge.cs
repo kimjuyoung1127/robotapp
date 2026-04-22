@@ -539,10 +539,41 @@ namespace KineTutor3D.App
             return pointMove.RunFunctionForDebug();
         }
 
+        public static string AddSelectedPointToFunctionForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.AddSelectedPointToFunctionForDebug(pointName);
+        }
+
+        public static string ClearFunctionPointSelectionForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ClearFunctionPointSelectionForDebug();
+        }
+
+        public static string RunTeachingFunctionFromSelectedForDebug(string pointName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RunFunctionFromSelectedForDebug(pointName);
+        }
+
         public static string GetTeachingFunctionUiSummaryForDebug()
         {
             var pointMove = GetPointMoveController();
             return pointMove.GetFunctionDebugSummary();
+        }
+
+        public static string ScrollPointMovePanelForDebug(float verticalOffset)
+        {
+            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
+            var scrollView = document?.rootVisualElement?.Q<ScrollView>("ViewportPanelScroll");
+            if (scrollView == null)
+            {
+                return "ViewportPanelScroll missing";
+            }
+
+            scrollView.scrollOffset = new Vector2(0f, Mathf.Max(0f, verticalOffset));
+            return $"scrollOffset={scrollView.scrollOffset.y:0.0}; {GetAuxLayoutSummaryForDebug()}";
         }
 
         public static string ExportPointMoveForDebug()
@@ -1086,6 +1117,7 @@ namespace KineTutor3D.App
                 EnsureReady();
                 Select("NavMotion", "TabPointMove", "BottomTabPointMove");
                 SeedUiPointOrder();
+                AddSelectedPointToFunctionForDebug("AUDIT_UI_A");
             }, GetTeachingFunctionUiSummaryForDebug, "functions=");
 
             AddCase("BtnFunctionRun", () =>
@@ -1119,6 +1151,31 @@ namespace KineTutor3D.App
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_DELETE");
             }, GetTeachingFunctionUiSummaryForDebug, "삭제");
+
+            AddCase("BtnFunctionAddPoint", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                RecallPointMoveForDebug("AUDIT_UI_A");
+            }, GetTeachingFunctionUiSummaryForDebug, "AUDIT_UI_A");
+
+            AddCase("BtnFunctionClearSelection", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                AddSelectedPointToFunctionForDebug("AUDIT_UI_A");
+            }, GetTeachingFunctionUiSummaryForDebug, "전체 저장 포인트");
+
+            AddCase("BtnFunctionRunFromSelected", () =>
+            {
+                EnsureReady();
+                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SeedUiPointOrder();
+                CreateTeachingFunctionForDebug("AUDIT_FUNC_RUN_FROM");
+                RecallPointMoveForDebug("AUDIT_UI_B");
+            }, GetTeachingFunctionUiSummaryForDebug, "[Function From]");
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
@@ -1294,6 +1351,142 @@ namespace KineTutor3D.App
             File.WriteAllText(artifactPath, JsonUtility.ToJson(payload, true), Encoding.UTF8);
 
             return $"TabletBottomClickMatrix pass={passCount}; fail={failCount}; artifact={artifactPath}; failures={failures}";
+        }
+
+        public static string RunFunctionActualClickMatrixForDebug()
+        {
+            var runtime = GetRuntimeController();
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "function-actual-click-matrix",
+            };
+
+            void EnsureReady()
+            {
+                runtime.Disconnect();
+                runtime.ConnectDefault();
+                runtime.EnableServo();
+                runtime.SetTeachingLoopEnabled(false);
+                if (!runtime.CurrentSnapshot.DryRunEnabled)
+                {
+                    runtime.ToggleDryRun();
+                }
+            }
+
+            void SeedFunctionPoints()
+            {
+                EnsureReady();
+                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "FUNC_UI_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "FUNC_UI_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+            }
+
+            void AddClickCase(string name, System.Action setup, string buttonName, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    setup?.Invoke();
+                    result.before = summary?.Invoke() ?? string.Empty;
+                    result.message = ClickUiButton(buttonName, "desktop", out var found, out var enabled, out var path);
+                    result.path = path;
+                    result.after = summary?.Invoke() ?? string.Empty;
+                    result.passed = found
+                        && enabled
+                        && result.message.StartsWith("clicked", System.StringComparison.Ordinal)
+                        && (string.IsNullOrEmpty(needle) || result.after.Contains(needle));
+                    if (!result.passed)
+                    {
+                        result.failureClass = !found ? "locator" : !enabled ? "disabled" : "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddClickCase("function-add-point-click", () =>
+            {
+                SeedFunctionPoints();
+                RecallPointMoveForDebug("FUNC_UI_A");
+            }, "BtnFunctionAddPoint", GetTeachingFunctionUiSummaryForDebug, "FUNC_UI_A");
+
+            AddClickCase("function-clear-selection-click", () =>
+            {
+                SeedFunctionPoints();
+                AddSelectedPointToFunctionForDebug("FUNC_UI_A");
+            }, "BtnFunctionClearSelection", GetTeachingFunctionUiSummaryForDebug, "전체 저장 포인트");
+
+            AddClickCase("function-create-click", () =>
+            {
+                SeedFunctionPoints();
+                AddSelectedPointToFunctionForDebug("FUNC_UI_A");
+            }, "BtnFunctionCreate", GetTeachingFunctionUiSummaryForDebug, "functions=");
+
+            AddClickCase("function-run-click", () =>
+            {
+                SeedFunctionPoints();
+                CreateTeachingFunctionForDebug("FUNC_ACTUAL_RUN");
+            }, "BtnFunctionRun", GetTeachingFunctionUiSummaryForDebug, "[Function Run]");
+
+            AddClickCase("function-run-from-selected-click", () =>
+            {
+                SeedFunctionPoints();
+                ClearFunctionPointSelectionForDebug();
+                AddSelectedPointToFunctionForDebug("FUNC_UI_B");
+                CreateTeachingFunctionForDebug("FUNC_ACTUAL_FROM");
+                RecallPointMoveForDebug("FUNC_UI_B");
+            }, "BtnFunctionRunFromSelected", GetTeachingFunctionUiSummaryForDebug, "[Function From]");
+
+            AddClickCase("function-rename-click", () =>
+            {
+                SeedFunctionPoints();
+                CreateTeachingFunctionForDebug("FUNC_ACTUAL_RENAME");
+            }, "BtnFunctionRename", GetTeachingFunctionUiSummaryForDebug, "[Function]");
+
+            AddClickCase("function-duplicate-click", () =>
+            {
+                SeedFunctionPoints();
+                CreateTeachingFunctionForDebug("FUNC_ACTUAL_DUP");
+            }, "BtnFunctionDuplicate", GetTeachingFunctionUiSummaryForDebug, "COPY");
+
+            AddClickCase("function-delete-click", () =>
+            {
+                SeedFunctionPoints();
+                CreateTeachingFunctionForDebug("FUNC_ACTUAL_DELETE");
+            }, "BtnFunctionDelete", GetTeachingFunctionUiSummaryForDebug, "삭제");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-function-actual-click-matrix.json", "FunctionActualClickMatrix");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()
@@ -1821,7 +2014,12 @@ namespace KineTutor3D.App
 
             AddCase(
                 "function-create-list-detail",
-                () => CreateTeachingFunctionForDebug("FUNC_PICK"),
+                () =>
+                {
+                    AddSelectedPointToFunctionForDebug("SEQ_A");
+                    AddSelectedPointToFunctionForDebug("SEQ_B");
+                    CreateTeachingFunctionForDebug("FUNC_PICK");
+                },
                 GetTeachingFunctionUiSummaryForDebug,
                 "function=FUNC_PICK");
 
@@ -1842,6 +2040,18 @@ namespace KineTutor3D.App
                 () => RunTeachingFunctionForDebug(),
                 GetMovementStateSummaryForDebug,
                 "[Function Run]");
+
+            AddCase(
+                "function-run-from-selected",
+                () => RunTeachingFunctionFromSelectedForDebug("SEQ_B"),
+                GetMovementStateSummaryForDebug,
+                "[Function From]");
+
+            AddCase(
+                "function-clear-selected-point-refs",
+                () => ClearFunctionPointSelectionForDebug(),
+                GetTeachingFunctionUiSummaryForDebug,
+                "전체 저장 포인트");
 
             AddCase(
                 "function-delete",

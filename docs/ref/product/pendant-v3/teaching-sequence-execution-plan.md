@@ -925,6 +925,41 @@ Status:
 - Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
 - Self-review: function storage/runtime lives in App/Fairino, visible function controls stay in `PointMoveController`, and no Program tab or live motion gate was opened.
 
+### Phase E2 - Function v1 Polish
+
+Goal: make Function v1 easier to use and safer to diagnose.
+
+Tasks:
+
+- Add create-from-selected-points UI. [Done]
+- Add function point selection summary. [Done]
+- Add missing-reference warning detail. [Done]
+- Add function RunFromSelected. [Done]
+- Keep function detail copy compact enough for the aux panel. [Done]
+
+Done when:
+
+- User can add selected saved points to a function candidate list.
+- User can clear the candidate list and fall back to all saved points.
+- Function detail shows missing point references.
+- User can run a function from the selected point reference.
+
+Status:
+
+- Done on 2026-04-22.
+- Added `선택 추가`, `선택 초기화`, and `함수 선택부터`.
+- Function create uses selected point refs when candidates exist, otherwise uses all saved points.
+- Function detail reports `missingCount` and missing refs from current `PendantV3Points`.
+- UI copy was compacted to avoid raw debug list overflow in the aux panel.
+- `RunTeachingSequenceMatrixForDebug()`: `33/33 PASS`.
+- `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`.
+- Full `RunActualUiClickMatrixForDebug()` is now too long for the current unityctl IPC 30s response limit; function actual click coverage is split into its own matrix.
+- Layout check: PointMove aux/context horizontal scroll remains hidden and clipped count stays `0`.
+- Screenshot evidence:
+  - `Artifacts/pendant-v3-function-polish-final.png`
+  - `Artifacts/pendant-v3-function-polish-action-buttons.png`
+- Self-review: function polish stays inside `NavPoints`/PointMove, runtime remains in App/Fairino, and no live motion gate was opened.
+
 ---
 
 ## Verification Plan

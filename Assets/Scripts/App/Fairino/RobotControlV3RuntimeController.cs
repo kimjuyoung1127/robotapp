@@ -414,6 +414,64 @@ namespace KineTutor3D.App.Fairino
             return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildDetail(function.name)}";
         }
 
+        public string CreateTeachingFunctionFromPoints(string functionName, string[] pointNames)
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Function] 묶을 저장 포인트가 없다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (pointNames == null || pointNames.Length == 0)
+            {
+                return CreateTeachingFunctionFromSequence(functionName);
+            }
+
+            var filtered = new System.Collections.Generic.List<string>();
+            for (var index = 0; index < pointNames.Length; index++)
+            {
+                var pointName = pointNames[index]?.Trim();
+                if (string.IsNullOrWhiteSpace(pointName))
+                {
+                    continue;
+                }
+
+                if (FindWaypoint(sequence, pointName) == null)
+                {
+                    PushFeedback($"[Function] {pointName} 포인트를 찾지 못했다.");
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+
+                if (!filtered.Contains(pointName))
+                {
+                    filtered.Add(pointName);
+                }
+            }
+
+            if (filtered.Count == 0)
+            {
+                return CreateTeachingFunctionFromSequence(functionName);
+            }
+
+            var function = teachingFunctionStore.CreateFromPointRefs(teachingFunctionStore.BuildUniqueName(functionName), filtered.ToArray(), TeachingPointStoreAdapter.DefaultSequenceName);
+            if (function == null || !teachingFunctionStore.Save(function))
+            {
+                PushFeedback("[Function] 함수 저장 실패");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            PushFeedback($"[Function] {function.name} 생성 · 선택 {function.steps.Length}개 포인트");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {GetTeachingFunctionDetailForDebug(function.name)}";
+        }
+
         public string GetTeachingFunctionSummaryForDebug()
         {
             ForceInitialize();
@@ -432,7 +490,31 @@ namespace KineTutor3D.App.Fairino
         {
             ForceInitialize();
             teachingFunctionStore ??= new TeachingFunctionStore();
-            return teachingFunctionStore.BuildDetail(functionName);
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var detail = teachingFunctionStore.BuildDetail(functionName);
+            var function = teachingFunctionStore.Load(functionName);
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (function?.steps == null)
+            {
+                return detail;
+            }
+
+            var missing = new System.Collections.Generic.List<string>();
+            for (var index = 0; index < function.steps.Length; index++)
+            {
+                var step = function.steps[index];
+                if (step == null || !step.enabled || !string.Equals(step.kind, "PointRef", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (FindWaypoint(sequence, step.refName) == null)
+                {
+                    missing.Add(step.refName);
+                }
+            }
+
+            return $"{detail}; missingCount={missing.Count}; missing=[{string.Join(",", missing)}]";
         }
 
         public string RenameTeachingFunctionForDebug(string oldName, string newName)
@@ -467,6 +549,16 @@ namespace KineTutor3D.App.Fairino
 
         public string ExecuteTeachingFunctionOnceDryRun(string functionName)
         {
+            return ExecuteTeachingFunctionDryRun(functionName, null);
+        }
+
+        public string ExecuteTeachingFunctionFromPointDryRun(string functionName, string pointName)
+        {
+            return ExecuteTeachingFunctionDryRun(functionName, pointName);
+        }
+
+        private string ExecuteTeachingFunctionDryRun(string functionName, string startPointName)
+        {
             ForceInitialize();
             teachingFunctionStore ??= new TeachingFunctionStore();
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
@@ -486,6 +578,18 @@ namespace KineTutor3D.App.Fairino
                 return snapshot.LastFeedback;
             }
 
+            var startIndex = 0;
+            if (!string.IsNullOrWhiteSpace(startPointName))
+            {
+                startIndex = FindFunctionStepIndex(function, startPointName);
+                if (startIndex < 0)
+                {
+                    PushFeedback($"[Function Run] {function.name} 안에서 {startPointName} 참조를 찾지 못했다.");
+                    RefreshSnapshot();
+                    return snapshot.LastFeedback;
+                }
+            }
+
             var restoreDryRun = !snapshot.DryRunEnabled;
             if (restoreDryRun)
             {
@@ -493,7 +597,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             var executed = 0;
-            for (var index = 0; index < function.steps.Length; index++)
+            for (var index = startIndex; index < function.steps.Length; index++)
             {
                 var step = function.steps[index];
                 if (step == null || !step.enabled)
@@ -547,7 +651,10 @@ namespace KineTutor3D.App.Fairino
                 ToggleDryRun();
             }
 
-            PushFeedback($"[Function Run] {function.name} DryRun {executed}개 포인트 실행 완료");
+            var prefix = string.IsNullOrWhiteSpace(startPointName)
+                ? "[Function Run]"
+                : "[Function From]";
+            PushFeedback($"{prefix} {function.name} DryRun {executed}개 포인트 실행 완료");
             RefreshSnapshot();
             return snapshot.LastFeedback;
         }
@@ -1691,6 +1798,28 @@ namespace KineTutor3D.App.Fairino
         {
             var index = FindWaypointIndex(sequence, pointName);
             return index >= 0 ? sequence.waypoints[index] : null;
+        }
+
+        private static int FindFunctionStepIndex(TeachingFunction function, string pointName)
+        {
+            if (function?.steps == null || string.IsNullOrWhiteSpace(pointName))
+            {
+                return -1;
+            }
+
+            for (var index = 0; index < function.steps.Length; index++)
+            {
+                var step = function.steps[index];
+                if (step != null
+                    && step.enabled
+                    && string.Equals(step.kind, "PointRef", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(step.refName, pointName.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         private void BindWaypointRunnerEvents()

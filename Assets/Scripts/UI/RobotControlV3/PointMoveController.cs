@@ -1,4 +1,5 @@
 // Folder: UI - HUD/view components only; no kinematics logic.
+using System.Collections.Generic;
 using System.Globalization;
 using KineTutor3D.App;
 using KineTutor3D.App.Fairino;
@@ -20,6 +21,7 @@ namespace KineTutor3D.UI.RobotControlV3
         [SerializeField] private VisualTreeAsset pointMoveTemplate;
 
         private readonly float[] currentValues = new float[6];
+        private readonly List<string> selectedFunctionPointNames = new();
 
         private VisualElement root;
         private VisualElement workPanelBody;
@@ -236,6 +238,26 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetFunctionDebugSummary();
         }
 
+        public string AddSelectedPointToFunctionForDebug(string pointName)
+        {
+            RecallPoint(pointName);
+            AddSelectedPointToFunction();
+            return GetFunctionDebugSummary();
+        }
+
+        public string ClearFunctionPointSelectionForDebug()
+        {
+            ClearFunctionPointSelection();
+            return GetFunctionDebugSummary();
+        }
+
+        public string RunFunctionFromSelectedForDebug(string pointName)
+        {
+            RecallPoint(pointName);
+            RunSelectedFunctionFromSelectedPoint();
+            return GetFunctionDebugSummary();
+        }
+
         public string GetFunctionDebugSummary()
         {
             var summary = runtimeController != null ? runtimeController.GetTeachingFunctionSummaryForDebug() : "functions=missing";
@@ -369,8 +391,11 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnSpeedFast, () => SetSelectedSpeedPreset("fast"));
             RegisterClick(panel.BtnTimingApply, ApplySelectedPointTiming);
             RegisterClick(panel.BtnLoop, ToggleTeachingLoop);
+            RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
+            RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
             RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
             RegisterClick(panel.BtnFunctionRun, RunSelectedFunction);
+            RegisterClick(panel.BtnFunctionRunFromSelected, RunSelectedFunctionFromSelectedPoint);
             RegisterClick(panel.BtnFunctionRename, RenameSelectedFunction);
             RegisterClick(panel.BtnFunctionDuplicate, DuplicateSelectedFunction);
             RegisterClick(panel.BtnFunctionDelete, DeleteSelectedFunction);
@@ -461,6 +486,9 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnFunctionRun.SetEnabled(canApply && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionAddPoint.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnFunctionClearSelection.SetEnabled(canEdit && selectedFunctionPointNames.Count > 0);
+            panel.BtnFunctionRunFromSelected.SetEnabled(canApply && recalledPoint != null && !string.IsNullOrWhiteSpace(selectedFunctionName));
             panel.BtnFunctionRename.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
             panel.BtnFunctionDuplicate.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
             panel.BtnFunctionDelete.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
@@ -493,11 +521,37 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             var result = runtimeController != null
-                ? runtimeController.CreateTeachingFunctionFromSequence(functionName)
+                ? selectedFunctionPointNames.Count > 0
+                    ? runtimeController.CreateTeachingFunctionFromPoints(functionName, selectedFunctionPointNames.ToArray())
+                    : runtimeController.CreateTeachingFunctionFromSequence(functionName)
                 : "runtime missing";
-            selectedFunctionName = functionName;
-            SelectFirstExistingFunctionIfNeeded();
+            selectedFunctionName = ExtractCreatedFunctionName(result, functionName);
+            SetFunctionName(selectedFunctionName);
             SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void AddSelectedPointToFunction()
+        {
+            if (recalledPoint == null)
+            {
+                SetFeedback("함수 후보에 넣을 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            if (!selectedFunctionPointNames.Contains(recalledPoint.name))
+            {
+                selectedFunctionPointNames.Add(recalledPoint.name);
+            }
+
+            SetFeedback($"[Function] 후보 추가 · {recalledPoint.name}");
+            ApplyAll();
+        }
+
+        private void ClearFunctionPointSelection()
+        {
+            selectedFunctionPointNames.Clear();
+            SetFeedback("[Function] 함수 후보 초기화 · 전체 저장 포인트 기준으로 돌아감");
             ApplyAll();
         }
 
@@ -517,6 +571,33 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var result = runtimeController != null
                 ? runtimeController.ExecuteTeachingFunctionOnceDryRun(selectedFunctionName)
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void RunSelectedFunctionFromSelectedPoint()
+        {
+            if (string.IsNullOrWhiteSpace(selectedFunctionName))
+            {
+                SetFeedback("실행할 함수를 먼저 선택해라.");
+                return;
+            }
+
+            if (recalledPoint == null)
+            {
+                SetFeedback("함수 안에서 시작할 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 함수 선택 실행을 새로 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.ExecuteTeachingFunctionFromPointDryRun(selectedFunctionName, recalledPoint.name)
                 : "runtime missing";
             SetFeedback(result);
             ApplyAll();
@@ -608,6 +689,28 @@ namespace KineTutor3D.UI.RobotControlV3
             tabletPanel?.FunctionNameInput?.SetValueWithoutNotify(safeName);
         }
 
+        private static string ExtractCreatedFunctionName(string result, string fallbackName)
+        {
+            const string marker = "[Function] ";
+            const string endMarker = " 생성";
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return fallbackName?.Trim() ?? string.Empty;
+            }
+
+            var start = result.IndexOf(marker, System.StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return fallbackName?.Trim() ?? string.Empty;
+            }
+
+            start += marker.Length;
+            var end = result.IndexOf(endMarker, start, System.StringComparison.Ordinal);
+            return end > start
+                ? result.Substring(start, end - start).Trim()
+                : fallbackName?.Trim() ?? string.Empty;
+        }
+
         private void SelectFirstExistingFunctionIfNeeded()
         {
             if (runtimeController == null)
@@ -637,13 +740,65 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             SelectFirstExistingFunctionIfNeeded();
-            panel.FunctionSummary.text = runtimeController != null
-                ? runtimeController.GetTeachingFunctionSummaryForDebug()
-                : "functions=missing";
+            var functionNames = runtimeController != null
+                ? runtimeController.GetTeachingFunctionNames()
+                : System.Array.Empty<string>();
+            panel.FunctionSummary.text = string.IsNullOrWhiteSpace(selectedFunctionName)
+                ? $"함수: {functionNames.Length}개"
+                : $"함수: {functionNames.Length}개 / 선택: {selectedFunctionName}";
+            panel.FunctionSelectionSummary.text = selectedFunctionPointNames.Count == 0
+                ? "함수 후보: 전체 저장 포인트"
+                : $"함수 후보: {string.Join(" / ", selectedFunctionPointNames)}";
             panel.FunctionDetail.text = !string.IsNullOrWhiteSpace(selectedFunctionName) && runtimeController != null
-                ? runtimeController.GetTeachingFunctionDetailForDebug(selectedFunctionName)
+                ? FormatFunctionDetailForUi(runtimeController.GetTeachingFunctionDetailForDebug(selectedFunctionName))
                 : "함수를 선택하면 참조 포인트가 보인다.";
             RebuildFunctionList(panel);
+        }
+
+        private static string FormatFunctionDetailForUi(string rawDetail)
+        {
+            if (string.IsNullOrWhiteSpace(rawDetail) || rawDetail.Contains("function=none"))
+            {
+                return "함수를 선택하면 참조 포인트가 보인다.";
+            }
+
+            var name = ExtractDebugValue(rawDetail, "function=");
+            var steps = ExtractDebugValue(rawDetail, "steps=");
+            var missingCount = ExtractDebugValue(rawDetail, "missingCount=");
+            var missing = ExtractDebugBracketValue(rawDetail, "missing=[");
+            return missingCount == "0" || string.IsNullOrWhiteSpace(missingCount)
+                ? $"{name} · {steps}개 포인트 · 누락 없음"
+                : $"{name} · {steps}개 포인트 · 누락 {missingCount}: {missing}";
+        }
+
+        private static string ExtractDebugValue(string raw, string key)
+        {
+            var start = raw.IndexOf(key, System.StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return string.Empty;
+            }
+
+            start += key.Length;
+            var end = raw.IndexOf(';', start);
+            return end > start
+                ? raw.Substring(start, end - start).Trim()
+                : raw.Substring(start).Trim();
+        }
+
+        private static string ExtractDebugBracketValue(string raw, string key)
+        {
+            var start = raw.IndexOf(key, System.StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return string.Empty;
+            }
+
+            start += key.Length;
+            var end = raw.IndexOf(']', start);
+            return end >= start
+                ? raw.Substring(start, end - start).Trim()
+                : raw.Substring(start).Trim();
         }
 
         private void RebuildFunctionList(PanelElements panel)

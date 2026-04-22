@@ -36,9 +36,13 @@ namespace KineTutor3D.UI.RobotControlV3
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
                 FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
+                FunctionSelectionSummary = root.Q<Label>("FunctionSelectionSummary");
                 FunctionDetail = root.Q<Label>("FunctionDetail");
+                BtnFunctionAddPoint = root.Q<Button>("BtnFunctionAddPoint");
+                BtnFunctionClearSelection = root.Q<Button>("BtnFunctionClearSelection");
                 BtnFunctionCreate = root.Q<Button>("BtnFunctionCreate");
                 BtnFunctionRun = root.Q<Button>("BtnFunctionRun");
+                BtnFunctionRunFromSelected = root.Q<Button>("BtnFunctionRunFromSelected");
                 BtnFunctionRename = root.Q<Button>("BtnFunctionRename");
                 BtnFunctionDuplicate = root.Q<Button>("BtnFunctionDuplicate");
                 BtnFunctionDelete = root.Q<Button>("BtnFunctionDelete");
@@ -112,9 +116,13 @@ namespace KineTutor3D.UI.RobotControlV3
             public TextField FunctionNameInput { get; }
             public Label FunctionSummary { get; }
             public VisualElement FunctionListContainer { get; }
+            public Label FunctionSelectionSummary { get; }
             public Label FunctionDetail { get; }
+            public Button BtnFunctionAddPoint { get; }
+            public Button BtnFunctionClearSelection { get; }
             public Button BtnFunctionCreate { get; }
             public Button BtnFunctionRun { get; }
+            public Button BtnFunctionRunFromSelected { get; }
             public Button BtnFunctionRename { get; }
             public Button BtnFunctionDuplicate { get; }
             public Button BtnFunctionDelete { get; }
