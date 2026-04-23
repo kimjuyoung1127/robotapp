@@ -422,6 +422,11 @@
   - `RunTeachingSubviewActualClickMatrixForDebug()`: `16/16 PASS`
   - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
   - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+- Runtime text recheck:
+  - source에는 old labels `이동 / 수정 / 후보`가 남아 있지 않다.
+  - refreshed Play runtime UITK 기준 `BtnPointRowMove=실행`, `BtnPointRowEdit=편집`, `BtnPointRowFunctionCandidate=함수 추가`.
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `19/19 PASS`
+  - old labels가 보이면 active Play UI tree가 stale 상태이므로 Play restart 또는 RobotControlV3 scene re-entry가 필요하다.
 
 ## Next Session Handoff
 
