@@ -607,6 +607,30 @@ namespace KineTutor3D.App
             return pointMove.DeleteFunctionForDebug();
         }
 
+        public static string ToggleTeachingFunctionSelectionForDebug(string functionName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ToggleFunctionSelectionForDebug(functionName);
+        }
+
+        public static string ToggleTeachingFunctionActionsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ToggleFunctionActionsForDebug();
+        }
+
+        public static string DuplicateSelectedTeachingFunctionsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DuplicateSelectedFunctionsForDebug();
+        }
+
+        public static string DeleteSelectedTeachingFunctionsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DeleteSelectedFunctionsForDebug();
+        }
+
         public static string RunTeachingFunctionForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -634,7 +658,7 @@ namespace KineTutor3D.App
         public static string GetTeachingFunctionUiSummaryForDebug()
         {
             var pointMove = GetPointMoveController();
-            return pointMove.GetFunctionDebugSummary();
+            return pointMove.GetFunctionCompactDebugSummary();
         }
 
         public static string GetTeachingSequenceLibrarySummaryForDebug()
@@ -666,6 +690,24 @@ namespace KineTutor3D.App
         {
             var pointMove = GetPointMoveController();
             return pointMove.DeleteSelectedSequenceForDebug();
+        }
+
+        public static string ToggleTeachingSequenceSelectionForDebug(string sequenceName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ToggleSequenceSelectionForDebug(sequenceName);
+        }
+
+        public static string ToggleTeachingSequenceActionsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ToggleSequenceActionsForDebug();
+        }
+
+        public static string DeleteSelectedTeachingSequencesForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DeleteSelectedSequencesForDebug();
         }
 
         public static string ScrollPointMovePanelForDebug(float verticalOffset)
@@ -1914,6 +1956,50 @@ namespace KineTutor3D.App
                 ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
             }, "BtnPathRecordDelete", GetTeachingSequenceLibrarySummaryForDebug, "[Confirm]");
 
+            AddClickCase("sequence-row-multiselect-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnSequenceRowMultiSelect", GetTeachingSequenceLibrarySummaryForDebug, "selectedSequences=1");
+
+            AddClickCase("sequence-row-actions-collapse-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnSequenceRowActionsToggle", GetPointMoveControllerSummary, "sequenceActionsCollapsed=True");
+
+            AddClickCase("sequence-bulk-delete-confirm-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+                ClickUiButton("BtnSequenceRowMultiSelect", "desktop", out _, out _, out _);
+            }, "BtnSequenceBulkDelete", GetPointMoveControllerSummary, "[Confirm]");
+
+            AddClickCase("sequence-bulk-delete-second-click", null, "BtnSequenceBulkDelete", GetTeachingSequenceLibrarySummaryForDebug, "recordedPathCount=0");
+
+            AddClickCase("function-row-select-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowFunctionCandidate", "desktop", out _, out _, out _);
+                ClickUiButton("BtnPointModalPrimary", "desktop", out _, out _, out _);
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
+                SetTeachingFunctionNameForDebug(functionName);
+                ClickUiButton("BtnFunctionCreate", "desktop", out _, out _, out _);
+            }, "BtnFunctionRowSelect", GetPointMoveControllerSummary, "selectedFunctions=1");
+
+            AddClickCase("function-row-actions-collapse-click", () =>
+            {
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
+            }, "BtnFunctionRowActionsToggle", GetPointMoveControllerSummary, "functionActionsCollapsed=True");
+
+            AddClickCase("function-bulk-duplicate-click", () =>
+            {
+                ClickUiButton("BtnFunctionRowActionsToggle", "desktop", out _, out _, out _);
+            }, "BtnFunctionBulkDuplicate", GetTeachingFunctionUiSummaryForDebug, "선택");
+
+            AddClickCase("function-bulk-delete-confirm-click", null, "BtnFunctionBulkDelete", GetPointMoveControllerSummary, "[Confirm]");
+            AddClickCase("function-bulk-delete-second-click", null, "BtnFunctionBulkDelete", GetTeachingFunctionUiSummaryForDebug, "삭제");
+
             AddClickCase("function-candidate-create-click", () =>
             {
                 Seed();
@@ -2224,6 +2310,94 @@ namespace KineTutor3D.App
             AddCase("point-sequence-still-present", null, GetTeachingSequenceLibrarySummaryForDebug, "PendantV3Points:2");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-sequence-library-linkage.json", "SequenceLibraryLinkage");
+        }
+
+        public static string RunSequenceFunctionBulkManagementMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "sequence-function-bulk-management",
+            };
+
+            var runtime = GetRuntimeController();
+            var customSequence = "BulkSeqMatrix";
+            var functionA = "BulkFuncA";
+            var functionB = "BulkFuncB";
+
+            void Seed()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BULK_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BULK_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+                WaypointStore.Duplicate(TeachingPointStoreAdapter.DefaultSequenceName, customSequence);
+                CreateTeachingFunctionForDebug(functionA);
+                CreateTeachingFunctionForDebug(functionB);
+                SelectTeachingFunctionForDebug(functionA);
+            }
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetPointMoveControllerSummary();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("seed-management-data", Seed, GetTeachingSequenceLibrarySummaryForDebug, customSequence);
+            AddCase("sequence-select-custom", () => ToggleTeachingSequenceSelectionForDebug(customSequence), GetTeachingSequenceLibrarySummaryForDebug, "selectedSequences=1");
+            AddCase("sequence-actions-collapse", () => ToggleTeachingSequenceActionsForDebug(), GetPointMoveControllerSummary, "sequenceActionsCollapsed=True");
+            AddCase("sequence-bulk-delete-confirm", () => DeleteSelectedTeachingSequencesForDebug(), GetTeachingSequenceLibrarySummaryForDebug, "[Confirm]");
+            AddCase("sequence-bulk-delete-second", () => DeleteSelectedTeachingSequencesForDebug(), GetTeachingSequenceLibrarySummaryForDebug, "selectedSequences=0");
+            AddCase("function-select-a", () => ToggleTeachingFunctionSelectionForDebug(functionA), GetTeachingFunctionUiSummaryForDebug, "selectedFunctions=1");
+            AddCase("function-select-b", () => ToggleTeachingFunctionSelectionForDebug(functionB), GetTeachingFunctionUiSummaryForDebug, "selectedFunctions=2");
+            AddCase("function-actions-collapse", () => ToggleTeachingFunctionActionsForDebug(), GetPointMoveControllerSummary, "functionActionsCollapsed=True");
+            AddCase("function-bulk-duplicate", () => DuplicateSelectedTeachingFunctionsForDebug(), GetTeachingFunctionUiSummaryForDebug, "복사");
+            AddCase("function-bulk-delete-confirm", () => DeleteSelectedTeachingFunctionsForDebug(), GetTeachingFunctionUiSummaryForDebug, "[Confirm]");
+            AddCase("function-bulk-delete-second", () => DeleteSelectedTeachingFunctionsForDebug(), GetTeachingFunctionUiSummaryForDebug, "selectedFunctions=0");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-sequence-function-bulk-management.json", "SequenceFunctionBulkManagement");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()

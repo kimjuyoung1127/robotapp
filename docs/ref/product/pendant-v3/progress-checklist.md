@@ -449,6 +449,27 @@
   - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
   - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
 
+## 2026-04-23 Sequence And Function List Management
+
+- 포인트 탭과 같은 목록 관리 패턴을 `시퀀스`와 `함수` 탭에도 확장했다.
+- 시퀀스 탭:
+  - 실행 목록 개수, 삭제 가능 개수, 총 포인트 개수, 선택 개수를 표시한다.
+  - row 다중선택을 지원한다.
+  - `PendantV3Points`는 보호하고, recorded/named sequence만 일괄 삭제한다.
+  - `버튼 접기 / 펼치기`로 row action을 줄인다.
+- 함수 탭:
+  - 함수 개수, 선택 개수, 선택 함수의 참조/누락 수를 표시한다.
+  - row 다중선택을 지원한다.
+  - 선택 함수 일괄 복사/삭제를 지원한다.
+  - `버튼 접기 / 펼치기`로 row action을 줄인다.
+- QA 안정화를 위해 full subview actual-click matrix에 모두 밀어 넣지 않고 focused matrix를 추가했다.
+  - `RunSequenceFunctionBulkManagementMatrixForDebug()`
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

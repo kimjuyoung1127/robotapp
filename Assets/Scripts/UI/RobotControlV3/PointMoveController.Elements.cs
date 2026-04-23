@@ -57,6 +57,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 PathRecordSummary = root.Q<Label>("PathRecordSummary");
                 SequenceLibrarySummary = root.Q<Label>("SequenceLibrarySummary");
                 SelectedSequenceDetail = root.Q<Label>("SelectedSequenceDetail");
+                SequenceInventorySummary = root.Q<Label>("SequenceInventorySummary");
+                SequenceBulkActions = root.Q<VisualElement>("SequenceBulkActions");
+                BtnSequenceRowActionsToggle = root.Q<Button>("BtnSequenceRowActionsToggle");
+                BtnSequenceBulkClear = root.Q<Button>("BtnSequenceBulkClear");
+                BtnSequenceBulkDelete = root.Q<Button>("BtnSequenceBulkDelete");
                 SequenceListContainer = root.Q<VisualElement>("SequenceListContainer");
                 PointListContainer = root.Q<VisualElement>("PointListContainer");
                 DetailTitle = root.Q<Label>("PointDetailTitle");
@@ -86,9 +91,15 @@ namespace KineTutor3D.UI.RobotControlV3
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
                 FunctionBuildSummary = root.Q<Label>("FunctionBuildSummary");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
+                FunctionInventorySummary = root.Q<Label>("FunctionInventorySummary");
+                FunctionBulkActions = root.Q<VisualElement>("FunctionBulkActions");
                 FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
                 FunctionSelectionSummary = root.Q<Label>("FunctionSelectionSummary");
                 FunctionDetail = root.Q<Label>("FunctionDetail");
+                BtnFunctionRowActionsToggle = root.Q<Button>("BtnFunctionRowActionsToggle");
+                BtnFunctionBulkClear = root.Q<Button>("BtnFunctionBulkClear");
+                BtnFunctionBulkDuplicate = root.Q<Button>("BtnFunctionBulkDuplicate");
+                BtnFunctionBulkDelete = root.Q<Button>("BtnFunctionBulkDelete");
                 BtnFunctionAddPoint = root.Q<Button>("BtnFunctionAddPoint");
                 BtnFunctionClearSelection = root.Q<Button>("BtnFunctionClearSelection");
                 BtnFunctionCreate = root.Q<Button>("BtnFunctionCreate");
@@ -188,6 +199,11 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label PathRecordSummary { get; }
             public Label SequenceLibrarySummary { get; }
             public Label SelectedSequenceDetail { get; }
+            public Label SequenceInventorySummary { get; }
+            public VisualElement SequenceBulkActions { get; }
+            public Button BtnSequenceRowActionsToggle { get; }
+            public Button BtnSequenceBulkClear { get; }
+            public Button BtnSequenceBulkDelete { get; }
             public VisualElement SequenceListContainer { get; }
             public VisualElement PointListContainer { get; }
             public Label DetailTitle { get; }
@@ -217,9 +233,15 @@ namespace KineTutor3D.UI.RobotControlV3
             public TextField FunctionNameInput { get; }
             public Label FunctionBuildSummary { get; }
             public Label FunctionSummary { get; }
+            public Label FunctionInventorySummary { get; }
+            public VisualElement FunctionBulkActions { get; }
             public VisualElement FunctionListContainer { get; }
             public Label FunctionSelectionSummary { get; }
             public Label FunctionDetail { get; }
+            public Button BtnFunctionRowActionsToggle { get; }
+            public Button BtnFunctionBulkClear { get; }
+            public Button BtnFunctionBulkDuplicate { get; }
+            public Button BtnFunctionBulkDelete { get; }
             public Button BtnFunctionAddPoint { get; }
             public Button BtnFunctionClearSelection { get; }
             public Button BtnFunctionCreate { get; }
