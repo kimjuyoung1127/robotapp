@@ -501,6 +501,7 @@
   - `RunBundleAddDeleteRunMatrixForDebug()`: `5/5 PASS`
   - 전체 묶음 삭제 후 `functions=0` 확인
   - 포인트 2개를 묶음 후보로 추가하면 `candidates=1`, `candidates=2`로 증가 확인
+  - 사용자 완료 피드백 확인: `[Bundle] 후보 추가 · BUNDLE_POINT_A/B`
   - 새 묶음 `BUNDLE_AFTER_DELETE` 생성 확인
   - 생성된 묶음 DryRun 실행 확인
   - 파일 저장소에는 `BUNDLE_AFTER_DELETE.json`만 남는 것 확인

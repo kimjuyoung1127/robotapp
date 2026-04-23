@@ -40,3 +40,19 @@
 - Added visible `[Bundle]` feedback so users can tell when a point was added to a bundle candidate list.
 - Added `전체 삭제` for bundles with confirmation.
 - Verified all bundle JSON files can be deleted, then a new bundle can be created and run.
+
+## User-Visible Bundle Flow Evidence
+
+- Test matrix: `RunBundleAddDeleteRunMatrixForDebug()`.
+- Verified flow:
+  1. Delete every bundle in `Application.persistentDataPath/teaching-functions`.
+  2. Confirm bundle count becomes `functions=0`.
+  3. Add `BUNDLE_POINT_A` to bundle candidates and confirm `candidates=1`.
+  4. Add `BUNDLE_POINT_B` to bundle candidates and confirm `candidates=2`.
+  5. Create `BUNDLE_AFTER_DELETE`.
+  6. Run the created bundle in DryRun.
+- User feedback evidence:
+  - adding first point returns `[Bundle] 후보 추가 · BUNDLE_POINT_A`
+  - adding second point returns `[Bundle] 후보 추가 · BUNDLE_POINT_B`
+- Storage evidence:
+  - after the full delete/recreate test, `teaching-functions` contains `BUNDLE_AFTER_DELETE.json`.
