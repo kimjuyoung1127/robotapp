@@ -428,6 +428,27 @@
   - `RunTeachingSubviewActualClickMatrixForDebug()`: `19/19 PASS`
   - old labels가 보이면 active Play UI tree가 stale 상태이므로 Play restart 또는 RobotControlV3 scene re-entry가 필요하다.
 
+## 2026-04-23 Point List Management
+
+- 포인트 탭 상단에 inventory summary를 추가했다.
+  - 포인트 개수
+  - 함수 개수
+  - 속도별 개수: 느림 / 중간 / 빠름
+  - 현재 선택 개수
+- 포인트 row에 `선택` 버튼을 추가하고 다중선택 상태를 row highlight로 표시한다.
+- 일괄 작업을 추가했다.
+  - 선택 해제
+  - 선택 속도 저장
+  - 선택 함수 추가
+  - 선택 삭제
+- `버튼 접기 / 버튼 펼치기`로 row action 버튼을 줄여 긴 목록 스캔을 쉽게 했다.
+- 기존 장황한 보조 메시지는 숨기고, confirmation/save/delete/bulk/error 중심의 짧은 feedback만 남겼다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `25/25 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

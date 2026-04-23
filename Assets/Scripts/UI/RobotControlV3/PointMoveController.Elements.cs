@@ -36,6 +36,13 @@ namespace KineTutor3D.UI.RobotControlV3
                 MotionSummary = root.Q<Label>("PointMotionSummary");
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
                 StoreSummary = root.Q<Label>("PointStoreSummary");
+                PointInventorySummary = root.Q<Label>("PointInventorySummary");
+                PointBulkActions = root.Q<VisualElement>("PointBulkActions");
+                BtnPointRowActionsToggle = root.Q<Button>("BtnPointRowActionsToggle");
+                BtnPointBulkClear = root.Q<Button>("BtnPointBulkClear");
+                BtnPointBulkSpeed = root.Q<Button>("BtnPointBulkSpeed");
+                BtnPointBulkFunction = root.Q<Button>("BtnPointBulkFunction");
+                BtnPointBulkDelete = root.Q<Button>("BtnPointBulkDelete");
                 BtnLoop = root.Q<Button>("BtnPointLoop");
                 BtnRunSequence = root.Q<Button>("BtnPointRunSequence");
                 BtnStepBack = root.Q<Button>("BtnPointStepBack");
@@ -160,6 +167,13 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label MotionSummary { get; }
             public Label PreviewSummary { get; }
             public Label StoreSummary { get; }
+            public Label PointInventorySummary { get; }
+            public VisualElement PointBulkActions { get; }
+            public Button BtnPointRowActionsToggle { get; }
+            public Button BtnPointBulkClear { get; }
+            public Button BtnPointBulkSpeed { get; }
+            public Button BtnPointBulkFunction { get; }
+            public Button BtnPointBulkDelete { get; }
             public Button BtnLoop { get; }
             public Button BtnRunSequence { get; }
             public Button BtnStepBack { get; }

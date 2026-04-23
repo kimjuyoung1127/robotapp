@@ -66,6 +66,14 @@
                     <ui:Label name="PointUnit6" text="deg" class="rc-point-cell-unit" />
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:Label name="PointInventorySummary" text="포인트 0개 · 함수 0개 · 속도 slow 0 / medium 0 / fast 0 · 선택 0개" class="rc-point-inventory-summary" />
+            <ui:VisualElement name="PointBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
+                <ui:Button name="BtnPointRowActionsToggle" text="버튼 접기" class="rc-point-action-button" />
+                <ui:Button name="BtnPointBulkClear" text="선택 해제" class="rc-point-action-button" />
+                <ui:Button name="BtnPointBulkSpeed" text="선택 속도 저장" class="rc-point-action-button" />
+                <ui:Button name="BtnPointBulkFunction" text="선택 함수 추가" class="rc-point-action-button" />
+                <ui:Button name="BtnPointBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
+            </ui:VisualElement>
             <ui:VisualElement name="PointListContainer" class="rc-point-list" />
         </ui:VisualElement>
 
@@ -101,10 +109,10 @@
                 <ui:Label name="SequenceLibrarySummary" text="저장한 포인트 순서 0개 / 기록한 경로 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:VisualElement name="SequenceListContainer" class="rc-point-list" />
             </ui:VisualElement>
-            <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact" />
-            <ui:Label name="PointCoordSummary" text="좌표계: Base / 현재 TCP 기준으로 시작" class="rc-panel-copy rc-panel-copy--compact" />
-            <ui:Label name="PointMotionSummary" text="이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact" />
-            <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
+            <ui:Label name="PointCoordSummary" text="좌표계: Base / 현재 TCP 기준으로 시작" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
+            <ui:Label name="PointMotionSummary" text="이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
+            <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
         </ui:VisualElement>
 
         <ui:VisualElement name="PointEditSubview" class="rc-point-subview">
@@ -121,7 +129,7 @@
                     <ui:Button name="BtnPointTimingApply" text="속도/대기" class="rc-point-timing-button rc-point-timing-button--primary" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Label name="PointFeedbackSummary" text="아직 실행한 명령이 없다." class="rc-panel-copy rc-panel-copy--compact" />
+            <ui:Label name="PointFeedbackSummary" text="" class="rc-panel-copy rc-panel-copy--compact rc-point-feedback-line" />
         </ui:VisualElement>
 
         <ui:VisualElement name="PointActionModal" class="rc-point-modal rc-hidden">
@@ -151,7 +159,7 @@
 
         <ui:VisualElement name="FunctionSubview" class="rc-point-subview rc-point-function-card rc-hidden">
             <ui:Label text="함수" class="rc-point-detail-title" />
-            <ui:Label name="FunctionBuildSummary" text="선택한 포인트 0개 → 함수 만들기" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+            <ui:Label name="FunctionBuildSummary" text="선택한 포인트 0개 → row의 함수 추가로 선택" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
             <ui:VisualElement class="rc-point-name-row">
                 <ui:Label text="함수 이름" class="rc-point-name-label" />
                 <ui:TextField name="FunctionNameInput" value="Pick" class="rc-point-name-input" />

@@ -542,6 +542,12 @@ namespace KineTutor3D.App
             return pointMove.ToggleLoopForDebug();
         }
 
+        public static string ClearSelectedPointRowsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.ClearSelectedPointsForDebug();
+        }
+
         public static string SetTeachingLoopForDebug(bool enabled)
         {
             var runtime = GetRuntimeController();
@@ -1265,7 +1271,7 @@ namespace KineTutor3D.App
                 Select("NavMotion", "TabPointMove", "BottomTabPointMove");
                 SeedUiPointOrder();
                 AddSelectedPointToFunctionForDebug("AUDIT_UI_A");
-            }, GetTeachingFunctionUiSummaryForDebug, "전체 저장 포인트");
+            }, GetTeachingFunctionUiSummaryForDebug, "후보 초기화");
 
             AddCase("BtnFunctionRunFromSelected", () =>
             {
@@ -1544,7 +1550,7 @@ namespace KineTutor3D.App
             {
                 SeedFunctionPoints();
                 AddSelectedPointToFunctionForDebug("FUNC_UI_A");
-            }, "BtnFunctionClearSelection", GetTeachingFunctionUiSummaryForDebug, "전체 저장 포인트");
+            }, "BtnFunctionClearSelection", GetTeachingFunctionUiSummaryForDebug, "후보 초기화");
 
             AddClickCase("function-create-click", () =>
             {
@@ -1766,7 +1772,13 @@ namespace KineTutor3D.App
                 });
                 WaypointStore.Save(sequence);
                 ClearFunctionPointSelectionForDebug();
+                ClearSelectedPointRowsForDebug();
                 SetPointMoveNameForDebug(saveName);
+                ClickUiButton("BtnPointSubview", "desktop", out _, out _, out _);
+                if (GetPointMoveControllerSummary().Contains("rowActionsCollapsed=True"))
+                {
+                    ClickUiButton("BtnPointRowActionsToggle", "desktop", out _, out _, out _);
+                }
             }
 
             void AddClickCase(string name, System.Action setup, string buttonName, System.Func<string> summary, string needle)
@@ -1813,6 +1825,26 @@ namespace KineTutor3D.App
             AddClickCase("function-subview-click", Seed, "BtnFunctionSubview", GetPointMoveControllerSummary, "subview=Function");
 
             AddClickCase("primary-save-click", Seed, "BtnPointSave", GetPointMoveListSummaryForDebug, saveName);
+
+            AddClickCase("point-row-select-click", Seed, "BtnPointRowSelect", GetPointMoveListSummaryForDebug, "selected=1");
+            AddClickCase("point-row-actions-collapse-click", Seed, "BtnPointRowActionsToggle", GetPointMoveControllerSummary, "rowActionsCollapsed=True");
+            AddClickCase("point-bulk-speed-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowSelect", "desktop", out _, out _, out _);
+                SetPointMoveTimingForDebug("fast", 0.0);
+            }, "BtnPointBulkSpeed", GetPointMoveListSummaryForDebug, "빠름 1");
+            AddClickCase("point-bulk-function-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowSelect", "desktop", out _, out _, out _);
+            }, "BtnPointBulkFunction", GetTeachingFunctionUiSummaryForDebug, "선택 1개 추가");
+            AddClickCase("point-bulk-delete-confirm-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowSelect", "desktop", out _, out _, out _);
+            }, "BtnPointBulkDelete", GetPointMoveControllerSummary, "[Confirm]");
+            AddClickCase("point-bulk-delete-second-click", null, "BtnPointBulkDelete", GetPointMoveListSummaryForDebug, "count=1");
 
             AddClickCase("point-row-preview-click", Seed, "BtnPointRowPreview", GetPointActionModalSummaryForDebug, "mode=Preview");
             AddClickCase("point-row-preview-primary-click", () =>
@@ -2763,7 +2795,7 @@ namespace KineTutor3D.App
                 "function-clear-selected-point-refs",
                 () => ClearFunctionPointSelectionForDebug(),
                 GetTeachingFunctionUiSummaryForDebug,
-                "전체 저장 포인트");
+                "후보 초기화");
 
             AddCase(
                 "function-delete",

@@ -178,6 +178,26 @@
     max-width: 100%;
 }
 
+.rc-point-inventory-summary {
+    margin-top: 8px;
+    padding: 6px;
+    border-radius: 6px;
+    background-color: rgba(80, 140, 255, 0.10);
+    font-size: 10px;
+    white-space: normal;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-bulk-actions {
+    margin-top: 6px;
+}
+
+.rc-point-feedback-line {
+    min-height: 0;
+    white-space: normal;
+}
+
 .rc-point-list-button {
     flex-grow: 0;
     width: 100%;
@@ -205,6 +225,12 @@
 
 .rc-point-row--active {
     background-color: rgba(80, 140, 255, 0.16);
+}
+
+.rc-point-row--selected {
+    border-width: 1px;
+    border-color: rgba(80, 220, 180, 0.42);
+    background-color: rgba(80, 220, 180, 0.09);
 }
 
 .rc-point-row-summary {
