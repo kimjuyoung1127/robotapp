@@ -49,6 +49,7 @@ namespace KineTutor3D.App.Fairino
         private TeachingPointStoreAdapter teachingPointStoreAdapter;
         private TeachingSequenceRuntime teachingSequenceRuntime;
         private TeachingFunctionStore teachingFunctionStore;
+        private TeachingBlockSequenceStore teachingBlockSequenceStore;
         private TeachingPathRecorder teachingPathRecorder;
         private WaypointSequence recordedPathSequence;
         private RobotKinematicsFacade previewKinematicsFacade;
@@ -667,6 +668,137 @@ namespace KineTutor3D.App.Fairino
             return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
         }
 
+        public string AddTeachingBlockPoint(string pointName)
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var sequence = teachingPointStoreAdapter.LoadIfExists();
+            if (FindWaypoint(sequence, pointName) == null)
+            {
+                PushFeedback($"[Block Sequence] {pointName} 포인트를 찾지 못했다.");
+                RefreshSnapshot();
+                return GetTeachingBlockSequenceSummaryForDebug();
+            }
+
+            var ok = teachingBlockSequenceStore.AddBlock(TeachingSequenceBlock.PointRefKind, pointName);
+            PushFeedback(ok ? $"[Block Sequence] 포인트 {pointName} 추가" : "[Block Sequence] 포인트 추가 실패");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string AddTeachingBlockBundle(string bundleName)
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            if (teachingFunctionStore.Load(bundleName) == null)
+            {
+                PushFeedback($"[Block Sequence] {bundleName} 묶음을 찾지 못했다.");
+                RefreshSnapshot();
+                return GetTeachingBlockSequenceSummaryForDebug();
+            }
+
+            var ok = teachingBlockSequenceStore.AddBlock(TeachingSequenceBlock.BundleRefKind, bundleName);
+            PushFeedback(ok ? $"[Block Sequence] 묶음 {bundleName} 추가" : "[Block Sequence] 묶음 추가 실패");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string MoveTeachingBlock(int index, int direction)
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            var ok = teachingBlockSequenceStore.MoveBlock(index, direction);
+            PushFeedback(ok ? $"[Block Sequence] {index}번 블록 이동" : "[Block Sequence] 블록 이동 실패");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string DeleteTeachingBlock(int index)
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            var ok = teachingBlockSequenceStore.DeleteBlock(index);
+            PushFeedback(ok ? $"[Block Sequence] {index}번 블록 삭제" : "[Block Sequence] 블록 삭제 실패");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string ClearTeachingBlockSequenceForDebug()
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            teachingBlockSequenceStore.Clear();
+            PushFeedback("[Block Sequence] 작업 시퀀스 초기화");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string PreviewTeachingBlockSequence()
+        {
+            ForceInitialize();
+            var sequence = ExpandTeachingBlockSequence();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Block Preview] 미리보기할 작업 시퀀스가 없다.");
+                RefreshSnapshot();
+                return GetTeachingBlockSequenceSummaryForDebug();
+            }
+
+            var result = PreviewTeachingWaypoint(sequence.waypoints[0]);
+            PushFeedback(result.IsSuccess
+                ? $"[Block Preview] 1/{sequence.waypoints.Length} {sequence.waypoints[0].name}"
+                : result.Message);
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string ExecuteTeachingBlockSequenceDryRun()
+        {
+            ForceInitialize();
+            var sequence = ExpandTeachingBlockSequence();
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback("[Block Run] 실행할 작업 시퀀스가 없다.");
+                RefreshSnapshot();
+                return GetTeachingBlockSequenceSummaryForDebug();
+            }
+
+            var restoreDryRun = !snapshot.DryRunEnabled;
+            if (restoreDryRun)
+            {
+                ToggleDryRun();
+            }
+
+            if (waypointRunner == null)
+            {
+                EnsureRuntimeHelpers();
+            }
+
+            if (waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                PushFeedback("[Block Run] 이미 실행 중이다. Stop 후 다시 실행해라.");
+                RefreshSnapshot();
+                return GetTeachingBlockSequenceSummaryForDebug();
+            }
+
+            waypointRunner.PlayOnce(sequence, dryRun: true);
+            PushFeedback($"[Block Run] {sequence.waypoints.Length}개 포인트 DryRun 시작");
+            RefreshSnapshot();
+            return GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public string GetTeachingBlockSequenceSummaryForDebug()
+        {
+            ForceInitialize();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            var expanded = ExpandTeachingBlockSequence();
+            var expandedCount = expanded?.waypoints?.Length ?? 0;
+            var runnerState = waypointRunner != null ? waypointRunner.State.ToString() : "missing";
+            return $"{teachingBlockSequenceStore.BuildSummary()}; expanded={expandedCount}; runner={runnerState}; feedback={snapshot.LastFeedback}";
+        }
+
         public string ExecuteTeachingFunctionOnceDryRun(string functionName)
         {
             return ExecuteTeachingFunctionDryRun(functionName, null);
@@ -777,6 +909,72 @@ namespace KineTutor3D.App.Fairino
             PushFeedback($"{prefix} {function.name} DryRun {executed}개 포인트 실행 완료");
             RefreshSnapshot();
             return snapshot.LastFeedback;
+        }
+
+        private WaypointSequence ExpandTeachingBlockSequence()
+        {
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
+            var blocks = teachingBlockSequenceStore.LoadOrCreate().blocks ?? Array.Empty<TeachingSequenceBlock>();
+            var pointSequence = teachingPointStoreAdapter.LoadIfExists();
+            var expanded = WaypointStore.CreateEmpty("PendantV3BlocksExpanded");
+            for (var index = 0; index < blocks.Length; index++)
+            {
+                var block = blocks[index];
+                if (block == null || !block.enabled || string.IsNullOrWhiteSpace(block.refName))
+                {
+                    continue;
+                }
+
+                if (string.Equals(block.kind, TeachingSequenceBlock.BundleRefKind, StringComparison.OrdinalIgnoreCase))
+                {
+                    ExpandBundleBlock(teachingFunctionStore.Load(block.refName), pointSequence, expanded);
+                    continue;
+                }
+
+                var point = FindWaypoint(pointSequence, block.refName);
+                if (point != null)
+                {
+                    WaypointStore.AddWaypoint(expanded, CloneWaypoint(point));
+                }
+            }
+
+            return expanded;
+        }
+
+        private static void ExpandBundleBlock(TeachingFunction function, WaypointSequence pointSequence, WaypointSequence expanded)
+        {
+            var steps = function?.steps ?? Array.Empty<TeachingFunctionStep>();
+            for (var index = 0; index < steps.Length; index++)
+            {
+                var step = steps[index];
+                if (step == null
+                    || !step.enabled
+                    || !string.Equals(step.kind, "PointRef", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var point = FindWaypoint(pointSequence, step.refName);
+                if (point != null)
+                {
+                    WaypointStore.AddWaypoint(expanded, CloneWaypoint(point));
+                }
+            }
+        }
+
+        private static Waypoint CloneWaypoint(Waypoint point)
+        {
+            return new Waypoint
+            {
+                name = point?.name ?? string.Empty,
+                jointsDeg = point?.jointsDeg != null ? (double[])point.jointsDeg.Clone() : new double[6],
+                tcpMm = point?.tcpMm != null ? (double[])point.tcpMm.Clone() : new double[6],
+                moveType = point?.moveType ?? "MoveJ",
+                speedPreset = point?.speedPreset ?? "medium",
+                dwellSec = point?.dwellSec ?? 0.0
+            };
         }
 
         public string ResolvePendingLiveCommandKindForProduct()
@@ -2032,6 +2230,7 @@ namespace KineTutor3D.App.Fairino
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
             teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
             teachingFunctionStore ??= new TeachingFunctionStore();
+            teachingBlockSequenceStore ??= new TeachingBlockSequenceStore();
         }
 
         private FairinoResult PreviewTeachingWaypoint(Waypoint point)

@@ -692,6 +692,46 @@ namespace KineTutor3D.App
             return pointMove.DeleteSelectedSequenceForDebug();
         }
 
+        public static string GetTeachingBlockSequenceSummaryForDebug()
+        {
+            return GetRuntimeController().GetTeachingBlockSequenceSummaryForDebug();
+        }
+
+        public static string AddTeachingBlockPointForDebug(string pointName)
+        {
+            return GetRuntimeController().AddTeachingBlockPoint(pointName);
+        }
+
+        public static string AddTeachingBlockBundleForDebug(string bundleName)
+        {
+            return GetRuntimeController().AddTeachingBlockBundle(bundleName);
+        }
+
+        public static string MoveTeachingBlockForDebug(int index, int direction)
+        {
+            return GetRuntimeController().MoveTeachingBlock(index, direction);
+        }
+
+        public static string DeleteTeachingBlockForDebug(int index)
+        {
+            return GetRuntimeController().DeleteTeachingBlock(index);
+        }
+
+        public static string ClearTeachingBlockSequenceForDebug()
+        {
+            return GetRuntimeController().ClearTeachingBlockSequenceForDebug();
+        }
+
+        public static string PreviewTeachingBlockSequenceForDebug()
+        {
+            return GetRuntimeController().PreviewTeachingBlockSequence();
+        }
+
+        public static string RunTeachingBlockSequenceForDebug()
+        {
+            return GetRuntimeController().ExecuteTeachingBlockSequenceDryRun();
+        }
+
         public static string ToggleTeachingSequenceSelectionForDebug(string sequenceName)
         {
             var pointMove = GetPointMoveController();
@@ -2398,6 +2438,89 @@ namespace KineTutor3D.App
             AddCase("function-bulk-delete-second", () => DeleteSelectedTeachingFunctionsForDebug(), GetTeachingFunctionUiSummaryForDebug, "selectedFunctions=0");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-sequence-function-bulk-management.json", "SequenceFunctionBulkManagement");
+        }
+
+        public static string RunTeachingBlockSequenceMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "teaching-block-sequence",
+            };
+
+            var runtime = GetRuntimeController();
+            var bundleName = "BLOCK_PICK";
+
+            void Seed()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                ClearFunctionPointSelectionForDebug();
+                ClearTeachingBlockSequenceForDebug();
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BLOCK_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BLOCK_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+                CreateTeachingFunctionForDebug(bundleName);
+            }
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetTeachingBlockSequenceSummaryForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("seed-block-sequence", Seed, GetTeachingBlockSequenceSummaryForDebug, "blocks=0");
+            AddCase("add-point-block", () => AddTeachingBlockPointForDebug("BLOCK_A"), GetTeachingBlockSequenceSummaryForDebug, "expanded=1");
+            AddCase("add-bundle-block", () => AddTeachingBlockBundleForDebug(bundleName), GetTeachingBlockSequenceSummaryForDebug, "expanded=3");
+            AddCase("preview-block-sequence", () => PreviewTeachingBlockSequenceForDebug(), GetMovementStateSummaryForDebug, "pending=대기 명령");
+            AddCase("move-bundle-up", () => MoveTeachingBlockForDebug(1, -1), GetTeachingBlockSequenceSummaryForDebug, "0:BundleRef");
+            AddCase("delete-second-block", () => DeleteTeachingBlockForDebug(1), GetTeachingBlockSequenceSummaryForDebug, "blocks=1");
+            AddCase("add-bundle-again", () => AddTeachingBlockBundleForDebug(bundleName), GetTeachingBlockSequenceSummaryForDebug, "expanded=4");
+            AddCase("run-block-sequence", () => RunTeachingBlockSequenceForDebug(), GetMovementStateSummaryForDebug, "[Block Run]");
+            AddCase("stop-block-sequence", () => runtime.StopMotion(), GetTeachingBlockSequenceSummaryForDebug, "runner=Idle");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-block-sequence.json", "TeachingBlockSequence");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()

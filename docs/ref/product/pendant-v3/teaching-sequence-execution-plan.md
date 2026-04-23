@@ -373,7 +373,7 @@ lastSequenceFeedback: string
 
 Initial implementation can keep this state inside `RobotControlV3RuntimeController` or a small `TeachingSequenceRuntime` helper. If the code grows, split it into `Assets/Scripts/App/Fairino/Teaching/`.
 
-### Future Function Data
+### Bundle Data
 
 `TeachingFunction`
 
@@ -394,15 +394,38 @@ enabled: bool
 note: string
 ```
 
-First implementation should prefer `PointRef` only. `FunctionRef` is documented for future composition but can wait until simple groups are stable.
+User-facing copy calls this a `묶음`. Internal `TeachingFunction` names stay for storage compatibility.
 
 Storage policy:
 
-- Functions are Unity teaching routines, not manufacturer programs.
-- Function names are unique.
-- Function steps reference existing point names in v1.
-- Missing point references show warning and block function execution until fixed.
+- Bundles are Unity teaching routines, not manufacturer programs.
+- Bundle names are unique.
+- Bundle steps reference existing point names in v1.
+- Missing point references show warning and block bundle execution until fixed.
 - Stable point IDs may replace name references later, but v1 does not depend on IDs.
+
+### Block Sequence Data
+
+`TeachingSequenceBlock`
+
+```text
+kind: "PointRef" | "BundleRef"
+refName: string
+enabled: bool
+```
+
+`TeachingBlockSequence`
+
+```text
+name: "PendantV3Blocks"
+blocks: TeachingSequenceBlock[]
+updated: string
+```
+
+- `PointRef` resolves one saved point from `PendantV3Points`.
+- `BundleRef` resolves one saved bundle and expands its point refs.
+- V1 block execution expands blocks into a temporary waypoint sequence and runs it in Unity/Mock DryRun.
+- Live robot execution remains behind existing live gate policy.
 
 ---
 

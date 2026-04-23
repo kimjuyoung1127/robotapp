@@ -470,6 +470,27 @@
   - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
   - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
 
+## 2026-04-23 Point / Bundle / Sequence Redefinition
+
+- 사용자 용어를 `함수`에서 `묶음`으로 바꿨다.
+  - 내부 `TeachingFunction` 타입명과 JSON 호환성은 유지한다.
+  - UI 탭 순서는 `포인트 / 묶음 / 시퀀스`다.
+- `시퀀스` 탭에 `작업 시퀀스` 영역을 추가했다.
+  - `PointRef` 블록과 `BundleRef` 블록을 한 줄짜리 실행 블록으로 표시한다.
+  - 저장소는 `PendantV3Blocks`다.
+  - `포인트 추가`, `묶음 추가`, `위/아래`, `삭제`, `미리보기`, `실행`을 지원한다.
+- 실행 정책:
+  - `PointRef`는 저장 포인트 1개로 펼친다.
+  - `BundleRef`는 묶음 내부 포인트 참조들로 펼친다.
+  - v1 실행은 Unity/Mock DryRun 경로이며 live gate를 우회하지 않는다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingBlockSequenceMatrixForDebug()`: `9/9 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
+  - UITK text/order check: `포인트 / 묶음 / 시퀀스`
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`
