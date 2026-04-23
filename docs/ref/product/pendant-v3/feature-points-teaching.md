@@ -57,6 +57,27 @@
 - 시퀀스 실행 중 실패하면 즉시 정지하고 실패한 포인트를 선택 상태로 남긴다.
 - 포인트 목록은 사용자 순서를 유지하며 이름순 자동 정렬을 하지 않는다.
 
+## Sequence / Function Linkage Policy
+
+- `포인트`, `시퀀스`, `함수`는 서로 독립 화면이 아니라 같은 티칭 데이터의 세 관점이다.
+- `포인트`에서 저장한 `PendantV3Points`는 `시퀀스` 탭에서 항상 선택/실행 가능한 기본 시퀀스로 보여야 한다.
+- `기록 중지`로 생성되는 `PendantV3RecordedPath`도 시퀀스 라이브러리에 보여야 하며, 사용자는 이를 재생/루프/삭제할 수 있어야 한다.
+- `시퀀스` 탭은 최소한 다음 시퀀스를 구분해 보여준다.
+  - `PendantV3Points`: 사용자가 저장한 티칭 포인트 순서
+  - `PendantV3RecordedPath`: 연속 경로 기록 결과
+  - 기타 `WaypointStore`에 저장된 named sequence
+- `함수` 탭은 선택한 포인트 참조를 묶는 기능이며, 누락 참조는 `시퀀스/포인트` 목록 상태와 함께 보여준다.
+- 삭제 정책:
+  - `PendantV3Points` 삭제는 포인트 전체 삭제와 같은 위험 작업으로 보고 기존 cleanup/confirmation 흐름을 유지한다.
+  - `PendantV3RecordedPath`와 기타 recorded/named sequence는 시퀀스 탭에서 삭제 가능해야 한다.
+  - 삭제 후 현재 선택된 시퀀스가 사라졌다면 `PendantV3Points`를 기본 선택으로 복귀한다.
+- 구현 기준:
+  - `NavPoints > 시퀀스`는 `저장한 포인트 순서`, `기록한 경로`, `실행 목록`을 같은 화면에 보여준다.
+  - 실행 목록 row는 `선택 / 재생 / 루프 / 삭제`를 제공한다.
+  - `PendantV3Points` row의 삭제는 비활성화하고, 포인트 탭의 개별 삭제/정리 confirmation으로만 처리한다.
+  - `기록 삭제` 버튼은 `PendantV3RecordedPath` 삭제 confirmation으로 연결된다.
+  - v1 row 재생/루프는 Unity/Mock 검증용이며, live 실기 실행은 기존 live gate 경로를 우회하지 않는다.
+
 ---
 
 ## 포인트 관리 패널 (NavRail > 포인트)

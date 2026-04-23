@@ -624,6 +624,37 @@ namespace KineTutor3D.App
             return pointMove.GetFunctionDebugSummary();
         }
 
+        public static string GetTeachingSequenceLibrarySummaryForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            pointMove.ForceInitialize();
+            return pointMove.GetSequenceLibrarySummaryForDebug();
+        }
+
+        public static string SelectTeachingSequenceForDebug(string sequenceName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SelectSequenceForDebug(sequenceName);
+        }
+
+        public static string RunSelectedTeachingSequenceOnceForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RunSelectedSequenceOnceForDebug();
+        }
+
+        public static string RunSelectedTeachingSequenceLoopForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.RunSelectedSequenceLoopForDebug();
+        }
+
+        public static string DeleteSelectedTeachingSequenceForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.DeleteSelectedSequenceForDebug();
+        }
+
         public static string ScrollPointMovePanelForDebug(float verticalOffset)
         {
             var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
@@ -1813,6 +1844,24 @@ namespace KineTutor3D.App
                 ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
             }, "BtnPathReplayLoop", GetTeachingPathRecordingSummaryForDebug, "runner=Running");
 
+            AddClickCase("sequence-row-select-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnSequenceRowSelect", GetTeachingSequenceLibrarySummaryForDebug, "selectedSequence=");
+
+            AddClickCase("sequence-row-run-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnSequenceRowRun", GetMovementStateSummaryForDebug, "[Sequence Run]");
+
+            AddClickCase("path-record-delete-click", () =>
+            {
+                SeedRecordedPath();
+                ClickUiButton("BtnSequenceSubview", "desktop", out _, out _, out _);
+            }, "BtnPathRecordDelete", GetTeachingSequenceLibrarySummaryForDebug, "[Confirm]");
+
             AddClickCase("function-candidate-create-click", () =>
             {
                 Seed();
@@ -1997,6 +2046,131 @@ namespace KineTutor3D.App
                 && loop.Contains("runner=Running");
             runtime.StopMotion();
             return $"TeachingPathRecordingLoopMatrix pass={pass}; start=[{start}]; sampleA=[{sampleA}]; sampleB=[{sampleB}]; stop=[{stop}]; loop=[{loop}]; movement=[{movement}]";
+        }
+
+        public static string RunSequenceLibraryMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "teaching-sequence-library-linkage",
+            };
+
+            var runtime = GetRuntimeController();
+            var customName = "PendantV3SequenceMatrix";
+
+            void Seed()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                runtime.DeleteWaypointSequence("PendantV3RecordedPath");
+                WaypointStore.Delete(customName);
+                var pointSequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(pointSequence, new Waypoint
+                {
+                    name = "LIB_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(pointSequence, new Waypoint
+                {
+                    name = "LIB_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(pointSequence);
+
+                var recorded = WaypointStore.CreateEmpty("PendantV3RecordedPath");
+                WaypointStore.AddWaypoint(recorded, new Waypoint
+                {
+                    name = "REC_A",
+                    jointsDeg = new[] { 2.0, -43.0, 3.0, -57.0, -90.0, -40.0 },
+                    tcpMm = new[] { 502.0, 122.0, 432.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(recorded, new Waypoint
+                {
+                    name = "REC_B",
+                    jointsDeg = new[] { 8.0, -39.0, 10.0, -53.0, -86.0, -22.0 },
+                    tcpMm = new[] { 508.0, 142.0, 420.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(recorded);
+
+                var custom = WaypointStore.CreateEmpty(customName);
+                WaypointStore.AddWaypoint(custom, new Waypoint
+                {
+                    name = "CUSTOM_A",
+                    jointsDeg = new[] { 15.0, -35.0, 12.0, -50.0, -82.0, -20.0 },
+                    tcpMm = new[] { 520.0, 160.0, 410.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(custom);
+            }
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetTeachingSequenceLibrarySummaryForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("sequence-tab-shows-point-sequence", Seed, GetTeachingSequenceLibrarySummaryForDebug, "PendantV3Points:2");
+            AddCase("sequence-tab-shows-recorded-path", null, GetTeachingSequenceLibrarySummaryForDebug, "PendantV3RecordedPath:2");
+            AddCase("sequence-tab-shows-custom-sequence", null, GetTeachingSequenceLibrarySummaryForDebug, $"{customName}:1");
+            AddCase("select-recorded-path", () => SelectTeachingSequenceForDebug("PendantV3RecordedPath"), GetTeachingSequenceLibrarySummaryForDebug, "selectedSequence=PendantV3RecordedPath");
+            AddCase("run-recorded-path-once", () => RunSelectedTeachingSequenceOnceForDebug(), GetMovementStateSummaryForDebug, "[Sequence Run]");
+            AddCase("stop-recorded-path", () => runtime.StopMotion(), GetTeachingLoopSummaryForDebug, "runnerState=Idle");
+            AddCase("loop-custom-sequence", () =>
+            {
+                SelectTeachingSequenceForDebug(customName);
+                RunSelectedTeachingSequenceLoopForDebug();
+            }, GetMovementStateSummaryForDebug, "[Sequence Loop]");
+            AddCase("stop-custom-loop", () => runtime.StopMotion(), GetTeachingLoopSummaryForDebug, "runnerState=Idle");
+            AddCase("delete-recorded-path-confirm", () =>
+            {
+                SelectTeachingSequenceForDebug("PendantV3RecordedPath");
+                DeleteSelectedTeachingSequenceForDebug();
+            }, GetTeachingSequenceLibrarySummaryForDebug, "[Confirm]");
+            AddCase("delete-recorded-path-second-click", () => DeleteSelectedTeachingSequenceForDebug(), GetTeachingSequenceLibrarySummaryForDebug, "recordedPathCount=0");
+            AddCase("point-sequence-still-present", null, GetTeachingSequenceLibrarySummaryForDebug, "PendantV3Points:2");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-sequence-library-linkage.json", "SequenceLibraryLinkage");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()

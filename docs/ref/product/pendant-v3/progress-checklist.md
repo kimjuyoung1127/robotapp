@@ -392,6 +392,23 @@
   - 전체 `RunActualUiClickMatrixForDebug()`는 현재 케이스 수가 커져 unityctl IPC 30초 제한에 걸릴 수 있다.
   - 이번 UX 변경 회귀는 subview/function/teaching motion split matrix로 닫았다.
 
+## 2026-04-22 Sequence Library Linkage
+
+- `시퀀스` 탭에서 `포인트` 탭 저장 결과를 바로 볼 수 있게 했다.
+  - `PendantV3Points` -> `저장한 포인트 순서`
+  - `PendantV3RecordedPath` -> `기록한 경로`
+  - 기타 `WaypointStore` sequence -> 실행 목록 row
+- sequence row에 `선택`, `재생`, `루프`, `삭제`를 추가했다.
+- `기록 삭제` 버튼을 추가해 기록된 루프/경로를 시퀀스 탭에서 직접 지울 수 있게 했다.
+- `PendantV3Points` 삭제는 실수 방지를 위해 포인트 탭의 개별 삭제/정리 confirmation으로 유지한다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunSequenceLibraryMatrixForDebug()`: `11/11 PASS`
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `16/16 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunTeachingPathRecordingLoopMatrixForDebug()`: pass
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

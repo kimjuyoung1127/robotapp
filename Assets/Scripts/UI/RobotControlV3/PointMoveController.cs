@@ -16,6 +16,7 @@ namespace KineTutor3D.UI.RobotControlV3
     public sealed partial class PointMoveController : MonoBehaviour
     {
         private const string PointSequenceName = "PendantV3Points";
+        private const string RecordedPathSequenceName = "PendantV3RecordedPath";
         private const string PointSubviewName = "Point";
         private const string SequenceSubviewName = "Sequence";
         private const string FunctionSubviewName = "Function";
@@ -50,6 +51,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDwellInvalid;
         private string pendingConfirmKind = string.Empty;
         private string pendingConfirmName = string.Empty;
+        private string selectedSequenceName = PointSequenceName;
         private string selectedFunctionName = string.Empty;
         private bool debugSequenceEditLocked;
         private bool isDesktopVisible;
@@ -142,6 +144,35 @@ namespace KineTutor3D.UI.RobotControlV3
         public string GetPointListSummaryForDebug()
         {
             return BuildPointListDebugSummary();
+        }
+
+        public string GetSequenceLibrarySummaryForDebug()
+        {
+            return BuildSequenceLibraryDebugSummary();
+        }
+
+        public string SelectSequenceForDebug(string sequenceName)
+        {
+            SelectSequence(sequenceName);
+            return GetSequenceLibrarySummaryForDebug();
+        }
+
+        public string RunSelectedSequenceOnceForDebug()
+        {
+            RunSelectedSequenceOnce();
+            return GetSequenceLibrarySummaryForDebug();
+        }
+
+        public string RunSelectedSequenceLoopForDebug()
+        {
+            RunSelectedSequenceLoop();
+            return GetSequenceLibrarySummaryForDebug();
+        }
+
+        public string DeleteSelectedSequenceForDebug()
+        {
+            DeleteSelectedSequence();
+            return GetSequenceLibrarySummaryForDebug();
         }
 
         public string RenamePointForDebug(string oldName, string newName)
@@ -422,6 +453,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnPathRecordStop, StopPathRecording);
             RegisterClick(panel.BtnPathReplayOnce, PlayRecordedPathOnce);
             RegisterClick(panel.BtnPathReplayLoop, PlayRecordedPathLoop);
+            RegisterClick(panel.BtnPathRecordDelete, DeleteRecordedPath);
             RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
             RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
             RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
@@ -508,6 +540,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             ApplyLoopState(panel);
             RebuildPointList(panel);
+            ApplySequencePanel(panel);
             ApplyPointDetail(panel);
             ApplyFunctionPanel(panel);
             panel.FeedbackSummary.text = lastFeedback;
@@ -535,6 +568,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnPathRecordStop?.SetEnabled(runtimeController != null);
             panel.BtnPathReplayOnce?.SetEnabled(canApply && !IsSequenceEditLocked());
             panel.BtnPathReplayLoop?.SetEnabled(canApply && !IsSequenceEditLocked());
+            panel.BtnPathRecordDelete?.SetEnabled(canEdit && HasNamedSequence(RecordedPathSequenceName));
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
@@ -759,6 +793,105 @@ namespace KineTutor3D.UI.RobotControlV3
             var result = runtimeController != null
                 ? runtimeController.PlayRecordedTeachingPathLoop()
                 : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void DeleteRecordedPath()
+        {
+            SelectSequence(RecordedPathSequenceName);
+            DeleteSelectedSequence();
+        }
+
+        private void SelectSequence(string sequenceName)
+        {
+            var safeName = string.IsNullOrWhiteSpace(sequenceName)
+                ? PointSequenceName
+                : sequenceName.Trim();
+            selectedSequenceName = safeName;
+            SetFeedback($"[Sequence] {GetSequenceDisplayName(safeName)} 선택");
+            ApplyAll();
+        }
+
+        private void RunSelectedSequenceOnce()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 새 실행을 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            if (!CanApply())
+            {
+                SetFeedback("연결 상태가 준비되지 않아 실행할 수 없다.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.ExecuteWaypointSequenceOnce(selectedSequenceName)
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void RunSelectedSequenceLoop()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 새 루프를 시작할 수 없다. Stop 후 다시 실행해라.");
+                return;
+            }
+
+            if (!CanApply())
+            {
+                SetFeedback("연결 상태가 준비되지 않아 루프 실행할 수 없다.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.ExecuteWaypointSequenceLoop(selectedSequenceName)
+                : "runtime missing";
+            SetFeedback(result);
+            ApplyAll();
+        }
+
+        private void DeleteSelectedSequence()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 실행 목록 삭제를 잠근다. Stop 후 다시 삭제해라.");
+                return;
+            }
+
+            if (string.Equals(selectedSequenceName, PointSequenceName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                SetFeedback("저장한 포인트 순서는 포인트 탭의 삭제/정리로 관리한다. 여기서는 기록한 경로와 별도 실행 목록만 삭제한다.");
+                return;
+            }
+
+            if (!HasNamedSequence(selectedSequenceName))
+            {
+                SetFeedback($"{GetSequenceDisplayName(selectedSequenceName)} 실행 목록을 찾지 못했다.");
+                selectedSequenceName = PointSequenceName;
+                ApplyAll();
+                return;
+            }
+
+            if (!IsPendingConfirmation("delete-sequence", selectedSequenceName))
+            {
+                SetPendingConfirmation("delete-sequence", selectedSequenceName);
+                SetFeedback($"[Confirm] {GetSequenceDisplayName(selectedSequenceName)} 삭제 예정. 삭제를 한 번 더 누르면 기록/실행 목록이 지워진다.");
+                return;
+            }
+
+            var deletedName = selectedSequenceName;
+            var result = runtimeController != null
+                ? runtimeController.DeleteWaypointSequence(deletedName)
+                : WaypointStore.Delete(deletedName)
+                    ? $"[Sequence] {deletedName} 삭제"
+                    : $"[Sequence] {deletedName} 삭제 실패";
+            selectedSequenceName = PointSequenceName;
+            ClearPendingConfirmation();
             SetFeedback(result);
             ApplyAll();
         }
@@ -1977,6 +2110,179 @@ namespace KineTutor3D.UI.RobotControlV3
             }
         }
 
+        private void ApplySequencePanel(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            if (!HasNamedSequence(selectedSequenceName))
+            {
+                selectedSequenceName = PointSequenceName;
+            }
+
+            if (panel.SequenceLibrarySummary != null)
+            {
+                panel.SequenceLibrarySummary.text = BuildSequenceLibraryUiSummary();
+            }
+
+            if (panel.SelectedSequenceDetail != null)
+            {
+                panel.SelectedSequenceDetail.text = BuildSelectedSequenceDetail();
+            }
+
+            RebuildSequenceList(panel);
+        }
+
+        private void RebuildSequenceList(PanelElements panel)
+        {
+            if (panel?.SequenceListContainer == null)
+            {
+                return;
+            }
+
+            panel.SequenceListContainer.Clear();
+            var names = BuildOrderedSequenceNames();
+            var visibleCount = System.Math.Min(names.Count, 6);
+            for (var index = 0; index < visibleCount; index++)
+            {
+                var sequenceName = names[index];
+                var row = new VisualElement();
+                row.AddToClassList("rc-point-row");
+                row.EnableInClassList(
+                    "rc-point-row--active",
+                    string.Equals(selectedSequenceName, sequenceName, System.StringComparison.OrdinalIgnoreCase));
+
+                var summary = new Label(BuildSequenceRowSummary(sequenceName));
+                summary.AddToClassList("rc-point-row-summary");
+                row.Add(summary);
+
+                var actions = new VisualElement();
+                actions.AddToClassList("rc-point-row-actions");
+                actions.Add(CreatePointRowButton("BtnSequenceRowSelect", "선택", () => SelectSequence(sequenceName)));
+                actions.Add(CreatePointRowButton("BtnSequenceRowRun", "재생", () =>
+                {
+                    SelectSequence(sequenceName);
+                    RunSelectedSequenceOnce();
+                }));
+                actions.Add(CreatePointRowButton("BtnSequenceRowLoop", "루프", () =>
+                {
+                    SelectSequence(sequenceName);
+                    RunSelectedSequenceLoop();
+                }));
+
+                var deleteButton = CreatePointRowButton("BtnSequenceRowDelete", "삭제", () =>
+                {
+                    SelectSequence(sequenceName);
+                    DeleteSelectedSequence();
+                });
+                deleteButton.SetEnabled(!string.Equals(sequenceName, PointSequenceName, System.StringComparison.OrdinalIgnoreCase));
+                actions.Add(deleteButton);
+                row.Add(actions);
+                panel.SequenceListContainer.Add(row);
+            }
+
+            if (names.Count == 0)
+            {
+                var empty = new Label("실행 목록 없음 · 포인트를 저장하거나 경로를 기록하면 여기에 뜬다.");
+                empty.AddToClassList("rc-panel-copy");
+                empty.AddToClassList("rc-panel-copy--compact");
+                panel.SequenceListContainer.Add(empty);
+            }
+        }
+
+        private string BuildSequenceLibraryUiSummary()
+        {
+            var pointCount = CountSequenceWaypoints(PointSequenceName);
+            var recordedCount = CountSequenceWaypoints(RecordedPathSequenceName);
+            var names = WaypointStore.LoadAllNames();
+            var otherCount = 0;
+            for (var index = 0; index < names.Length; index++)
+            {
+                if (!string.Equals(names[index], PointSequenceName, System.StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(names[index], RecordedPathSequenceName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    otherCount++;
+                }
+            }
+
+            return $"저장한 포인트 순서 {pointCount}개 / 기록한 경로 {recordedCount}개 / 기타 {otherCount}개";
+        }
+
+        private string BuildSelectedSequenceDetail()
+        {
+            var sequence = LoadSequenceIfExists(selectedSequenceName);
+            var count = sequence?.waypoints?.Length ?? 0;
+            return $"{GetSequenceDisplayName(selectedSequenceName)} · {count}개 포인트";
+        }
+
+        private string BuildSequenceRowSummary(string sequenceName)
+        {
+            var sequence = LoadSequenceIfExists(sequenceName);
+            var count = sequence?.waypoints?.Length ?? 0;
+            var first = count > 0 ? sequence.waypoints[0]?.name : "-";
+            var last = count > 1 ? sequence.waypoints[count - 1]?.name : first;
+            return $"{GetSequenceDisplayName(sequenceName)} · {count}개 · {ShortDisplayName(first)} → {ShortDisplayName(last)}";
+        }
+
+        private string BuildSequenceLibraryDebugSummary()
+        {
+            var names = BuildOrderedSequenceNames();
+            var parts = new string[names.Count];
+            for (var index = 0; index < names.Count; index++)
+            {
+                parts[index] = $"{names[index]}:{CountSequenceWaypoints(names[index])}";
+            }
+
+            return $"selectedSequence={selectedSequenceName}; pointCount={CountSequenceWaypoints(PointSequenceName)}; recordedPathCount={CountSequenceWaypoints(RecordedPathSequenceName)}; {BuildSequenceLibraryUiSummary()}; sequences=[{string.Join(",", parts)}]; feedback={lastFeedback}";
+        }
+
+        private static List<string> BuildOrderedSequenceNames()
+        {
+            var result = new List<string>();
+            if (HasNamedSequence(PointSequenceName))
+            {
+                result.Add(PointSequenceName);
+            }
+
+            if (HasNamedSequence(RecordedPathSequenceName))
+            {
+                result.Add(RecordedPathSequenceName);
+            }
+
+            var names = WaypointStore.LoadAllNames();
+            System.Array.Sort(names, System.StringComparer.OrdinalIgnoreCase);
+            for (var index = 0; index < names.Length; index++)
+            {
+                var name = names[index];
+                if (string.Equals(name, PointSequenceName, System.StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(name, RecordedPathSequenceName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                result.Add(name);
+            }
+
+            return result;
+        }
+
+        private static string GetSequenceDisplayName(string sequenceName)
+        {
+            if (string.Equals(sequenceName, PointSequenceName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return "저장한 포인트 순서";
+            }
+
+            if (string.Equals(sequenceName, RecordedPathSequenceName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return "기록한 경로";
+            }
+
+            return string.IsNullOrWhiteSpace(sequenceName) ? "실행 목록" : sequenceName.Trim();
+        }
+
         private string BuildPointListDebugSummary()
         {
             var sequence = LoadPointSequenceIfExists();
@@ -2117,16 +2423,36 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static WaypointSequence LoadPointSequenceIfExists()
         {
+            return LoadSequenceIfExists(PointSequenceName);
+        }
+
+        private static WaypointSequence LoadSequenceIfExists(string sequenceName)
+        {
+            if (string.IsNullOrWhiteSpace(sequenceName))
+            {
+                return null;
+            }
+
             var names = WaypointStore.LoadAllNames();
             for (var index = 0; index < names.Length; index++)
             {
-                if (string.Equals(names[index], PointSequenceName, System.StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(names[index], sequenceName.Trim(), System.StringComparison.OrdinalIgnoreCase))
                 {
-                    return WaypointStore.Load(PointSequenceName);
+                    return WaypointStore.Load(names[index]);
                 }
             }
 
             return null;
+        }
+
+        private static bool HasNamedSequence(string sequenceName)
+        {
+            return LoadSequenceIfExists(sequenceName) != null;
+        }
+
+        private static int CountSequenceWaypoints(string sequenceName)
+        {
+            return LoadSequenceIfExists(sequenceName)?.waypoints?.Length ?? 0;
         }
 
         private void SetPointName(string pointName)

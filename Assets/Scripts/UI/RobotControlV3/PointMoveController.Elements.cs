@@ -46,7 +46,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnPathRecordStop = root.Q<Button>("BtnPathRecordStop");
                 BtnPathReplayOnce = root.Q<Button>("BtnPathReplayOnce");
                 BtnPathReplayLoop = root.Q<Button>("BtnPathReplayLoop");
+                BtnPathRecordDelete = root.Q<Button>("BtnPathRecordDelete");
                 PathRecordSummary = root.Q<Label>("PathRecordSummary");
+                SequenceLibrarySummary = root.Q<Label>("SequenceLibrarySummary");
+                SelectedSequenceDetail = root.Q<Label>("SelectedSequenceDetail");
+                SequenceListContainer = root.Q<VisualElement>("SequenceListContainer");
                 PointListContainer = root.Q<VisualElement>("PointListContainer");
                 DetailTitle = root.Q<Label>("PointDetailTitle");
                 DetailMeta = root.Q<Label>("PointDetailMeta");
@@ -152,7 +156,11 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnPathRecordStop { get; }
             public Button BtnPathReplayOnce { get; }
             public Button BtnPathReplayLoop { get; }
+            public Button BtnPathRecordDelete { get; }
             public Label PathRecordSummary { get; }
+            public Label SequenceLibrarySummary { get; }
+            public Label SelectedSequenceDetail { get; }
+            public VisualElement SequenceListContainer { get; }
             public VisualElement PointListContainer { get; }
             public Label DetailTitle { get; }
             public Label DetailMeta { get; }

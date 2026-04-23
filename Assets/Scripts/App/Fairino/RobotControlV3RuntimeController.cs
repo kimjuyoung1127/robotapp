@@ -191,6 +191,44 @@ namespace KineTutor3D.App.Fairino
             return PlayRecordedTeachingPath(loop: true);
         }
 
+        public string ExecuteWaypointSequenceOnce(string sequenceName)
+        {
+            return PlayNamedWaypointSequence(sequenceName, loop: false);
+        }
+
+        public string ExecuteWaypointSequenceLoop(string sequenceName)
+        {
+            return PlayNamedWaypointSequence(sequenceName, loop: true);
+        }
+
+        public string DeleteWaypointSequence(string sequenceName)
+        {
+            if (string.IsNullOrWhiteSpace(sequenceName))
+            {
+                PushFeedback("[Sequence] 삭제할 실행 목록 이름이 비어 있다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (waypointRunner != null && waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                PushFeedback("[Sequence] 실행 중에는 실행 목록을 삭제하지 않는다. Stop 후 다시 삭제해라.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var safeName = sequenceName.Trim();
+            var ok = WaypointStore.Delete(safeName);
+            if (string.Equals(safeName, RecordedPathSequenceName, StringComparison.OrdinalIgnoreCase))
+            {
+                recordedPathSequence = null;
+            }
+
+            PushFeedback(ok ? $"[Sequence] {safeName} 삭제" : $"[Sequence] {safeName} 삭제 실패");
+            RefreshSnapshot();
+            return snapshot.LastFeedback;
+        }
+
         public string GetTeachingPathRecordingSummaryForDebug()
         {
             var recorder = teachingPathRecorder?.ToDebugSummary() ?? "recording=False; samples=0";
@@ -1733,6 +1771,62 @@ namespace KineTutor3D.App.Fairino
             return GetTeachingPathRecordingSummaryForDebug();
         }
 
+        private string PlayNamedWaypointSequence(string sequenceName, bool loop)
+        {
+            var commandName = loop ? "실행 목록 루프" : "실행 목록 재생";
+            if (!EnsureReadyForCommand(commandName))
+            {
+                return snapshot.LastFeedback;
+            }
+
+            var safeName = string.IsNullOrWhiteSpace(sequenceName)
+                ? TeachingPointStoreAdapter.DefaultSequenceName
+                : sequenceName.Trim();
+            var sequence = string.Equals(safeName, RecordedPathSequenceName, StringComparison.OrdinalIgnoreCase)
+                ? ResolveRecordedPathSequence()
+                : WaypointStore.Load(safeName);
+            if (sequence?.waypoints == null || sequence.waypoints.Length == 0)
+            {
+                PushFeedback($"[Sequence] {safeName} 실행할 포인트가 없다.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (waypointRunner == null)
+            {
+                EnsureRuntimeHelpers();
+            }
+
+            if (waypointRunner.State != WaypointCycleRunner.RunState.Idle)
+            {
+                PushFeedback("[Sequence] 이미 실행 중이다. Stop 후 다시 실행해라.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            if (!snapshot.DryRunEnabled && connectionService != null && !connectionService.IsMockMode)
+            {
+                PushFeedback("[Sequence] named sequence live 실행은 v1에서 잠금이다. DryRun에서 먼저 확인하고 live gate 경로를 사용해라.");
+                RefreshSnapshot();
+                return snapshot.LastFeedback;
+            }
+
+            var dryRun = true;
+            if (loop)
+            {
+                waypointRunner.PlayLoop(sequence, dryRun);
+                PushFeedback($"[Sequence Loop] {safeName} 루프 시작 · {sequence.waypoints.Length}개");
+            }
+            else
+            {
+                waypointRunner.PlayOnce(sequence, dryRun);
+                PushFeedback($"[Sequence Run] {safeName} 1회 재생 · {sequence.waypoints.Length}개");
+            }
+
+            RefreshSnapshot();
+            return snapshot.LastFeedback;
+        }
+
         private WaypointSequence ResolveRecordedPathSequence()
         {
             if (recordedPathSequence?.waypoints != null && recordedPathSequence.waypoints.Length > 0)
@@ -1740,8 +1834,28 @@ namespace KineTutor3D.App.Fairino
                 return recordedPathSequence;
             }
 
+            if (!WaypointSequenceExists(RecordedPathSequenceName))
+            {
+                recordedPathSequence = null;
+                return null;
+            }
+
             recordedPathSequence = WaypointStore.Load(RecordedPathSequenceName);
             return recordedPathSequence;
+        }
+
+        private static bool WaypointSequenceExists(string sequenceName)
+        {
+            var names = WaypointStore.LoadAllNames();
+            for (var index = 0; index < names.Length; index++)
+            {
+                if (string.Equals(names[index], sequenceName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool PreviewTeachingStep(int delta)

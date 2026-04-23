@@ -71,7 +71,8 @@
 
         <ui:VisualElement name="SequenceSubview" class="rc-point-subview rc-hidden">
             <ui:VisualElement class="rc-point-execution-card">
-                <ui:Label text="실행" class="rc-point-detail-title" />
+                <ui:Label text="저장한 포인트 순서" class="rc-point-detail-title" />
+                <ui:Label name="SelectedSequenceDetail" text="PendantV3Points · 0개 포인트" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
                     <ui:Button name="BtnPointRunSequence" text="Run" class="rc-point-action-button rc-point-action-button--primary" />
                     <ui:Button name="BtnPointStepBack" text="Step◀" class="rc-point-action-button" />
@@ -85,14 +86,20 @@
                 <ui:Label name="PointLoopStatus" text="반복 실행: 꺼짐" class="rc-panel-copy rc-panel-copy--compact rc-point-loop-status" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-point-execution-card">
-                <ui:Label text="연속 경로 기록" class="rc-point-detail-title" />
+                <ui:Label text="기록한 경로" class="rc-point-detail-title" />
                 <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
                     <ui:Button name="BtnPathRecordStart" text="기록 시작" class="rc-point-action-button rc-point-action-button--primary" />
                     <ui:Button name="BtnPathRecordStop" text="기록 중지" class="rc-point-action-button" />
                     <ui:Button name="BtnPathReplayOnce" text="기록 재생" class="rc-point-action-button" />
                     <ui:Button name="BtnPathReplayLoop" text="기록 루프" class="rc-point-action-button rc-point-action-button--primary" />
+                    <ui:Button name="BtnPathRecordDelete" text="기록 삭제" class="rc-point-action-button rc-point-action-button--danger" />
                 </ui:VisualElement>
                 <ui:Label name="PathRecordSummary" text="기록: 대기 / 샘플 0개" class="rc-panel-copy rc-panel-copy--compact" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-execution-card">
+                <ui:Label text="실행 목록" class="rc-point-detail-title" />
+                <ui:Label name="SequenceLibrarySummary" text="저장한 포인트 순서 0개 / 기록한 경로 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:VisualElement name="SequenceListContainer" class="rc-point-list" />
             </ui:VisualElement>
             <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact" />
             <ui:Label name="PointCoordSummary" text="좌표계: Base / 현재 TCP 기준으로 시작" class="rc-panel-copy rc-panel-copy--compact" />

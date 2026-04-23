@@ -54,10 +54,20 @@
 - Selected point can be overwritten with current readback while preserving name/move type/speed/dwell.
 - Actual UI click matrix covers point reorder/overwrite buttons.
 - Function v1 scaffold supports function store, create/list/detail, rename/duplicate/delete, and RunOnce DryRun.
+- `PendantV3RecordedPath` can be created from continuous path recording and replayed once/looped through runtime debug/API paths.
+- `NavPoints > 시퀀스` exposes the shared teaching sequence library:
+  - `PendantV3Points` as `저장한 포인트 순서`
+  - `PendantV3RecordedPath` as `기록한 경로`
+  - other `WaypointStore` sequences as named execution lists
+- Sequence library rows support select, one-shot play, loop play, and delete where deletion is allowed.
+- Recorded path deletion is available from both `기록 삭제` and the sequence row delete confirmation path.
+- Named sequence row play/loop is DryRun/Mock-only for v1; live robot execution still stays behind the existing live gate path.
 
 ### Still Missing / Next Slices
 
+- Function missing-ref repair UX.
 - IO/gripper sequence blocks.
+- Named sequence rename/duplicate UI if users need more than delete/re-record.
 - Stable point IDs, if name-based v1 becomes limiting.
 - Production IK policy for live `MoveJ` beyond saved joint targets.
 
@@ -187,10 +197,11 @@ These decisions are no longer open questions for the first implementation slice.
 
 ### Loop Placement
 
-- Loop mode is not part of the first visible UI slice.
-- First implementation may expose loop through debug/internal state only.
-- Visible loop toggle is added after RunOnce is stable.
-- When visible, loop mode should live in the Point/Teaching panel first, not crowded into BottomBar.
+- Loop mode lives in `NavPoints > 시퀀스`.
+- Saved point sequence loop and recorded path loop must be visually distinguishable.
+- `반복 ON/OFF` controls `PendantV3Points` ordered sequence run.
+- `기록 루프` controls the selected/last recorded path sequence replay.
+- Recorded path loop must have a visible delete path through the sequence library.
 
 ### Point Ordering
 

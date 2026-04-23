@@ -51,3 +51,25 @@
 
 - Live 연속 hold jog는 아직 열지 않는다. v1은 Unity/Mock preview/apply 중심이다.
 - 콘솔에 남는 `unityctl IPC connection error`는 테스트 러너 잡음으로 보고, 프로젝트 compile/runtime failure로 보지 않는다.
+
+## 2026-04-22 Linkage Follow-up
+
+- 사용자가 보고한 문제:
+  - `포인트`에서 저장한 항목이 `시퀀스`에서 같은 프로그램처럼 보이지 않는다.
+  - `PendantV3RecordedPath`가 저장/루프 재생은 되지만 시퀀스 목록에서 삭제할 수 없다.
+  - `포인트 / 시퀀스 / 함수`가 같은 티칭 데이터의 세 관점으로 연결되어 보이지 않는다.
+- 문서 잠금:
+  - `시퀀스` 탭은 `PendantV3Points`, `PendantV3RecordedPath`, 기타 `WaypointStore` sequence를 보여주는 sequence library를 가진다.
+  - recorded path는 `재생 / 루프 / 삭제`가 가능해야 한다.
+  - `함수`는 point refs 기반이므로 point/sequence 상태와 누락 ref warning을 같이 보여야 한다.
+- 구현 완료:
+  - `시퀀스` 탭에 `저장한 포인트 순서`, `기록한 경로`, `실행 목록` 영역을 추가했다.
+  - sequence row는 `선택 / 재생 / 루프 / 삭제`를 제공한다.
+  - `PendantV3Points` 삭제는 기존 포인트 탭 cleanup/confirmation으로 유지하고, `PendantV3RecordedPath`는 시퀀스 탭에서 `기록 삭제`로 지울 수 있게 했다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunSequenceLibraryMatrixForDebug()`: `11/11 PASS`
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `16/16 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunTeachingPathRecordingLoopMatrixForDebug()`: `PASS`
