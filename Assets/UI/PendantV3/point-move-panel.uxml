@@ -124,6 +124,31 @@
             <ui:Label name="PointFeedbackSummary" text="아직 실행한 명령이 없다." class="rc-panel-copy rc-panel-copy--compact" />
         </ui:VisualElement>
 
+        <ui:VisualElement name="PointActionModal" class="rc-point-modal rc-hidden">
+            <ui:VisualElement class="rc-point-modal-card">
+                <ui:Label name="PointActionModalTitle" text="포인트 작업" class="rc-point-detail-title" />
+                <ui:Label name="PointActionModalSummary" text="포인트를 선택하면 작업 내용을 확인한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:Label name="PointActionModalPose" text="J: - / TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:VisualElement class="rc-point-name-row">
+                    <ui:Label text="이름" class="rc-point-name-label" />
+                    <ui:TextField name="PointActionModalNameInput" value="" class="rc-point-name-input" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rc-point-timing-row">
+                    <ui:Button name="BtnPointModalSpeedSlow" text="느림" class="rc-point-timing-button" />
+                    <ui:Button name="BtnPointModalSpeedMedium" text="중간" class="rc-point-timing-button rc-point-timing-button--active" />
+                    <ui:Button name="BtnPointModalSpeedFast" text="빠름" class="rc-point-timing-button" />
+                    <ui:TextField name="PointActionModalDwellInput" value="0.0" class="rc-point-dwell-input" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
+                    <ui:Button name="BtnPointModalPrimary" text="확인" class="rc-point-action-button rc-point-action-button--primary" />
+                    <ui:Button name="BtnPointModalOverwrite" text="현재 위치로 덮어쓰기" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointModalDuplicate" text="복사" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointModalDelete" text="삭제" class="rc-point-action-button rc-point-action-button--danger" />
+                    <ui:Button name="BtnPointModalClose" text="닫기" class="rc-point-action-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <ui:VisualElement name="FunctionSubview" class="rc-point-subview rc-point-function-card rc-hidden">
             <ui:Label text="함수" class="rc-point-detail-title" />
             <ui:Label name="FunctionBuildSummary" text="선택한 포인트 0개 → 함수 만들기" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />

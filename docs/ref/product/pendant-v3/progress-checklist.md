@@ -409,6 +409,20 @@
   - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
   - `RunTeachingPathRecordingLoopMatrixForDebug()`: pass
 
+## 2026-04-23 Point Row Action Modal
+
+- 포인트 row 버튼 문구를 사용자 작업 기준으로 바꿨다.
+  - `이동` -> `실행`
+  - `수정` -> `편집`
+  - `후보` -> `함수 추가`
+- row 버튼은 바로 아래 detail 카드로 스크롤을 요구하지 않고, 먼저 포인트 작업 모달을 연다.
+- `편집` 모달에서 이름, 속도, dwell을 저장하고, 덮어쓰기/복사/삭제도 같은 문맥에서 실행할 수 있게 했다.
+- 검증 결과:
+  - `unityctl check --type compile`: pass
+  - `RunTeachingSubviewActualClickMatrixForDebug()`: `16/16 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

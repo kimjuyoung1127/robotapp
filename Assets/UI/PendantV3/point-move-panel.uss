@@ -274,6 +274,32 @@
     max-width: 100%;
 }
 
+.rc-point-modal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 10px;
+    background-color: rgba(8, 12, 18, 0.72);
+    justify-content: center;
+    align-items: stretch;
+}
+
+.rc-point-modal-card {
+    padding: 10px;
+    border-radius: 6px;
+    background-color: rgb(22, 27, 35);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-modal-readonly {
+    opacity: 0.58;
+}
+
 .rc-point-function-actions {
     margin-top: 6px;
 }

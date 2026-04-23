@@ -511,6 +511,13 @@ namespace KineTutor3D.App
             return pointMove.GetSelectedPointDetailForDebug();
         }
 
+        public static string GetPointActionModalSummaryForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            pointMove.ForceInitialize();
+            return pointMove.GetPointActionModalSummaryForDebug();
+        }
+
         public static string SetPointMoveTimingForDebug(string speedPreset, double dwellSec)
         {
             var pointMove = GetPointMoveController();
@@ -1807,9 +1814,22 @@ namespace KineTutor3D.App
 
             AddClickCase("primary-save-click", Seed, "BtnPointSave", GetPointMoveListSummaryForDebug, saveName);
 
-            AddClickCase("point-row-preview-click", Seed, "BtnPointRowPreview", GetMovementStateSummaryForDebug, "pending=대기 명령");
-            AddClickCase("point-row-move-click", Seed, "BtnPointRowMove", GetMovementStateSummaryForDebug, "[DryRun Apply]");
-            AddClickCase("point-row-edit-click", Seed, "BtnPointRowEdit", GetPointMoveControllerSummary, "[Edit]");
+            AddClickCase("point-row-preview-click", Seed, "BtnPointRowPreview", GetPointActionModalSummaryForDebug, "mode=Preview");
+            AddClickCase("point-row-preview-primary-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowPreview", "desktop", out _, out _, out _);
+            }, "BtnPointModalPrimary", GetMovementStateSummaryForDebug, "pending=대기 명령");
+
+            AddClickCase("point-row-run-click", Seed, "BtnPointRowMove", GetPointActionModalSummaryForDebug, "mode=Run");
+            AddClickCase("point-row-run-primary-click", () =>
+            {
+                Seed();
+                ClickUiButton("BtnPointRowMove", "desktop", out _, out _, out _);
+            }, "BtnPointModalPrimary", GetMovementStateSummaryForDebug, "[DryRun Apply]");
+
+            AddClickCase("point-row-edit-click", Seed, "BtnPointRowEdit", GetPointActionModalSummaryForDebug, "mode=Edit");
+            AddClickCase("point-row-function-add-click", Seed, "BtnPointRowFunctionCandidate", GetPointActionModalSummaryForDebug, "mode=Function");
 
             AddClickCase("sequence-run-click", () =>
             {
@@ -1866,6 +1886,7 @@ namespace KineTutor3D.App
             {
                 Seed();
                 ClickUiButton("BtnPointRowFunctionCandidate", "desktop", out _, out _, out _);
+                ClickUiButton("BtnPointModalPrimary", "desktop", out _, out _, out _);
                 ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
                 SetTeachingFunctionNameForDebug(functionName);
             }, "BtnFunctionCreate", GetTeachingFunctionUiSummaryForDebug, $"function={functionName}");

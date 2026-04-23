@@ -62,6 +62,20 @@ namespace KineTutor3D.UI.RobotControlV3
                 DwellInput = root.Q<TextField>("PointDwellInput");
                 BtnTimingApply = root.Q<Button>("BtnPointTimingApply");
                 FeedbackSummary = root.Q<Label>("PointFeedbackSummary");
+                PointActionModal = root.Q<VisualElement>("PointActionModal");
+                PointActionModalTitle = root.Q<Label>("PointActionModalTitle");
+                PointActionModalSummary = root.Q<Label>("PointActionModalSummary");
+                PointActionModalPose = root.Q<Label>("PointActionModalPose");
+                PointActionModalNameInput = root.Q<TextField>("PointActionModalNameInput");
+                PointActionModalDwellInput = root.Q<TextField>("PointActionModalDwellInput");
+                BtnPointModalSpeedSlow = root.Q<Button>("BtnPointModalSpeedSlow");
+                BtnPointModalSpeedMedium = root.Q<Button>("BtnPointModalSpeedMedium");
+                BtnPointModalSpeedFast = root.Q<Button>("BtnPointModalSpeedFast");
+                BtnPointModalPrimary = root.Q<Button>("BtnPointModalPrimary");
+                BtnPointModalOverwrite = root.Q<Button>("BtnPointModalOverwrite");
+                BtnPointModalDuplicate = root.Q<Button>("BtnPointModalDuplicate");
+                BtnPointModalDelete = root.Q<Button>("BtnPointModalDelete");
+                BtnPointModalClose = root.Q<Button>("BtnPointModalClose");
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
                 FunctionBuildSummary = root.Q<Label>("FunctionBuildSummary");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
@@ -172,6 +186,20 @@ namespace KineTutor3D.UI.RobotControlV3
             public TextField DwellInput { get; }
             public Button BtnTimingApply { get; }
             public Label FeedbackSummary { get; }
+            public VisualElement PointActionModal { get; }
+            public Label PointActionModalTitle { get; }
+            public Label PointActionModalSummary { get; }
+            public Label PointActionModalPose { get; }
+            public TextField PointActionModalNameInput { get; }
+            public TextField PointActionModalDwellInput { get; }
+            public Button BtnPointModalSpeedSlow { get; }
+            public Button BtnPointModalSpeedMedium { get; }
+            public Button BtnPointModalSpeedFast { get; }
+            public Button BtnPointModalPrimary { get; }
+            public Button BtnPointModalOverwrite { get; }
+            public Button BtnPointModalDuplicate { get; }
+            public Button BtnPointModalDelete { get; }
+            public Button BtnPointModalClose { get; }
             public TextField FunctionNameInput { get; }
             public Label FunctionBuildSummary { get; }
             public Label FunctionSummary { get; }

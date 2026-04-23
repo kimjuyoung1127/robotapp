@@ -20,6 +20,10 @@ namespace KineTutor3D.UI.RobotControlV3
         private const string PointSubviewName = "Point";
         private const string SequenceSubviewName = "Sequence";
         private const string FunctionSubviewName = "Function";
+        private const string PointModalPreviewMode = "Preview";
+        private const string PointModalRunMode = "Run";
+        private const string PointModalEditMode = "Edit";
+        private const string PointModalFunctionMode = "Function";
 
         [SerializeField] private UIDocument document;
         [SerializeField] private VisualTreeAsset pointMoveTemplate;
@@ -53,6 +57,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private string pendingConfirmName = string.Empty;
         private string selectedSequenceName = PointSequenceName;
         private string selectedFunctionName = string.Empty;
+        private string pointActionModalMode = string.Empty;
+        private bool pointActionModalOpen;
         private bool debugSequenceEditLocked;
         private bool isDesktopVisible;
         private bool isTabletVisible;
@@ -207,6 +213,11 @@ namespace KineTutor3D.UI.RobotControlV3
             return BuildPointDetailDebugSummary();
         }
 
+        public string GetPointActionModalSummaryForDebug()
+        {
+            return BuildPointActionModalDebugSummary();
+        }
+
         public string SetPointTimingForDebug(string speedPreset, double dwellSec)
         {
             SetSelectedSpeedPreset(speedPreset);
@@ -353,7 +364,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var canPreviewAction = CanPreview() && IsAnyPanelVisible();
             var canApplyAction = CanApply() && IsAnyPanelVisible();
             var panel = desktopPanel ?? tabletPanel;
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; surface={ResolveSurfaceDebugName()}; subview={activeTeachingSubview}; tabsHidden={IsHidden(panel?.SubviewTabs)}; motionRowHidden={IsHidden(panel?.MotionRow)}; coordGridHidden={IsHidden(panel?.CoordGrid)}; listHidden={IsHidden(panel?.PointListContainer)}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; surface={ResolveSurfaceDebugName()}; subview={activeTeachingSubview}; pointModalOpen={pointActionModalOpen}; pointModalMode={pointActionModalMode}; tabsHidden={IsHidden(panel?.SubviewTabs)}; motionRowHidden={IsHidden(panel?.MotionRow)}; coordGridHidden={IsHidden(panel?.CoordGrid)}; listHidden={IsHidden(panel?.PointListContainer)}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         private bool TryInitialize()
@@ -454,6 +465,14 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnPathReplayOnce, PlayRecordedPathOnce);
             RegisterClick(panel.BtnPathReplayLoop, PlayRecordedPathLoop);
             RegisterClick(panel.BtnPathRecordDelete, DeleteRecordedPath);
+            RegisterClick(panel.BtnPointModalSpeedSlow, () => SetPointModalSpeedPreset("slow"));
+            RegisterClick(panel.BtnPointModalSpeedMedium, () => SetPointModalSpeedPreset("medium"));
+            RegisterClick(panel.BtnPointModalSpeedFast, () => SetPointModalSpeedPreset("fast"));
+            RegisterClick(panel.BtnPointModalPrimary, ApplyPointActionModalPrimary);
+            RegisterClick(panel.BtnPointModalOverwrite, () => ExecutePointModalEditAction(OverwriteSelectedPointWithCurrentReadback));
+            RegisterClick(panel.BtnPointModalDuplicate, () => ExecutePointModalEditAction(DuplicateSelectedPoint));
+            RegisterClick(panel.BtnPointModalDelete, () => ExecutePointModalEditAction(() => DeletePoint(recalledPoint?.name)));
+            RegisterClick(panel.BtnPointModalClose, ClosePointActionModal);
             RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
             RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
             RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
@@ -542,6 +561,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RebuildPointList(panel);
             ApplySequencePanel(panel);
             ApplyPointDetail(panel);
+            ApplyPointActionModal(panel);
             ApplyFunctionPanel(panel);
             panel.FeedbackSummary.text = lastFeedback;
             var canPreview = CanPreview() && IsAnyPanelVisible();
@@ -559,6 +579,10 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnDown.SetEnabled(canEdit && CanMoveSelectedPoint(1));
             panel.BtnOverwrite.SetEnabled(canEdit && recalledPoint != null);
             panel.BtnTimingApply.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
+            panel.BtnPointModalPrimary?.SetEnabled(recalledPoint != null && !IsSequenceEditLocked());
+            panel.BtnPointModalOverwrite?.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnPointModalDuplicate?.SetEnabled(canEdit && recalledPoint != null);
+            panel.BtnPointModalDelete?.SetEnabled(canEdit && recalledPoint != null);
             panel.BtnLoop.SetEnabled(HasAnyPoint() && !IsSequenceEditLocked());
             panel.BtnRunSequence.SetEnabled(canApply && HasAnyPoint());
             panel.BtnStepBack.SetEnabled(canApply && HasAnyPoint());
@@ -2093,10 +2117,10 @@ namespace KineTutor3D.UI.RobotControlV3
 
                 var actions = new VisualElement();
                 actions.AddToClassList("rc-point-row-actions");
-                actions.Add(CreatePointRowButton("BtnPointRowMove", "이동", () => MovePointRow(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowMove", "실행", () => MovePointRow(capturedName)));
                 actions.Add(CreatePointRowButton("BtnPointRowPreview", "미리보기", () => PreviewPointRow(capturedName)));
-                actions.Add(CreatePointRowButton("BtnPointRowEdit", "수정", () => EditPointRow(capturedName)));
-                actions.Add(CreatePointRowButton("BtnPointRowFunctionCandidate", "후보", () => AddPointRowToFunction(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowEdit", "편집", () => EditPointRow(capturedName)));
+                actions.Add(CreatePointRowButton("BtnPointRowFunctionCandidate", "함수 추가", () => AddPointRowToFunction(capturedName)));
                 row.Add(actions);
                 panel.PointListContainer.Add(row);
             }
@@ -2336,27 +2360,22 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void MovePointRow(string pointName)
         {
-            RecallPoint(pointName);
-            ApplyMotionCandidate();
+            OpenPointActionModal(pointName, PointModalRunMode);
         }
 
         private void PreviewPointRow(string pointName)
         {
-            RecallPoint(pointName);
-            PreviewMotionCandidate();
+            OpenPointActionModal(pointName, PointModalPreviewMode);
         }
 
         private void EditPointRow(string pointName)
         {
-            RecallPoint(pointName);
-            activeTeachingSubview = PointSubviewName;
-            SetFeedback($"[Edit] {pointName} 수정 대상 선택");
+            OpenPointActionModal(pointName, PointModalEditMode);
         }
 
         private void AddPointRowToFunction(string pointName)
         {
-            RecallPoint(pointName);
-            AddSelectedPointToFunction();
+            OpenPointActionModal(pointName, PointModalFunctionMode);
         }
 
         private void ApplyPointDetail(PanelElements panel)
@@ -2384,6 +2403,214 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnSpeedFast.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "fast");
             panel.DwellInput.SetValueWithoutNotify(selectedDwellSec.ToString("0.0", CultureInfo.InvariantCulture));
             panel.DwellInput.EnableInClassList("rc-point-dwell-input--danger", isDwellInvalid);
+        }
+
+        private void ApplyPointActionModal(PanelElements panel)
+        {
+            if (panel?.PointActionModal == null)
+            {
+                return;
+            }
+
+            var show = pointActionModalOpen && activeNavSection == "NavPoints" && recalledPoint != null;
+            SetHidden(panel.PointActionModal, !show);
+            if (!show)
+            {
+                return;
+            }
+
+            var isEditMode = pointActionModalMode == PointModalEditMode;
+            panel.PointActionModalTitle.text = BuildPointModalTitle();
+            panel.PointActionModalSummary.text = BuildPointModalSummary();
+            panel.PointActionModalPose.text = $"J: {FormatVector(recalledPoint.jointsDeg, "0.0")} / TCP: {FormatTcp(recalledPoint.tcpMm)}";
+            panel.PointActionModalNameInput?.SetValueWithoutNotify(recalledPoint.name ?? string.Empty);
+            panel.PointActionModalDwellInput?.SetValueWithoutNotify(selectedDwellSec.ToString("0.0", CultureInfo.InvariantCulture));
+            panel.PointActionModalNameInput?.SetEnabled(isEditMode);
+            panel.PointActionModalDwellInput?.SetEnabled(isEditMode);
+            panel.PointActionModalNameInput?.EnableInClassList("rc-point-modal-readonly", !isEditMode);
+            panel.PointActionModalDwellInput?.EnableInClassList("rc-point-modal-readonly", !isEditMode);
+            panel.BtnPointModalSpeedSlow?.SetEnabled(isEditMode);
+            panel.BtnPointModalSpeedMedium?.SetEnabled(isEditMode);
+            panel.BtnPointModalSpeedFast?.SetEnabled(isEditMode);
+            panel.BtnPointModalSpeedSlow?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "slow");
+            panel.BtnPointModalSpeedMedium?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "medium");
+            panel.BtnPointModalSpeedFast?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "fast");
+            panel.BtnPointModalPrimary.text = BuildPointModalPrimaryText();
+            SetHidden(panel.BtnPointModalOverwrite, !isEditMode);
+            SetHidden(panel.BtnPointModalDuplicate, !isEditMode);
+            SetHidden(panel.BtnPointModalDelete, !isEditMode);
+        }
+
+        private string BuildPointModalTitle()
+        {
+            return pointActionModalMode switch
+            {
+                PointModalPreviewMode => "미리보기 확인",
+                PointModalRunMode => "포인트 실행",
+                PointModalEditMode => "포인트 편집",
+                PointModalFunctionMode => "함수에 추가",
+                _ => "포인트 작업",
+            };
+        }
+
+        private string BuildPointModalSummary()
+        {
+            var name = recalledPoint?.name ?? "-";
+            return pointActionModalMode switch
+            {
+                PointModalPreviewMode => $"{name} 위치를 ghost/path로 먼저 확인한다.",
+                PointModalRunMode => $"{name} 위치로 이동한다. DryRun/Mock에서 먼저 움직임을 확인한다.",
+                PointModalEditMode => $"{name} 이름, 속도, 대기 시간을 여기서 바로 수정한다.",
+                PointModalFunctionMode => $"{name} 포인트를 함수 만들기 후보에 추가한다.",
+                _ => $"{name} 포인트 작업을 선택한다.",
+            };
+        }
+
+        private string BuildPointModalPrimaryText()
+        {
+            return pointActionModalMode switch
+            {
+                PointModalPreviewMode => "미리보기 실행",
+                PointModalRunMode => "실행",
+                PointModalEditMode => "저장",
+                PointModalFunctionMode => "함수에 추가",
+                _ => "확인",
+            };
+        }
+
+        private string BuildPointActionModalDebugSummary()
+        {
+            return $"modalOpen={pointActionModalOpen}; mode={pointActionModalMode}; point={recalledPoint?.name ?? "none"}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; feedback={lastFeedback}";
+        }
+
+        private void OpenPointActionModal(string pointName, string mode)
+        {
+            RecallPoint(pointName);
+            if (recalledPoint == null)
+            {
+                return;
+            }
+
+            pointActionModalMode = NormalizePointModalMode(mode);
+            pointActionModalOpen = true;
+            SetFeedback($"[{BuildPointModalTitle()}] {recalledPoint.name}");
+            ApplyAll();
+        }
+
+        private void ClosePointActionModal()
+        {
+            pointActionModalOpen = false;
+            pointActionModalMode = string.Empty;
+            ApplyAll();
+        }
+
+        private static string NormalizePointModalMode(string mode)
+        {
+            return mode switch
+            {
+                PointModalRunMode => PointModalRunMode,
+                PointModalEditMode => PointModalEditMode,
+                PointModalFunctionMode => PointModalFunctionMode,
+                _ => PointModalPreviewMode,
+            };
+        }
+
+        private void ApplyPointActionModalPrimary()
+        {
+            if (!pointActionModalOpen || recalledPoint == null)
+            {
+                SetFeedback("작업할 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            switch (pointActionModalMode)
+            {
+                case PointModalRunMode:
+                    ApplyMotionCandidate();
+                    break;
+                case PointModalEditMode:
+                    ApplyPointModalEdits();
+                    break;
+                case PointModalFunctionMode:
+                    AddSelectedPointToFunction();
+                    break;
+                default:
+                    PreviewMotionCandidate();
+                    break;
+            }
+        }
+
+        private void ApplyPointModalEdits()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 포인트 편집을 잠근다. Stop 후 다시 수정해라.");
+                return;
+            }
+
+            var panel = ResolveActivePanel();
+            var nextName = panel?.PointActionModalNameInput?.value?.Trim() ?? string.Empty;
+            var nextDwellRaw = panel?.PointActionModalDwellInput?.value ?? "0";
+            if (string.IsNullOrWhiteSpace(nextName))
+            {
+                SetFeedback("포인트 이름을 먼저 넣어라.");
+                return;
+            }
+
+            if (!double.TryParse(nextDwellRaw, NumberStyles.Float, CultureInfo.InvariantCulture, out var nextDwell)
+                || double.IsNaN(nextDwell)
+                || double.IsInfinity(nextDwell)
+                || nextDwell < 0.0
+                || nextDwell > 600.0)
+            {
+                SetFeedback("대기 시간은 0~600초 사이 숫자로 넣어라.");
+                return;
+            }
+
+            var originalName = recalledPoint.name;
+            selectedDwellSec = nextDwell;
+            isDwellInvalid = false;
+            if (!string.Equals(originalName, nextName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (HasNamedPoint(nextName))
+                {
+                    SetFeedback($"{nextName} 이름이 이미 있다.");
+                    return;
+                }
+
+                RenamePoint(originalName, nextName);
+            }
+
+            ApplySelectedPointTiming();
+            pointActionModalOpen = recalledPoint != null;
+            pointActionModalMode = PointModalEditMode;
+            ApplyAll();
+        }
+
+        private void SetPointModalSpeedPreset(string speedPreset)
+        {
+            if (pointActionModalMode != PointModalEditMode)
+            {
+                return;
+            }
+
+            selectedSpeedPreset = NormalizeSpeedPreset(speedPreset);
+            ClearPendingConfirmation();
+            ApplyAll();
+        }
+
+        private void ExecutePointModalEditAction(System.Action action)
+        {
+            if (pointActionModalMode != PointModalEditMode || recalledPoint == null)
+            {
+                SetFeedback("편집할 포인트를 먼저 선택해라.");
+                return;
+            }
+
+            action?.Invoke();
+            pointActionModalOpen = recalledPoint != null;
+            pointActionModalMode = pointActionModalOpen ? PointModalEditMode : string.Empty;
+            ApplyAll();
         }
 
         private string BuildPointDetailDebugSummary()
@@ -2699,6 +2926,7 @@ namespace KineTutor3D.UI.RobotControlV3
         }
 
         private bool IsAnyPanelVisible() => isDesktopVisible || isTabletVisible;
+        private PanelElements ResolveActivePanel() => isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
         private bool IsMoveLDispatchMode() => motionKind == "MoveL";
         private bool CanApply()
         {
