@@ -631,6 +631,13 @@ namespace KineTutor3D.App
             return pointMove.DeleteSelectedFunctionsForDebug();
         }
 
+        public static string DeleteAllTeachingFunctionsForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            pointMove.ForceInitialize();
+            return GetRuntimeController().DeleteAllTeachingFunctionsForDebug();
+        }
+
         public static string RunTeachingFunctionForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -2521,6 +2528,87 @@ namespace KineTutor3D.App
             AddCase("stop-block-sequence", () => runtime.StopMotion(), GetTeachingBlockSequenceSummaryForDebug, "runner=Idle");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-teaching-block-sequence.json", "TeachingBlockSequence");
+        }
+
+        public static string RunBundleAddDeleteRunMatrixForDebug()
+        {
+            var payload = new GenericMatrixPayload
+            {
+                generatedAt = System.DateTime.Now.ToString("O"),
+                project = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath,
+                name = "bundle-add-delete-run",
+            };
+
+            var runtime = GetRuntimeController();
+            var bundleName = "BUNDLE_AFTER_DELETE";
+
+            void SeedPoints()
+            {
+                EnsureRuntimeReady(runtime);
+                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BUNDLE_POINT_A",
+                    jointsDeg = new[] { 0.0, -45.0, 0.0, -59.0, -92.0, -42.0 },
+                    tcpMm = new[] { 500.0, 120.0, 430.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.AddWaypoint(sequence, new Waypoint
+                {
+                    name = "BUNDLE_POINT_B",
+                    jointsDeg = new[] { 12.0, -38.0, 18.0, -52.0, -84.0, -18.0 },
+                    tcpMm = new[] { 512.0, 148.0, 426.0, 180.0, 0.0, 90.0 },
+                    moveType = "MoveJ",
+                    speedPreset = "medium",
+                    dwellSec = 0.0
+                });
+                WaypointStore.Save(sequence);
+                ClearFunctionPointSelectionForDebug();
+            }
+
+            void AddCase(string name, System.Action action, System.Func<string> summary, string needle)
+            {
+                var result = new GenericMatrixResult
+                {
+                    name = name,
+                    expected = needle ?? string.Empty,
+                };
+
+                try
+                {
+                    action?.Invoke();
+                    result.after = summary != null ? summary() : GetTeachingFunctionUiSummaryForDebug();
+                    result.message = result.after;
+                    result.passed = string.IsNullOrEmpty(needle) || result.after.Contains(needle);
+                    if (!result.passed)
+                    {
+                        result.failureClass = "runtime";
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    result.passed = false;
+                    result.failureClass = "exception";
+                    result.after = $"{ex.GetType().Name}: {ex.Message}";
+                }
+
+                payload.results.Add(result);
+            }
+
+            AddCase("delete-all-bundles", () =>
+            {
+                SeedPoints();
+                DeleteAllTeachingFunctionsForDebug();
+            }, GetTeachingFunctionUiSummaryForDebug, "functions=0");
+            AddCase("add-first-point-to-bundle-candidate", () => AddSelectedPointToFunctionForDebug("BUNDLE_POINT_A"), GetTeachingFunctionUiSummaryForDebug, "candidates=1");
+            AddCase("add-second-point-to-bundle-candidate", () => AddSelectedPointToFunctionForDebug("BUNDLE_POINT_B"), GetTeachingFunctionUiSummaryForDebug, "candidates=2");
+            AddCase("create-bundle-after-delete-all", () => CreateTeachingFunctionForDebug(bundleName), GetTeachingFunctionUiSummaryForDebug, "selectedFunction=BUNDLE_AFTER_DELETE");
+            AddCase("run-created-bundle", () => RunTeachingFunctionForDebug(), GetMovementStateSummaryForDebug, "[Function Run]");
+
+            return CompleteGenericMatrix(payload, "robotcontrolv3-bundle-add-delete-run.json", "BundleAddDeleteRun");
         }
 
         public static string RunPopupConfirmCancelE2EForDebug()

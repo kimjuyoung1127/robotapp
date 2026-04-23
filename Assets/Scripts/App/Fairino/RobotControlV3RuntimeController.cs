@@ -668,6 +668,16 @@ namespace KineTutor3D.App.Fairino
             return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
         }
 
+        public string DeleteAllTeachingFunctionsForDebug()
+        {
+            ForceInitialize();
+            teachingFunctionStore ??= new TeachingFunctionStore();
+            var deleted = teachingFunctionStore.DeleteAll();
+            PushFeedback($"[Bundle] 전체 묶음 {deleted}개 삭제");
+            RefreshSnapshot();
+            return $"{snapshot.LastFeedback}; {teachingFunctionStore.BuildSummary()}";
+        }
+
         public string AddTeachingBlockPoint(string pointName)
         {
             ForceInitialize();

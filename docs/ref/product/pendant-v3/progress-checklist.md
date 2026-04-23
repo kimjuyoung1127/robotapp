@@ -491,6 +491,20 @@
   - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
   - UITK text/order check: `포인트 / 묶음 / 시퀀스`
 
+## 2026-04-23 Bundle Add/Delete/Run Verification
+
+- 묶음 후보 추가 완료 feedback이 사용자에게 보이도록 `[Bundle]` feedback을 표시 대상에 포함했다.
+- 묶음 탭에 `전체 삭제` 버튼을 추가했다.
+  - confirmation 2회 클릭 후 모든 묶음 JSON을 삭제한다.
+  - 삭제 후 선택 묶음/선택 목록/후보 목록을 비운다.
+- 검증 결과:
+  - `RunBundleAddDeleteRunMatrixForDebug()`: `5/5 PASS`
+  - 전체 묶음 삭제 후 `functions=0` 확인
+  - 포인트 2개를 묶음 후보로 추가하면 `candidates=1`, `candidates=2`로 증가 확인
+  - 새 묶음 `BUNDLE_AFTER_DELETE` 생성 확인
+  - 생성된 묶음 DryRun 실행 확인
+  - 파일 저장소에는 `BUNDLE_AFTER_DELETE.json`만 남는 것 확인
+
 ## Next Session Handoff
 
 - 현재 브랜치: `codex/robotcontrol-v3-toolkit`

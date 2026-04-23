@@ -529,6 +529,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnFunctionBulkClear, ClearSelectedFunctions);
             RegisterClick(panel.BtnFunctionBulkDuplicate, DuplicateSelectedFunctions);
             RegisterClick(panel.BtnFunctionBulkDelete, DeleteSelectedFunctions);
+            RegisterClick(panel.BtnFunctionDeleteAll, DeleteAllFunctions);
             RegisterClick(panel.BtnUp, () => MovePointInSequence(-1));
             RegisterClick(panel.BtnDown, () => MovePointInSequence(1));
             RegisterClick(panel.BtnOverwrite, OverwriteSelectedPointWithCurrentReadback);
@@ -696,6 +697,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnFunctionBulkClear?.SetEnabled(selectedFunctionNames.Count > 0);
             panel.BtnFunctionBulkDuplicate?.SetEnabled(canEdit && selectedFunctionNames.Count > 0);
             panel.BtnFunctionBulkDelete?.SetEnabled(canEdit && selectedFunctionNames.Count > 0);
+            panel.BtnFunctionDeleteAll?.SetEnabled(canEdit && runtimeController != null && runtimeController.GetTeachingFunctionNames().Length > 0);
             panel.BtnPointModalPrimary?.SetEnabled(recalledPoint != null && !IsSequenceEditLocked());
             panel.BtnPointModalOverwrite?.SetEnabled(canEdit && recalledPoint != null);
             panel.BtnPointModalDuplicate?.SetEnabled(canEdit && recalledPoint != null);
@@ -1650,6 +1652,39 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyAll();
         }
 
+        private void DeleteAllFunctions()
+        {
+            if (IsSequenceEditLocked())
+            {
+                SetFeedback("시퀀스 실행 중에는 묶음 전체 삭제를 잠근다. Stop 후 다시 삭제해라.");
+                return;
+            }
+
+            var count = runtimeController != null ? runtimeController.GetTeachingFunctionNames().Length : 0;
+            if (count == 0)
+            {
+                SetFeedback("삭제할 묶음이 없다.");
+                return;
+            }
+
+            if (!IsPendingConfirmation("delete-all-functions", count.ToString(CultureInfo.InvariantCulture)))
+            {
+                SetPendingConfirmation("delete-all-functions", count.ToString(CultureInfo.InvariantCulture));
+                SetFeedback($"[Confirm] 모든 묶음 {count}개 삭제 예정. 전체 삭제를 한 번 더 눌러라.");
+                return;
+            }
+
+            var result = runtimeController != null
+                ? runtimeController.DeleteAllTeachingFunctionsForDebug()
+                : "runtime missing";
+            selectedFunctionName = string.Empty;
+            selectedFunctionNames.Clear();
+            selectedFunctionPointNames.Clear();
+            ClearPendingConfirmation();
+            SetFeedback(result);
+            ApplyAll();
+        }
+
         private void SelectFunction(string functionName)
         {
             selectedFunctionName = functionName?.Trim() ?? string.Empty;
@@ -2171,6 +2206,7 @@ namespace KineTutor3D.UI.RobotControlV3
                     || lastFeedback.Contains("[Save]")
                     || lastFeedback.Contains("[Bulk]")
                     || lastFeedback.Contains("[Function]")
+                    || lastFeedback.Contains("[Bundle]")
                     || lastFeedback.Contains("실패")
                     || lastFeedback.Contains("찾지 못했다")
                     || lastFeedback.Contains("먼저"));

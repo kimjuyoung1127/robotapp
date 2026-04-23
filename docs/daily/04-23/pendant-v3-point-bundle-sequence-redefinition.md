@@ -29,7 +29,14 @@
 - `RunFunctionActualClickMatrixForDebug()`: `8/8 PASS`
 - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
 - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
+- `RunBundleAddDeleteRunMatrixForDebug()`: `5/5 PASS`
 - UITK tab text/order:
   - `BtnPointSubview = 포인트`
   - `BtnFunctionSubview = 묶음`
   - `BtnSequenceSubview = 시퀀스`
+
+## Bundle Add/Delete/Run Follow-up
+
+- Added visible `[Bundle]` feedback so users can tell when a point was added to a bundle candidate list.
+- Added `전체 삭제` for bundles with confirmation.
+- Verified all bundle JSON files can be deleted, then a new bundle can be created and run.

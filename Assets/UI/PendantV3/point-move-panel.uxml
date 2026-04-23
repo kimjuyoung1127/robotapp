@@ -188,6 +188,7 @@
                 <ui:Button name="BtnFunctionBulkClear" text="선택 해제" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionBulkDuplicate" text="선택 복사" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
+                <ui:Button name="BtnFunctionDeleteAll" text="전체 삭제" class="rc-point-action-button rc-point-action-button--danger" />
             </ui:VisualElement>
             <ui:VisualElement name="FunctionListContainer" class="rc-point-list" />
             <ui:Label name="FunctionSelectionSummary" text="묶음 후보: 전체 저장 포인트" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />

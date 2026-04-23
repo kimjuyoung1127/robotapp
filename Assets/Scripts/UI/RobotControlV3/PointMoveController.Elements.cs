@@ -106,6 +106,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnFunctionBulkClear = root.Q<Button>("BtnFunctionBulkClear");
                 BtnFunctionBulkDuplicate = root.Q<Button>("BtnFunctionBulkDuplicate");
                 BtnFunctionBulkDelete = root.Q<Button>("BtnFunctionBulkDelete");
+                BtnFunctionDeleteAll = root.Q<Button>("BtnFunctionDeleteAll");
                 BtnFunctionAddPoint = root.Q<Button>("BtnFunctionAddPoint");
                 BtnFunctionClearSelection = root.Q<Button>("BtnFunctionClearSelection");
                 BtnFunctionCreate = root.Q<Button>("BtnFunctionCreate");
@@ -254,6 +255,7 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnFunctionBulkClear { get; }
             public Button BtnFunctionBulkDuplicate { get; }
             public Button BtnFunctionBulkDelete { get; }
+            public Button BtnFunctionDeleteAll { get; }
             public Button BtnFunctionAddPoint { get; }
             public Button BtnFunctionClearSelection { get; }
             public Button BtnFunctionCreate { get; }

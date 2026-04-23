@@ -170,6 +170,21 @@ namespace KineTutor3D.App.Fairino
             return true;
         }
 
+        public int DeleteAll()
+        {
+            var names = LoadAllNames();
+            var deleted = 0;
+            for (var index = 0; index < names.Length; index++)
+            {
+                if (Delete(names[index]))
+                {
+                    deleted++;
+                }
+            }
+
+            return deleted;
+        }
+
         public TeachingFunction Duplicate(string sourceName, string requestedName = null)
         {
             var source = Load(sourceName);
