@@ -23,12 +23,15 @@ namespace KineTutor3D.Visualization
         private static readonly Color FingerColor = new(1f, 0.58f, 0.14f, 1f);
         private Vector3 fingerLeftClosed;
         private Vector3 fingerRightClosed;
+        private Vector3 fingerLeftOpenDirection = Vector3.right;
+        private Vector3 fingerRightOpenDirection = Vector3.left;
         private bool fingerBaseCaptured;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
         public Transform ModelRoot => visualRoot != null ? visualRoot.Find("PGEA-100-40_Model") : null;
         public Transform TcpFrame => tcpFrame;
+        public Transform GripTarget => ResolveGripTarget();
         public Transform FingerLeft => fingerLeft;
         public Transform FingerRight => fingerRight;
         public float GripperOpenRatio => gripperOpenRatio;
@@ -48,6 +51,15 @@ namespace KineTutor3D.Visualization
             fingerRight = right;
             fingerBaseCaptured = false;
             ApplyGripperPose();
+        }
+
+        public string BuildClosureDebugSummary()
+        {
+            RefreshExistingReferences();
+            var target = ResolveGripTarget();
+            var leftDistance = GetFingerTargetDistance(fingerLeft, target);
+            var rightDistance = GetFingerTargetDistance(fingerRight, target);
+            return $"target={target?.name ?? "missing"}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -111,7 +123,15 @@ namespace KineTutor3D.Visualization
 
             fingerLeftClosed = fingerLeft.localPosition;
             fingerRightClosed = fingerRight.localPosition;
+            CaptureOpenDirections();
             fingerBaseCaptured = true;
+        }
+
+        private void CaptureOpenDirections()
+        {
+            var target = ResolveGripTarget();
+            fingerLeftOpenDirection = ResolveOpenDirection(fingerLeft, target, Vector3.right);
+            fingerRightOpenDirection = ResolveOpenDirection(fingerRight, target, Vector3.left);
         }
 
         private void ApplyGripperPose()
@@ -129,8 +149,78 @@ namespace KineTutor3D.Visualization
             }
 
             var halfStroke = StrokeMm * 0.5f * gripperOpenRatio;
-            fingerLeft.localPosition = fingerLeftClosed + new Vector3(halfStroke, 0f, 0f);
-            fingerRight.localPosition = fingerRightClosed + new Vector3(-halfStroke, 0f, 0f);
+            fingerLeft.localPosition = fingerLeftClosed + fingerLeftOpenDirection * halfStroke;
+            fingerRight.localPosition = fingerRightClosed + fingerRightOpenDirection * halfStroke;
+        }
+
+        private Transform ResolveGripTarget()
+        {
+            if (tcpFrame == null)
+            {
+                return null;
+            }
+
+            return tcpFrame.Find("TcpMarker") ?? tcpFrame;
+        }
+
+        private Vector3 ResolveOpenDirection(Transform finger, Transform target, Vector3 fallback)
+        {
+            if (finger == null || target == null || finger.parent == null)
+            {
+                return fallback;
+            }
+
+            var fingerCenter = ResolveRendererCenter(finger);
+            var awayWorld = fingerCenter - target.position;
+            if (awayWorld.sqrMagnitude < 0.000001f)
+            {
+                return fallback;
+            }
+
+            var local = finger.parent.InverseTransformVector(awayWorld).normalized;
+            return local.sqrMagnitude > 0.000001f ? local : fallback;
+        }
+
+        private static Vector3 ResolveRendererCenter(Transform root)
+        {
+            var renderers = root != null ? root.GetComponentsInChildren<Renderer>(true) : null;
+            if (renderers == null || renderers.Length == 0)
+            {
+                return root != null ? root.position : Vector3.zero;
+            }
+
+            var found = false;
+            var bounds = new Bounds(root.position, Vector3.zero);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var renderer = renderers[i];
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                if (!found)
+                {
+                    bounds = renderer.bounds;
+                    found = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return found ? bounds.center : root.position;
+        }
+
+        private static float GetFingerTargetDistance(Transform finger, Transform target)
+        {
+            if (finger == null || target == null)
+            {
+                return -1f;
+            }
+
+            return Vector3.Distance(ResolveRendererCenter(finger), target.position);
         }
 
         private void OnValidate()

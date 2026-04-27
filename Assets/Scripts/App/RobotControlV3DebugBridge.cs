@@ -980,7 +980,7 @@ namespace KineTutor3D.App
             AddCase("BtnEasyZero", () => runtime.PreviewPreset("Zero"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
             AddCase("BtnEasyApply", () => runtime.ApplyPreset("Ready"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
             AddCase("BtnGripperClose", () => runtime.SetGripperOpen(false), "Cmd Close / Visual Closed", VisualCheck, "fingerLeft=(0,0,0)");
-            AddCase("BtnGripperOpen", () => runtime.SetGripperOpen(true), "Cmd Open / Visual Closed", SdkCheck, "position=100");
+            AddCase("BtnGripperOpen", () => runtime.SetGripperOpen(true), "Cmd Open / Visual Open", SdkCheck, "position=100");
 
             SetShellSelection("NavMotion", "TabJointJog", "BottomTabJointJog");
             GetJointJogController().ForceInitialize();

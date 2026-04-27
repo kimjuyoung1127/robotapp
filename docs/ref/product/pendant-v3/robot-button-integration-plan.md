@@ -490,11 +490,13 @@
   - `NavIo` -> `NavPoints`
   - `BottomTabIo` -> `BottomTabPointMove`
 - gripper visual은 command state와 visual state가 같이 움직여야 한다.
-  - close: `openRatio=0.00`, finger local offset `0`
-  - open: `openRatio=1.00`, finger local offset `+/-20`
+  - close: `openRatio=0.00`, finger local offset `0`, `TcpMarker` distance 최소
+  - open: `openRatio=1.00`, finger가 `TcpMarker` 구체에서 멀어지는 prefab-derived direction으로 이동
+  - SDK command 의미는 공식 C# peripheral API의 `SetGripperConfig -> ActGripper -> MoveGripper(index, pos, vel, force, max_time, block)` 계약을 따른다.
 - DebugBridge 대표 click matrix는 실제 버튼 locator를 유지하되, Unity internal click dispatch가 불안정한 대표 버튼은 같은 runtime/controller action으로 fallback 실행한다.
 - 검증:
   - `unityctl check --type compile`: pass
   - `RunTabletBottomActualClickMatrixForDebug()`: `pass=15; fail=0`
   - `RunFunctionActualClickMatrixForDebug()`: `pass=7; fail=0`
   - `RunTeachingBlockSequenceMatrixForDebug()`: `pass=9; fail=0`
+  - target-sphere closure probe: close `leftDistance=0.0149/rightDistance=0.0127`, open `leftDistance=0.0348/rightDistance=0.0327`

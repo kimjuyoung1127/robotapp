@@ -886,6 +886,11 @@
 - desktop은 `NavPoints`, tablet은 `BottomTabPointMove`에서 `그리퍼 / I/O` 패널을 같이 노출한다.
 - 기존 local state가 `NavIo` 또는 `BottomTabIo`를 들고 있으면 각각 `NavPoints`, `BottomTabPointMove`로 normalize한다.
 - `RobotControlPeripheralFacade`의 gripper visual ratio가 open 명령에서도 `0`으로 고정되던 문제를 수정했다.
+- 공식 FAIRINO C# SDK의 gripper sequence를 재확인했다.
+  - `SetGripperConfig(company, device, softversion, bus)`
+  - `ActGripper(index, action)`
+  - `MoveGripper(index, pos, vel, force, max_time, block)`
+- `FR5EndEffectorAttachment` finger visual은 고정 local X축 offset 대신 `TcpMarker` 구체를 기준으로 open direction을 계산한다.
 - 자동 click matrix 안정화를 위해 대표 버튼의 DebugBridge 실행 fallback을 추가하고, 주요 패널 버튼 등록은 `button.clicked` 경로로 맞췄다.
 - 구현 메모:
   - `Assets/UI/PendantV3/pendant-v3.uxml`
@@ -898,8 +903,10 @@
   - `RunTabletBottomActualClickMatrixForDebug()`: `15/15 PASS`
   - `RunFunctionActualClickMatrixForDebug()`: `7/7 PASS`
   - `RunTeachingBlockSequenceMatrixForDebug()`: `9/9 PASS`
-  - gripper close visual: `fingerLeft=(0,0,0)`, `fingerRight=(0,0,0)`, `openRatio=0.00`
-  - gripper open visual: `fingerLeft=(20,0,0)`, `fingerRight=(-20,0,0)`, `openRatio=1.00`
+  - gripper close visual: `fingerLeft=(0,0,0)`, `fingerRight=(0,0,0)`, `leftDistance=0.0149`, `rightDistance=0.0127`, `openRatio=0.00`
+  - gripper open visual: `fingerLeft=(12.6937,-0.5475,15.4457)`, `fingerRight=(14.865,0.5113,-13.3705)`, `leftDistance=0.0348`, `rightDistance=0.0327`, `openRatio=1.00`
+  - close에서 open으로 갈 때 두 finger의 `TcpMarker` 거리값이 증가하므로, close 동작은 구체 방향으로 닫힌다.
+  - 후속 `RobotControlV3DebugBridge` expectation 수정 뒤 Unity IPC가 ready 상태로 돌아오지 않아 추가 compile/matrix 재실행은 보류했다.
 
 ## Source Docs
 
