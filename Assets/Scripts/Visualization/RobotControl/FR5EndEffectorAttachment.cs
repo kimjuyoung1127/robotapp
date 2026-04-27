@@ -34,8 +34,8 @@ namespace KineTutor3D.Visualization
         private float gripObjectStopRatio;
         private Coroutine gripperMotionCoroutine;
         private const float DistortedFingerLocalPositionSqrMagnitude = 1f;
-        // PGEA meshes leave a small visible clearance when their rendered centers meet.
-        private const float ClosedContactTravelScale = 1.08f;
+        // PGEA meshes leave visible clearance when their rendered centers meet.
+        private const float ClosedContactTravelScale = 1.2f;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
