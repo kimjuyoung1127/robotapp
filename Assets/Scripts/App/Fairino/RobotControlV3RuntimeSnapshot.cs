@@ -88,6 +88,13 @@ namespace KineTutor3D.App.Fairino
         public string SelectedPartHint { get; set; } = "메인 로봇을 클릭하면 선택 파츠 정보를 여기서 본다.";
         public string GripperSummary { get; set; } = "Gripper: --";
         public float GripperOpenRatio { get; set; }
+        public int GripperCommandedPositionPercent { get; set; } = 100;
+        public int GripperActualPositionPercent { get; set; } = 100;
+        public int GripperSpeedPercent { get; set; } = 50;
+        public int GripperForcePercent { get; set; } = 50;
+        public bool GripperObjectDetected { get; set; }
+        public bool GripperHoldingObject { get; set; }
+        public int GripperObjectStopPercent { get; set; }
         public bool GripperVisualAttached { get; set; }
         public string RobotDoSummary { get; set; } = "DO0 OFF / DO1 OFF";
         public string ToolDoSummary { get; set; } = "ToolDO0 OFF / ToolDO1 OFF";
@@ -168,6 +175,13 @@ namespace KineTutor3D.App.Fairino
                 SelectedPartHint = SelectedPartHint,
                 GripperSummary = GripperSummary,
                 GripperOpenRatio = GripperOpenRatio,
+                GripperCommandedPositionPercent = GripperCommandedPositionPercent,
+                GripperActualPositionPercent = GripperActualPositionPercent,
+                GripperSpeedPercent = GripperSpeedPercent,
+                GripperForcePercent = GripperForcePercent,
+                GripperObjectDetected = GripperObjectDetected,
+                GripperHoldingObject = GripperHoldingObject,
+                GripperObjectStopPercent = GripperObjectStopPercent,
                 GripperVisualAttached = GripperVisualAttached,
                 RobotDoSummary = RobotDoSummary,
                 ToolDoSummary = ToolDoSummary,

@@ -25,6 +25,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
+        private int draftPositionPercent = 100;
 
         private void OnEnable()
         {
@@ -53,8 +54,8 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
         {
-            isDesktopVisible = activeNavSection == "NavPoints";
-            isTabletVisible = activeTabletTab == "BottomTabPointMove";
+            isDesktopVisible = activeNavSection == "NavMotion" && activeWorkTab == "TabEasyMotion";
+            isTabletVisible = activeNavSection == "NavMotion" && activeTabletTab == "BottomTabEasyMotion";
             if (!isInitialized)
             {
                 TryInitialize();
@@ -108,8 +109,20 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void Register(PanelElements panel)
         {
-            RegisterClick(panel.BtnGripperOpen, () => runtimeController.SetGripperOpen(true));
-            RegisterClick(panel.BtnGripperClose, () => runtimeController.SetGripperOpen(false));
+            RegisterClick(panel.BtnGripperOpen, () => ApplyGripperPosition(panel, 100));
+            RegisterClick(panel.BtnGripperClose, () => ApplyGripperPosition(panel, 0));
+            RegisterClick(panel.BtnGripperApply, () => ApplyGripperPosition(panel, panel.PositionInput.value));
+            panel.PositionSlider.RegisterValueChangedCallback(evt =>
+            {
+                draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
+                panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
+            });
+            panel.PositionInput.RegisterValueChangedCallback(evt =>
+            {
+                draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
+                panel.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
+                panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
+            });
             RegisterClick(panel.BtnDo0On, () => runtimeController.SetRobotDigitalOutput(0, true));
             RegisterClick(panel.BtnDo0Off, () => runtimeController.SetRobotDigitalOutput(0, false));
             RegisterClick(panel.BtnDo1On, () => runtimeController.SetRobotDigitalOutput(1, true));
@@ -130,6 +143,14 @@ namespace KineTutor3D.UI.RobotControlV3
             button.clicked += handler;
         }
 
+        private void ApplyGripperPosition(PanelElements panel, int positionPercent)
+        {
+            draftPositionPercent = Mathf.Clamp(positionPercent, 0, 100);
+            panel?.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
+            panel?.PositionInput.SetValueWithoutNotify(draftPositionPercent);
+            runtimeController.SetGripperPositionPercent(draftPositionPercent);
+        }
+
         private void ApplyPreview(RobotControlV3RuntimeSnapshot snapshot)
         {
             ApplyPanel(desktopPanel, snapshot);
@@ -143,7 +164,13 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            draftPositionPercent = snapshot.GripperCommandedPositionPercent;
+            panel.PositionSlider.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
+            panel.PositionInput.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
             panel.State.text = $"{snapshot.GripperSummary} · visual={(snapshot.GripperVisualAttached ? "attached" : "no visual")}";
+            panel.GripSafety.text = snapshot.GripperObjectDetected
+                ? $"물체 감지 {(snapshot.GripperHoldingObject ? "· 잡은 상태" : $"· 정지선 {snapshot.GripperObjectStopPercent}%")}"
+                : "물체 감지 없음 · 0%까지 완전 닫힘";
             panel.Output.text = $"{snapshot.RobotDoSummary}\n{snapshot.ToolDoSummary}";
             panel.Feedback.text = snapshot.PeripheralFeedback;
             var enabled = snapshot.DryRunEnabled || snapshot.StatusKind is RobotControlV3RuntimeStatusKind.ReadyToJog or RobotControlV3RuntimeStatusKind.ConnectedUnsynced;
@@ -170,8 +197,12 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             public readonly VisualElement Root = new();
             public readonly Label State = new("Gripper: --");
+            public readonly Label GripSafety = new("물체 감지 없음 · 0%까지 완전 닫힘");
             public readonly Label Output = new("DO0 OFF / DO1 OFF");
             public readonly Label Feedback = new("주변장치 조작 전");
+            public readonly SliderInt PositionSlider = new("위치 %", 0, 100) { name = "GripperPositionSlider", value = 100 };
+            public readonly IntegerField PositionInput = new("위치") { name = "GripperPositionInput", value = 100 };
+            public readonly Button BtnGripperApply = new() { name = "BtnIoGripperApply", text = "위치 적용" };
             public readonly Button BtnGripperOpen = new() { name = "BtnIoGripperOpen", text = "그리퍼 열기" };
             public readonly Button BtnGripperClose = new() { name = "BtnIoGripperClose", text = "그리퍼 닫기" };
             public readonly Button BtnDo0On = new() { name = "BtnRobotDo0On", text = "DO0 ON" };
@@ -188,6 +219,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 Root.Add(new Label("그리퍼 / I/O") { name = "IoPanelTitle" });
                 Root.Q<Label>("IoPanelTitle").AddToClassList("rc-panel-title");
                 AddCopy(State);
+                AddCopy(GripSafety);
+                PositionSlider.AddToClassList("rc-speed-slider");
+                PositionInput.AddToClassList("rc-point-field");
+                Root.Add(PositionSlider);
+                AddRow(PositionInput, BtnGripperApply);
                 AddCopy(Output);
                 AddCopy(Feedback);
                 AddRow(BtnGripperOpen, BtnGripperClose);
@@ -197,6 +233,9 @@ namespace KineTutor3D.UI.RobotControlV3
 
             public void SetEnabled(bool enabled)
             {
+                PositionSlider.SetEnabled(enabled);
+                PositionInput.SetEnabled(enabled);
+                BtnGripperApply.SetEnabled(enabled);
                 BtnGripperOpen.SetEnabled(enabled);
                 BtnGripperClose.SetEnabled(enabled);
                 BtnDo0On.SetEnabled(enabled);
@@ -216,14 +255,14 @@ namespace KineTutor3D.UI.RobotControlV3
                 Root.Add(label);
             }
 
-            private void AddRow(params Button[] buttons)
+            private void AddRow(params VisualElement[] elements)
             {
                 var row = new VisualElement();
                 row.AddToClassList("rc-point-action-row");
-                for (var i = 0; i < buttons.Length; i++)
+                for (var i = 0; i < elements.Length; i++)
                 {
-                    buttons[i].AddToClassList("rc-point-action-button");
-                    row.Add(buttons[i]);
+                    elements[i].AddToClassList("rc-point-action-button");
+                    row.Add(elements[i]);
                 }
 
                 Root.Add(row);

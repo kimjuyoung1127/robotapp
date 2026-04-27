@@ -179,8 +179,8 @@ foreach ($button in @("BtnEasyHome", "BtnEasyReady", "BtnEasyFolded", "BtnEasyZe
     $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion" } "GetV3RuntimeSummary" "MoveJ"))
 }
 $cases.Add((New-Case "BtnEasyApply" { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion"; Click-Actual "BtnEasyReady" | Out-Null } "GetMovementStateSummaryForDebug" "[DryRun Apply]"))
-$cases.Add((New-Case "BtnGripperOpen" { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion" } "GetMovementStateSummaryForDebug" "Cmd Open"))
-$cases.Add((New-Case "BtnGripperClose" { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion"; Invoke-Debug SetGripperOpenForDebug '[true]' | Out-Null } "GetMovementStateSummaryForDebug" "Cmd Close"))
+$cases.Add((New-Case "BtnGripperOpen" { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion" } "GetMovementStateSummaryForDebug" "Cmd 100%"))
+$cases.Add((New-Case "BtnGripperClose" { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion"; Invoke-Debug SetGripperOpenForDebug '[true]' | Out-Null } "GetMovementStateSummaryForDebug" "Cmd 0%"))
 
 foreach ($axis in 1..6) {
     $cases.Add((New-Case "BtnJoint${axis}Plus" { Set-Ready; Set-Shell "NavMotion" "TabJointJog" "BottomTabJointJog" } "GetMovementStateSummaryForDebug" "MoveJ"))
@@ -206,8 +206,8 @@ foreach ($button in @("BtnPointMoveJ", "BtnPointMoveL", "BtnPointPreview", "BtnP
     $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavMotion" "TabPointMove" "BottomTabPointMove"; Set-PointDefaults; Invoke-Debug CleanupPointMoveForDebug | Out-Null; Invoke-Debug SavePointMoveForDebug | Out-Null } "GetPointMoveListSummaryForDebug" "points="))
 }
 
-foreach ($button in @("BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off")) {
-    $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavPoints" "TabPointMove" "BottomTabPointMove" } "GetMovementStateSummaryForDebug" "status=ReadyToJog"))
+foreach ($button in @("BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off")) {
+    $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion" } "GetMovementStateSummaryForDebug" "status=ReadyToJog"))
 }
 
 foreach ($button in @("BtnViewportBaseFrame", "BtnViewportToolFrame", "BtnViewportTrail", "BtnViewportGhost", "BtnViewportBoundary", "BtnViewportCollision", "BtnViewportCameraReset")) {

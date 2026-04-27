@@ -883,6 +883,7 @@
 ## 2026-04-27 I/O Point Integration + Gripper Visual Fix
 
 - 사용자 피드백 기준으로 왼쪽 `I/O` 전용 탭을 제거하고 `포인트` 흐름에 통합했다.
+- Superseded: 이후 같은 날 사용자 피드백으로 `그리퍼 / I/O` 보조 패널은 `조작 > 기본` 흐름으로 재배치했다.
 - desktop은 `NavPoints`, tablet은 `BottomTabPointMove`에서 `그리퍼 / I/O` 패널을 같이 노출한다.
 - 기존 local state가 `NavIo` 또는 `BottomTabIo`를 들고 있으면 각각 `NavPoints`, `BottomTabPointMove`로 normalize한다.
 - `RobotControlPeripheralFacade`의 gripper visual ratio가 open 명령에서도 `0`으로 고정되던 문제를 수정했다.
@@ -907,6 +908,25 @@
   - gripper open visual: `fingerLeft=(12.6937,-0.5475,15.4457)`, `fingerRight=(14.865,0.5113,-13.3705)`, `leftDistance=0.0348`, `rightDistance=0.0327`, `openRatio=1.00`
   - close에서 open으로 갈 때 두 finger의 `TcpMarker` 거리값이 증가하므로, close 동작은 구체 방향으로 닫힌다.
   - 후속 `RobotControlV3DebugBridge` expectation 수정 뒤 Unity IPC가 ready 상태로 돌아오지 않아 추가 compile/matrix 재실행은 보류했다.
+
+## 2026-04-27 Gripper Operation Control Reposition
+
+- `그리퍼 / I/O` 보조 패널을 `NavPoints`가 아니라 `NavMotion + TabEasyMotion` / `BottomTabEasyMotion`에서 표시하도록 바꿨다.
+- legacy local state normalize:
+  - `NavIo` -> `NavMotion`
+  - `BottomTabIo` -> `BottomTabEasyMotion`
+- 그리퍼 상태 모델을 `open bool`에서 SDK와 같은 percentage command 모델로 확장했다.
+  - 기본값: `commanded=100`, `actual=100`, `openRatio=1.00`
+  - 완전 닫힘: `commanded=0`, `actual=0`, `openRatio=0.00`
+  - object 감지 close: `commanded=0`, `actual=objectStopPercent`, `holdingObject=True`
+- `IoPanelController`에 gripper position slider와 numeric input을 추가했다.
+- 공식 FAIRINO C# SDK 기준:
+  - command: `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)`
+  - readback: `GetGripperCurPosition`, `GetGripperCurSpeed`, `GetGripperCurCurrent`, `GetGripperMotionDone`
+- 검증:
+  - `dotnet build Assembly-CSharp.csproj --no-restore`: pass, errors `0`
+  - `git diff --check`: pass
+  - `unityctl status --wait`: timeout, Unity IPC not ready
 
 ## Source Docs
 

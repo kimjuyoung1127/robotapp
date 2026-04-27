@@ -258,7 +258,7 @@
   - `unityctl check --type compile --json`: pass.
   - `GetGripperSdkSummaryForDebug(true)` mock connected:
     - `configure=True`, `activate=True`, `move=True`, `pos=True`, `current=True`, `voltage=True`, `temp=True`.
-    - 초기 readback `position=0`.
+    - Historical note: 이 시점의 초기 readback은 `position=0`이었다. 2026-04-27 이후 기본 상태는 완전 열림 `position=100`이다.
   - `SetGripperOpenForDebug(true)` 후:
     - visual `Gripper: Open (1.00)`.
     - SDK mock readback `activationMask=1`, `position=100`, `speed=50`, `current=50`.
@@ -287,7 +287,7 @@
 - 구현:
   - `RunRobotLinkedButtonSimulationAuditForDebug()` 추가.
   - `NudgeJointForDebug()` 추가.
-  - gripper summary는 `Cmd Open/Close`와 `Visual Closed/Open`을 분리해서 표시한다.
+  - Historical note: 당시 gripper summary는 `Cmd Open/Close`와 `Visual Closed/Open`을 분리했다. 2026-04-27 이후 summary는 `Cmd {percent}% / Actual {percent}%`와 object hold 상태를 표시한다.
 - 검증 결과:
   - `unityctl check --type compile --json`: pass.
   - `RunRobotLinkedButtonSimulationAuditForDebug()`: `pass=74; fail=0`.
@@ -326,7 +326,7 @@
   - `NavIo -> BtnRobotDo0On` 클릭 후 `robotDo=DO0 ON / DO1 OFF`.
   - `BtnToolDo0On` 클릭 후 `toolDo=ToolDO0 ON / ToolDO1 OFF`.
   - `BtnIoGripperOpen` 클릭 후 SDK mock readback `position=100`.
-  - `BtnIoGripperClose` 클릭 후 SDK mock readback `position=0`.
+  - `BtnIoGripperClose` 클릭 후 SDK mock readback `position=0`. 2026-04-27 object-hold 정책 이후에는 가운데 object가 감지되면 `actual=objectStopPercent`로 멈춘다.
 - 최종 게이트:
   - `unityctl check --type compile --json`: pass.
   - `console get-count`: error 0.
@@ -485,6 +485,7 @@
 ## 2026-04-27 I/O Point Integration + Gripper Visual Closure
 
 - 왼쪽 `I/O` nav와 tablet `BottomTabIo`는 삭제하고 `Point` 탭의 조작 흐름에 병합한다.
+- Superseded: 이후 같은 날 `그리퍼 / I/O`는 `Point`보다 `조작` 탭에 두는 것으로 변경했다.
 - `그리퍼 / I/O`는 포인트 이동, 묶음 후보, 함수 저장과 같은 teaching 작업 옆에서 보조 조작으로 다룬다.
 - 기존 저장 상태 호환:
   - `NavIo` -> `NavPoints`
@@ -500,3 +501,21 @@
   - `RunFunctionActualClickMatrixForDebug()`: `pass=7; fail=0`
   - `RunTeachingBlockSequenceMatrixForDebug()`: `pass=9; fail=0`
   - target-sphere closure probe: close `leftDistance=0.0149/rightDistance=0.0127`, open `leftDistance=0.0348/rightDistance=0.0327`
+
+## 2026-04-27 Gripper Operation Control
+
+- `그리퍼 / I/O` 패널 위치:
+  - desktop: `NavMotion + TabEasyMotion`
+  - tablet: `BottomTabEasyMotion`
+- 그리퍼 조작은 open/close shortcut만 두지 않고, `0~100` position slider와 numeric input으로 목표 개폐량을 설정한다.
+- SDK contract:
+  - open은 `MoveGripper(... pos=100 ...)`
+  - close는 `MoveGripper(... pos=0 ...)`
+  - speed/force/readback은 `0~100` percentage로 다룬다.
+- visual/mock safety:
+  - 기본 상태는 완전 열림 `actual=100`.
+  - 가운데 `TcpMarker` 구체 renderer가 감지되면 close 명령은 object stop percent에서 멈추고 `holdingObject=True`로 표시한다.
+  - object가 없으면 `actual=0`까지 닫혀 finger 안쪽이 서로 닿는 상태가 완전 닫힘이다.
+- live 실기:
+  - 실제 `MoveGripper` live 실행은 기존 safety gate를 유지한다.
+  - 실기 object 감지는 SDK readback의 `position/current/motionDone`과 pendant 상태 비교 후 force/current threshold를 확정한다.

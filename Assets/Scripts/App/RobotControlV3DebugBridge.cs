@@ -414,6 +414,12 @@ namespace KineTutor3D.App
             return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
         }
 
+        public static string SetGripperPositionForDebug(int positionPercent)
+        {
+            var result = GetRuntimeController().SetGripperPositionPercent(positionPercent);
+            return $"{result.Message}; {GetMovementStateSummaryForDebug()}";
+        }
+
         public static string ConnectDefaultForDebug()
         {
             var result = GetRuntimeController().ConnectDefault();
@@ -979,8 +985,8 @@ namespace KineTutor3D.App
             AddCase("BtnEasyFolded", () => runtime.PreviewPreset("Folded"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
             AddCase("BtnEasyZero", () => runtime.PreviewPreset("Zero"), "pending=대기 명령: MoveJ", VisualCheck, "cameraVisible=True");
             AddCase("BtnEasyApply", () => runtime.ApplyPreset("Ready"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
-            AddCase("BtnGripperClose", () => runtime.SetGripperOpen(false), "Cmd Close / Visual Closed", VisualCheck, "fingerLeft=(0,0,0)");
-            AddCase("BtnGripperOpen", () => runtime.SetGripperOpen(true), "Cmd Open / Visual Open", SdkCheck, "position=100");
+            AddCase("BtnGripperClose", () => runtime.SetGripperOpen(false), "Cmd 0% / Actual", VisualCheck, "objectDetected=True");
+            AddCase("BtnGripperOpen", () => runtime.SetGripperOpen(true), "Cmd 100% / Actual 100%", SdkCheck, "position=100");
 
             SetShellSelection("NavMotion", "TabJointJog", "BottomTabJointJog");
             GetJointJogController().ForceInitialize();
@@ -1203,8 +1209,8 @@ namespace KineTutor3D.App
             }
 
             AddCase("BtnEasyApply", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
-            AddCase("BtnGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd Open");
-            AddCase("BtnGripperClose", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); runtime.SetGripperOpen(true); }, GetMovementStateSummaryForDebug, "Cmd Close");
+            AddCase("BtnGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 100%");
+            AddCase("BtnGripperClose", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); runtime.SetGripperOpen(true); }, GetMovementStateSummaryForDebug, "Cmd 0%");
 
             for (var axis = 1; axis <= 6; axis++)
             {
@@ -1389,9 +1395,9 @@ namespace KineTutor3D.App
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetTeachingFunctionUiSummaryForDebug, "[Function From]");
 
-            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
+            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
-                AddCase(buttonName, () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
+                AddCase(buttonName, () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
             }
 
             foreach (var buttonName in new[] { "BtnViewportBaseFrame", "BtnViewportToolFrame", "BtnViewportTrail", "BtnViewportGhost", "BtnViewportBoundary", "BtnViewportCollision", "BtnViewportCameraReset" })
@@ -1529,8 +1535,8 @@ namespace KineTutor3D.App
             AddCase("BtnTcp3Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
             AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
             AddCase("BtnPointApply", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
-            AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "Cmd Open");
-            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "DO0 ON");
+            AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 100%");
+            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "DO0 ON");
             AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
 
@@ -4062,6 +4068,9 @@ namespace KineTutor3D.App
                 case "BtnIoGripperOpen":
                 case "BtnGripperOpen":
                     runtime.SetGripperOpen(true);
+                    return true;
+                case "BtnIoGripperApply":
+                    runtime.SetGripperPositionPercent(runtime.CurrentSnapshot.GripperCommandedPositionPercent);
                     return true;
                 case "BtnIoGripperClose":
                 case "BtnGripperClose":

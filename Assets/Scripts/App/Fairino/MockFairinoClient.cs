@@ -18,7 +18,7 @@ namespace KineTutor3D.App.Fairino
         private int reconnectPeriodMs = 500;
         private bool inDragTeach;
         private bool gripperActivated;
-        private int gripperPositionPercent;
+        private int gripperPositionPercent = 100;
         private int gripperSpeedPercent;
         private int gripperCurrentPercent;
         private int gripperVoltage = 24;

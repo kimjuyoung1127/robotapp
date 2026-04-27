@@ -71,11 +71,16 @@ namespace KineTutor3D.App.Fairino
 
         public static FairinoGripperCommand ForOpen(bool open)
         {
+            return ForPosition(open ? 100 : 0);
+        }
+
+        public static FairinoGripperCommand ForPosition(int positionPercent, int speedPercent = 50, int forcePercent = 50)
+        {
             return new FairinoGripperCommand(
                 FairinoGripperProfile.Pgea10040Default,
-                open ? 100 : 0,
-                50,
-                50,
+                positionPercent,
+                speedPercent,
+                forcePercent,
                 30000,
                 blocking: true);
         }

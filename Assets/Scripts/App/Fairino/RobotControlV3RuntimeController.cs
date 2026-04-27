@@ -1915,7 +1915,13 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult SetGripperOpen(bool open)
         {
-            if (!EnsureReadyForCommand(open ? "그리퍼 열기" : "그리퍼 닫기"))
+            return SetGripperPositionPercent(open ? 100 : 0);
+        }
+
+        public FairinoResult SetGripperPositionPercent(int positionPercent)
+        {
+            var clampedPosition = ClampPercent(positionPercent);
+            if (!EnsureReadyForCommand($"그리퍼 {clampedPosition}%"))
             {
                 return FairinoResult.Fail(-30, lastInitializationError);
             }
@@ -1935,7 +1941,12 @@ namespace KineTutor3D.App.Fairino
                 }
             }
 
-            var result = peripheralFacade.SetGripperOpen(open, snapshot.DryRunEnabled);
+            var objectDetected = TryResolveGripperObjectStopPercent(out var objectStopPercent);
+            var result = peripheralFacade.SetGripperPosition(
+                clampedPosition,
+                snapshot.DryRunEnabled,
+                objectDetected,
+                objectStopPercent);
             ApplyGripperVisual(peripheralFacade.Snapshot.GripperOpenRatio);
             PushFeedback(result.Message);
             snapshot.LiveBlockedReason = result.IsSuccess ? string.Empty : result.Message;
@@ -2898,6 +2909,28 @@ namespace KineTutor3D.App.Fairino
             peripheralFacade?.SetGripperVisualAttached(endEffectorAttachment != null);
         }
 
+        private bool TryResolveGripperObjectStopPercent(out int stopPercent)
+        {
+            stopPercent = 0;
+            if (endEffectorAttachment == null && controlRobotInstance != null)
+            {
+                endEffectorAttachment = controlRobotInstance.GetComponentInChildren<FR5EndEffectorAttachment>(true);
+            }
+
+            if (endEffectorAttachment == null || !endEffectorAttachment.TryGetGripObjectStopRatio(out var stopRatio))
+            {
+                return false;
+            }
+
+            stopPercent = ClampPercent(Mathf.RoundToInt(stopRatio * 100f));
+            return stopPercent > 0;
+        }
+
+        private static int ClampPercent(int value)
+        {
+            return value < 0 ? 0 : value > 100 ? 100 : value;
+        }
+
         private void ResetStageCameraIfAutomatic()
         {
             if (!stageCameraUserAdjusted || !stageCameraStateValid)
@@ -3334,7 +3367,14 @@ namespace KineTutor3D.App.Fairino
             if (peripheralFacade == null)
             {
                 snapshot.GripperSummary = "Gripper: --";
-                snapshot.GripperOpenRatio = 0f;
+                snapshot.GripperOpenRatio = 1f;
+                snapshot.GripperCommandedPositionPercent = 100;
+                snapshot.GripperActualPositionPercent = 100;
+                snapshot.GripperSpeedPercent = 50;
+                snapshot.GripperForcePercent = 50;
+                snapshot.GripperObjectDetected = false;
+                snapshot.GripperHoldingObject = false;
+                snapshot.GripperObjectStopPercent = 0;
                 snapshot.GripperVisualAttached = false;
                 snapshot.RobotDoSummary = "DO0 OFF / DO1 OFF";
                 snapshot.ToolDoSummary = "ToolDO0 OFF / ToolDO1 OFF";
@@ -3344,8 +3384,16 @@ namespace KineTutor3D.App.Fairino
 
             var peripheral = peripheralFacade.Snapshot;
             snapshot.GripperOpenRatio = peripheral.GripperOpenRatio;
+            snapshot.GripperCommandedPositionPercent = peripheral.GripperCommandedPositionPercent;
+            snapshot.GripperActualPositionPercent = peripheral.GripperActualPositionPercent;
+            snapshot.GripperSpeedPercent = peripheral.GripperSpeedPercent;
+            snapshot.GripperForcePercent = peripheral.GripperForcePercent;
+            snapshot.GripperObjectDetected = peripheral.GripperObjectDetected;
+            snapshot.GripperHoldingObject = peripheral.GripperHoldingObject;
+            snapshot.GripperObjectStopPercent = peripheral.GripperObjectStopPercent;
             snapshot.GripperVisualAttached = peripheral.GripperVisualAttached;
-            snapshot.GripperSummary = $"Gripper: Cmd {(peripheral.GripperOpen ? "Open" : "Close")} / Visual {(peripheral.GripperOpenRatio > 0.001f ? "Open" : "Closed")} ({peripheral.GripperOpenRatio:0.00})";
+            var holdSuffix = peripheral.GripperHoldingObject ? " / Object Hold" : string.Empty;
+            snapshot.GripperSummary = $"Gripper: Cmd {peripheral.GripperCommandedPositionPercent}% / Actual {peripheral.GripperActualPositionPercent}%{holdSuffix} ({peripheral.GripperOpenRatio:0.00})";
             snapshot.RobotDoSummary = $"DO0 {(peripheral.RobotDigitalOutputs[0] ? "ON" : "OFF")} / DO1 {(peripheral.RobotDigitalOutputs[1] ? "ON" : "OFF")}";
             snapshot.ToolDoSummary = $"ToolDO0 {(peripheral.ToolDigitalOutputs[0] ? "ON" : "OFF")} / ToolDO1 {(peripheral.ToolDigitalOutputs[1] ? "ON" : "OFF")}";
             snapshot.PeripheralFeedback = peripheral.LastPeripheralFeedback;

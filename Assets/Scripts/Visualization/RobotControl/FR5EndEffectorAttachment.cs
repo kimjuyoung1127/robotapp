@@ -26,6 +26,8 @@ namespace KineTutor3D.Visualization
         private Vector3 fingerLeftOpenDirection = Vector3.right;
         private Vector3 fingerRightOpenDirection = Vector3.left;
         private bool fingerBaseCaptured;
+        private bool hasGripObject;
+        private float gripObjectStopRatio;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
@@ -35,6 +37,7 @@ namespace KineTutor3D.Visualization
         public Transform FingerLeft => fingerLeft;
         public Transform FingerRight => fingerRight;
         public float GripperOpenRatio => gripperOpenRatio;
+        public bool HasGripObject => TryGetGripObjectStopRatio(out _);
 
         public void Configure(string id, Transform visual, Transform tcp)
         {
@@ -59,7 +62,8 @@ namespace KineTutor3D.Visualization
             var target = ResolveGripTarget();
             var leftDistance = GetFingerTargetDistance(fingerLeft, target);
             var rightDistance = GetFingerTargetDistance(fingerRight, target);
-            return $"target={target?.name ?? "missing"}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
+            var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
+            return $"target={target?.name ?? "missing"}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -90,6 +94,14 @@ namespace KineTutor3D.Visualization
         {
             gripperOpenRatio = Mathf.Clamp01(ratio);
             ApplyGripperPose();
+        }
+
+        public bool TryGetGripObjectStopRatio(out float stopRatio)
+        {
+            RefreshExistingReferences();
+            RefreshGripObjectStopRatio();
+            stopRatio = gripObjectStopRatio;
+            return hasGripObject;
         }
 
         private void RefreshExistingReferences()
@@ -161,6 +173,26 @@ namespace KineTutor3D.Visualization
             }
 
             return tcpFrame.Find("TcpMarker") ?? tcpFrame;
+        }
+
+        private void RefreshGripObjectStopRatio()
+        {
+            hasGripObject = false;
+            gripObjectStopRatio = 0f;
+            var target = ResolveGripTarget();
+            if (target == null || target == tcpFrame)
+            {
+                return;
+            }
+
+            var renderers = target.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0)
+            {
+                return;
+            }
+
+            hasGripObject = true;
+            gripObjectStopRatio = 0.35f;
         }
 
         private Vector3 ResolveOpenDirection(Transform finger, Transform target, Vector3 fallback)

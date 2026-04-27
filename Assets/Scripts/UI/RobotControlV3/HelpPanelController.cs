@@ -273,7 +273,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "BottomTabJointJog" => "태블릿에서는 관절 조그를 하단 시트에서 열어 3D 뷰를 가리지 않게 유지한다.",
                 "BottomTabTcpJog" => "태블릿에서는 TCP 조그와 좌표계 전환을 하단 시트에 모아 한 손 조작 흐름을 유지한다.",
-                "BottomTabPointMove" => "태블릿에서는 포인트, 묶음, 그리퍼/I/O를 하단 시트에서 한 흐름으로 확인한다.",
+                    "BottomTabPointMove" => "태블릿에서는 포인트와 묶음을 하단 시트에서 한 흐름으로 확인한다.",
                 "BottomTabStatus" => "태블릿에서는 상태/알람 요약을 하단 시트에서 열어 현재 위험도를 먼저 읽게 한다.",
                 "BottomTabHelp" => "태블릿에서는 하단 시트로 현재 단계 도움말을 바로 연다.",
                 _ => "태블릿에서는 쉬운 조작 프리셋과 작은 이동을 하단 시트에서 바로 연다.",

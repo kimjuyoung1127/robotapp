@@ -19,18 +19,33 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult SetGripperOpen(bool open, bool allowDryRun)
         {
+            return SetGripperPosition(open ? 100 : 0, allowDryRun, objectDetected: false, objectStopPercent: 0);
+        }
+
+        public FairinoResult SetGripperPosition(int positionPercent, bool allowDryRun, bool objectDetected, int objectStopPercent)
+        {
             if (!CanSimulateOrMock(allowDryRun, out var blockReason))
             {
-                var command = FairinoGripperCommand.ForOpen(open);
+                var command = FairinoGripperCommand.ForPosition(positionPercent);
                 state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
                 state.LastPeripheralFeedback = $"{blockReason}; 공식 MoveGripper 후보: {command}";
                 return FairinoResult.Fail(-60, blockReason);
             }
 
-            state.GripperOpen = open;
-            state.GripperOpenRatio = open ? 1f : 0f;
-            state.LastPeripheralFeedback = open ? "[Mock Gripper] 열림" : "[Mock Gripper] 닫힘";
-            SyncMockSdkGripper(open);
+            var commanded = ClampPercent(positionPercent);
+            var stopPercent = objectDetected ? ClampPercent(objectStopPercent) : 0;
+            var actual = objectDetected && commanded < stopPercent ? stopPercent : commanded;
+            state.GripperCommandedPositionPercent = commanded;
+            state.GripperActualPositionPercent = actual;
+            state.GripperSpeedPercent = 50;
+            state.GripperForcePercent = 50;
+            state.GripperOpen = actual >= 50;
+            state.GripperOpenRatio = actual / 100f;
+            state.GripperObjectDetected = objectDetected;
+            state.GripperObjectStopPercent = stopPercent;
+            state.GripperHoldingObject = objectDetected && commanded < stopPercent;
+            state.LastPeripheralFeedback = BuildGripperFeedback(commanded, actual, objectDetected, stopPercent);
+            SyncMockSdkGripper(actual, state.GripperSpeedPercent, state.GripperForcePercent);
             return FairinoResult.Ok(state.LastPeripheralFeedback);
         }
 
@@ -126,18 +141,43 @@ namespace KineTutor3D.App.Fairino
                 : $"{summary}; readbackFailed=code {status.ErrorCode}: {status.Message}";
         }
 
-        private void SyncMockSdkGripper(bool open)
+        private void SyncMockSdkGripper(int positionPercent, int speedPercent, int forcePercent)
         {
             if (connectionService == null || !connectionService.IsMockMode || connectionService.Client == null || !connectionService.Client.IsConnected)
             {
                 return;
             }
 
-            var command = FairinoGripperCommand.ForOpen(open);
+            var command = FairinoGripperCommand.ForPosition(positionPercent, speedPercent, forcePercent);
             connectionService.ConfigureGripper(command.Profile);
             connectionService.ActivateGripper(command.Profile, activate: true);
             connectionService.MoveGripper(command);
             state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
+        }
+
+        private static string BuildGripperFeedback(int commanded, int actual, bool objectDetected, int stopPercent)
+        {
+            if (objectDetected && commanded < stopPercent)
+            {
+                return $"[Mock Gripper] 물체 감지 · 요청 {commanded}% -> 안전 정지 {actual}% · 잡은 상태";
+            }
+
+            if (actual >= 99)
+            {
+                return "[Mock Gripper] 완전 열림 100%";
+            }
+
+            if (actual <= 1)
+            {
+                return "[Mock Gripper] 완전 닫힘 0%";
+            }
+
+            return $"[Mock Gripper] 위치 {actual}%";
+        }
+
+        private static int ClampPercent(int value)
+        {
+            return value < 0 ? 0 : value > 100 ? 100 : value;
         }
     }
 }

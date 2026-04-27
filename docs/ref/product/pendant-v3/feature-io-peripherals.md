@@ -103,5 +103,13 @@
 | DI 읽기 | `GetDI(id)` |
 | 그리퍼 설정 | `SetGripperConfig(...)` |
 | 그리퍼 동작 | `ActGripper(id, action)` |
-| 그리퍼 이동 | `MoveGripper(id, position, speed, force)` |
+| 그리퍼 이동 | `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)` |
 | 그리퍼 완료 확인 | `GetGripperMotionDone(id)` |
+
+## 2026-04-27 Position Control Update
+
+- `그리퍼 / I/O` 패널은 `Point`가 아니라 `조작 > 기본` 흐름에 둔다.
+- 그리퍼 기본값은 `pos=100` 완전 열림이다.
+- 완전 닫힘은 `pos=0`이며, object가 없을 때 finger 안쪽이 서로 닿는 상태다.
+- 가운데 object가 감지되면 close 명령은 mock/visual에서 object stop percent에 멈추고 `holdingObject` 상태를 표시한다.
+- 실기 object 감지는 공식 SDK readback의 position/current/motion status를 비교한 뒤 force/current threshold 정책으로 확정한다.

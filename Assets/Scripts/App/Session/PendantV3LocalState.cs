@@ -66,7 +66,7 @@ namespace KineTutor3D.App
             }
             else if (string.Equals(state.ActiveNavSection, "NavIo", StringComparison.Ordinal))
             {
-                state.ActiveNavSection = "NavPoints";
+                state.ActiveNavSection = "NavMotion";
             }
 
             if (string.IsNullOrWhiteSpace(state.ActiveWorkTab))
@@ -80,7 +80,7 @@ namespace KineTutor3D.App
             }
             else if (string.Equals(state.ActiveTabletTab, "BottomTabIo", StringComparison.Ordinal))
             {
-                state.ActiveTabletTab = "BottomTabPointMove";
+                state.ActiveTabletTab = "BottomTabEasyMotion";
             }
 
             state.CoordSystem = NormalizeCoordSystem(state.CoordSystem);
