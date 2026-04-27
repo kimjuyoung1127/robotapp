@@ -109,6 +109,7 @@
 - live SDK gripper capability/readback scaffold를 연결했다.
 - Gripper `position=0`은 SDK상 percentage close command/readback으로 유지하되, Unity no-object visual에서는 inner finger faces가 닿아 보이도록 close-contact travel을 보정했다.
 - Close travel scalar로 맞지 않는 PGEA visual은 authored closed pose를 별도 캡처해서 `authored open -> authored closed` 보간으로 처리한다.
+- 현재 PGEA visual calibration은 `position=60%`를 no-object contact 지점으로 보고, `60% 이하`는 같은 closed/contact 포즈로 클램프한다.
 - Desktop actual UI click matrix `98/98 PASS`.
 - Tablet/bottom representative actual click matrix `16/16 PASS`.
 - Popup confirm/cancel E2E `10/10 PASS`.
