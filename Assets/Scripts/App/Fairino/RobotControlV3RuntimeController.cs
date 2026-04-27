@@ -2903,6 +2903,7 @@ namespace KineTutor3D.App.Fairino
             endEffectorAttachment = attachmentRoot.GetComponent<FR5EndEffectorAttachment>()
                 ?? attachmentRoot.gameObject.AddComponent<FR5EndEffectorAttachment>();
             endEffectorAttachment.Configure(PgeaAttachmentId, visualRoot, tcpFrame);
+            endEffectorAttachment.ResetDistortedFingerOffsetsForRuntime();
             endEffectorAttachment.SetFingers(fingerLeft, fingerRight);
             endEffectorAttachment.SetGripperOpen(peripheralFacade?.Snapshot.GripperOpenRatio ?? 1f);
         }

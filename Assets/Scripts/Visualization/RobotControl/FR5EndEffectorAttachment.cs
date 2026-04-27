@@ -19,18 +19,18 @@ namespace KineTutor3D.Visualization
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
         [SerializeField, Range(0.05f, 2f)] private float gripperMotionDuration = 0.55f;
 
-        private const float StrokeMm = 40f;
         private static readonly Color BodyColor = new(0.13f, 0.18f, 0.22f, 1f);
         private static readonly Color BodyAccentColor = new(0.18f, 0.52f, 0.68f, 1f);
         private static readonly Color FingerColor = new(1f, 0.58f, 0.14f, 1f);
         private Vector3 fingerLeftOpen;
         private Vector3 fingerRightOpen;
-        private Vector3 fingerLeftOpenDirection = Vector3.right;
-        private Vector3 fingerRightOpenDirection = Vector3.left;
+        private Vector3 fingerLeftCloseTravel;
+        private Vector3 fingerRightCloseTravel;
         private bool fingerBaseCaptured;
         private bool hasGripObject;
         private float gripObjectStopRatio;
         private Coroutine gripperMotionCoroutine;
+        private const float DistortedFingerLocalPositionSqrMagnitude = 1f;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
@@ -59,6 +59,26 @@ namespace KineTutor3D.Visualization
             ApplyGripperPose();
         }
 
+        public void ResetDistortedFingerOffsetsForRuntime()
+        {
+            RefreshExistingReferences();
+            if (fingerLeft == null || fingerRight == null)
+            {
+                return;
+            }
+
+            if (fingerLeft.localPosition.sqrMagnitude <= DistortedFingerLocalPositionSqrMagnitude
+                && fingerRight.localPosition.sqrMagnitude <= DistortedFingerLocalPositionSqrMagnitude)
+            {
+                return;
+            }
+
+            StopGripperMotion();
+            fingerLeft.localPosition = Vector3.zero;
+            fingerRight.localPosition = Vector3.zero;
+            fingerBaseCaptured = false;
+        }
+
         public string BuildClosureDebugSummary()
         {
             RefreshExistingReferences();
@@ -66,7 +86,7 @@ namespace KineTutor3D.Visualization
             var leftDistance = GetFingerTargetDistance(fingerLeft, target);
             var rightDistance = GetFingerTargetDistance(fingerRight, target);
             var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
-            return $"target={target?.name ?? "missing"}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
+            return $"target={target?.name ?? "missing"}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -158,15 +178,13 @@ namespace KineTutor3D.Visualization
 
             fingerLeftOpen = fingerLeft.localPosition;
             fingerRightOpen = fingerRight.localPosition;
-            CaptureOpenDirections();
+            CaptureCloseTravel();
             fingerBaseCaptured = true;
         }
 
-        private void CaptureOpenDirections()
+        private void CaptureCloseTravel()
         {
-            var target = ResolveGripTarget();
-            fingerLeftOpenDirection = ResolveOpenDirection(fingerLeft, target, Vector3.right);
-            fingerRightOpenDirection = ResolveOpenDirection(fingerRight, target, Vector3.left);
+            ResolveCloseTravelFromRenderedCenters(ResolveGripTarget(), out fingerLeftCloseTravel, out fingerRightCloseTravel);
         }
 
         private void ApplyGripperPose()
@@ -183,9 +201,9 @@ namespace KineTutor3D.Visualization
                 return;
             }
 
-            var closeTravel = StrokeMm * 0.5f * (1f - gripperOpenRatio);
-            fingerLeft.localPosition = fingerLeftOpen - fingerLeftOpenDirection * closeTravel;
-            fingerRight.localPosition = fingerRightOpen - fingerRightOpenDirection * closeTravel;
+            var closeAmount = 1f - gripperOpenRatio;
+            fingerLeft.localPosition = fingerLeftOpen + fingerLeftCloseTravel * closeAmount;
+            fingerRight.localPosition = fingerRightOpen + fingerRightCloseTravel * closeAmount;
         }
 
         private IEnumerator AnimateGripperOpenRatio(float targetRatio)
@@ -255,22 +273,35 @@ namespace KineTutor3D.Visualization
             gripObjectStopRatio = 0.35f;
         }
 
-        private Vector3 ResolveOpenDirection(Transform finger, Transform target, Vector3 fallback)
+        private void ResolveCloseTravelFromRenderedCenters(Transform target, out Vector3 leftTravel, out Vector3 rightTravel)
         {
-            if (finger == null || target == null || finger.parent == null)
+            leftTravel = Vector3.zero;
+            rightTravel = Vector3.zero;
+            if (fingerLeft == null || fingerRight == null || fingerLeft.parent == null || fingerRight.parent == null)
             {
-                return fallback;
+                return;
             }
 
-            var fingerCenter = ResolveRendererCenter(finger);
-            var awayWorld = fingerCenter - target.position;
-            if (awayWorld.sqrMagnitude < 0.000001f)
+            var leftCenter = ResolveRendererCenter(fingerLeft);
+            var rightCenter = ResolveRendererCenter(fingerRight);
+            var spanWorld = rightCenter - leftCenter;
+            if (spanWorld.sqrMagnitude < 0.000001f)
             {
-                return fallback;
+                return;
             }
 
-            var local = finger.parent.InverseTransformVector(awayWorld).normalized;
-            return local.sqrMagnitude > 0.000001f ? local : fallback;
+            var axisWorld = spanWorld.normalized;
+            var midpointWorld = (leftCenter + rightCenter) * 0.5f;
+            var closeCenterWorld = midpointWorld;
+            if (target != null)
+            {
+                var halfSpan = spanWorld.magnitude * 0.5f;
+                var offset = Mathf.Clamp(Vector3.Dot(target.position - midpointWorld, axisWorld), -halfSpan, halfSpan);
+                closeCenterWorld = midpointWorld + axisWorld * offset;
+            }
+
+            leftTravel = fingerLeft.parent.InverseTransformVector(closeCenterWorld - leftCenter);
+            rightTravel = fingerRight.parent.InverseTransformVector(closeCenterWorld - rightCenter);
         }
 
         private static Vector3 ResolveRendererCenter(Transform root)

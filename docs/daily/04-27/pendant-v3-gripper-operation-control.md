@@ -48,6 +48,11 @@ Date: 2026-04-27 (KST)
 - `unityctl exec invoke KineTutor3D.App.RobotControlV3DebugBridge.GetGripperVisualSummaryForDebug`: gripper visual attached, target `TcpMarker`, object stop `0.35`.
 - `unityctl exec invoke ... SetGripperPositionForDebug [100]`: actual/open visual reaches `openRatio=1.00`.
 - `unityctl exec invoke ... SetGripperPositionForDebug [0]`: object-detected close clamps to actual `35%`, visual reaches `openRatio=0.35`.
+- Follow-up fix:
+  - replaced fixed local stroke movement with rendered finger-center travel, because PGEA finger parent transforms can share the same authored local origin.
+  - reset obviously distorted runtime finger offsets back to the prefab authored-open baseline before recapturing the open pose.
+  - set the PGEA prefab serialized default `gripperOpenRatio` to `1`.
+  - runtime check after reset: open starts with finger parent offsets `0,0,0`; close command moves left/right in opposite directions and reduces target distances before stopping at object-safe `openRatio=0.35`.
 
 ## Notes
 

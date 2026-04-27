@@ -561,7 +561,8 @@ MonoBehaviour:
   gizmoAxisLength: 0.05
   gizmoSphereRadius: 0.008
   tcpCalibrated: 0
-  gripperOpenRatio: 0
+  gripperOpenRatio: 1
+  gripperMotionDuration: 0.55
 --- !u!1 &6252996222555578144
 GameObject:
   m_ObjectHideFlags: 0
