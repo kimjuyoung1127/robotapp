@@ -116,12 +116,14 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
                 panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
+                ApplyGripperPosition(panel, draftPositionPercent);
             });
             panel.PositionInput.RegisterValueChangedCallback(evt =>
             {
                 draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
                 panel.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
                 panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
+                ApplyGripperPosition(panel, draftPositionPercent);
             });
             RegisterClick(panel.BtnDo0On, () => runtimeController.SetRobotDigitalOutput(0, true));
             RegisterClick(panel.BtnDo0Off, () => runtimeController.SetRobotDigitalOutput(0, false));

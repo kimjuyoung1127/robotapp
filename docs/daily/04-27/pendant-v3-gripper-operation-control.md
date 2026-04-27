@@ -33,12 +33,17 @@ Date: 2026-04-27 (KST)
 - `RobotControlPeripheralState`와 `RobotControlV3RuntimeSnapshot`에 commanded/actual/speed/force/object-detected/holding/stop-percent 상태를 추가했다.
 - `FR5EndEffectorAttachment`는 `TcpMarker` renderer가 있으면 grip object로 보고 close 중 stop ratio를 제공한다.
 - legacy local state의 `NavIo` / `BottomTabIo`는 각각 `NavMotion` / `BottomTabEasyMotion`으로 normalize한다.
+- 후속 수정:
+  - slider와 numeric input 값 변경 시 즉시 `SetGripperPositionPercent(...)`를 호출하게 했다.
+  - finger visual은 닫힌 기준에서 바깥으로 여는 방식이 아니라, authored open pose를 기준으로 캡처하고 close 때만 `TcpMarker` 방향으로 안쪽 이동한다.
+  - `RecaptureGripperAuthoredOpenForDebug()`를 추가했다. Unity에서 finger transform을 손으로 맞춘 뒤 호출하면 현재 위치를 새 authored open 기준으로 잡는다.
 
 ## Verification
 
 - `dotnet build Assembly-CSharp.csproj --no-restore`: pass, errors `0`.
 - `git diff --check`: pass.
 - `unityctl status --wait`: timeout. Editor IPC가 ready 응답을 주지 않아 Unity runtime matrix는 재실행하지 못했다.
+- Unity MCP: `No Unity Editor instances found`. MCP bridge가 잡히지 않아 현재 에디터 transform 실시간 감지는 수행하지 못했다.
 
 ## Notes
 

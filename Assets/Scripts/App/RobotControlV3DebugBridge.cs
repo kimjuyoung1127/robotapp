@@ -438,6 +438,11 @@ namespace KineTutor3D.App
             return runtime.GetGripperVisualSummaryForDebug();
         }
 
+        public static string RecaptureGripperAuthoredOpenForDebug()
+        {
+            return GetRuntimeController().RecaptureGripperAuthoredOpenForDebug();
+        }
+
         public static string GetGripperSdkSummaryForDebug(bool includeReadback = true)
         {
             var runtime = GetRuntimeController();

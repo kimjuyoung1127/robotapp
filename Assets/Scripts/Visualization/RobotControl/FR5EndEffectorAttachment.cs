@@ -15,14 +15,14 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Transform tcpFrame;
         [SerializeField] private Transform fingerLeft;
         [SerializeField] private Transform fingerRight;
-        [SerializeField, Range(0f, 1f)] private float gripperOpenRatio;
+        [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
 
         private const float StrokeMm = 40f;
         private static readonly Color BodyColor = new(0.13f, 0.18f, 0.22f, 1f);
         private static readonly Color BodyAccentColor = new(0.18f, 0.52f, 0.68f, 1f);
         private static readonly Color FingerColor = new(1f, 0.58f, 0.14f, 1f);
-        private Vector3 fingerLeftClosed;
-        private Vector3 fingerRightClosed;
+        private Vector3 fingerLeftOpen;
+        private Vector3 fingerRightOpen;
         private Vector3 fingerLeftOpenDirection = Vector3.right;
         private Vector3 fingerRightOpenDirection = Vector3.left;
         private bool fingerBaseCaptured;
@@ -63,7 +63,7 @@ namespace KineTutor3D.Visualization
             var leftDistance = GetFingerTargetDistance(fingerLeft, target);
             var rightDistance = GetFingerTargetDistance(fingerRight, target);
             var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
-            return $"target={target?.name ?? "missing"}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
+            return $"target={target?.name ?? "missing"}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftOpenDir=({fingerLeftOpenDirection.x:0.###},{fingerLeftOpenDirection.y:0.###},{fingerLeftOpenDirection.z:0.###}); rightOpenDir=({fingerRightOpenDirection.x:0.###},{fingerRightOpenDirection.y:0.###},{fingerRightOpenDirection.z:0.###})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -104,6 +104,14 @@ namespace KineTutor3D.Visualization
             return hasGripObject;
         }
 
+        public void RecaptureAuthoredOpenPose()
+        {
+            gripperOpenRatio = 1f;
+            fingerBaseCaptured = false;
+            CaptureFingerBase();
+            ApplyGripperPose();
+        }
+
         private void RefreshExistingReferences()
         {
             visualRoot ??= transform.Find("VisualRoot");
@@ -128,13 +136,8 @@ namespace KineTutor3D.Visualization
                 return;
             }
 
-            if (gripperOpenRatio > 0.001f)
-            {
-                return;
-            }
-
-            fingerLeftClosed = fingerLeft.localPosition;
-            fingerRightClosed = fingerRight.localPosition;
+            fingerLeftOpen = fingerLeft.localPosition;
+            fingerRightOpen = fingerRight.localPosition;
             CaptureOpenDirections();
             fingerBaseCaptured = true;
         }
@@ -160,9 +163,9 @@ namespace KineTutor3D.Visualization
                 return;
             }
 
-            var halfStroke = StrokeMm * 0.5f * gripperOpenRatio;
-            fingerLeft.localPosition = fingerLeftClosed + fingerLeftOpenDirection * halfStroke;
-            fingerRight.localPosition = fingerRightClosed + fingerRightOpenDirection * halfStroke;
+            var closeTravel = StrokeMm * 0.5f * (1f - gripperOpenRatio);
+            fingerLeft.localPosition = fingerLeftOpen - fingerLeftOpenDirection * closeTravel;
+            fingerRight.localPosition = fingerRightOpen - fingerRightOpenDirection * closeTravel;
         }
 
         private Transform ResolveGripTarget()
