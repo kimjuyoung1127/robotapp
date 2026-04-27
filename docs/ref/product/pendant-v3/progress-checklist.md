@@ -922,9 +922,14 @@
 - post-restart 성공 기준을 확정했다.
   - Unity PID `2584`, `status=Playing`, `bridgeLoaded=True`, IPC ready.
   - 기본 열린 상태: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`.
-  - 가운데 큐브가 있는 close: `Cmd 0% / Actual 35% / Object Hold`, closure `objectDetected=True; objectStop=0.35`.
-  - 따라서 큐브가 있을 때 완전히 `0%`까지 닫히지 않는 것은 정상 안전 정지다.
+  - 이전 marker 기반 가운데 큐브 close: `Cmd 0% / Actual 35% / Object Hold`, closure `objectDetected=True; objectStop=0.35`.
   - 성공 패턴은 `C:\Users\ezen601\.codex\skills\robotapp2-gripper-success-pattern\SKILL.md`로 스킬화했다.
+- real-object 기준으로 `TcpMarker` 제거를 반영했다.
+  - `PGEA_100_40.prefab`에서 `TcpFrame/TcpMarker` 구체 child를 제거했다.
+  - `FR5EndEffectorAttachment`는 명시적 `gripObjectRoot` 또는 핑거 사이 외부 collider/renderer만 grip object로 감지한다.
+  - robot-owned geometry와 legacy `TcpMarker` 이름은 grip object 후보에서 제외한다.
+  - no-object 검증: `target=TcpFrame`, `objectDetected=False`, `objectStop=0`, close `Cmd 0% / Actual 0%`, visual `openRatio=0.00`.
+  - real-object hold는 실제 workpiece collider/renderer 또는 실기 SDK readback 기준으로만 확정한다.
 - `IoPanelController`에 gripper position slider와 numeric input을 추가했다.
 - 공식 FAIRINO C# SDK 기준:
   - command: `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)`
@@ -934,7 +939,8 @@
   - `git diff --check`: pass
   - `unityctl status --wait`: pass after editor restart; state `Playing`
   - `SetGripperPositionForDebug [100]`: pass, `Cmd 100% / Actual 100%`
-  - `SetGripperPositionForDebug [0]`: pass with cube hold, `Cmd 0% / Actual 35% / Object Hold`
+  - `asset refresh` + Onboarding `BtnOpenRobotControlV3`: pass
+  - `SetGripperPositionForDebug [0]`: pass without marker/object hold, `Cmd 0% / Actual 0%`
 
 ## Source Docs
 

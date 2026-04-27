@@ -514,12 +514,13 @@
   - speed/force/readback은 `0~100` percentage로 다룬다.
 - visual/mock safety:
   - 기본 상태는 완전 열림 `actual=100`.
-  - 가운데 `TcpMarker` 구체 renderer가 감지되면 close 명령은 object stop percent에서 멈추고 `holdingObject=True`로 표시한다.
+  - `TcpMarker` 구체 prefab은 제거한다. `TcpFrame`은 작업 기준 frame으로만 유지하고, hold 판정은 핑거 사이 실제 collider/renderer가 감지될 때만 수행한다.
+  - 실제 물체가 감지되면 close 명령은 object stop percent에서 멈추고 `holdingObject=True`로 표시한다.
   - object가 없으면 `actual=0`까지 닫혀 finger 안쪽이 서로 닿는 상태가 완전 닫힘이다.
 - confirmed success pattern:
   - authored open: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`, finger local offsets remain `(0,0,0)`.
-  - center cube hold: close request `Cmd 0%` clamps to `Actual 35% / Object Hold`, visual `openRatio=0.35`, closure summary `objectDetected=True; objectStop=0.35`.
-  - therefore, with the cube present, not reaching `actual=0` is correct behavior rather than a failed close.
+  - no-object close after marker removal: close request `Cmd 0%` reaches `Actual 0%`, visual `openRatio=0.00`, closure summary `target=TcpFrame; objectDetected=False; objectStop=0`.
+  - real-object hold remains the intended pattern when a real workpiece collider/renderer is present between the fingers: `Cmd 0%` may clamp above `0%` and show `Object Hold`.
 - live 실기:
   - 실제 `MoveGripper` live 실행은 기존 safety gate를 유지한다.
-  - 실기 object 감지는 SDK readback의 `position/current/motionDone`과 pendant 상태 비교 후 force/current threshold를 확정한다.
+  - 실기 object 감지는 FAIRINO SDK readback의 `GetGripperCurPosition`, `GetGripperCurCurrent`, `GetGripperMotionDone`과 pendant 상태 비교 후 force/current threshold를 확정한다.

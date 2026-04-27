@@ -14,10 +14,13 @@ namespace KineTutor3D.Visualization
         [SerializeField] private string attachmentId = "PGEA_100_40";
         [SerializeField] private Transform visualRoot;
         [SerializeField] private Transform tcpFrame;
+        [SerializeField] private Transform gripObjectRoot;
         [SerializeField] private Transform fingerLeft;
         [SerializeField] private Transform fingerRight;
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
         [SerializeField, Range(0.05f, 2f)] private float gripperMotionDuration = 0.55f;
+        [SerializeField, Range(0.005f, 0.2f)] private float gripProbeRadius = 0.035f;
+        [SerializeField, Range(0.05f, 0.95f)] private float detectedObjectStopRatio = 0.35f;
 
         private static readonly Color BodyColor = new(0.13f, 0.18f, 0.22f, 1f);
         private static readonly Color BodyAccentColor = new(0.18f, 0.52f, 0.68f, 1f);
@@ -36,7 +39,7 @@ namespace KineTutor3D.Visualization
         public Transform VisualRoot => visualRoot;
         public Transform ModelRoot => visualRoot != null ? visualRoot.Find("PGEA-100-40_Model") : null;
         public Transform TcpFrame => tcpFrame;
-        public Transform GripTarget => ResolveGripTarget();
+        public Transform GripTarget => ResolveGripTargetTransform();
         public Transform FingerLeft => fingerLeft;
         public Transform FingerRight => fingerRight;
         public float GripperOpenRatio => gripperOpenRatio;
@@ -48,7 +51,27 @@ namespace KineTutor3D.Visualization
             visualRoot = visual;
             tcpFrame = tcp;
             RefreshExistingReferences();
+            RemoveLegacyGripMarkers();
             ApplyVisibilityMaterials();
+        }
+
+        public void RemoveLegacyGripMarkers()
+        {
+            RefreshExistingReferences();
+            var legacyMarker = tcpFrame != null ? tcpFrame.Find("TcpMarker") : null;
+            if (legacyMarker == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(legacyMarker.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(legacyMarker.gameObject);
+            }
         }
 
         public void SetFingers(Transform left, Transform right)
@@ -82,11 +105,11 @@ namespace KineTutor3D.Visualization
         public string BuildClosureDebugSummary()
         {
             RefreshExistingReferences();
-            var target = ResolveGripTarget();
-            var leftDistance = GetFingerTargetDistance(fingerLeft, target);
-            var rightDistance = GetFingerTargetDistance(fingerRight, target);
+            var hasTarget = TryResolveGripTargetPosition(out var targetPosition, out var targetName);
+            var leftDistance = GetFingerTargetDistance(fingerLeft, hasTarget, targetPosition);
+            var rightDistance = GetFingerTargetDistance(fingerRight, hasTarget, targetPosition);
             var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
-            return $"target={target?.name ?? "missing"}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
+            return $"target={targetName}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -184,7 +207,7 @@ namespace KineTutor3D.Visualization
 
         private void CaptureCloseTravel()
         {
-            ResolveCloseTravelFromRenderedCenters(ResolveGripTarget(), out fingerLeftCloseTravel, out fingerRightCloseTravel);
+            ResolveCloseTravelFromRenderedCenters(out fingerLeftCloseTravel, out fingerRightCloseTravel);
         }
 
         private void ApplyGripperPose()
@@ -243,37 +266,189 @@ namespace KineTutor3D.Visualization
             gripperMotionCoroutine = null;
         }
 
-        private Transform ResolveGripTarget()
+        private Transform ResolveGripTargetTransform()
         {
+            if (TryResolveGripObject(out var objectRoot, out _))
+            {
+                return objectRoot;
+            }
+
             if (tcpFrame == null)
             {
                 return null;
             }
 
-            return tcpFrame.Find("TcpMarker") ?? tcpFrame;
+            return tcpFrame;
         }
 
         private void RefreshGripObjectStopRatio()
         {
             hasGripObject = false;
             gripObjectStopRatio = 0f;
-            var target = ResolveGripTarget();
-            if (target == null || target == tcpFrame)
-            {
-                return;
-            }
 
-            var renderers = target.GetComponentsInChildren<Renderer>(true);
-            if (renderers == null || renderers.Length == 0)
+            if (!TryResolveGripObject(out _, out _))
             {
                 return;
             }
 
             hasGripObject = true;
-            gripObjectStopRatio = 0.35f;
+            gripObjectStopRatio = detectedObjectStopRatio;
         }
 
-        private void ResolveCloseTravelFromRenderedCenters(Transform target, out Vector3 leftTravel, out Vector3 rightTravel)
+        private bool TryResolveGripTargetPosition(out Vector3 targetPosition, out string targetName)
+        {
+            if (TryResolveGripObject(out var objectRoot, out targetPosition))
+            {
+                targetName = objectRoot != null ? objectRoot.name : "grip-object";
+                return true;
+            }
+
+            if (tcpFrame != null)
+            {
+                targetPosition = tcpFrame.position;
+                targetName = tcpFrame.name;
+                return true;
+            }
+
+            targetPosition = Vector3.zero;
+            targetName = "missing";
+            return false;
+        }
+
+        private bool TryResolveGripObject(out Transform objectRoot, out Vector3 objectCenter)
+        {
+            objectRoot = null;
+            objectCenter = Vector3.zero;
+            if (TryResolveExplicitGripObject(out objectRoot, out objectCenter))
+            {
+                return true;
+            }
+
+            if (!TryResolveGripProbe(out var probeCenter, out var probeRadius))
+            {
+                return false;
+            }
+
+            Physics.SyncTransforms();
+            var bestDistance = float.PositiveInfinity;
+            var found = false;
+            var colliders = Physics.OverlapSphere(probeCenter, probeRadius, ~0, QueryTriggerInteraction.Collide);
+            for (var i = 0; i < colliders.Length; i++)
+            {
+                var candidate = colliders[i];
+                if (candidate == null || IsOwnedByRobot(candidate.transform))
+                {
+                    continue;
+                }
+
+                if (TryAcceptGripCandidate(candidate.transform, candidate.bounds, probeCenter, probeRadius, ref bestDistance, ref objectRoot, ref objectCenter))
+                {
+                    found = true;
+                }
+            }
+
+            var renderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var candidate = renderers[i];
+                if (candidate == null || !candidate.enabled || IsOwnedByRobot(candidate.transform))
+                {
+                    continue;
+                }
+
+                if (TryAcceptGripCandidate(candidate.transform, candidate.bounds, probeCenter, probeRadius, ref bestDistance, ref objectRoot, ref objectCenter))
+                {
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        private bool TryResolveExplicitGripObject(out Transform objectRoot, out Vector3 objectCenter)
+        {
+            objectRoot = null;
+            objectCenter = Vector3.zero;
+            if (gripObjectRoot == null || !gripObjectRoot.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            objectRoot = gripObjectRoot;
+            objectCenter = ResolveRendererCenter(gripObjectRoot);
+            return true;
+        }
+
+        private bool TryResolveGripProbe(out Vector3 probeCenter, out float probeRadius)
+        {
+            probeCenter = Vector3.zero;
+            probeRadius = 0f;
+            if (fingerLeft == null || fingerRight == null)
+            {
+                return false;
+            }
+
+            var leftCenter = ResolveRendererCenter(fingerLeft);
+            var rightCenter = ResolveRendererCenter(fingerRight);
+            var span = Vector3.Distance(leftCenter, rightCenter);
+            if (span < 0.0001f)
+            {
+                return false;
+            }
+
+            probeCenter = (leftCenter + rightCenter) * 0.5f;
+            probeRadius = Mathf.Max(gripProbeRadius, span * 0.75f);
+            return true;
+        }
+
+        private bool TryAcceptGripCandidate(
+            Transform candidate,
+            Bounds candidateBounds,
+            Vector3 probeCenter,
+            float probeRadius,
+            ref float bestDistance,
+            ref Transform objectRoot,
+            ref Vector3 objectCenter)
+        {
+            var closest = candidateBounds.ClosestPoint(probeCenter);
+            var distance = Vector3.Distance(closest, probeCenter);
+            if (distance > probeRadius || distance >= bestDistance)
+            {
+                return false;
+            }
+
+            bestDistance = distance;
+            objectRoot = candidate;
+            objectCenter = candidateBounds.center;
+            return true;
+        }
+
+        private bool IsOwnedByRobot(Transform candidate)
+        {
+            if (candidate == null)
+            {
+                return true;
+            }
+
+            if (gripObjectRoot != null && (candidate == gripObjectRoot || candidate.IsChildOf(gripObjectRoot)))
+            {
+                return false;
+            }
+
+            if (candidate.name == "TcpMarker")
+            {
+                return true;
+            }
+
+            if (candidate == transform || candidate.IsChildOf(transform))
+            {
+                return true;
+            }
+
+            return transform.root != null && candidate.IsChildOf(transform.root);
+        }
+
+        private void ResolveCloseTravelFromRenderedCenters(out Vector3 leftTravel, out Vector3 rightTravel)
         {
             leftTravel = Vector3.zero;
             rightTravel = Vector3.zero;
@@ -293,10 +468,10 @@ namespace KineTutor3D.Visualization
             var axisWorld = spanWorld.normalized;
             var midpointWorld = (leftCenter + rightCenter) * 0.5f;
             var closeCenterWorld = midpointWorld;
-            if (target != null)
+            if (TryResolveGripTargetPosition(out var targetPosition, out _))
             {
                 var halfSpan = spanWorld.magnitude * 0.5f;
-                var offset = Mathf.Clamp(Vector3.Dot(target.position - midpointWorld, axisWorld), -halfSpan, halfSpan);
+                var offset = Mathf.Clamp(Vector3.Dot(targetPosition - midpointWorld, axisWorld), -halfSpan, halfSpan);
                 closeCenterWorld = midpointWorld + axisWorld * offset;
             }
 
@@ -336,14 +511,14 @@ namespace KineTutor3D.Visualization
             return found ? bounds.center : root.position;
         }
 
-        private static float GetFingerTargetDistance(Transform finger, Transform target)
+        private static float GetFingerTargetDistance(Transform finger, bool hasTarget, Vector3 targetPosition)
         {
-            if (finger == null || target == null)
+            if (finger == null || !hasTarget)
             {
                 return -1f;
             }
 
-            return Vector3.Distance(ResolveRendererCenter(finger), target.position);
+            return Vector3.Distance(ResolveRendererCenter(finger), targetPosition);
         }
 
         private void OnValidate()

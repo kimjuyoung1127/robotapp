@@ -7,7 +7,8 @@ Date: 2026-04-27 (KST)
 - `그리퍼 / I/O` 보조 패널은 `포인트`가 아니라 `조작 > 기본` 흐름에 둔다.
 - 그리퍼 기본 상태는 `position=100`, visual open ratio `1.00`인 완전 열림이다.
 - 완전 닫힘은 `position=0`, visual open ratio `0.00`이며 finger 안쪽이 서로 닿는 상태로 본다.
-- 가운데 `TcpMarker` 구체 prefab이 grip target으로 감지되면 close 요청이 `0%`여도 visual/mock은 안전 정지선에서 멈추고 `holding object` 상태를 남긴다.
+- `TcpMarker` 구체 prefab은 제거한다. grip target은 `TcpFrame`과 finger center로 계산하고, object hold는 핑거 사이 실제 collider/renderer가 감지될 때만 발생한다.
+- 실제 물체가 감지되면 close 요청이 `0%`여도 visual/mock은 안전 정지선에서 멈추고 `holding object` 상태를 남긴다.
 
 ## Official SDK Basis
 
@@ -24,6 +25,9 @@ Date: 2026-04-27 (KST)
   - `GetGripperVoltage`
   - `GetGripperTemp`
 - SDK 문서상 position/speed/force/current는 `0~100` percentage 계약이다.
+- Official references:
+  - FAIRINO C# robot peripherals: https://fairino-doc-en.readthedocs.io/3.8.0/SDKManual/C%23RobotPeripherals.html
+  - Fairino USA Robot Peripherals: https://www.fairino.us/cobots-manual/11.-robot-peripherals
 
 ## Changed
 
@@ -31,11 +35,11 @@ Date: 2026-04-27 (KST)
 - `그리퍼 / I/O` 패널에 position slider와 numeric input을 추가했다.
 - `RobotControlPeripheralFacade`를 bool open/close 중심에서 commanded/actual position percent 중심으로 확장했다.
 - `RobotControlPeripheralState`와 `RobotControlV3RuntimeSnapshot`에 commanded/actual/speed/force/object-detected/holding/stop-percent 상태를 추가했다.
-- `FR5EndEffectorAttachment`는 `TcpMarker` renderer가 있으면 grip object로 보고 close 중 stop ratio를 제공한다.
+- `FR5EndEffectorAttachment`는 `TcpMarker` 이름을 더 이상 grip object로 보지 않는다. 명시적 `gripObjectRoot` 또는 핑거 사이 probe에 걸린 외부 collider/renderer만 grip object로 본다.
 - legacy local state의 `NavIo` / `BottomTabIo`는 각각 `NavMotion` / `BottomTabEasyMotion`으로 normalize한다.
 - 후속 수정:
   - slider와 numeric input 값 변경 시 즉시 `SetGripperPositionPercent(...)`를 호출하게 했다.
-  - finger visual은 닫힌 기준에서 바깥으로 여는 방식이 아니라, authored open pose를 기준으로 캡처하고 close 때만 `TcpMarker` 방향으로 안쪽 이동한다.
+  - finger visual은 닫힌 기준에서 바깥으로 여는 방식이 아니라, authored open pose를 기준으로 캡처하고 close 때 `TcpFrame` 또는 실제 grip object 방향으로 안쪽 이동한다.
   - `RecaptureGripperAuthoredOpenForDebug()`를 추가했다. Unity에서 finger transform을 손으로 맞춘 뒤 호출하면 현재 위치를 새 authored open 기준으로 잡는다.
   - close/open 명령은 authored open 기준을 유지한 채 `gripperMotionDuration` 동안 보간한다. 기본 완전 열림은 그대로 두고, 닫기 버튼을 누르면 finger가 가운데 구체 방향으로 서서히 닫힌다.
   - gripper visual 생성 시 peripheral snapshot이 아직 없으면 fallback을 완전 열림(`openRatio=1.0`)으로 둔다.
@@ -45,7 +49,7 @@ Date: 2026-04-27 (KST)
 - `dotnet build Assembly-CSharp.csproj --no-restore`: pass, errors `0`.
 - `git diff --check`: pass.
 - `unityctl check --type compile`: pass.
-- `unityctl exec invoke KineTutor3D.App.RobotControlV3DebugBridge.GetGripperVisualSummaryForDebug`: gripper visual attached, target `TcpMarker`, object stop `0.35`.
+- `unityctl exec invoke KineTutor3D.App.RobotControlV3DebugBridge.GetGripperVisualSummaryForDebug`: gripper visual attached, target `TcpFrame`, object not detected when no real object is present.
 - `unityctl exec invoke ... SetGripperPositionForDebug [100]`: actual/open visual reaches `openRatio=1.00`.
 - `unityctl exec invoke ... SetGripperPositionForDebug [0]`: object-detected close clamps to actual `35%`, visual reaches `openRatio=0.35`.
 - Follow-up fix:
@@ -56,9 +60,16 @@ Date: 2026-04-27 (KST)
 - Post-restart success confirmation:
   - Unity restarted under PID `2584`; `unityctl status --wait` returned `Playing`, `bridgeLoaded=True`, `ipcPipePresent=True`.
   - open baseline: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`, finger parent offsets stay at authored open `(0,0,0)`.
-  - close request with the center cube present: `SetGripperPositionForDebug [0]` returns `Cmd 0% / Actual 35% / Object Hold (0.35)`.
-  - this is the intended success pattern: the cube/`TcpMarker` is detected, so the gripper does not reach full mechanical close; it stops at `objectStop=0.35` to represent holding the object.
+  - previous marker-based close request with the center cube present: `SetGripperPositionForDebug [0]` returned `Cmd 0% / Actual 35% / Object Hold (0.35)`.
+  - this established the intended hold pattern, but the marker itself is no longer the object source after the real-object basis update below.
   - after confirmation the debug state was returned to `Cmd 100% / Actual 100%`.
+- Real-object basis update:
+  - removed the serialized `TcpMarker` child from `Assets/Runtime/Resources/EndEffectors/PGEA_100_40.prefab`.
+  - runtime cleanup removes legacy `TcpFrame/TcpMarker` children from already-authored attachment instances.
+  - `FR5EndEffectorAttachment` now excludes robot-owned geometry and legacy marker names from grip-object detection.
+  - no-object verification after asset refresh and Onboarding -> RobotControlV3: `renderers=5`, `target=TcpFrame`, `objectDetected=False`, `objectStop=0`.
+  - close verification without real object: `SetGripperPositionForDebug [0]` returns `Cmd 0% / Actual 0%`, visual `openRatio=0.00`.
+  - this matches the official SDK readback model: Unity visual/mock hold should come from real object/contact evidence, while live 판단은 `GetGripperCurPosition`, `GetGripperCurCurrent`, and `GetGripperMotionDone` readback 비교로 확정한다.
 
 ## Notes
 

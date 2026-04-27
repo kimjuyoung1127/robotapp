@@ -2829,6 +2829,7 @@ namespace KineTutor3D.App.Fairino
             endEffectorAttachment = controlRobotInstance.GetComponentInChildren<FR5EndEffectorAttachment>(true);
             if (endEffectorAttachment != null)
             {
+                endEffectorAttachment.RemoveLegacyGripMarkers();
                 peripheralFacade?.SetGripperVisualAttached(true);
                 ResetStageCameraIfAutomatic();
                 return;
