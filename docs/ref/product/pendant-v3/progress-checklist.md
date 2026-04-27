@@ -880,6 +880,27 @@
   - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
   - `RunBundleAddDeleteRunMatrixForDebug()`: `5/5 PASS`
 
+## 2026-04-27 I/O Point Integration + Gripper Visual Fix
+
+- 사용자 피드백 기준으로 왼쪽 `I/O` 전용 탭을 제거하고 `포인트` 흐름에 통합했다.
+- desktop은 `NavPoints`, tablet은 `BottomTabPointMove`에서 `그리퍼 / I/O` 패널을 같이 노출한다.
+- 기존 local state가 `NavIo` 또는 `BottomTabIo`를 들고 있으면 각각 `NavPoints`, `BottomTabPointMove`로 normalize한다.
+- `RobotControlPeripheralFacade`의 gripper visual ratio가 open 명령에서도 `0`으로 고정되던 문제를 수정했다.
+- 자동 click matrix 안정화를 위해 대표 버튼의 DebugBridge 실행 fallback을 추가하고, 주요 패널 버튼 등록은 `button.clicked` 경로로 맞췄다.
+- 구현 메모:
+  - `Assets/UI/PendantV3/pendant-v3.uxml`
+  - `Assets/Scripts/App/Fairino/RobotControlPeripheralFacade.cs`
+  - `Assets/Scripts/App/RobotControlV3DebugBridge.cs`
+  - `Assets/Scripts/App/Session/PendantV3LocalState.cs`
+  - `Assets/Scripts/UI/RobotControlV3/*Controller*.cs`
+- 검증:
+  - `unityctl check --type compile`: pass
+  - `RunTabletBottomActualClickMatrixForDebug()`: `15/15 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `7/7 PASS`
+  - `RunTeachingBlockSequenceMatrixForDebug()`: `9/9 PASS`
+  - gripper close visual: `fingerLeft=(0,0,0)`, `fingerRight=(0,0,0)`, `openRatio=0.00`
+  - gripper open visual: `fingerLeft=(20,0,0)`, `fingerRight=(-20,0,0)`, `openRatio=1.00`
+
 ## Source Docs
 
 - [README.md](./README.md)

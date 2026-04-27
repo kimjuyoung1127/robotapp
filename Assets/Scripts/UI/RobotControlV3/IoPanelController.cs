@@ -53,8 +53,8 @@ namespace KineTutor3D.UI.RobotControlV3
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
         {
-            isDesktopVisible = activeNavSection == "NavIo";
-            isTabletVisible = activeTabletTab == "BottomTabIo";
+            isDesktopVisible = activeNavSection == "NavPoints";
+            isTabletVisible = activeTabletTab == "BottomTabPointMove";
             if (!isInitialized)
             {
                 TryInitialize();
@@ -127,7 +127,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            button.RegisterCallback<ClickEvent>(_ => handler());
+            button.clicked += handler;
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot snapshot)
@@ -185,7 +185,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             public PanelElements()
             {
-                Root.Add(new Label("I/O + 그리퍼") { name = "IoPanelTitle" });
+                Root.Add(new Label("그리퍼 / I/O") { name = "IoPanelTitle" });
                 Root.Q<Label>("IoPanelTitle").AddToClassList("rc-panel-title");
                 AddCopy(State);
                 AddCopy(Output);

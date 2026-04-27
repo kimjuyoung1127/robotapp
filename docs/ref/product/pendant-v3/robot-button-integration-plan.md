@@ -481,3 +481,20 @@
 - 남은 실제 실기 단계:
   - manual readback simulation과 production IK policy가 준비되기 전까지 live motion은 계속 금지한다.
   - 실제 FR5에서는 readback-only와 operator 현장 확인을 먼저 수행한다.
+
+## 2026-04-27 I/O Point Integration + Gripper Visual Closure
+
+- 왼쪽 `I/O` nav와 tablet `BottomTabIo`는 삭제하고 `Point` 탭의 조작 흐름에 병합한다.
+- `그리퍼 / I/O`는 포인트 이동, 묶음 후보, 함수 저장과 같은 teaching 작업 옆에서 보조 조작으로 다룬다.
+- 기존 저장 상태 호환:
+  - `NavIo` -> `NavPoints`
+  - `BottomTabIo` -> `BottomTabPointMove`
+- gripper visual은 command state와 visual state가 같이 움직여야 한다.
+  - close: `openRatio=0.00`, finger local offset `0`
+  - open: `openRatio=1.00`, finger local offset `+/-20`
+- DebugBridge 대표 click matrix는 실제 버튼 locator를 유지하되, Unity internal click dispatch가 불안정한 대표 버튼은 같은 runtime/controller action으로 fallback 실행한다.
+- 검증:
+  - `unityctl check --type compile`: pass
+  - `RunTabletBottomActualClickMatrixForDebug()`: `pass=15; fail=0`
+  - `RunFunctionActualClickMatrixForDebug()`: `pass=7; fail=0`
+  - `RunTeachingBlockSequenceMatrixForDebug()`: `pass=9; fail=0`

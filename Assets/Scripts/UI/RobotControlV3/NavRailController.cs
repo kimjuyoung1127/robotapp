@@ -27,7 +27,6 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(root, "NavHome");
             AddButton(root, "NavMotion");
             AddButton(root, "NavPoints");
-            AddButton(root, "NavIo");
             AddButton(root, "NavStatus");
             AddButton(root, "NavHelp");
         }

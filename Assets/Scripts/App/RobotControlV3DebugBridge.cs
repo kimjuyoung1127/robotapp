@@ -126,7 +126,6 @@ namespace KineTutor3D.App
                 case "NavHome":
                 case "NavMotion":
                 case "NavPoints":
-                case "NavIo":
                 case "NavStatus":
                 case "NavHelp":
                     shell.SetDebugSelection(buttonName, state.ActiveWorkTab, state.ActiveTabletTab);
@@ -141,7 +140,6 @@ namespace KineTutor3D.App
                 case "BottomTabJointJog":
                 case "BottomTabTcpJog":
                 case "BottomTabPointMove":
-                case "BottomTabIo":
                 case "BottomTabStatus":
                     shell.SetDebugSelection(state.ActiveNavSection, state.ActiveWorkTab, buttonName);
                     return $"button={buttonName}; found=True; action=bottom-tab; {shell.GetDebugSummary()}";
@@ -1393,7 +1391,7 @@ namespace KineTutor3D.App
 
             foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
             {
-                AddCase(buttonName, () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
+                AddCase(buttonName, () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
             }
 
             foreach (var buttonName in new[] { "BtnViewportBaseFrame", "BtnViewportToolFrame", "BtnViewportTrail", "BtnViewportGhost", "BtnViewportBoundary", "BtnViewportCollision", "BtnViewportCameraReset" })
@@ -1523,7 +1521,6 @@ namespace KineTutor3D.App
             AddCase("BottomTabJointJog", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabJointJog");
             AddCase("BottomTabTcpJog", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabTcpJog");
             AddCase("BottomTabPointMove", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabPointMove");
-            AddCase("BottomTabIo", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabIo");
             AddCase("BottomTabStatus", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabStatus");
             AddCase("BottomTabHelp", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetShellControllerSummary, "tablet=BottomTabHelp");
 
@@ -1532,8 +1529,8 @@ namespace KineTutor3D.App
             AddCase("BtnTcp3Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
             AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
             AddCase("BtnPointApply", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
-            AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabIo"); }, GetMovementStateSummaryForDebug, "Cmd Open");
-            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavIo", "TabPointMove", "BottomTabIo"); }, GetMovementStateSummaryForDebug, "DO0 ON");
+            AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "Cmd Open");
+            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavPoints", "TabPointMove", "BottomTabPointMove"); }, GetMovementStateSummaryForDebug, "DO0 ON");
             AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
 
@@ -3981,14 +3978,26 @@ namespace KineTutor3D.App
                 return "disabled";
             }
 
+            if (TryInvokeKnownButtonAction(buttonName, prefer))
+            {
+                return $"clicked:{buttonName};fallback";
+            }
+
             using var clickEvent = ClickEvent.GetPooled();
             clickEvent.target = selected;
             if (selected.clickable != null)
             {
+                var simulate = typeof(Clickable).GetMethod(
+                    "SimulateSingleClick",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
                 var invoke = typeof(Clickable).GetMethod(
                     "Invoke",
                     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-                if (invoke != null)
+                if (simulate != null)
+                {
+                    simulate.Invoke(selected.clickable, new object[] { clickEvent, 0 });
+                }
+                else if (invoke != null)
                 {
                     invoke.Invoke(selected.clickable, new object[] { clickEvent });
                 }
@@ -4002,6 +4011,137 @@ namespace KineTutor3D.App
                 selected.SendEvent(clickEvent);
             }
             return $"clicked:{buttonName}";
+        }
+
+        private static bool TryInvokeKnownButtonAction(string buttonName, string prefer)
+        {
+            var shell = Object.FindFirstObjectByType<PendantV3ShellStateController>(FindObjectsInactive.Include);
+            if (shell != null)
+            {
+                var state = shell.GetStateSnapshot();
+                if (buttonName is "NavHome" or "NavMotion" or "NavPoints" or "NavStatus" or "NavHelp")
+                {
+                    shell.SetDebugSelection(buttonName, state.ActiveWorkTab, state.ActiveTabletTab);
+                    return true;
+                }
+
+                if (buttonName is "TabEasyMotion" or "TabJointJog" or "TabTcpJog" or "TabPointMove")
+                {
+                    shell.SetDebugSelection(state.ActiveNavSection, buttonName, state.ActiveTabletTab);
+                    return true;
+                }
+
+                if (buttonName is "BottomTabEasyMotion" or "BottomTabJointJog" or "BottomTabTcpJog" or "BottomTabPointMove" or "BottomTabStatus" or "BottomTabHelp")
+                {
+                    shell.SetDebugSelection(state.ActiveNavSection, state.ActiveWorkTab, buttonName);
+                    return true;
+                }
+            }
+
+            var runtime = Object.FindFirstObjectByType<RobotControlV3RuntimeController>(FindObjectsInactive.Include);
+            if (runtime == null)
+            {
+                return false;
+            }
+
+            runtime.ForceInitialize();
+            switch (buttonName)
+            {
+                case "BtnEasyHome":
+                    runtime.PreviewPreset("Home");
+                    return true;
+                case "BtnEasyReady":
+                    runtime.PreviewPreset("Ready");
+                    return true;
+                case "BtnEasyFolded":
+                    runtime.PreviewPreset("Folded");
+                    return true;
+                case "BtnEasyZero":
+                    runtime.PreviewPreset("Zero");
+                    return true;
+                case "BtnIoGripperOpen":
+                case "BtnGripperOpen":
+                    runtime.SetGripperOpen(true);
+                    return true;
+                case "BtnIoGripperClose":
+                case "BtnGripperClose":
+                    runtime.SetGripperOpen(false);
+                    return true;
+                case "BtnRobotDo0On":
+                    runtime.SetRobotDigitalOutput(0, true);
+                    return true;
+                case "BtnRobotDo0Off":
+                    runtime.SetRobotDigitalOutput(0, false);
+                    return true;
+                case "BtnRobotDo1On":
+                    runtime.SetRobotDigitalOutput(1, true);
+                    return true;
+                case "BtnRobotDo1Off":
+                    runtime.SetRobotDigitalOutput(1, false);
+                    return true;
+                case "BtnToolDo0On":
+                    runtime.SetToolDigitalOutput(0, true);
+                    return true;
+                case "BtnToolDo0Off":
+                    runtime.SetToolDigitalOutput(0, false);
+                    return true;
+                case "BtnToolDo1On":
+                    runtime.SetToolDigitalOutput(1, true);
+                    return true;
+                case "BtnToolDo1Off":
+                    runtime.SetToolDigitalOutput(1, false);
+                    return true;
+                case "BtnRun":
+                case "BtnRunBottom":
+                    runtime.ExecutePrimaryAction();
+                    return true;
+                case "BtnStop":
+                case "BtnStopBottom":
+                    runtime.StopMotion();
+                    return true;
+            }
+
+            if (TryParseStepButton(buttonName, "BtnJoint", 6, out var jointAxis, out var jointDirection))
+            {
+                GetJointJogController().NudgeJointForDebug(jointAxis, jointDirection);
+                return true;
+            }
+
+            if (TryParseStepButton(buttonName, "BtnTcp", 6, out var tcpAxis, out var tcpDirection))
+            {
+                var labels = new[] { "X", "Y", "Z", "RX", "RY", "RZ" };
+                GetTcpJogController().NudgeAxisForDebug(labels[tcpAxis - 1], tcpDirection);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseStepButton(string buttonName, string prefix, int maxAxis, out int axisNumber, out int direction)
+        {
+            axisNumber = 0;
+            direction = 0;
+            if (string.IsNullOrWhiteSpace(buttonName) || !buttonName.StartsWith(prefix, System.StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var suffix = buttonName.Substring(prefix.Length);
+            var isPlus = suffix.EndsWith("Plus", System.StringComparison.Ordinal);
+            var isMinus = suffix.EndsWith("Minus", System.StringComparison.Ordinal);
+            if (!isPlus && !isMinus)
+            {
+                return false;
+            }
+
+            var axisText = suffix.Substring(0, suffix.Length - (isPlus ? "Plus".Length : "Minus".Length));
+            if (!int.TryParse(axisText, out axisNumber) || axisNumber < 1 || axisNumber > maxAxis)
+            {
+                return false;
+            }
+
+            direction = isPlus ? 1 : -1;
+            return true;
         }
 
         private static string BuildAvailableButtonNameSummary(UIDocument[] documents, PointMoveController pointMove)

@@ -35,7 +35,6 @@
                 <ui:Button name="NavHome" text="🏠&#10;Home" class="rc-nav-item" />
                 <ui:Button name="NavMotion" text="🔧&#10;조작" class="rc-nav-item rc-nav-item--active" />
                 <ui:Button name="NavPoints" text="📍&#10;포인트" class="rc-nav-item" />
-                <ui:Button name="NavIo" text="⚡&#10;I/O" class="rc-nav-item" />
                 <ui:Button name="NavStatus" text="📊&#10;상태" class="rc-nav-item" />
                 <ui:Button name="NavHelp" text="❓&#10;도움" class="rc-nav-item" />
             </ui:VisualElement>
@@ -139,7 +138,6 @@
                 <ui:Button name="BottomTabJointJog" text="관절" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabTcpJog" text="TCP" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabPointMove" text="포인트" class="rc-bottom-tab" />
-                <ui:Button name="BottomTabIo" text="I/O" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabStatus" text="상태" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabHelp" text="도움" class="rc-bottom-tab" />
             </ui:VisualElement>

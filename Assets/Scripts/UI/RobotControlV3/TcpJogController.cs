@@ -208,7 +208,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            button.RegisterCallback<ClickEvent>(_ => handler());
+            button.clicked += handler;
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot data)

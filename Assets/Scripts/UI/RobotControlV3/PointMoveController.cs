@@ -1800,7 +1800,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return source.ToArray();
             }
 
-            if (recalledPoint != null && !string.IsNullOrWhiteSpace(recalledPoint.name))
+            if (recalledPoint != null && HasNamedPoint(recalledPoint.name))
             {
                 source.Add(recalledPoint.name);
                 return source.ToArray();
@@ -1827,7 +1827,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return ResolveFunctionSourcePointNames();
             }
 
-            if (recalledPoint != null && !string.IsNullOrWhiteSpace(recalledPoint.name))
+            if (recalledPoint != null && HasNamedPoint(recalledPoint.name))
             {
                 return new[] { recalledPoint.name };
             }

@@ -123,7 +123,6 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(navButtons, "NavHome");
             AddButton(navButtons, "NavMotion");
             AddButton(navButtons, "NavPoints");
-            AddButton(navButtons, "NavIo");
             AddButton(navButtons, "NavStatus");
             AddButton(navButtons, "NavHelp");
             AddButton(workTabButtons, "TabEasyMotion");
@@ -134,7 +133,6 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(bottomTabButtons, "BottomTabJointJog");
             AddButton(bottomTabButtons, "BottomTabTcpJog");
             AddButton(bottomTabButtons, "BottomTabPointMove");
-            AddButton(bottomTabButtons, "BottomTabIo");
             AddButton(bottomTabButtons, "BottomTabStatus");
             AddButton(bottomTabButtons, "BottomTabHelp");
 

@@ -207,7 +207,7 @@ foreach ($button in @("BtnPointMoveJ", "BtnPointMoveL", "BtnPointPreview", "BtnP
 }
 
 foreach ($button in @("BtnIoGripperOpen", "BtnIoGripperClose", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off")) {
-    $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavIo" "TabPointMove" "BottomTabPointMove" } "GetMovementStateSummaryForDebug" "status=ReadyToJog"))
+    $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavPoints" "TabPointMove" "BottomTabPointMove" } "GetMovementStateSummaryForDebug" "status=ReadyToJog"))
 }
 
 foreach ($button in @("BtnViewportBaseFrame", "BtnViewportToolFrame", "BtnViewportTrail", "BtnViewportGhost", "BtnViewportBoundary", "BtnViewportCollision", "BtnViewportCameraReset")) {
