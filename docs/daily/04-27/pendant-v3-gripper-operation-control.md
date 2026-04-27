@@ -37,13 +37,17 @@ Date: 2026-04-27 (KST)
   - slider와 numeric input 값 변경 시 즉시 `SetGripperPositionPercent(...)`를 호출하게 했다.
   - finger visual은 닫힌 기준에서 바깥으로 여는 방식이 아니라, authored open pose를 기준으로 캡처하고 close 때만 `TcpMarker` 방향으로 안쪽 이동한다.
   - `RecaptureGripperAuthoredOpenForDebug()`를 추가했다. Unity에서 finger transform을 손으로 맞춘 뒤 호출하면 현재 위치를 새 authored open 기준으로 잡는다.
+  - close/open 명령은 authored open 기준을 유지한 채 `gripperMotionDuration` 동안 보간한다. 기본 완전 열림은 그대로 두고, 닫기 버튼을 누르면 finger가 가운데 구체 방향으로 서서히 닫힌다.
+  - gripper visual 생성 시 peripheral snapshot이 아직 없으면 fallback을 완전 열림(`openRatio=1.0`)으로 둔다.
 
 ## Verification
 
 - `dotnet build Assembly-CSharp.csproj --no-restore`: pass, errors `0`.
 - `git diff --check`: pass.
-- `unityctl status --wait`: timeout. Editor IPC가 ready 응답을 주지 않아 Unity runtime matrix는 재실행하지 못했다.
-- Unity MCP: `No Unity Editor instances found`. MCP bridge가 잡히지 않아 현재 에디터 transform 실시간 감지는 수행하지 못했다.
+- `unityctl check --type compile`: pass.
+- `unityctl exec invoke KineTutor3D.App.RobotControlV3DebugBridge.GetGripperVisualSummaryForDebug`: gripper visual attached, target `TcpMarker`, object stop `0.35`.
+- `unityctl exec invoke ... SetGripperPositionForDebug [100]`: actual/open visual reaches `openRatio=1.00`.
+- `unityctl exec invoke ... SetGripperPositionForDebug [0]`: object-detected close clamps to actual `35%`, visual reaches `openRatio=0.35`.
 
 ## Notes
 

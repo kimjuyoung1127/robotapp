@@ -1,4 +1,5 @@
 // Folder: Visualization - RobotControl-specific rendering and overlay drivers.
+using System.Collections;
 using UnityEngine;
 
 namespace KineTutor3D.Visualization
@@ -16,6 +17,7 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Transform fingerLeft;
         [SerializeField] private Transform fingerRight;
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
+        [SerializeField, Range(0.05f, 2f)] private float gripperMotionDuration = 0.55f;
 
         private const float StrokeMm = 40f;
         private static readonly Color BodyColor = new(0.13f, 0.18f, 0.22f, 1f);
@@ -28,6 +30,7 @@ namespace KineTutor3D.Visualization
         private bool fingerBaseCaptured;
         private bool hasGripObject;
         private float gripObjectStopRatio;
+        private Coroutine gripperMotionCoroutine;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
@@ -92,8 +95,25 @@ namespace KineTutor3D.Visualization
 
         public void SetGripperOpen(float ratio)
         {
-            gripperOpenRatio = Mathf.Clamp01(ratio);
-            ApplyGripperPose();
+            var targetRatio = Mathf.Clamp01(ratio);
+            if (!Application.isPlaying || !isActiveAndEnabled)
+            {
+                SetGripperOpenImmediate(targetRatio);
+                return;
+            }
+
+            if (Mathf.Abs(gripperOpenRatio - targetRatio) < 0.001f)
+            {
+                SetGripperOpenImmediate(targetRatio);
+                return;
+            }
+
+            if (gripperMotionCoroutine != null)
+            {
+                StopCoroutine(gripperMotionCoroutine);
+            }
+
+            gripperMotionCoroutine = StartCoroutine(AnimateGripperOpenRatio(targetRatio));
         }
 
         public bool TryGetGripObjectStopRatio(out float stopRatio)
@@ -106,10 +126,10 @@ namespace KineTutor3D.Visualization
 
         public void RecaptureAuthoredOpenPose()
         {
-            gripperOpenRatio = 1f;
+            StopGripperMotion();
             fingerBaseCaptured = false;
             CaptureFingerBase();
-            ApplyGripperPose();
+            SetGripperOpenImmediate(1f);
         }
 
         private void RefreshExistingReferences()
@@ -166,6 +186,43 @@ namespace KineTutor3D.Visualization
             var closeTravel = StrokeMm * 0.5f * (1f - gripperOpenRatio);
             fingerLeft.localPosition = fingerLeftOpen - fingerLeftOpenDirection * closeTravel;
             fingerRight.localPosition = fingerRightOpen - fingerRightOpenDirection * closeTravel;
+        }
+
+        private IEnumerator AnimateGripperOpenRatio(float targetRatio)
+        {
+            var startRatio = gripperOpenRatio;
+            var duration = Mathf.Max(0.05f, gripperMotionDuration);
+            var elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / duration);
+                gripperOpenRatio = Mathf.Lerp(startRatio, targetRatio, Mathf.SmoothStep(0f, 1f, t));
+                ApplyGripperPose();
+                yield return null;
+            }
+
+            gripperOpenRatio = targetRatio;
+            ApplyGripperPose();
+            gripperMotionCoroutine = null;
+        }
+
+        private void SetGripperOpenImmediate(float ratio)
+        {
+            gripperOpenRatio = Mathf.Clamp01(ratio);
+            ApplyGripperPose();
+        }
+
+        private void StopGripperMotion()
+        {
+            if (gripperMotionCoroutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(gripperMotionCoroutine);
+            gripperMotionCoroutine = null;
         }
 
         private Transform ResolveGripTarget()
@@ -261,7 +318,12 @@ namespace KineTutor3D.Visualization
         private void OnValidate()
         {
             RefreshExistingReferences();
-            ApplyGripperPose();
+            SetGripperOpenImmediate(gripperOpenRatio);
+        }
+
+        private void OnDisable()
+        {
+            StopGripperMotion();
         }
     }
 }

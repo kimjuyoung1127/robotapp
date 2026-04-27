@@ -2904,7 +2904,7 @@ namespace KineTutor3D.App.Fairino
                 ?? attachmentRoot.gameObject.AddComponent<FR5EndEffectorAttachment>();
             endEffectorAttachment.Configure(PgeaAttachmentId, visualRoot, tcpFrame);
             endEffectorAttachment.SetFingers(fingerLeft, fingerRight);
-            endEffectorAttachment.SetGripperOpen(peripheralFacade?.Snapshot.GripperOpenRatio ?? 0f);
+            endEffectorAttachment.SetGripperOpen(peripheralFacade?.Snapshot.GripperOpenRatio ?? 1f);
         }
 
         private void ApplyGripperVisual(float openRatio)
