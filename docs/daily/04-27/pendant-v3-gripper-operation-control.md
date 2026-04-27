@@ -75,6 +75,14 @@ Date: 2026-04-27 (KST)
   - In this Unity mock, the no-object visual contract is stricter: `position=0` and `openRatio=0.00` should look fully closed, with the inner finger faces meeting.
   - PGEA rendered finger centers left visible clearance at exact center travel, so `FR5EndEffectorAttachment` now applies close-contact overtravel while preserving the official `0=close`, `100=open` mapping.
   - If a real workpiece is detected between the fingers, object-stop still takes priority and can keep actual above `0%`.
+- Authored closed-pose update:
+  - Close travel scalar tuning is not treated as the final source of truth. If the PGEA mesh still does not visually meet at `0%`, use an authored closed pose.
+  - `FR5EndEffectorAttachment` now stores optional `fingerLeftClosed` / `fingerRightClosed` local positions and interpolates `authored open -> authored closed` when enabled.
+  - Debug bridge entry points:
+    - `RecaptureGripperAuthoredOpenForDebug()`: capture the current local finger transforms as the 100% open baseline.
+    - `RecaptureGripperAuthoredClosedForDebug()`: after manually aligning the fingers in Unity, capture the current local finger transforms as the 0% closed baseline.
+    - `ClearGripperAuthoredClosedForDebug()`: return to computed close travel fallback.
+  - This remains visual-only. FAIRINO live commands still use SDK `MoveGripper(... pos ...)` and readback comparison.
 
 ## Notes
 

@@ -17,6 +17,9 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Transform gripObjectRoot;
         [SerializeField] private Transform fingerLeft;
         [SerializeField] private Transform fingerRight;
+        [SerializeField] private bool useAuthoredClosedPose;
+        [SerializeField] private Vector3 fingerLeftClosed;
+        [SerializeField] private Vector3 fingerRightClosed;
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
         [SerializeField, Range(0.05f, 2f)] private float gripperMotionDuration = 0.55f;
         [SerializeField, Range(0.005f, 0.2f)] private float gripProbeRadius = 0.035f;
@@ -34,7 +37,7 @@ namespace KineTutor3D.Visualization
         private float gripObjectStopRatio;
         private Coroutine gripperMotionCoroutine;
         private const float DistortedFingerLocalPositionSqrMagnitude = 1f;
-        // PGEA meshes leave visible clearance when their rendered centers meet.
+        // Fallback only. Prefer an authored closed pose for the PGEA finger mesh.
         private const float ClosedContactTravelScale = 1.2f;
 
         public string AttachmentId => attachmentId;
@@ -111,7 +114,7 @@ namespace KineTutor3D.Visualization
             var leftDistance = GetFingerTargetDistance(fingerLeft, hasTarget, targetPosition);
             var rightDistance = GetFingerTargetDistance(fingerRight, hasTarget, targetPosition);
             var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
-            return $"target={targetName}; authoredOpenCaptured={fingerBaseCaptured}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
+            return $"target={targetName}; authoredOpenCaptured={fingerBaseCaptured}; authoredClosed={useAuthoredClosedPose}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftClosed=({fingerLeftClosed.x:0.####},{fingerLeftClosed.y:0.####},{fingerLeftClosed.z:0.####}); rightClosed=({fingerRightClosed.x:0.####},{fingerRightClosed.y:0.####},{fingerRightClosed.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -177,6 +180,36 @@ namespace KineTutor3D.Visualization
             SetGripperOpenImmediate(1f);
         }
 
+        public void RecaptureAuthoredClosedPose()
+        {
+            StopGripperMotion();
+            RefreshExistingReferences();
+            if (fingerLeft == null || fingerRight == null)
+            {
+                return;
+            }
+
+            if (!fingerBaseCaptured)
+            {
+                fingerLeftOpen = Vector3.zero;
+                fingerRightOpen = Vector3.zero;
+                fingerBaseCaptured = true;
+            }
+
+            fingerLeftClosed = fingerLeft.localPosition;
+            fingerRightClosed = fingerRight.localPosition;
+            useAuthoredClosedPose = true;
+            CaptureCloseTravel();
+            SetGripperOpenImmediate(0f);
+        }
+
+        public void ClearAuthoredClosedPose()
+        {
+            useAuthoredClosedPose = false;
+            CaptureCloseTravel();
+            ApplyGripperPose();
+        }
+
         private void RefreshExistingReferences()
         {
             visualRoot ??= transform.Find("VisualRoot");
@@ -209,6 +242,13 @@ namespace KineTutor3D.Visualization
 
         private void CaptureCloseTravel()
         {
+            if (useAuthoredClosedPose)
+            {
+                fingerLeftCloseTravel = fingerLeftClosed - fingerLeftOpen;
+                fingerRightCloseTravel = fingerRightClosed - fingerRightOpen;
+                return;
+            }
+
             ResolveCloseTravelFromRenderedCenters(out fingerLeftCloseTravel, out fingerRightCloseTravel);
         }
 

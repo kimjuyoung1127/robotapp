@@ -337,6 +337,34 @@ namespace KineTutor3D.App.Fairino
             return GetGripperVisualSummaryForDebug();
         }
 
+        public string RecaptureGripperAuthoredClosedForDebug()
+        {
+            ForceInitialize();
+            EnsureEndEffectorAttachment();
+            if (endEffectorAttachment == null)
+            {
+                return "attached=False";
+            }
+
+            endEffectorAttachment.RecaptureAuthoredClosedPose();
+            ApplyGripperVisual(0f);
+            return GetGripperVisualSummaryForDebug();
+        }
+
+        public string ClearGripperAuthoredClosedForDebug()
+        {
+            ForceInitialize();
+            EnsureEndEffectorAttachment();
+            if (endEffectorAttachment == null)
+            {
+                return "attached=False";
+            }
+
+            endEffectorAttachment.ClearAuthoredClosedPose();
+            ApplyGripperVisual(peripheralFacade?.Snapshot.GripperOpenRatio ?? 1f);
+            return GetGripperVisualSummaryForDebug();
+        }
+
         public string GetGripperSdkSummaryForDebug(bool includeReadback)
         {
             ForceInitialize();

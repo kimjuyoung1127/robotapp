@@ -443,6 +443,16 @@ namespace KineTutor3D.App
             return GetRuntimeController().RecaptureGripperAuthoredOpenForDebug();
         }
 
+        public static string RecaptureGripperAuthoredClosedForDebug()
+        {
+            return GetRuntimeController().RecaptureGripperAuthoredClosedForDebug();
+        }
+
+        public static string ClearGripperAuthoredClosedForDebug()
+        {
+            return GetRuntimeController().ClearGripperAuthoredClosedForDebug();
+        }
+
         public static string GetGripperSdkSummaryForDebug(bool includeReadback = true)
         {
             var runtime = GetRuntimeController();
