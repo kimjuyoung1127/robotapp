@@ -919,6 +919,12 @@
   - 기본값: `commanded=100`, `actual=100`, `openRatio=1.00`
   - 완전 닫힘: `commanded=0`, `actual=0`, `openRatio=0.00`
   - object 감지 close: `commanded=0`, `actual=objectStopPercent`, `holdingObject=True`
+- post-restart 성공 기준을 확정했다.
+  - Unity PID `2584`, `status=Playing`, `bridgeLoaded=True`, IPC ready.
+  - 기본 열린 상태: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`.
+  - 가운데 큐브가 있는 close: `Cmd 0% / Actual 35% / Object Hold`, closure `objectDetected=True; objectStop=0.35`.
+  - 따라서 큐브가 있을 때 완전히 `0%`까지 닫히지 않는 것은 정상 안전 정지다.
+  - 성공 패턴은 `C:\Users\ezen601\.codex\skills\robotapp2-gripper-success-pattern\SKILL.md`로 스킬화했다.
 - `IoPanelController`에 gripper position slider와 numeric input을 추가했다.
 - 공식 FAIRINO C# SDK 기준:
   - command: `MoveGripper(index, pos, vel, force, max_time, block, type, rotNum, rotVel, rotTorque)`
@@ -926,7 +932,9 @@
 - 검증:
   - `dotnet build Assembly-CSharp.csproj --no-restore`: pass, errors `0`
   - `git diff --check`: pass
-  - `unityctl status --wait`: timeout, Unity IPC not ready
+  - `unityctl status --wait`: pass after editor restart; state `Playing`
+  - `SetGripperPositionForDebug [100]`: pass, `Cmd 100% / Actual 100%`
+  - `SetGripperPositionForDebug [0]`: pass with cube hold, `Cmd 0% / Actual 35% / Object Hold`
 
 ## Source Docs
 

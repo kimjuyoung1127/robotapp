@@ -516,6 +516,10 @@
   - 기본 상태는 완전 열림 `actual=100`.
   - 가운데 `TcpMarker` 구체 renderer가 감지되면 close 명령은 object stop percent에서 멈추고 `holdingObject=True`로 표시한다.
   - object가 없으면 `actual=0`까지 닫혀 finger 안쪽이 서로 닿는 상태가 완전 닫힘이다.
+- confirmed success pattern:
+  - authored open: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`, finger local offsets remain `(0,0,0)`.
+  - center cube hold: close request `Cmd 0%` clamps to `Actual 35% / Object Hold`, visual `openRatio=0.35`, closure summary `objectDetected=True; objectStop=0.35`.
+  - therefore, with the cube present, not reaching `actual=0` is correct behavior rather than a failed close.
 - live 실기:
   - 실제 `MoveGripper` live 실행은 기존 safety gate를 유지한다.
   - 실기 object 감지는 SDK readback의 `position/current/motionDone`과 pendant 상태 비교 후 force/current threshold를 확정한다.

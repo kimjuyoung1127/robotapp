@@ -53,8 +53,15 @@ Date: 2026-04-27 (KST)
   - reset obviously distorted runtime finger offsets back to the prefab authored-open baseline before recapturing the open pose.
   - set the PGEA prefab serialized default `gripperOpenRatio` to `1`.
   - runtime check after reset: open starts with finger parent offsets `0,0,0`; close command moves left/right in opposite directions and reduces target distances before stopping at object-safe `openRatio=0.35`.
+- Post-restart success confirmation:
+  - Unity restarted under PID `2584`; `unityctl status --wait` returned `Playing`, `bridgeLoaded=True`, `ipcPipePresent=True`.
+  - open baseline: `Cmd 100% / Actual 100%`, visual `openRatio=1.00`, finger parent offsets stay at authored open `(0,0,0)`.
+  - close request with the center cube present: `SetGripperPositionForDebug [0]` returns `Cmd 0% / Actual 35% / Object Hold (0.35)`.
+  - this is the intended success pattern: the cube/`TcpMarker` is detected, so the gripper does not reach full mechanical close; it stops at `objectStop=0.35` to represent holding the object.
+  - after confirmation the debug state was returned to `Cmd 100% / Actual 100%`.
 
 ## Notes
 
 - 실제 live `MoveGripper`는 기존 safety gate를 유지한다. operator confirm, readback, production policy 없이 바로 열지 않는다.
 - 현재 object stop은 visual/mock 안전 모델이다. 실기에서는 SDK readback의 position/current/motionDone을 pendant 상태와 비교한 뒤 force/current threshold 정책을 별도 확정해야 한다.
+- 성공 패턴은 Codex skill `C:\Users\ezen601\.codex\skills\robotapp2-gripper-success-pattern\SKILL.md`에도 남겼다. 같은 증상이 재발하면 authored-open, close-direction, object-stop 검증 순서부터 재사용한다.
