@@ -339,6 +339,59 @@
     font-size: 11px;
 }
 
+.rc-robot-stage-orientation-host {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    width: 88px;
+    height: 88px;
+    justify-content: center;
+    align-items: center;
+}
+
+.rc-robot-stage-orientation-widget {
+    width: 88px;
+    height: 88px;
+    border-radius: 8px;
+    background-color: rgba(10, 12, 18, 0.74);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.10);
+}
+
+.rc-robot-stage-orientation-center {
+    position: absolute;
+    left: 39px;
+    top: 39px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.88);
+}
+
+.rc-robot-stage-orientation-axis {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    -unity-text-align: middle-center;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: rgb(245, 245, 245);
+    cursor: pointer;
+}
+
+.rc-robot-stage-orientation-axis--x {
+    background-color: rgba(255, 76, 76, 0.88);
+}
+
+.rc-robot-stage-orientation-axis--y {
+    background-color: rgba(68, 210, 120, 0.88);
+}
+
+.rc-robot-stage-orientation-axis--z {
+    background-color: rgba(88, 148, 255, 0.88);
+}
+
 .rc-robot-stage-overlay-host {
     position: absolute;
     left: 12px;

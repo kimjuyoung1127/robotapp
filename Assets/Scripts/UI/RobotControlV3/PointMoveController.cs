@@ -60,8 +60,10 @@ namespace KineTutor3D.UI.RobotControlV3
         private string pendingConfirmName = string.Empty;
         private string selectedSequenceName = PointSequenceName;
         private string selectedFunctionName = string.Empty;
+        private string bundlePickerSelectedName = string.Empty;
         private string pointActionModalMode = string.Empty;
         private bool pointActionModalOpen;
+        private bool bundlePickerModalOpen;
         private bool pointRowActionsCollapsed;
         private bool sequenceRowActionsCollapsed;
         private bool functionRowActionsCollapsed;
@@ -121,6 +123,34 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             SetMotionKind(nextMotionKind);
             return GetDebugSummary();
+        }
+
+        public string SetTeachingSubviewForDebug(string subviewName)
+        {
+            SetTeachingSubview(subviewName);
+            return GetDebugSummary();
+        }
+
+        public void CollectButtonsForDebug(string buttonName, List<Button> buttons)
+        {
+            if (buttons == null)
+            {
+                return;
+            }
+
+            ForceInitialize();
+            root?.Query<Button>(name: buttonName).ForEach(button => buttons.Add(button));
+        }
+
+        public void CollectButtonsForDebug(List<Button> buttons)
+        {
+            if (buttons == null)
+            {
+                return;
+            }
+
+            ForceInitialize();
+            root?.Query<Button>().ForEach(button => buttons.Add(button));
         }
 
         public string PreviewForDebug()
@@ -396,6 +426,12 @@ namespace KineTutor3D.UI.RobotControlV3
             return $"selectedFunction={selectedFunctionName}; functions={names.Length}; selectedFunctions={selectedFunctionNames.Count}; candidates={selectedFunctionPointNames.Count}; steps={steps}; missingCount={missing}; feedback={lastFeedback}";
         }
 
+        public string GetFunctionSourceDebugSummary()
+        {
+            var sourcePointNames = ResolveFunctionSourcePointNames();
+            return $"candidates={selectedFunctionPointNames.Count}; selectedPoints={selectedPointNames.Count}; recalled={recalledPoint?.name ?? "none"}; sourceLabel={ResolveFunctionSourceLabel(sourcePointNames)}; sourceCount={sourcePointNames.Length}; source=[{string.Join(",", sourcePointNames)}]";
+        }
+
         public string ExportPointsForDebug()
         {
             ExportPoints();
@@ -433,7 +469,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var canPreviewAction = CanPreview() && IsAnyPanelVisible();
             var canApplyAction = CanApply() && IsAnyPanelVisible();
             var panel = desktopPanel ?? tabletPanel;
-            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; surface={ResolveSurfaceDebugName()}; subview={activeTeachingSubview}; pointModalOpen={pointActionModalOpen}; pointModalMode={pointActionModalMode}; selectedPoints={selectedPointNames.Count}; selectedSequences={selectedSequenceNames.Count}; selectedFunctions={selectedFunctionNames.Count}; rowActionsCollapsed={pointRowActionsCollapsed}; sequenceActionsCollapsed={sequenceRowActionsCollapsed}; functionActionsCollapsed={functionRowActionsCollapsed}; tabsHidden={IsHidden(panel?.SubviewTabs)}; motionRowHidden={IsHidden(panel?.MotionRow)}; coordGridHidden={IsHidden(panel?.CoordGrid)}; listHidden={IsHidden(panel?.PointListContainer)}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
+            return $"initialized={isInitialized}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}; surface={ResolveSurfaceDebugName()}; subview={activeTeachingSubview}; pointModalOpen={pointActionModalOpen}; pointModalMode={pointActionModalMode}; bundlePickerOpen={bundlePickerModalOpen}; bundlePickerSelected={bundlePickerSelectedName}; selectedPoints={selectedPointNames.Count}; selectedSequences={selectedSequenceNames.Count}; selectedFunctions={selectedFunctionNames.Count}; rowActionsCollapsed={pointRowActionsCollapsed}; sequenceActionsCollapsed={sequenceRowActionsCollapsed}; functionActionsCollapsed={functionRowActionsCollapsed}; tabsHidden={IsHidden(panel?.SubviewTabs)}; motionRowHidden={IsHidden(panel?.MotionRow)}; coordGridHidden={IsHidden(panel?.CoordGrid)}; listHidden={IsHidden(panel?.PointListContainer)}; coord={activeCoordSystem}; motion={motionKind}; speed={selectedSpeedPreset}; dwell={selectedDwellSec:0.0}; editLocked={IsSequenceEditLocked()}; pendingConfirm={pendingConfirmKind}:{pendingConfirmName}; previewState={connectionHomeController.CurrentPreviewState}; canPreview={canPreviewAction}; canApply={canApplyAction}; runtimeRobot={runtimeRobot}; name={pointName}; x={currentValues[0]:0.0}; rz={currentValues[5]:0.0}; feedback={lastFeedback}";
         }
 
         private bool TryInitialize()
@@ -457,7 +493,13 @@ namespace KineTutor3D.UI.RobotControlV3
                 return false;
             }
 
-            if (desktopPanel == null || tabletPanel == null || pointMovePanelHost.childCount == 0 || pointMoveSheetHost.childCount == 0)
+            if (!isInitialized
+                || desktopPanel == null
+                || tabletPanel == null
+                || desktopPanel.BtnPointBulkFunction == null
+                || desktopPanel.BtnPointFunctionCreate == null
+                || pointMovePanelHost.childCount == 0
+                || pointMoveSheetHost.childCount == 0)
             {
                 desktopPanel = CreatePanel(pointMovePanelHost);
                 tabletPanel = CreatePanel(pointMoveSheetHost);
@@ -519,9 +561,10 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnDuplicate, DuplicateSelectedPoint);
             RegisterClick(panel.BtnPointRowActionsToggle, TogglePointRowActionsCollapsed);
             RegisterClick(panel.BtnPointBulkClear, ClearSelectedPoints);
-            RegisterClick(panel.BtnPointBulkSpeed, ApplyBulkPointTiming);
             RegisterClick(panel.BtnPointBulkFunction, AddSelectedPointsToFunction);
             RegisterClick(panel.BtnPointBulkDelete, DeleteSelectedPoints);
+            RegisterClick(panel.BtnPointFunctionClearSelection, ClearFunctionPointSelection);
+            RegisterClick(panel.BtnPointFunctionCreate, CreateFunctionFromSequence);
             RegisterClick(panel.BtnSequenceRowActionsToggle, ToggleSequenceRowActionsCollapsed);
             RegisterClick(panel.BtnSequenceBulkClear, ClearSelectedSequences);
             RegisterClick(panel.BtnSequenceBulkDelete, DeleteSelectedSequences);
@@ -548,7 +591,7 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnPathReplayLoop, PlayRecordedPathLoop);
             RegisterClick(panel.BtnPathRecordDelete, DeleteRecordedPath);
             RegisterClick(panel.BtnBlockAddPoint, AddSelectedPointToBlockSequence);
-            RegisterClick(panel.BtnBlockAddBundle, AddSelectedBundleToBlockSequence);
+            RegisterClick(panel.BtnBlockAddBundle, OpenBundlePickerModal);
             RegisterClick(panel.BtnBlockPreview, PreviewBlockSequence);
             RegisterClick(panel.BtnBlockRun, RunBlockSequence);
             RegisterClick(panel.BtnPointModalSpeedSlow, () => SetPointModalSpeedPreset("slow"));
@@ -559,11 +602,8 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnPointModalDuplicate, () => ExecutePointModalEditAction(DuplicateSelectedPoint));
             RegisterClick(panel.BtnPointModalDelete, () => ExecutePointModalEditAction(() => DeletePoint(recalledPoint?.name)));
             RegisterClick(panel.BtnPointModalClose, ClosePointActionModal);
-            RegisterClick(panel.BtnFunctionAddPoint, AddSelectedPointToFunction);
-            RegisterClick(panel.BtnFunctionClearSelection, ClearFunctionPointSelection);
-            RegisterClick(panel.BtnFunctionCreate, CreateFunctionFromSequence);
-            RegisterClick(panel.BtnFunctionRun, RunSelectedFunction);
-            RegisterClick(panel.BtnFunctionRunFromSelected, RunSelectedFunctionFromSelectedPoint);
+            RegisterClick(panel.BtnBundlePickerConfirm, ConfirmBundlePickerSelection);
+            RegisterClick(panel.BtnBundlePickerClose, CloseBundlePickerModal);
             RegisterClick(panel.BtnFunctionRename, RenameSelectedFunction);
             RegisterClick(panel.BtnFunctionDuplicate, DuplicateSelectedFunction);
             RegisterClick(panel.BtnFunctionDelete, DeleteSelectedFunction);
@@ -587,7 +627,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            button.RegisterCallback<ClickEvent>(_ => handler());
+            button.clicked += handler;
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
@@ -653,6 +693,8 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplySequencePanel(panel);
             ApplyPointDetail(panel);
             ApplyPointActionModal(panel);
+            ApplyBundlePickerModal(panel);
+            ApplyPointFunctionBuilder(panel);
             ApplyFunctionPanel(panel);
             panel.FeedbackSummary.text = ShouldShowFeedbackLine() ? CompactFeedback(lastFeedback) : string.Empty;
             var canPreview = CanPreview() && IsAnyPanelVisible();
@@ -669,7 +711,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnUp.SetEnabled(canEdit && CanMoveSelectedPoint(-1));
             panel.BtnDown.SetEnabled(canEdit && CanMoveSelectedPoint(1));
             panel.BtnOverwrite.SetEnabled(canEdit && recalledPoint != null);
-            panel.BtnTimingApply.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
+            panel.BtnTimingApply?.SetEnabled(canEdit && recalledPoint != null && !isDwellInvalid);
             panel.BtnPointRowActionsToggle?.SetEnabled(HasAnyPoint());
             if (panel.BtnPointRowActionsToggle != null)
             {
@@ -677,9 +719,10 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             panel.BtnPointBulkClear?.SetEnabled(selectedPointNames.Count > 0);
-            panel.BtnPointBulkSpeed?.SetEnabled(canEdit && selectedPointNames.Count > 0 && !isDwellInvalid);
             panel.BtnPointBulkFunction?.SetEnabled(canEdit && selectedPointNames.Count > 0);
             panel.BtnPointBulkDelete?.SetEnabled(canEdit && selectedPointNames.Count > 0);
+            panel.BtnPointFunctionClearSelection?.SetEnabled(canEdit && selectedFunctionPointNames.Count > 0);
+            panel.BtnPointFunctionCreate?.SetEnabled(canEdit && HasAnyPoint());
             panel.BtnSequenceRowActionsToggle?.SetEnabled(BuildOrderedSequenceNames().Count > 0);
             if (panel.BtnSequenceRowActionsToggle != null)
             {
@@ -713,19 +756,14 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnPathReplayLoop?.SetEnabled(canApply && !IsSequenceEditLocked());
             panel.BtnPathRecordDelete?.SetEnabled(canEdit && HasNamedSequence(RecordedPathSequenceName));
             panel.BtnBlockAddPoint?.SetEnabled(canEdit && recalledPoint != null);
-            panel.BtnBlockAddBundle?.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnBlockAddBundle?.SetEnabled(canEdit && runtimeController != null && runtimeController.GetTeachingFunctionNames().Length > 0);
             panel.BtnBlockPreview?.SetEnabled(canApply);
             panel.BtnBlockRun?.SetEnabled(canApply && !IsSequenceEditLocked());
             panel.BtnExport.SetEnabled(HasAnyPoint());
             panel.BtnCleanup.SetEnabled(canEdit && HasAnyPoint());
-            panel.BtnFunctionCreate.SetEnabled(canEdit && HasAnyPoint());
-            panel.BtnFunctionRun.SetEnabled(canApply && !string.IsNullOrWhiteSpace(selectedFunctionName));
-            panel.BtnFunctionAddPoint.SetEnabled(canEdit && recalledPoint != null);
-            panel.BtnFunctionClearSelection.SetEnabled(canEdit && selectedFunctionPointNames.Count > 0);
-            panel.BtnFunctionRunFromSelected.SetEnabled(canApply && recalledPoint != null && !string.IsNullOrWhiteSpace(selectedFunctionName));
-            panel.BtnFunctionRename.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
-            panel.BtnFunctionDuplicate.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
-            panel.BtnFunctionDelete.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionRename?.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionDuplicate?.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
+            panel.BtnFunctionDelete?.SetEnabled(canEdit && !string.IsNullOrWhiteSpace(selectedFunctionName));
             panel.BtnApply.text = IsMoveLDispatchMode()
                 ? (CanApply() ? "적용" : "적용 (연결 대기)")
                 : (CanApply() ? "적용 (MoveJ)" : "적용 (연결 대기)");
@@ -778,8 +816,8 @@ namespace KineTutor3D.UI.RobotControlV3
             var showFunction = activeTeachingSubview == FunctionSubviewName;
             SetHidden(panel.MotionRow, true);
             SetHidden(panel.SubviewTabs, false);
-            SetHidden(panel.NameRow, false);
-            SetHidden(panel.BtnPrimarySave, false);
+            SetHidden(panel.NameRow, !showPoint);
+            SetHidden(panel.BtnPrimarySave, !showPoint);
             panel.BtnPointSubview?.EnableInClassList("rc-point-subview-tab--active", showPoint);
             panel.BtnSequenceSubview?.EnableInClassList("rc-point-subview-tab--active", showSequence);
             panel.BtnFunctionSubview?.EnableInClassList("rc-point-subview-tab--active", showFunction);
@@ -1205,16 +1243,22 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
-            var functionName = panel?.FunctionNameInput?.value?.Trim();
+            var functionName = panel?.PointFunctionNameInput?.value?.Trim();
             if (string.IsNullOrWhiteSpace(functionName))
             {
-                SetFeedback("묶음 이름을 먼저 넣어라.");
+                functionName = panel?.FunctionNameInput?.value?.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(functionName))
+            {
+                SetFeedback("함수 라이브러리에 저장할 묶음 이름을 먼저 넣어라.");
                 return;
             }
 
+            var sourcePointNames = BuildCreateFunctionSourcePointNames();
             var result = runtimeController != null
-                ? selectedFunctionPointNames.Count > 0
-                    ? runtimeController.CreateTeachingFunctionFromPoints(functionName, selectedFunctionPointNames.ToArray())
+                ? sourcePointNames.Length > 0
+                    ? runtimeController.CreateTeachingFunctionFromPoints(functionName, sourcePointNames)
                     : runtimeController.CreateTeachingFunctionFromSequence(functionName)
                 : "runtime missing";
             selectedFunctionName = ExtractCreatedFunctionName(result, functionName);
@@ -1481,6 +1525,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var panel = isDesktopVisible || !isTabletVisible ? desktopPanel : tabletPanel;
             var newName = panel?.FunctionNameInput?.value?.Trim();
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                newName = panel?.PointFunctionNameInput?.value?.Trim();
+            }
+
             if (string.IsNullOrWhiteSpace(selectedFunctionName) || string.IsNullOrWhiteSpace(newName))
             {
                 SetFeedback("선택된 묶음과 새 이름이 필요하다.");
@@ -1698,8 +1747,157 @@ namespace KineTutor3D.UI.RobotControlV3
         private void SetFunctionName(string functionName)
         {
             var safeName = functionName?.Trim() ?? string.Empty;
+            desktopPanel?.PointFunctionNameInput?.SetValueWithoutNotify(safeName);
+            tabletPanel?.PointFunctionNameInput?.SetValueWithoutNotify(safeName);
             desktopPanel?.FunctionNameInput?.SetValueWithoutNotify(safeName);
             tabletPanel?.FunctionNameInput?.SetValueWithoutNotify(safeName);
+        }
+
+        private void ApplyPointFunctionBuilder(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            var sourcePointNames = ResolveFunctionSourcePointNames();
+            var sourceLabel = ResolveFunctionSourceLabel(sourcePointNames);
+            if (panel.PointFunctionBuildSummary != null)
+            {
+                panel.PointFunctionBuildSummary.text = sourcePointNames.Length == 0
+                    ? "저장된 포인트가 없다. 먼저 포인트를 저장해라."
+                    : $"{sourceLabel} {sourcePointNames.Length}개를 바로 함수 라이브러리에 등록한다.";
+            }
+
+            if (panel.PointFunctionSelectionSummary != null)
+            {
+                panel.PointFunctionSelectionSummary.text = sourcePointNames.Length == 0
+                    ? "선택 소스 없음"
+                    : $"{sourceLabel}: {string.Join(" / ", sourcePointNames)}";
+            }
+        }
+
+        private string[] ResolveFunctionSourcePointNames()
+        {
+            var source = new List<string>();
+            AppendExistingPointNames(source, selectedFunctionPointNames);
+            if (source.Count > 0)
+            {
+                return source.ToArray();
+            }
+
+            AppendExistingPointNames(source, selectedPointNames);
+            if (source.Count > 0)
+            {
+                return source.ToArray();
+            }
+
+            var panel = ResolveActivePanel();
+            var currentPointName = panel?.PointNameInput?.value?.Trim() ?? string.Empty;
+            if (HasNamedPoint(currentPointName))
+            {
+                source.Add(currentPointName);
+                return source.ToArray();
+            }
+
+            if (recalledPoint != null && !string.IsNullOrWhiteSpace(recalledPoint.name))
+            {
+                source.Add(recalledPoint.name);
+                return source.ToArray();
+            }
+
+            var sequence = LoadPointSequenceIfExists();
+            var waypoints = sequence?.waypoints ?? System.Array.Empty<Waypoint>();
+            for (var index = 0; index < waypoints.Length; index++)
+            {
+                var pointName = waypoints[index]?.name;
+                if (!string.IsNullOrWhiteSpace(pointName) && !source.Contains(pointName))
+                {
+                    source.Add(pointName);
+                }
+            }
+
+            return source.ToArray();
+        }
+
+        private string[] BuildCreateFunctionSourcePointNames()
+        {
+            if (selectedFunctionPointNames.Count > 0)
+            {
+                return ResolveFunctionSourcePointNames();
+            }
+
+            if (recalledPoint != null && !string.IsNullOrWhiteSpace(recalledPoint.name))
+            {
+                return new[] { recalledPoint.name };
+            }
+
+            var panel = ResolveActivePanel();
+            var currentPointName = panel?.PointNameInput?.value?.Trim() ?? string.Empty;
+            if (HasNamedPoint(currentPointName))
+            {
+                return new[] { currentPointName };
+            }
+
+            if (selectedPointNames.Count > 0)
+            {
+                return ResolveFunctionSourcePointNames();
+            }
+
+            return ResolveFunctionSourcePointNames();
+        }
+
+        private string ResolveFunctionSourceLabel(string[] sourcePointNames)
+        {
+            if (sourcePointNames == null || sourcePointNames.Length == 0)
+            {
+                return "선택 포인트";
+            }
+
+            if (selectedFunctionPointNames.Count > 0)
+            {
+                return "묶음 후보";
+            }
+
+            if (selectedPointNames.Count > 0)
+            {
+                return "선택 포인트";
+            }
+
+            var panel = ResolveActivePanel();
+            var currentPointName = panel?.PointNameInput?.value?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(currentPointName)
+                && sourcePointNames.Length == 1
+                && string.Equals(sourcePointNames[0], currentPointName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return "현재 포인트";
+            }
+
+            if (recalledPoint != null && sourcePointNames.Length == 1 && string.Equals(sourcePointNames[0], recalledPoint.name, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return "현재 선택";
+            }
+
+            return "전체 포인트";
+        }
+
+        private void AppendExistingPointNames(List<string> target, List<string> names)
+        {
+            if (target == null || names == null)
+            {
+                return;
+            }
+
+            for (var index = 0; index < names.Count; index++)
+            {
+                var pointName = names[index];
+                if (string.IsNullOrWhiteSpace(pointName) || !HasNamedPoint(pointName) || target.Contains(pointName))
+                {
+                    continue;
+                }
+
+                target.Add(pointName);
+            }
         }
 
         private static string ExtractCreatedFunctionName(string result, string fallbackName)
@@ -1756,24 +1954,14 @@ namespace KineTutor3D.UI.RobotControlV3
             var functionNames = runtimeController != null
                 ? runtimeController.GetTeachingFunctionNames()
                 : System.Array.Empty<string>();
-            if (panel.FunctionBuildSummary != null)
-            {
-                panel.FunctionBuildSummary.text = selectedFunctionPointNames.Count == 0
-                    ? "선택한 포인트 0개 → row의 묶음 추가로 선택"
-                    : $"선택한 포인트 {selectedFunctionPointNames.Count}개 → 묶음 만들기";
-            }
-
             panel.FunctionSummary.text = string.IsNullOrWhiteSpace(selectedFunctionName)
-                ? $"묶음 {functionNames.Length}개"
-                : $"묶음 {functionNames.Length}개 · 선택 {ShortDisplayName(selectedFunctionName)}";
+                ? $"함수 라이브러리 {functionNames.Length}개"
+                : $"함수 라이브러리 {functionNames.Length}개 · 선택 {ShortDisplayName(selectedFunctionName)}";
             if (panel.FunctionInventorySummary != null)
             {
                 panel.FunctionInventorySummary.text = BuildFunctionInventorySummary(functionNames);
             }
 
-            panel.FunctionSelectionSummary.text = selectedFunctionPointNames.Count == 0
-                ? "묶음 후보: 전체 저장 포인트"
-                : $"묶음 후보: {string.Join(" / ", selectedFunctionPointNames)}";
             panel.FunctionDetail.text = !string.IsNullOrWhiteSpace(selectedFunctionName) && runtimeController != null
                 ? FormatFunctionDetailForUi(runtimeController.GetTeachingFunctionDetailForDebug(selectedFunctionName))
                 : "묶음을 선택하면 참조 포인트가 보인다.";
@@ -1807,7 +1995,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var detail = string.IsNullOrWhiteSpace(selectedFunctionName)
                 ? "선택 없음"
                 : $"{ShortDisplayName(selectedFunctionName)} 참조 {selectedSteps}개 · 누락 {selectedMissing}";
-            return $"묶음 {functionNames.Length}개 · 선택 {selectedFunctionNames.Count}개 · {detail}";
+            return $"함수 라이브러리 {functionNames.Length}개 · 선택 {selectedFunctionNames.Count}개 · {detail}";
         }
 
         private static string FormatPathRecordSummary(string rawSummary)
@@ -1893,11 +2081,6 @@ namespace KineTutor3D.UI.RobotControlV3
                 actions.Add(CreatePointRowButton("BtnFunctionRowOpen", "열기", () => SelectFunction(functionName)));
                 if (!functionRowActionsCollapsed)
                 {
-                    actions.Add(CreatePointRowButton("BtnFunctionRowRun", "실행", () =>
-                    {
-                        SelectFunction(functionName);
-                        RunSelectedFunction();
-                    }));
                     actions.Add(CreatePointRowButton("BtnFunctionRowDuplicate", "복사", () =>
                     {
                         SelectFunction(functionName);
@@ -3208,7 +3391,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 name = name,
                 text = text
             };
-            button.RegisterCallback<ClickEvent>(_ => clicked?.Invoke());
+            button.clicked += clicked;
             button.AddToClassList("rc-point-row-button");
             return button;
         }
@@ -3243,7 +3426,7 @@ namespace KineTutor3D.UI.RobotControlV3
             if (recalledPoint == null)
             {
                 panel.DetailTitle.text = "선택된 포인트 없음";
-                panel.DetailMeta.text = "포인트를 선택하면 이동 방식과 속도/대기 시간이 보인다.";
+                panel.DetailMeta.text = "포인트를 선택하면 이동 방식과 저장된 속도/대기 시간이 보인다.";
                 panel.DetailJoints.text = "J: -";
                 panel.DetailTcp.text = "TCP: -";
                 return;
@@ -3253,11 +3436,11 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.DetailMeta.text = $"{NormalizeMoveType(recalledPoint.moveType)} · {selectedSpeedPreset} · dwell {selectedDwellSec:0.0}s";
             panel.DetailJoints.text = $"J: {FormatVector(recalledPoint.jointsDeg, "0.0")}";
             panel.DetailTcp.text = $"TCP: {FormatTcp(recalledPoint.tcpMm)}";
-            panel.BtnSpeedSlow.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "slow");
-            panel.BtnSpeedMedium.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "medium");
-            panel.BtnSpeedFast.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "fast");
-            panel.DwellInput.SetValueWithoutNotify(selectedDwellSec.ToString("0.0", CultureInfo.InvariantCulture));
-            panel.DwellInput.EnableInClassList("rc-point-dwell-input--danger", isDwellInvalid);
+            panel.BtnSpeedSlow?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "slow");
+            panel.BtnSpeedMedium?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "medium");
+            panel.BtnSpeedFast?.EnableInClassList("rc-point-timing-button--active", selectedSpeedPreset == "fast");
+            panel.DwellInput?.SetValueWithoutNotify(selectedDwellSec.ToString("0.0", CultureInfo.InvariantCulture));
+            panel.DwellInput?.EnableInClassList("rc-point-dwell-input--danger", isDwellInvalid);
         }
 
         private void ApplyPointActionModal(PanelElements panel)
@@ -3357,6 +3540,101 @@ namespace KineTutor3D.UI.RobotControlV3
             pointActionModalOpen = false;
             pointActionModalMode = string.Empty;
             ApplyAll();
+        }
+
+        private void OpenBundlePickerModal()
+        {
+            if (runtimeController == null || runtimeController.GetTeachingFunctionNames().Length == 0)
+            {
+                SetFeedback("시퀀스에 넣을 묶음이 없다. 포인트 탭에서 함수부터 등록해라.");
+                return;
+            }
+
+            bundlePickerSelectedName = string.IsNullOrWhiteSpace(selectedFunctionName)
+                ? runtimeController.GetTeachingFunctionNames()[0]
+                : selectedFunctionName;
+            bundlePickerModalOpen = true;
+            ApplyAll();
+        }
+
+        private void CloseBundlePickerModal()
+        {
+            bundlePickerModalOpen = false;
+            ApplyAll();
+        }
+
+        private void ConfirmBundlePickerSelection()
+        {
+            if (string.IsNullOrWhiteSpace(bundlePickerSelectedName))
+            {
+                SetFeedback("작업 시퀀스에 넣을 묶음을 먼저 골라라.");
+                return;
+            }
+
+            selectedFunctionName = bundlePickerSelectedName;
+            AddSelectedBundleToBlockSequence();
+            bundlePickerModalOpen = false;
+            ApplyAll();
+        }
+
+        private void ApplyBundlePickerModal(PanelElements panel)
+        {
+            if (panel?.BundlePickerModal == null)
+            {
+                return;
+            }
+
+            SetHidden(panel.BundlePickerModal, !bundlePickerModalOpen);
+            if (!bundlePickerModalOpen)
+            {
+                return;
+            }
+
+            var functionNames = runtimeController != null
+                ? runtimeController.GetTeachingFunctionNames()
+                : System.Array.Empty<string>();
+            if (panel.BundlePickerSummary != null)
+            {
+                panel.BundlePickerSummary.text = functionNames.Length == 0
+                    ? "등록된 묶음이 없다."
+                    : string.IsNullOrWhiteSpace(bundlePickerSelectedName)
+                        ? $"묶음 {functionNames.Length}개 · 선택 없음"
+                        : $"묶음 {functionNames.Length}개 · 선택 {ShortDisplayName(bundlePickerSelectedName)}";
+            }
+
+            if (panel.BundlePickerListContainer != null)
+            {
+                panel.BundlePickerListContainer.Clear();
+                for (var index = 0; index < functionNames.Length; index++)
+                {
+                    var functionName = functionNames[index];
+                    var row = new VisualElement();
+                    row.AddToClassList("rc-point-row");
+                    row.EnableInClassList(
+                        "rc-point-row--active",
+                        string.Equals(bundlePickerSelectedName, functionName, System.StringComparison.OrdinalIgnoreCase));
+                    row.RegisterCallback<ClickEvent>(_ =>
+                    {
+                        bundlePickerSelectedName = functionName;
+                        ApplyAll();
+                    });
+
+                    var summary = new Label(BuildFunctionRowSummary(functionName));
+                    summary.AddToClassList("rc-point-row-summary");
+                    row.Add(summary);
+                    panel.BundlePickerListContainer.Add(row);
+                }
+
+                if (functionNames.Length == 0)
+                {
+                    var empty = new Label("함수 라이브러리 없음 · 포인트 탭에서 함수부터 등록해라.");
+                    empty.AddToClassList("rc-panel-copy");
+                    empty.AddToClassList("rc-panel-copy--compact");
+                    panel.BundlePickerListContainer.Add(empty);
+                }
+            }
+
+            panel.BtnBundlePickerConfirm?.SetEnabled(!string.IsNullOrWhiteSpace(bundlePickerSelectedName));
         }
 
         private static string NormalizePointModalMode(string mode)

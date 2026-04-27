@@ -43,6 +43,11 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnPointBulkSpeed = root.Q<Button>("BtnPointBulkSpeed");
                 BtnPointBulkFunction = root.Q<Button>("BtnPointBulkFunction");
                 BtnPointBulkDelete = root.Q<Button>("BtnPointBulkDelete");
+                PointFunctionBuildSummary = root.Q<Label>("PointFunctionBuildSummary");
+                PointFunctionNameInput = root.Q<TextField>("PointFunctionNameInput");
+                PointFunctionSelectionSummary = root.Q<Label>("PointFunctionSelectionSummary");
+                BtnPointFunctionClearSelection = root.Q<Button>("BtnPointFunctionClearSelection");
+                BtnPointFunctionCreate = root.Q<Button>("BtnPointFunctionCreate");
                 BtnLoop = root.Q<Button>("BtnPointLoop");
                 BtnRunSequence = root.Q<Button>("BtnPointRunSequence");
                 BtnStepBack = root.Q<Button>("BtnPointStepBack");
@@ -94,24 +99,22 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnPointModalDuplicate = root.Q<Button>("BtnPointModalDuplicate");
                 BtnPointModalDelete = root.Q<Button>("BtnPointModalDelete");
                 BtnPointModalClose = root.Q<Button>("BtnPointModalClose");
+                BundlePickerModal = root.Q<VisualElement>("BundlePickerModal");
+                BundlePickerSummary = root.Q<Label>("BundlePickerSummary");
+                BundlePickerListContainer = root.Q<VisualElement>("BundlePickerListContainer");
+                BtnBundlePickerConfirm = root.Q<Button>("BtnBundlePickerConfirm");
+                BtnBundlePickerClose = root.Q<Button>("BtnBundlePickerClose");
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
-                FunctionBuildSummary = root.Q<Label>("FunctionBuildSummary");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
                 FunctionInventorySummary = root.Q<Label>("FunctionInventorySummary");
                 FunctionBulkActions = root.Q<VisualElement>("FunctionBulkActions");
                 FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
-                FunctionSelectionSummary = root.Q<Label>("FunctionSelectionSummary");
                 FunctionDetail = root.Q<Label>("FunctionDetail");
                 BtnFunctionRowActionsToggle = root.Q<Button>("BtnFunctionRowActionsToggle");
                 BtnFunctionBulkClear = root.Q<Button>("BtnFunctionBulkClear");
                 BtnFunctionBulkDuplicate = root.Q<Button>("BtnFunctionBulkDuplicate");
                 BtnFunctionBulkDelete = root.Q<Button>("BtnFunctionBulkDelete");
                 BtnFunctionDeleteAll = root.Q<Button>("BtnFunctionDeleteAll");
-                BtnFunctionAddPoint = root.Q<Button>("BtnFunctionAddPoint");
-                BtnFunctionClearSelection = root.Q<Button>("BtnFunctionClearSelection");
-                BtnFunctionCreate = root.Q<Button>("BtnFunctionCreate");
-                BtnFunctionRun = root.Q<Button>("BtnFunctionRun");
-                BtnFunctionRunFromSelected = root.Q<Button>("BtnFunctionRunFromSelected");
                 BtnFunctionRename = root.Q<Button>("BtnFunctionRename");
                 BtnFunctionDuplicate = root.Q<Button>("BtnFunctionDuplicate");
                 BtnFunctionDelete = root.Q<Button>("BtnFunctionDelete");
@@ -192,6 +195,11 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnPointBulkSpeed { get; }
             public Button BtnPointBulkFunction { get; }
             public Button BtnPointBulkDelete { get; }
+            public Label PointFunctionBuildSummary { get; }
+            public TextField PointFunctionNameInput { get; }
+            public Label PointFunctionSelectionSummary { get; }
+            public Button BtnPointFunctionClearSelection { get; }
+            public Button BtnPointFunctionCreate { get; }
             public Button BtnLoop { get; }
             public Button BtnRunSequence { get; }
             public Button BtnStepBack { get; }
@@ -243,24 +251,22 @@ namespace KineTutor3D.UI.RobotControlV3
             public Button BtnPointModalDuplicate { get; }
             public Button BtnPointModalDelete { get; }
             public Button BtnPointModalClose { get; }
+            public VisualElement BundlePickerModal { get; }
+            public Label BundlePickerSummary { get; }
+            public VisualElement BundlePickerListContainer { get; }
+            public Button BtnBundlePickerConfirm { get; }
+            public Button BtnBundlePickerClose { get; }
             public TextField FunctionNameInput { get; }
-            public Label FunctionBuildSummary { get; }
             public Label FunctionSummary { get; }
             public Label FunctionInventorySummary { get; }
             public VisualElement FunctionBulkActions { get; }
             public VisualElement FunctionListContainer { get; }
-            public Label FunctionSelectionSummary { get; }
             public Label FunctionDetail { get; }
             public Button BtnFunctionRowActionsToggle { get; }
             public Button BtnFunctionBulkClear { get; }
             public Button BtnFunctionBulkDuplicate { get; }
             public Button BtnFunctionBulkDelete { get; }
             public Button BtnFunctionDeleteAll { get; }
-            public Button BtnFunctionAddPoint { get; }
-            public Button BtnFunctionClearSelection { get; }
-            public Button BtnFunctionCreate { get; }
-            public Button BtnFunctionRun { get; }
-            public Button BtnFunctionRunFromSelected { get; }
             public Button BtnFunctionRename { get; }
             public Button BtnFunctionDuplicate { get; }
             public Button BtnFunctionDelete { get; }

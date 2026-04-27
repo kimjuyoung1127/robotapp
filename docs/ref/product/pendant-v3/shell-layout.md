@@ -9,7 +9,7 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-22 (KST)
+- 2026-04-23 (KST)
 
 ---
 
@@ -58,9 +58,9 @@
 │ ├────┤ │  │ [기본] [관절] [TCP] [좌표]             │ │  └─────────────────┘ │
 │ │ ❓ │ │  │ [선택된 조작 모드 콘텐츠]              │ │                       │
 │ │도움 │ │  │ [TCP 3D 화살표 / RPY 보조 조작]       │ │  ┌─ StatusCard ────┐ │
-│ └────┘ │  │ [Base축] [Tool축] [궤적] [리셋]       │ │  │ 상태: 정지       │ │
+│ └────┘ │  │ [설명]                                  │ │  │ 상태: 정지       │ │
 │        │  │ scroll                                 │ │  │ 모드: 수동       │ │
-│        │  │ [설명] [선택 파츠 정보]                │ │  │ Fault: 없음      │ │
+│        │  │                                         │ │  │ Fault: 없음      │ │
 │        │  │                                         │ │  │ Safety: 정상     │ │
 │        │  └──────────────────────────────────────┘ │  ├─────────────────┤ │
 │        │                                             │  │ 다음 행동 추천   │ │
@@ -93,14 +93,16 @@
 - 기본 기준은 `ViewportHost` 최소 360px, `ContextPanel` 320px이다.
 - `조작` active 상태에서만 내부 탭 `기본 / 관절 / TCP / 좌표`를 `ControlDockHost` 첫 줄에 표시한다.
 - `NavPoints` active 상태에서는 조작 내부 탭을 숨기고, 포인트 저장/시퀀스/함수 subview만 보인다.
-- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportToolbarHost -> ViewportDescriptionSection -> ViewportSelectionSection`로 잠근다.
-- 조작 화면에서는 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, `Base / Tool / Path / Ghost / Bound / Coll / Cam` 보기 옵션과 설명/선택 파츠 정보는 그 아래에 둔다.
+- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportDescriptionSection`로 잠근다.
+- 조작 화면에서는 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, 설명 카드는 그 아래에 둔다.
 - 메인 `RobotStage`에는 로봇과 그에 직접 붙는 시각화만 보이게 둔다.
+- 메인 `RobotStage` 우상단에는 카메라 방향 전용 orientation gizmo를 둔다.
+- `Path / Ghost / Bound / Coll / Cam` 시각화 토글 카드는 `ContextPanelTabBar` 아래, `CoordStrip` 위에 둔다.
 - `Z / RX / RY / RZ`처럼 로봇을 가릴 수 있는 TCP 보조 조작 UI는 `ViewportHost` 공용 스크롤 안으로 이동시켜 겹침을 예방한다.
 - `ViewportHost`와 `ContextPanel`은 가로 스크롤을 쓰지 않는다.
 - 좁은 폭에서 잘림이 생기면 패널 폭을 키우지 말고 내부 요소를 줄인다.
 - `ViewportPanelScroll` / `ContextPanelScroll`은 세로 전용으로 유지하고, 내부 버튼/카드는 `max-width: 100%`, `min-width: 0`, `flex-wrap` 기반으로 접는다.
-- 보조패널 툴바는 `Base / Tool / Path / Ghost / Bound / Coll / Cam` compact chip grid로 유지한다.
+- 시각화 토글 카드는 `Path / Ghost / Bound / Coll / Cam` compact chip grid로 유지한다.
 - TCP/Cartesian 조작행은 한 줄 고정 금지다. `축+값+단위` 상단, `- / +` 하단의 2줄 구조로 둔다.
 - 관절 조그는 `J축+입력+값`, `슬라이더`, `- / +` 버튼 행을 분리한다.
 - 최신 acceptance 기준은 `viewportHorizontalVisible=False`, `contextHorizontalVisible=False`, `viewportClipped=0`, `contextClipped=0`, `scrollShare>=0.88`이다.
@@ -120,7 +122,7 @@
 │                                                      │
 │                  3DViewport (메인)                    │
 │                                                      │
-│   3D 로봇 + 프레임 + 트레일                         │
+│   3D 로봇 + 트레일                                   │
 │   고스트 + 경로 미리보기                             │
 │                                                      │
 │   ┌─ CoordOverlay (반투명) ─┐                       │
@@ -128,7 +130,7 @@
 │   │ X:-497 Y:-130 Z:477    │                       │
 │   └─────────────────────────┘                       │
 │                                                      │
-│  [Base축] [Tool축] [궤적] [리셋]                    │
+│  우상단 orientation gizmo                           │
 │                                                      │
 └─────────────────────────────────────────────────────┘
 

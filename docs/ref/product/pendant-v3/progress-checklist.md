@@ -6,7 +6,7 @@
 - daily log와 달리 "지금 어디까지 왔는지"만 짧게 유지한다.
 
 ## Last Updated
-- 2026-04-22 (KST)
+- 2026-04-27 (KST)
 
 ## Current Phase Snapshot
 
@@ -32,7 +32,7 @@
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
 | `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1-polish `33/33 PASS` |
-| `3C` mock e2e | done | Desktop actual click baseline `110/110 PASS`, function actual click `8/8 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
+| `3C` mock e2e | done | Desktop actual click baseline `110/110 PASS`, function actual click current contract `7/7 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 
 ## 2026-04-20 Viewport Note
@@ -40,11 +40,11 @@
 - 오늘 viewport 관련 실험은 **채택 안 함**으로 잠근다.
 - 현재 기준선은 `8549b09`이며, 이 기준선 자체에 `MainSplitHandle + ViewportHost` 별도 패널 구조가 이미 포함돼 있다.
 - 즉 오늘 화면에서 계속 보이던 별도 `ViewportHost`는 "오늘 수정 잔재"가 아니라 **현재 기준선 원구조**다.
-- 오늘 시도한 `ViewportHost 내장`, `RT/오버레이 분리`, `툴바 패널 재배치`, `2패널 분리` 실험은 모두 rollback 대상으로 간주한다.
+- 오늘 시도한 `ViewportHost 내장`, `RT/오버레이 분리`, `2패널 분리` 실험은 모두 rollback 대상으로 간주한다.
 - 다음 세션에서는 구현 전에 먼저 아래를 문서로 잠근 뒤 시작한다.
   - 로봇을 **어느 패널에 표시할지** 1회 확정
   - `ViewportHost`를 유지할지 제거할지 1회 확정
-  - `Base축 / Tool축 / 궤적` 패널이 어느 레벨에서 분리될지 1회 확정
+  - 시각화 토글 카드가 어느 패널에 들어갈지 1회 확정
 
 ## 2026-04-20 Display Lock
 
@@ -56,7 +56,7 @@
 - `NavMotion`의 조작 모드는 상단 독립 탭이 아니라 `ControlDockHost` 내부 `기본 / 관절 / TCP / 좌표` subtab으로 표시한다.
 - `NavPoints` active 상태에서는 조작 subtab을 숨기고 `포인트 / 시퀀스 / 함수` 내부 subview만 표시한다.
 - `TCP 3D 화살표`, 특히 `Z / RX / RY / RZ` 조작은 로봇을 가리지 않게 `ViewportHost` 보조 패널에서만 노출한다.
-- `ViewportHost`는 상단 보조 툴바 + 공용 `ScrollView` 구조로 유지한다.
+- `ViewportHost`는 조작/설명 중심 공용 `ScrollView` 구조로 유지한다.
 - `기본 / 관절 / TCP / 좌표`는 모두 같은 `RobotStage`를 공유하고, 보조 패널 쪽 내용만 교체한다.
 - 다음 구현 단위는 `고스트 / predicted path / 경계 / 충돌`을 실제 시각 데이터와 연결하는 것이다.
 
@@ -75,8 +75,9 @@
 - `WorkTabBar`는 런타임에서 `ControlDockHost` 첫 줄로 이동한다.
 - `NavMotion` active 상태에서만 `기본 / 관절 / TCP / 좌표`를 표시한다.
 - `NavPoints` active 상태에서는 조작 subtab을 `display: none`으로 숨긴다.
-- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportToolbarHost -> ViewportDescriptionSection -> ViewportSelectionSection`로 잠근다.
-- 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, 보기 옵션/설명/선택 파츠 정보는 아래로 내린다.
+- 보조패널 스크롤 순서는 `ControlDockHost -> CartesianArrowsOverlayHost -> ViewportDescriptionSection`로 잠근다.
+- 실제 조작 UI와 TCP 3D 방향 조작을 먼저 보여주고, 설명 카드는 그 아래로 둔다.
+- 시각화 토글 카드는 `ContextPanelTabBar` 아래, `CoordStrip` 위로 이동한다.
 - Desktop 폭 우선순위는 `메인패널 > 보조패널 > 컨텐츠패널`로 잠근다.
 - `ViewportHost` 최소 폭은 360px, `ContextPanel` 기준 폭은 320px이다.
 - `기본`은 기존 EasyMotion, `좌표`는 기존 PointMove 직접 좌표 이동 경로다.
@@ -661,7 +662,7 @@
 - [x] `PendantV3SceneBuilder` serialized template 연결
 - [x] `ViewportHost` boundary/collision 클래스 토글 scaffold 연결
 - [x] preview 상태 기반 collision 위험 강조(ready/unsynced/fault) 반영
-- [x] toolbar label compact화 (`Base / Tool / Path / Ghost / Bound / Coll / Cam`)
+- [x] toolbar label compact화 (`Path / Ghost / Bound / Coll / Cam`)
 - [x] toolbar status/hint 기본 숨김 + scroll 본문 우선 유지
 - [x] actual play smoke
   - `BtnViewportBoundary` click -> `경계 ON` + `작업공간 경계: 표시` + `ViewportHost`에 `rc-viewport-host--boundary`
@@ -833,6 +834,51 @@
 - note: popup smoke 기준 `BtnPopupConfirm` actual click 뒤 `popupActive=False`, focus=`BtnPopupProbe` 복귀를 재확인했다.
 - note: `NavHelp` actual click 기준 `HelpPanelHost` visible, 조작 내부 탭 hidden, `WhyItMovedSummary` 갱신까지 확인했다.
 - note: `BottomTabHelp` actual click 기준 `HelpSheetHost` visible, `BottomSheetTitle=BottomSheet · 도움말`, `BottomTabTcpJog` 복귀 시 `BottomSheetTitle=BottomSheet · TCP` 원복까지 확인했다.
+
+## 2026-04-23 Point / Bundle / Sequence Role Re-cut
+
+- 사용자 피드백 기준으로 `묶음` 탭 역할을 다시 잘랐다.
+- `포인트` 탭이 이제 묶음 후보 선택과 `함수 라이브러리 저장`을 담당한다.
+- `묶음` 탭은 생성/실행 탭이 아니라 저장된 함수 라이브러리 관리 탭으로 정리했다.
+- `시퀀스` 탭의 `묶음 추가`는 `묶음 라이브러리 modal`로 바꿨다.
+- `현재 위치 저장`은 `포인트` 탭에만 남기고, 기존 detail 카드의 속도/대기 조절 UI는 제거했다.
+- 포인트별 속도/대기 수정은 `편집 modal` 중심으로 정리했다.
+- 묶음 후보가 비어 있을 때는 `현재 보고 있는 포인트 1개`를 함수 등록 소스로 우선 사용하게 바꿨다.
+- 구현 메모:
+  - `point-move-panel.uxml`
+  - `PointMoveController.cs`
+  - `PointMoveController.Elements.cs`
+  - `RobotControlV3DebugBridge.cs`
+- 검증:
+  - `unityctl check --type compile`: pass
+- actual click smoke:
+  - `BtnPointSubview` click: pass
+  - `현재 포인트 1개` 기준 `CreateTeachingFunctionForDebug("ONE_PICK_TRUE")` -> `steps=1`: pass
+  - `BtnSequenceSubview` click: pass
+  - `BtnBlockAddBundle` click -> `bundlePickerOpen=True`: pass
+  - `BtnBundlePickerConfirm` click -> `blockSequence=PendantV3Blocks; blocks=1; list=[0:BundleRef:ONE_PICK_TRUE:True]`: pass
+- note:
+  - Play 중 현재 저장소에 남아 있던 이전 포인트/묶음 상태 때문에 검증용 이름이 `LIB_B` 대신 `1` 같은 기존 포인트로 읽힌 케이스가 있었고, 최종 smoke는 새 fallback 규칙과 actual-click 기준으로 다시 닫았다.
+
+## 2026-04-27 Click Matrix Stabilization
+
+- `RunFunctionActualClickMatrixForDebug()`를 현재 point/bundle/library recut UX 계약 기준으로 다시 맞췄다.
+- 디버그 클릭 탐색을 안정화했다.
+  - 여러 `UIDocument`를 모두 검색한다.
+  - `PointMoveController` debug root도 fallback으로 검색한다.
+  - detached row button은 제외한다.
+  - row action button은 `button.clicked` 경로로 통일한다.
+- domain reload 뒤 partial initialized runtime 상태가 남아 NRE를 내지 않도록 `RobotControlV3RuntimeController.TryInitialize()` guard를 보강했다.
+- 검증:
+  - `unityctl check --type compile`: pass
+  - `RobotStageOrientationGizmoControllerTests`: `2/2 PASS`
+  - `RobotStageRenderSurfaceInputTests`: `4/4 PASS`
+  - `RobotControlV3GizmoBehaviorTests`: `3/3 PASS`
+  - `RunTeachingBlockSequenceMatrixForDebug()`: `9/9 PASS`
+  - `RunFunctionActualClickMatrixForDebug()`: `7/7 PASS`
+  - `RunTeachingSequenceMatrixForDebug()`: `34/34 PASS`
+  - `RunSequenceFunctionBulkManagementMatrixForDebug()`: `11/11 PASS`
+  - `RunBundleAddDeleteRunMatrixForDebug()`: `5/5 PASS`
 
 ## Source Docs
 

@@ -10,7 +10,7 @@ namespace KineTutor3D.Visualization
     [DisallowMultipleComponent]
     public sealed class RobotPartSelectionGizmo : MonoBehaviour
     {
-        [SerializeField] private float axisLength = 0.16f;
+        [SerializeField] private float axisLength = 0.08f;
         [SerializeField] private Transform selectedTarget;
         [SerializeField] private FrameGizmo frameGizmo;
 
@@ -44,6 +44,12 @@ namespace KineTutor3D.Visualization
         {
             selectedTarget = null;
             frameGizmo?.SetVisible(false);
+        }
+
+        public void SetAxisLength(float length)
+        {
+            axisLength = Mathf.Max(0.02f, length);
+            frameGizmo?.SetLength(axisLength);
         }
 
         private void EnsureGizmo()

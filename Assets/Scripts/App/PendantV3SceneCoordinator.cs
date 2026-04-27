@@ -17,6 +17,7 @@ namespace KineTutor3D.App
         [SerializeField] private ConnectionHomeController connectionHomeController;
         [SerializeField] private RobotControlV3RuntimeController runtimeController;
         [SerializeField] private RobotStageRenderSurface robotStageRenderSurface;
+        [SerializeField] private RobotStageOrientationGizmoController robotStageOrientationGizmoController;
         [SerializeField] private ViewportAuxInfoController viewportAuxInfoController;
         [SerializeField] private EasyMotionController easyMotionController;
         [SerializeField] private JointJogController jointJogController;
@@ -78,6 +79,7 @@ namespace KineTutor3D.App
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>() ?? gameObject.AddComponent<RobotControlV3RuntimeController>();
             robotStageRenderSurface ??= GetComponent<RobotStageRenderSurface>() ?? gameObject.AddComponent<RobotStageRenderSurface>();
+            robotStageOrientationGizmoController ??= GetComponent<RobotStageOrientationGizmoController>() ?? gameObject.AddComponent<RobotStageOrientationGizmoController>();
             viewportAuxInfoController ??= GetComponent<ViewportAuxInfoController>() ?? gameObject.AddComponent<ViewportAuxInfoController>();
             easyMotionController ??= GetComponent<EasyMotionController>();
             jointJogController ??= GetComponent<JointJogController>();
@@ -93,6 +95,7 @@ namespace KineTutor3D.App
 
             var runtimeReady = true;
             var renderReady = robotStageRenderSurface == null || robotStageRenderSurface.ForceInitialize();
+            var orientationReady = robotStageOrientationGizmoController == null || robotStageOrientationGizmoController.ForceInitialize();
             var auxInfoReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
             var homeReady = connectionHomeController == null || connectionHomeController.ForceInitialize();
             var binderReady = binder == null || binder.ForceInitialize();
@@ -103,7 +106,7 @@ namespace KineTutor3D.App
             var ioReady = ioPanelController == null || ioPanelController.ForceInitialize();
             var popupReady = popupCoordinator == null || popupCoordinator.ForceInitialize();
 
-            isBootstrapped = runtimeReady && renderReady && auxInfoReady && homeReady && binderReady && easyReady && jointReady && tcpReady && pointReady && ioReady && popupReady;
+            isBootstrapped = runtimeReady && renderReady && orientationReady && auxInfoReady && homeReady && binderReady && easyReady && jointReady && tcpReady && pointReady && ioReady && popupReady;
             return isBootstrapped;
         }
     }

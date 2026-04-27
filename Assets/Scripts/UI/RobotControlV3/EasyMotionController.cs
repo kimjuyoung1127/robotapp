@@ -216,9 +216,13 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.EasyDryRunLabel.text = $"{data.GripperSummary} · {data.ToolDoSummary}";
             panel.EasyActionHint.text = $"{data.ActionWhy} / {data.PeripheralFeedback}";
 
-            var canPreview = state is not PendantV3PreviewState.Kind.Disconnected and not PendantV3PreviewState.Kind.AutoReconnect;
-            var canApply = state == PendantV3PreviewState.Kind.ReadyToJog;
-            var canGrip = data.DryRunEnabled || state is PendantV3PreviewState.Kind.ReadyToJog or PendantV3PreviewState.Kind.ConnectedUnsynced;
+            var canPreview = state != PendantV3PreviewState.Kind.AutoReconnect;
+            var canApply = data.DryRunEnabled || state == PendantV3PreviewState.Kind.ReadyToJog;
+            var canGrip = data.DryRunEnabled
+                || state is PendantV3PreviewState.Kind.ReadyToJog
+                    or PendantV3PreviewState.Kind.ConnectedUnsynced
+                    or PendantV3PreviewState.Kind.ConnectedServoOff
+                    or PendantV3PreviewState.Kind.Disconnected;
             var canPreset = canPreview;
 
             panel.BtnEasyHome.SetEnabled(canPreset);

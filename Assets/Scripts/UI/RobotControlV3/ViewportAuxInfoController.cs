@@ -23,13 +23,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement descriptionBody;
         private Label descriptionSummary;
         private Label descriptionDetail;
-        private Button selectionToggleButton;
-        private VisualElement selectionBody;
-        private Label selectionSummary;
-        private Label selectionPose;
-        private Label selectionHint;
         private bool descriptionExpanded;
-        private bool selectionExpanded;
         private bool initialized;
 
         private void OnEnable()
@@ -45,13 +39,12 @@ namespace KineTutor3D.UI.RobotControlV3
         public string ToggleDescriptionForDebug()
         {
             ToggleDescription();
-            return $"descriptionExpanded={descriptionExpanded}; selectionExpanded={selectionExpanded}";
+            return $"descriptionExpanded={descriptionExpanded}";
         }
 
         public string ToggleSelectionForDebug()
         {
-            ToggleSelection();
-            return $"descriptionExpanded={descriptionExpanded}; selectionExpanded={selectionExpanded}";
+            return "selectionInfo=removed";
         }
 
         internal void RefreshFromBinder(RobotControlV3RuntimeSnapshot snapshot, PendantV3LocalState shellState)
@@ -63,7 +56,6 @@ namespace KineTutor3D.UI.RobotControlV3
 
             ApplyWorkPanelHeader(snapshot, shellState);
             ApplyDescriptionAccordion(snapshot, shellState);
-            ApplySelectionAccordion(snapshot);
         }
 
         private bool TryInitialize()
@@ -83,13 +75,8 @@ namespace KineTutor3D.UI.RobotControlV3
             descriptionBody = root.Q<VisualElement>("ViewportDescriptionBody");
             descriptionSummary = root.Q<Label>("ViewportDescriptionSummary");
             descriptionDetail = root.Q<Label>("ViewportDescriptionDetail");
-            selectionToggleButton = root.Q<Button>("BtnViewportSelectionToggle");
-            selectionBody = root.Q<VisualElement>("ViewportSelectionBody");
-            selectionSummary = root.Q<Label>("ViewportSelectionSummary");
-            selectionPose = root.Q<Label>("ViewportSelectionPose");
-            selectionHint = root.Q<Label>("ViewportSelectionHint");
 
-            if (descriptionToggleButton == null || selectionToggleButton == null)
+            if (descriptionToggleButton == null)
             {
                 initialized = false;
                 return false;
@@ -97,10 +84,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             descriptionToggleButton.clicked -= ToggleDescription;
             descriptionToggleButton.clicked += ToggleDescription;
-            selectionToggleButton.clicked -= ToggleSelection;
-            selectionToggleButton.clicked += ToggleSelection;
             descriptionExpanded = false;
-            selectionExpanded = false;
             UpdateAccordionState();
             initialized = true;
             return true;
@@ -143,56 +127,19 @@ namespace KineTutor3D.UI.RobotControlV3
             }
         }
 
-        private void ApplySelectionAccordion(RobotControlV3RuntimeSnapshot snapshot)
-        {
-            if (snapshot.HasSelectedPart)
-            {
-                selectionExpanded = true;
-            }
-
-            if (selectionSummary != null)
-            {
-                selectionSummary.text = snapshot.SelectedPartName;
-            }
-
-            if (selectionPose != null)
-            {
-                selectionPose.text = snapshot.SelectedPartPose;
-            }
-
-            if (selectionHint != null)
-            {
-                selectionHint.text = snapshot.SelectedPartHint;
-            }
-
-            UpdateAccordionState();
-        }
-
         private void ToggleDescription()
         {
             descriptionExpanded = !descriptionExpanded;
             UpdateAccordionState();
         }
 
-        private void ToggleSelection()
-        {
-            selectionExpanded = !selectionExpanded;
-            UpdateAccordionState();
-        }
-
         private void UpdateAccordionState()
         {
             descriptionBody?.EnableInClassList("rc-hidden", !descriptionExpanded);
-            selectionBody?.EnableInClassList("rc-hidden", !selectionExpanded);
 
             if (descriptionToggleButton != null)
             {
                 descriptionToggleButton.text = descriptionExpanded ? "설명 접기" : "설명 펼치기";
-            }
-
-            if (selectionToggleButton != null)
-            {
-                selectionToggleButton.text = selectionExpanded ? "선택 파츠 정보 접기" : "선택 파츠 정보 펼치기";
             }
         }
 

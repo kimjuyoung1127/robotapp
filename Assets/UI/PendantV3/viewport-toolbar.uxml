@@ -17,8 +17,6 @@
             <ui:Label name="ViewportCameraResetHintText" text="카메라 리셋" />
         </ui:VisualElement>
         <ui:VisualElement class="rc-viewport-toolbar-row">
-            <ui:Button name="BtnViewportBaseFrame" text="Base" class="rc-viewport-toolbar-button" />
-            <ui:Button name="BtnViewportToolFrame" text="Tool" class="rc-viewport-toolbar-button" />
             <ui:Button name="BtnViewportTrail" text="Path" class="rc-viewport-toolbar-button rc-viewport-toolbar-button--active" />
             <ui:Button name="BtnViewportGhost" text="Ghost" class="rc-viewport-toolbar-button" />
         </ui:VisualElement>

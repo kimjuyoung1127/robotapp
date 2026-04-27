@@ -353,6 +353,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             currentValues[index] = Mathf.Clamp(value, AxisSpecs[index].MinDegrees, AxisSpecs[index].MaxDegrees);
             SyncAllRows(index);
+            runtimeController?.PulseJointHighlight(index);
             runtimeController?.PreviewJointAngles(ToJointAngleArray(), $"관절 {AxisSpecs[index].Label} 프리뷰");
         }
 

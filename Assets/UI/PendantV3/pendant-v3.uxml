@@ -61,6 +61,7 @@
                             <ui:VisualElement name="RobotStageHost" class="rc-robot-stage-host">
                                 <ui:Image name="RobotStageRenderSurface" class="rc-robot-stage-render-surface" scale-mode="stretch-to-fill" />
                                 <ui:Label name="RobotStageDiagnosticLabel" text="Stage diagnostic pending" class="rc-robot-stage-diagnostic rc-hidden" />
+                                <ui:VisualElement name="RobotStageOrientationHost" class="rc-robot-stage-orientation-host" picking-mode="Ignore" />
                                 <ui:VisualElement name="RobotStageOverlayHost" class="rc-robot-stage-overlay-host rc-hidden">
                                     <ui:Label name="RobotStageBadge" text="RobotStage" class="rc-robot-stage-badge" />
                                     <ui:Label name="CoordOverlayRowA" text="J1 0.0  J2 -32.0  J3 84.0" class="rc-overlay-copy" />
@@ -87,20 +88,11 @@
                                 <ui:VisualElement name="IoPanelHost" class="rc-panel-host rc-hidden" />
                             </ui:VisualElement>
                             <ui:VisualElement name="CartesianArrowsOverlayHost" class="rc-viewport-overlay-host rc-hidden" />
-                            <ui:VisualElement name="ViewportToolbarHost" class="rc-viewport-toolbar-host" />
                             <ui:VisualElement name="ViewportDescriptionSection" class="rc-accordion-card">
                                 <ui:Button name="BtnViewportDescriptionToggle" text="설명 펼치기" class="rc-accordion-toggle" />
                                 <ui:VisualElement name="ViewportDescriptionBody" class="rc-accordion-body rc-hidden">
                                     <ui:Label name="ViewportDescriptionSummary" text="현재 탭 설명" class="rc-panel-copy rc-panel-copy--compact" />
                                     <ui:Label name="ViewportDescriptionDetail" text="자세한 설명은 여기서만 본다." class="rc-panel-copy" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                            <ui:VisualElement name="ViewportSelectionSection" class="rc-accordion-card">
-                                <ui:Button name="BtnViewportSelectionToggle" text="선택 파츠 정보" class="rc-accordion-toggle" />
-                                <ui:VisualElement name="ViewportSelectionBody" class="rc-accordion-body rc-hidden">
-                                    <ui:Label name="ViewportSelectionSummary" text="선택된 파츠 없음" class="rc-panel-copy rc-panel-copy--compact" />
-                                    <ui:Label name="ViewportSelectionPose" text="XYZ -- / ROT --" class="rc-panel-copy rc-panel-copy--compact" />
-                                    <ui:Label name="ViewportSelectionHint" text="메인 로봇을 클릭하면 선택 파츠 기준 정보를 여기서 본다." class="rc-panel-copy" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:ScrollView>
@@ -114,6 +106,7 @@
                     <ui:Button name="BtnContextTabCoordinate" text="좌표" class="rc-context-tab" />
                 </ui:VisualElement>
                 <ui:ScrollView name="ContextPanelScroll" mode="Vertical" class="rc-shared-scroll rc-context-scroll">
+                    <ui:VisualElement name="ViewportToolbarHost" class="rc-context-host rc-viewport-toolbar-host" />
                     <ui:VisualElement name="CoordStripHost" class="rc-context-host" />
                     <ui:VisualElement name="StatusCardHost" class="rc-context-host" />
                     <ui:VisualElement name="SafetyDiagnosticsHost" class="rc-context-host" />

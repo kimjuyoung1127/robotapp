@@ -16,6 +16,11 @@ namespace KineTutor3D.App.Fairino
     public sealed class RobotControlV3RuntimeController : MonoBehaviour
     {
         private const float StageCameraFov = 32f;
+        private const float StageCameraRotationSpeed = 0.25f;
+        private const float StageCameraPanSpeed = 0.0018f;
+        private const float StageCameraZoomSpeed = 0.08f;
+        private const float StageCameraMinPitch = -80f;
+        private const float StageCameraMaxPitch = 80f;
         private const string PgeaAttachmentResourcePath = "EndEffectors/PGEA_100_40";
         private const string PgeaAttachmentId = "PGEA_100_40";
         private static readonly Vector3 PgeaAttachmentLocalPosition = new(0.003f, 0.1676f, 0.031f);
@@ -34,6 +39,8 @@ namespace KineTutor3D.App.Fairino
         private GameObject controlRobotInstance;
         private FairinoUrdfJointDriver jointDriver;
         private FrameGizmoFactory frameGizmoFactory;
+        private FrameGizmo baseFrameGizmo;
+        private FrameGizmo toolFrameGizmo;
         private EETrailRenderer eeTrailRenderer;
         private DisplacementArrow displacementArrow;
         private TargetMarkerVisual targetMarkerVisual;
@@ -41,6 +48,8 @@ namespace KineTutor3D.App.Fairino
         private PredictedPathRenderer predictedPathRenderer;
         private RobotStageFloorGrid stageFloorGrid;
         private RobotPartSelectionGizmo partSelectionGizmo;
+        private SelectedLinkHighlighter selectedLinkHighlighter;
+        private JointHighlightRing[] jointHighlightRings;
         private PresetTransitionAnimator presetAnimator;
         private WaypointCycleRunner waypointRunner;
         private RobotControlPeripheralFacade peripheralFacade;
@@ -57,16 +66,25 @@ namespace KineTutor3D.App.Fairino
         private Camera stageCamera;
         private Light stageLight;
         private Transform stageCameraPivot;
+        private Vector3 stageCameraFocusPoint;
+        private Vector3 stageCameraPanOffset;
+        private float stageCameraDistance = 2.4f;
+        private float stageCameraMinDistance = 0.35f;
+        private float stageCameraMaxDistance = 8f;
+        private float stageCameraYaw;
+        private float stageCameraPitch;
+        private bool stageCameraStateValid;
+        private bool stageCameraUserAdjusted;
         private RobotControlV3RuntimeSnapshot snapshot = new();
         private FairinoRobotState currentState = FairinoRobotState.Zero();
         private double[] previewJointAnglesDeg;
         private double[] previewTcpPose;
         private double[] previewTcpVisualJointAnglesDeg;
         private bool previewUsesJointPose;
-        private bool showBaseFrame = true;
-        private bool showToolFrame = true;
+        private bool showBaseFrame;
+        private bool showToolFrame;
         private bool showTrail = true;
-        private bool showGhost = true;
+        private bool showGhost;
         private bool showWorkspaceBoundary;
         private bool showCollision;
         private bool isPaused;
@@ -75,6 +93,8 @@ namespace KineTutor3D.App.Fairino
         private bool initialized;
         private string lastInitializationError = string.Empty;
         private string lastSelectedPartName = "없음";
+        private int activeJointHighlightIndex = -1;
+        private float activeJointHighlightUntilTime;
         private bool requestStageRefocus;
         private LiveCommandKind approvedLiveCommandKind = LiveCommandKind.ReadbackOnly;
         private DateTime approvedLiveCommandUntilUtc = DateTime.MinValue;
@@ -84,6 +104,7 @@ namespace KineTutor3D.App.Fairino
         private string pendingLiveApprovalToken = string.Empty;
         private bool pendingLiveApprovalRequired;
         private const string RecordedPathSequenceName = "PendantV3RecordedPath";
+        private const float JointHighlightHoldSeconds = 0.45f;
 
         internal event Action<RobotControlV3RuntimeSnapshot> SnapshotChanged;
 
@@ -105,6 +126,12 @@ namespace KineTutor3D.App.Fairino
         {
             UnbindConnectionEvents();
             UnbindWaypointRunnerEvents();
+            selectedLinkHighlighter?.Clear();
+            partSelectionGizmo?.Clear();
+            ClearJointHighlight();
+            baseFrameGizmo?.SetVisible(false);
+            toolFrameGizmo?.SetVisible(false);
+            frameGizmoFactory?.SetVisible(false);
             initialized = false;
         }
 
@@ -114,6 +141,11 @@ namespace KineTutor3D.App.Fairino
             if (teachingPathRecorder != null && teachingPathRecorder.Capture(currentState, Time.timeAsDouble))
             {
                 RefreshSnapshot();
+            }
+
+            if (activeJointHighlightIndex >= 0 && Time.unscaledTime >= activeJointHighlightUntilTime)
+            {
+                ClearJointHighlight();
             }
         }
 
@@ -1079,6 +1111,23 @@ namespace KineTutor3D.App.Fairino
             stageCamera.targetTexture = texture;
         }
 
+        public void RefreshStageCameraView()
+        {
+            if (stageCamera == null)
+            {
+                return;
+            }
+
+            stageCamera.fieldOfView = StageCameraFov;
+            if (!stageCameraStateValid)
+            {
+                ResetStageCamera();
+                return;
+            }
+
+            ApplyStageCameraState();
+        }
+
         public void ResetStageCamera()
         {
             if (stageCameraPivot == null || stageCamera == null)
@@ -1102,6 +1151,7 @@ namespace KineTutor3D.App.Fairino
                 var offsetDirection = new Vector3(0.14f, 0.12f, -1f).normalized;
                 stageCamera.transform.position = focusPoint + offsetDirection * distance;
                 stageCamera.transform.LookAt(focusPoint);
+                SetStageCameraStateFromCurrentPose(focusPoint, bounds, distance);
                 return;
             }
 
@@ -1109,6 +1159,162 @@ namespace KineTutor3D.App.Fairino
             var targetPosition = target != null ? target.position + new Vector3(0f, 0.8f, 0f) : Vector3.zero;
             stageCamera.transform.position = targetPosition + new Vector3(0f, 1.6f, -4.8f);
             stageCamera.transform.LookAt(targetPosition);
+            SetStageCameraStateFromCurrentPose(targetPosition, null, 5.1f);
+        }
+
+        public void SetStageCameraPreset(string presetName)
+        {
+            if (!EnsureStageCameraState())
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(presetName))
+            {
+                return;
+            }
+
+            switch (presetName.Trim().ToUpperInvariant())
+            {
+                case "FRONT":
+                    ApplyStageCameraPreset(0f, 8f, 1.02f);
+                    break;
+                case "RIGHT":
+                    ApplyStageCameraPreset(90f, 8f, 1.02f);
+                    break;
+                case "TOP":
+                    ApplyStageCameraPreset(0f, 88f, 1.12f);
+                    break;
+                case "ISO":
+                    ResetStageCamera();
+                    break;
+            }
+        }
+
+        public void OrbitStageCamera(Vector2 deltaPixels)
+        {
+            if (!EnsureStageCameraState())
+            {
+                return;
+            }
+
+            stageCameraYaw += deltaPixels.x * StageCameraRotationSpeed;
+            stageCameraPitch = Mathf.Clamp(
+                stageCameraPitch - (deltaPixels.y * StageCameraRotationSpeed),
+                StageCameraMinPitch,
+                StageCameraMaxPitch);
+            stageCameraUserAdjusted = true;
+            ApplyStageCameraState();
+        }
+
+        public void PanStageCamera(Vector2 deltaPixels)
+        {
+            if (!EnsureStageCameraState())
+            {
+                return;
+            }
+
+            var scale = StageCameraPanSpeed * Mathf.Max(stageCameraDistance, 0.01f);
+            var cameraTransform = stageCamera.transform;
+            stageCameraPanOffset -= cameraTransform.right * (deltaPixels.x * scale);
+            stageCameraPanOffset -= cameraTransform.up * (deltaPixels.y * scale);
+            stageCameraUserAdjusted = true;
+            ApplyStageCameraState();
+        }
+
+        public void ZoomStageCamera(float wheelDelta)
+        {
+            if (!EnsureStageCameraState())
+            {
+                return;
+            }
+
+            var clampedDelta = Mathf.Clamp(wheelDelta, -12f, 12f);
+            stageCameraDistance = Mathf.Clamp(
+                stageCameraDistance + (clampedDelta * StageCameraZoomSpeed),
+                stageCameraMinDistance,
+                stageCameraMaxDistance);
+            stageCameraUserAdjusted = true;
+            ApplyStageCameraState();
+        }
+
+        private bool EnsureStageCameraState()
+        {
+            if (stageCamera == null)
+            {
+                return false;
+            }
+
+            if (stageCameraStateValid)
+            {
+                return true;
+            }
+
+            ResetStageCamera();
+            return stageCameraStateValid;
+        }
+
+        private void ApplyStageCameraState()
+        {
+            if (stageCamera == null || !stageCameraStateValid)
+            {
+                return;
+            }
+
+            var rotation = Quaternion.Euler(stageCameraPitch, stageCameraYaw, 0f);
+            var focusPoint = stageCameraFocusPoint + stageCameraPanOffset;
+            stageCamera.transform.position = focusPoint + (rotation * new Vector3(0f, 0f, -stageCameraDistance));
+            stageCamera.transform.LookAt(focusPoint);
+        }
+
+        private void ApplyStageCameraPreset(float yawDeg, float pitchDeg, float distanceMultiplier)
+        {
+            stageCameraYaw = yawDeg;
+            stageCameraPitch = Mathf.Clamp(pitchDeg, StageCameraMinPitch, StageCameraMaxPitch);
+            stageCameraDistance = Mathf.Clamp(
+                stageCameraDistance * Mathf.Max(0.85f, distanceMultiplier),
+                stageCameraMinDistance,
+                stageCameraMaxDistance);
+            stageCameraUserAdjusted = true;
+            ApplyStageCameraState();
+        }
+
+        private void SetStageCameraStateFromCurrentPose(Vector3 focusPoint, Bounds? bounds, float fallbackDistance)
+        {
+            if (stageCamera == null)
+            {
+                stageCameraStateValid = false;
+                return;
+            }
+
+            var offset = stageCamera.transform.position - focusPoint;
+            var distance = offset.magnitude > 0.01f ? offset.magnitude : Mathf.Max(0.35f, fallbackDistance);
+            var lookDirection = offset.sqrMagnitude > 0.0001f
+                ? (-offset).normalized
+                : stageCamera.transform.forward.normalized;
+            stageCameraFocusPoint = focusPoint;
+            stageCameraPanOffset = Vector3.zero;
+            stageCameraDistance = Mathf.Max(0.01f, distance);
+            if (bounds.HasValue)
+            {
+                var extentsMagnitude = bounds.Value.extents.magnitude;
+                stageCameraMinDistance = Mathf.Max(0.25f, extentsMagnitude * 0.22f);
+                stageCameraMaxDistance = Mathf.Max(stageCameraMinDistance + 1f, stageCameraDistance * 3.2f, extentsMagnitude * 4.5f);
+            }
+            else
+            {
+                stageCameraMinDistance = 0.35f;
+                stageCameraMaxDistance = Mathf.Max(6f, stageCameraDistance * 2.5f);
+            }
+
+            stageCameraDistance = Mathf.Clamp(stageCameraDistance, stageCameraMinDistance, stageCameraMaxDistance);
+            stageCameraYaw = Mathf.Atan2(lookDirection.x, lookDirection.z) * Mathf.Rad2Deg;
+            stageCameraPitch = Mathf.Clamp(
+                -Mathf.Asin(Mathf.Clamp(lookDirection.y, -1f, 1f)) * Mathf.Rad2Deg,
+                StageCameraMinPitch,
+                StageCameraMaxPitch);
+            stageCameraStateValid = true;
+            stageCameraUserAdjusted = false;
         }
 
         public string SelectRobotPartAtViewport(Vector2 normalizedViewport)
@@ -1125,8 +1331,9 @@ namespace KineTutor3D.App.Fairino
             var ray = stageCamera.ViewportPointToRay(clampedViewport);
             if (Physics.Raycast(ray, out var hit, 20f) && hit.transform != null && hit.transform.IsChildOf(controlRobotInstance.transform))
             {
-                var selected = hit.collider != null ? hit.collider.transform : hit.transform;
+                var selected = ResolveSelectablePartTransform(hit.collider != null ? hit.collider.transform : hit.transform);
                 partSelectionGizmo?.Select(selected);
+                selectedLinkHighlighter?.Select(selected);
                 lastSelectedPartName = selected.name;
                 PushFeedback($"[Select] {lastSelectedPartName} 선택");
                 RefreshSnapshot();
@@ -1136,14 +1343,17 @@ namespace KineTutor3D.App.Fairino
             var fallbackTarget = FindRendererHit(ray);
             if (fallbackTarget != null)
             {
-                partSelectionGizmo?.Select(fallbackTarget);
-                lastSelectedPartName = fallbackTarget.name;
+                var selected = ResolveSelectablePartTransform(fallbackTarget);
+                partSelectionGizmo?.Select(selected);
+                selectedLinkHighlighter?.Select(selected);
+                lastSelectedPartName = selected.name;
                 PushFeedback($"[Select] {lastSelectedPartName} 선택");
                 RefreshSnapshot();
                 return lastSelectedPartName;
             }
 
             partSelectionGizmo?.Clear();
+            selectedLinkHighlighter?.Clear();
             lastSelectedPartName = "없음";
             PushFeedback("[Select] 선택 해제");
             RefreshSnapshot();
@@ -1831,6 +2041,25 @@ namespace KineTutor3D.App.Fairino
             RefreshSnapshot();
         }
 
+        public void PulseJointHighlight(int jointIndex)
+        {
+            if (jointHighlightRings == null || jointHighlightRings.Length == 0)
+            {
+                return;
+            }
+
+            activeJointHighlightIndex = Mathf.Clamp(jointIndex, 0, jointHighlightRings.Length - 1);
+            activeJointHighlightUntilTime = Time.unscaledTime + JointHighlightHoldSeconds;
+            ApplyJointHighlightState();
+        }
+
+        public void ClearJointHighlight()
+        {
+            activeJointHighlightIndex = -1;
+            activeJointHighlightUntilTime = 0f;
+            ApplyJointHighlightState();
+        }
+
         public void ExecutePrimaryAction()
         {
             if (TryExecutePendingPreview())
@@ -2189,10 +2418,12 @@ namespace KineTutor3D.App.Fairino
 
         private bool TryInitialize()
         {
-            if (initialized)
+            if (initialized && connectionService != null && config != null && templateDefinition != null)
             {
                 return true;
             }
+
+            initialized = false;
 
             try
             {
@@ -2511,6 +2742,19 @@ namespace KineTutor3D.App.Fairino
             var gizmoHost = runtimeRoot.Find("FrameGizmos") ?? new GameObject("FrameGizmos").transform;
             gizmoHost.SetParent(runtimeRoot, false);
             frameGizmoFactory = EnsureComponent<FrameGizmoFactory>(gizmoHost.gameObject);
+            frameGizmoFactory.SetVisible(false);
+
+            var baseFrameHost = runtimeRoot.Find("BaseFrameGizmo") ?? new GameObject("BaseFrameGizmo").transform;
+            baseFrameHost.SetParent(runtimeRoot, false);
+            baseFrameGizmo = EnsureComponent<FrameGizmo>(baseFrameHost.gameObject);
+            baseFrameGizmo.SetLength(0.12f);
+            baseFrameGizmo.SetVisible(false);
+
+            var toolFrameHost = runtimeRoot.Find("ToolFrameGizmo") ?? new GameObject("ToolFrameGizmo").transform;
+            toolFrameHost.SetParent(runtimeRoot, false);
+            toolFrameGizmo = EnsureComponent<FrameGizmo>(toolFrameHost.gameObject);
+            toolFrameGizmo.SetLength(0.09f);
+            toolFrameGizmo.SetVisible(false);
 
             var trailHost = runtimeRoot.Find("EETrail") ?? new GameObject("EETrail").transform;
             trailHost.SetParent(runtimeRoot, false);
@@ -2531,6 +2775,7 @@ namespace KineTutor3D.App.Fairino
             var selectionHost = runtimeRoot.Find("PartSelectionGizmo") ?? new GameObject("PartSelectionGizmo").transform;
             selectionHost.SetParent(runtimeRoot, false);
             partSelectionGizmo = EnsureComponent<RobotPartSelectionGizmo>(selectionHost.gameObject);
+            partSelectionGizmo.SetAxisLength(0.08f);
             partSelectionGizmo.Clear();
 
             var ghostHost = runtimeRoot.Find("GhostRobotVisual") ?? new GameObject("GhostRobotVisual").transform;
@@ -2542,6 +2787,9 @@ namespace KineTutor3D.App.Fairino
             pathHost.SetParent(runtimeRoot, false);
             predictedPathRenderer = EnsureComponent<PredictedPathRenderer>(pathHost.gameObject);
             predictedPathRenderer.ClearPath();
+
+            selectedLinkHighlighter = EnsureComponent<SelectedLinkHighlighter>(controlRobotInstance);
+            EnsureJointHighlightRings();
 
             EnsureEndEffectorAttachment();
         }
@@ -2557,7 +2805,7 @@ namespace KineTutor3D.App.Fairino
             if (endEffectorAttachment != null)
             {
                 peripheralFacade?.SetGripperVisualAttached(true);
-                ResetStageCamera();
+                ResetStageCameraIfAutomatic();
                 return;
             }
 
@@ -2585,7 +2833,7 @@ namespace KineTutor3D.App.Fairino
                     ?? existing.gameObject.AddComponent<FR5EndEffectorAttachment>();
                 ConfigureEndEffectorAttachment(existing);
                 peripheralFacade?.SetGripperVisualAttached(true);
-                ResetStageCamera();
+                ResetStageCameraIfAutomatic();
                 return;
             }
 
@@ -2600,7 +2848,7 @@ namespace KineTutor3D.App.Fairino
             instance.name = PgeaAttachmentId;
             ConfigureEndEffectorAttachment(instance.transform);
             peripheralFacade?.SetGripperVisualAttached(true);
-            ResetStageCamera();
+            ResetStageCameraIfAutomatic();
         }
 
         private void ConfigureEndEffectorAttachment(Transform attachmentRoot)
@@ -2644,10 +2892,184 @@ namespace KineTutor3D.App.Fairino
             if (endEffectorAttachment != null)
             {
                 endEffectorAttachment.SetGripperOpen(openRatio);
-                ResetStageCamera();
+                ResetStageCameraIfAutomatic();
             }
 
             peripheralFacade?.SetGripperVisualAttached(endEffectorAttachment != null);
+        }
+
+        private void ResetStageCameraIfAutomatic()
+        {
+            if (!stageCameraUserAdjusted || !stageCameraStateValid)
+            {
+                ResetStageCamera();
+            }
+        }
+
+        private void EnsureJointHighlightRings()
+        {
+            if (runtimeRoot == null)
+            {
+                return;
+            }
+
+            var host = runtimeRoot.Find("JointHighlightRings") ?? new GameObject("JointHighlightRings").transform;
+            host.SetParent(runtimeRoot, false);
+            var colors = new[]
+            {
+                new Color(0.95f, 0.77f, 0.15f, 1f),
+                new Color(0.29f, 0.56f, 0.85f, 1f),
+                new Color(0.71f, 0.54f, 0.93f, 1f),
+                new Color(0.36f, 0.86f, 0.72f, 1f),
+                new Color(0.99f, 0.63f, 0.18f, 1f),
+                new Color(0.90f, 0.35f, 0.42f, 1f)
+            };
+            var radii = new[] { 0.24f, 0.18f, 0.16f, 0.14f, 0.12f, 0.10f };
+
+            var jointCount = templateDefinition != null ? templateDefinition.JointCount : 6;
+            jointHighlightRings ??= new JointHighlightRing[jointCount];
+            for (var index = 0; index < jointHighlightRings.Length; index++)
+            {
+                var ringTransform = host.Find($"JointHighlightRing_{index}") ?? new GameObject($"JointHighlightRing_{index}").transform;
+                ringTransform.SetParent(host, false);
+                var ring = EnsureComponent<JointHighlightRing>(ringTransform.gameObject);
+                var jointTransform = jointDriver != null ? jointDriver.GetJointTransform(index) : null;
+                if (jointTransform != null)
+                {
+                    ring.Bind(jointTransform, radii[Mathf.Min(index, radii.Length - 1)], colors[Mathf.Min(index, colors.Length - 1)]);
+                }
+
+                ring.SetVisible(false);
+                jointHighlightRings[index] = ring;
+            }
+        }
+
+        private void ApplyBaseAndToolFrameState()
+        {
+            frameGizmoFactory?.SetVisible(false);
+            ApplyFrameGizmo(baseFrameGizmo, ResolveBaseFrameTransform(), showBaseFrame);
+            ApplyFrameGizmo(toolFrameGizmo, ResolveToolFrameTransform(), showToolFrame);
+        }
+
+        private void ApplyFrameGizmo(FrameGizmo gizmo, Transform target, bool visible)
+        {
+            if (gizmo == null)
+            {
+                return;
+            }
+
+            var shouldShow = visible && target != null;
+            if (shouldShow)
+            {
+                gizmo.transform.position = target.position;
+                gizmo.transform.rotation = target.rotation;
+                gizmo.transform.localScale = Vector3.one;
+            }
+
+            gizmo.SetVisible(shouldShow);
+        }
+
+        private Transform ResolveBaseFrameTransform()
+        {
+            return FindBaseLink(controlRobotInstance != null ? controlRobotInstance.transform : runtimeRoot)
+                ?? controlRobotInstance?.transform
+                ?? runtimeRoot;
+        }
+
+        private Transform ResolveToolFrameTransform()
+        {
+            if (endEffectorAttachment?.TcpFrame != null)
+            {
+                return endEffectorAttachment.TcpFrame;
+            }
+
+            var toolMount = controlRobotInstance != null ? FindChildRecursive(controlRobotInstance.transform, "ToolMount") : null;
+            if (toolMount != null)
+            {
+                return toolMount;
+            }
+
+            var jointIndex = templateDefinition != null ? templateDefinition.JointCount - 1 : 5;
+            return jointDriver?.GetJointTransform(jointIndex);
+        }
+
+        private void ApplyJointHighlightState()
+        {
+            if (jointHighlightRings == null)
+            {
+                return;
+            }
+
+            for (var index = 0; index < jointHighlightRings.Length; index++)
+            {
+                jointHighlightRings[index]?.SetVisible(index == activeJointHighlightIndex);
+            }
+        }
+
+        private Transform ResolveSelectablePartTransform(Transform target)
+        {
+            if (target == null)
+            {
+                return null;
+            }
+
+            var gripperPart = ResolveGripperSelectablePart(target);
+            if (gripperPart != null)
+            {
+                return gripperPart;
+            }
+
+            var current = target;
+            while (current != null && current != controlRobotInstance?.transform)
+            {
+                if (IsSelectableLinkTransform(current))
+                {
+                    return current;
+                }
+
+                current = current.parent;
+            }
+
+            return target;
+        }
+
+        private Transform ResolveGripperSelectablePart(Transform target)
+        {
+            if (target == null || endEffectorAttachment == null)
+            {
+                return null;
+            }
+
+            if (endEffectorAttachment.FingerLeft != null && target.IsChildOf(endEffectorAttachment.FingerLeft))
+            {
+                return endEffectorAttachment.FingerLeft;
+            }
+
+            if (endEffectorAttachment.FingerRight != null && target.IsChildOf(endEffectorAttachment.FingerRight))
+            {
+                return endEffectorAttachment.FingerRight;
+            }
+
+            if (endEffectorAttachment.ModelRoot != null && target.IsChildOf(endEffectorAttachment.ModelRoot))
+            {
+                return endEffectorAttachment.ModelRoot;
+            }
+
+            return null;
+        }
+
+        private static bool IsSelectableLinkTransform(Transform target)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+
+            var name = target.name;
+            return name.IndexOf("link", StringComparison.OrdinalIgnoreCase) >= 0
+                || name.IndexOf("tcp", StringComparison.OrdinalIgnoreCase) >= 0
+                || name.IndexOf("tool", StringComparison.OrdinalIgnoreCase) >= 0
+                || name.IndexOf("gripper", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void EnsureStageCameraRig()
@@ -2782,13 +3204,10 @@ namespace KineTutor3D.App.Fairino
                 {
                     displacementArrow?.UpdateFromFK(kinematicsFacade.EndEffectorTransform);
                 }
-
-                frameGizmoFactory?.SetVisible(showBaseFrame || showToolFrame);
-                if (frameGizmoFactory != null && kinematicsFacade != null)
-                {
-                    frameGizmoFactory.ApplyFrames(kinematicsFacade.CumulativeTransforms);
-                }
             }
+
+            ApplyBaseAndToolFrameState();
+            ApplyJointHighlightState();
 
             ghostRobotVisual?.SetVisible(false);
             predictedPathRenderer?.ClearPath();
@@ -2829,7 +3248,7 @@ namespace KineTutor3D.App.Fairino
             if (requestStageRefocus)
             {
                 requestStageRefocus = false;
-                ResetStageCamera();
+                ResetStageCameraIfAutomatic();
             }
         }
 
@@ -3244,7 +3663,7 @@ namespace KineTutor3D.App.Fairino
             snapshot.HasSelectedPart = selectedTarget != null;
             snapshot.SelectedPartName = selectedTarget != null ? selectedTarget.name : "선택된 파츠 없음";
             snapshot.SelectedPartHint = selectedTarget != null
-                ? "선택 파츠 기준 XYZ 기즈모는 메인 로봇 위에만 두고, 자세한 값은 여기서 본다."
+                ? "선택 링크를 강조하고 작은 좌표축만 붙인다. 자세한 값은 여기서 본다."
                 : "메인 로봇 메시를 클릭하면 선택 파츠 정보를 여기서 본다.";
 
             if (selectedTarget == null)
@@ -3302,7 +3721,10 @@ namespace KineTutor3D.App.Fairino
                 return null;
             }
 
-            if (root.name == templateDefinition.BaseLinkName)
+            var baseLinkName = !string.IsNullOrWhiteSpace(templateDefinition?.BaseLinkName)
+                ? templateDefinition.BaseLinkName
+                : "base_link";
+            if (root.name == baseLinkName)
             {
                 return root;
             }

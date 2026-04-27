@@ -152,7 +152,8 @@ namespace KineTutor3D.App
                 case "BtnTcpCoordUser":
                     return $"button={buttonName}; found=True; action=coord; {SetTcpCoordSystemForDebug("User")}";
                 default:
-                    return $"button={buttonName}; found=True; action=unmapped";
+                    var clickMessage = ClickUiButton(buttonName, "desktop", out var found, out var enabled, out var path);
+                    return $"button={buttonName}; found={found}; enabled={enabled}; path={path}; action=click; result={clickMessage}";
             }
         }
 
@@ -524,6 +525,12 @@ namespace KineTutor3D.App
             return pointMove.SetPointTimingForDebug(speedPreset, dwellSec);
         }
 
+        public static string SetTeachingSubviewForDebug(string subviewName)
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.SetTeachingSubviewForDebug(subviewName);
+        }
+
         public static string ApplyPointMoveTimingForDebug()
         {
             var pointMove = GetPointMoveController();
@@ -666,6 +673,12 @@ namespace KineTutor3D.App
         {
             var pointMove = GetPointMoveController();
             return pointMove.GetFunctionCompactDebugSummary();
+        }
+
+        public static string GetTeachingFunctionSourceSummaryForDebug()
+        {
+            var pointMove = GetPointMoveController();
+            return pointMove.GetFunctionSourceDebugSummary();
         }
 
         public static string GetTeachingSequenceLibrarySummaryForDebug()
@@ -1163,6 +1176,13 @@ namespace KineTutor3D.App
                     dwellSec = 0.0
                 });
                 WaypointStore.Save(sequence);
+                ClearFunctionPointSelectionForDebug();
+                ClearSelectedPointRowsForDebug();
+                SetTeachingSubviewForDebug("Point");
+                if (GetPointMoveControllerSummary().Contains("rowActionsCollapsed=True"))
+                {
+                    ClickUiButton("BtnPointRowActionsToggle", "desktop", out _, out _, out _);
+                }
             }
 
             AddCase("BtnConnect", () => { runtime.Disconnect(); Select("NavHome", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "connected=True");
@@ -1633,51 +1653,52 @@ namespace KineTutor3D.App
             {
                 SeedFunctionPoints();
                 RecallPointMoveForDebug("FUNC_UI_A");
-            }, "BtnFunctionAddPoint", GetTeachingFunctionUiSummaryForDebug, "FUNC_UI_A");
+                SetTeachingSubviewForDebug("Point");
+            }, "BtnPointRowFunctionCandidate", GetPointActionModalSummaryForDebug, "mode=Function");
 
             AddClickCase("function-clear-selection-click", () =>
             {
                 SeedFunctionPoints();
+                RecallPointMoveForDebug("FUNC_UI_A");
                 AddSelectedPointToFunctionForDebug("FUNC_UI_A");
-            }, "BtnFunctionClearSelection", GetTeachingFunctionUiSummaryForDebug, "후보 초기화");
+                SetTeachingSubviewForDebug("Point");
+            }, "BtnPointFunctionClearSelection", GetTeachingFunctionUiSummaryForDebug, "후보 초기화");
 
             AddClickCase("function-create-click", () =>
             {
                 SeedFunctionPoints();
-                AddSelectedPointToFunctionForDebug("FUNC_UI_A");
-            }, "BtnFunctionCreate", GetTeachingFunctionUiSummaryForDebug, "functions=");
+                RecallPointMoveForDebug("FUNC_UI_A");
+                SetTeachingSubviewForDebug("Point");
+                ClickUiButton("BtnPointRowSelect", "desktop", out _, out _, out _);
+                ClickUiButton("BtnPointBulkFunction", "desktop", out _, out _, out _);
+                SetTeachingFunctionNameForDebug("FUNC_ACTUAL_CREATE");
+            }, "BtnPointFunctionCreate", GetTeachingFunctionUiSummaryForDebug, "selectedFunction=FUNC_ACTUAL_CREATE");
 
-            AddClickCase("function-run-click", () =>
+            AddClickCase("function-subview-click", () =>
             {
                 SeedFunctionPoints();
-                CreateTeachingFunctionForDebug("FUNC_ACTUAL_RUN");
-            }, "BtnFunctionRun", GetTeachingFunctionUiSummaryForDebug, "[Function Run]");
-
-            AddClickCase("function-run-from-selected-click", () =>
-            {
-                SeedFunctionPoints();
-                ClearFunctionPointSelectionForDebug();
-                AddSelectedPointToFunctionForDebug("FUNC_UI_B");
-                CreateTeachingFunctionForDebug("FUNC_ACTUAL_FROM");
-                RecallPointMoveForDebug("FUNC_UI_B");
-            }, "BtnFunctionRunFromSelected", GetTeachingFunctionUiSummaryForDebug, "[Function From]");
+                SetTeachingSubviewForDebug("Point");
+            }, "BtnFunctionSubview", GetPointMoveControllerSummary, "subview=Function");
 
             AddClickCase("function-rename-click", () =>
             {
                 SeedFunctionPoints();
                 CreateTeachingFunctionForDebug("FUNC_ACTUAL_RENAME");
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
             }, "BtnFunctionRename", GetTeachingFunctionUiSummaryForDebug, "[Function]");
 
             AddClickCase("function-duplicate-click", () =>
             {
                 SeedFunctionPoints();
                 CreateTeachingFunctionForDebug("FUNC_ACTUAL_DUP");
-            }, "BtnFunctionDuplicate", GetTeachingFunctionUiSummaryForDebug, "COPY");
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
+            }, "BtnFunctionDuplicate", GetTeachingFunctionUiSummaryForDebug, "복사");
 
             AddClickCase("function-delete-click", () =>
             {
                 SeedFunctionPoints();
                 CreateTeachingFunctionForDebug("FUNC_ACTUAL_DELETE");
+                ClickUiButton("BtnFunctionSubview", "desktop", out _, out _, out _);
             }, "BtnFunctionDelete", GetTeachingFunctionUiSummaryForDebug, "삭제");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-function-actual-click-matrix.json", "FunctionActualClickMatrix");
@@ -3731,7 +3752,7 @@ namespace KineTutor3D.App
             {
                 EnsureRuntimeReady(runtime);
                 SetShellSelection("NavMotion", "TabTcpJog", "BottomTabTcpJog");
-            }, "viewportOrder=[ControlDockHost,CartesianArrowsOverlayHost,ViewportToolbarHost,ViewportDescriptionSection,ViewportSelectionSection]");
+            }, "viewportOrder=[ControlDockHost,CartesianArrowsOverlayHost,ViewportToolbarHost,ViewportDescriptionSection]");
 
             AddCase("motion-subtabs-first-inside-control-dock", () =>
             {
@@ -3918,9 +3939,8 @@ namespace KineTutor3D.App
 
         private static string ClickUiButton(string buttonName, string prefer, out bool found, out bool enabled, out string path)
         {
-            var document = Object.FindFirstObjectByType<UIDocument>(FindObjectsInactive.Include);
-            var root = document?.rootVisualElement;
-            if (root == null)
+            var documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (documents == null || documents.Length == 0)
             {
                 found = false;
                 enabled = false;
@@ -3929,13 +3949,22 @@ namespace KineTutor3D.App
             }
 
             var buttons = new List<Button>();
-            root.Query<Button>(name: buttonName).ForEach(button => buttons.Add(button));
+            for (var i = 0; i < documents.Length; i++)
+            {
+                var root = documents[i]?.rootVisualElement;
+                root?.Query<Button>(name: buttonName).ForEach(button => buttons.Add(button));
+            }
+
+            var pointMove = Object.FindFirstObjectByType<PointMoveController>(FindObjectsInactive.Include);
+            pointMove?.CollectButtonsForDebug(buttonName, buttons);
+            buttons.RemoveAll(button => button == null || button.panel == null);
+
             if (buttons.Count == 0)
             {
                 found = false;
                 enabled = false;
                 path = string.Empty;
-                return "not-found";
+                return $"not-found; available={BuildAvailableButtonNameSummary(documents, pointMove)}";
             }
 
             var selected = SelectButton(buttons, prefer);
@@ -3954,8 +3983,62 @@ namespace KineTutor3D.App
 
             using var clickEvent = ClickEvent.GetPooled();
             clickEvent.target = selected;
-            selected.SendEvent(clickEvent);
+            if (selected.clickable != null)
+            {
+                var invoke = typeof(Clickable).GetMethod(
+                    "Invoke",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                if (invoke != null)
+                {
+                    invoke.Invoke(selected.clickable, new object[] { clickEvent });
+                }
+                else
+                {
+                    selected.SendEvent(clickEvent);
+                }
+            }
+            else
+            {
+                selected.SendEvent(clickEvent);
+            }
             return $"clicked:{buttonName}";
+        }
+
+        private static string BuildAvailableButtonNameSummary(UIDocument[] documents, PointMoveController pointMove)
+        {
+            if (documents == null || documents.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var names = new List<string>();
+            for (var i = 0; i < documents.Length; i++)
+            {
+                var root = documents[i]?.rootVisualElement;
+                root?.Query<Button>().ForEach(button =>
+                {
+                    if (!string.IsNullOrWhiteSpace(button.name)
+                        && names.Count < 128
+                        && !names.Contains(button.name))
+                    {
+                        names.Add(button.name);
+                    }
+                });
+            }
+
+            var pointButtons = new List<Button>();
+            pointMove?.CollectButtonsForDebug(pointButtons);
+            for (var i = 0; i < pointButtons.Count && names.Count < 128; i++)
+            {
+                var buttonName = pointButtons[i]?.name;
+                if (!string.IsNullOrWhiteSpace(buttonName) && !names.Contains(buttonName))
+                {
+                    names.Add(buttonName);
+                }
+            }
+
+            names.Sort(System.StringComparer.Ordinal);
+            return string.Join(",", names);
         }
 
         private static FairinoConnectionService GetRuntimeConnectionService()

@@ -12,6 +12,10 @@ namespace KineTutor3D.UI.RobotControlV3
     [RequireComponent(typeof(RobotControlV3RuntimeController))]
     public sealed class RobotStageRenderSurface : MonoBehaviour
     {
+        private const float DragThresholdPixels = 5f;
+        private const int LeftMouseButton = 0;
+        private const int RightMouseButton = 1;
+
         [SerializeField] private UIDocument document;
         [SerializeField] private RobotControlV3RuntimeController runtimeController;
 
@@ -27,6 +31,12 @@ namespace KineTutor3D.UI.RobotControlV3
         private string lastCameraName = "null";
         private string lastError = string.Empty;
         private bool initialized;
+        private bool pointerActive;
+        private bool dragExceededThreshold;
+        private int activePointerId = -1;
+        private int activeButton = -1;
+        private Vector2 pointerDownPosition;
+        private Vector2 lastPointerPosition;
 
         private void OnEnable()
         {
@@ -43,9 +53,14 @@ namespace KineTutor3D.UI.RobotControlV3
             if (renderSurfaceElement != null)
             {
                 renderSurfaceElement.UnregisterCallback<PointerDownEvent>(OnRenderSurfacePointerDown);
+                renderSurfaceElement.UnregisterCallback<PointerMoveEvent>(OnRenderSurfacePointerMove);
+                renderSurfaceElement.UnregisterCallback<PointerUpEvent>(OnRenderSurfacePointerUp);
+                renderSurfaceElement.UnregisterCallback<PointerCancelEvent>(OnRenderSurfacePointerCancel);
+                renderSurfaceElement.UnregisterCallback<WheelEvent>(OnRenderSurfaceWheel);
             }
 
             ReleaseRenderTexture();
+            ResetPointerState();
             initialized = false;
         }
 
@@ -85,8 +100,7 @@ namespace KineTutor3D.UI.RobotControlV3
             EnsureDiagnosticLabel();
             robotStageHost.UnregisterCallback<GeometryChangedEvent>(OnStageGeometryChanged);
             robotStageHost.RegisterCallback<GeometryChangedEvent>(OnStageGeometryChanged);
-            renderSurfaceElement?.UnregisterCallback<PointerDownEvent>(OnRenderSurfacePointerDown);
-            renderSurfaceElement?.RegisterCallback<PointerDownEvent>(OnRenderSurfacePointerDown);
+            RegisterSurfaceInputCallbacks();
             var camera = ResolveStageCamera();
             if (camera != null)
             {
@@ -138,7 +152,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             ReleaseRenderTexture();
             camera.aspect = (float)width / height;
-            runtimeController?.ResetStageCamera();
+            runtimeController?.RefreshStageCameraView();
             renderTexture = new RenderTexture(width, height, 16, RenderTextureFormat.ARGB32)
             {
                 name = "RobotControlV3StageRT"
@@ -196,7 +210,7 @@ namespace KineTutor3D.UI.RobotControlV3
             renderSurfaceElement = robotStageHost.Q<Image>("RobotStageRenderSurface");
             if (renderSurfaceElement != null)
             {
-                renderSurfaceElement.pickingMode = PickingMode.Ignore;
+                renderSurfaceElement.pickingMode = PickingMode.Position;
             }
         }
 
@@ -214,23 +228,166 @@ namespace KineTutor3D.UI.RobotControlV3
             }
         }
 
-        private void OnRenderSurfacePointerDown(PointerDownEvent evt)
+        private void RegisterSurfaceInputCallbacks()
         {
-            if (evt.button != 0 || renderSurfaceElement == null || runtimeController == null)
+            if (renderSurfaceElement == null)
             {
                 return;
+            }
+
+            renderSurfaceElement.UnregisterCallback<PointerDownEvent>(OnRenderSurfacePointerDown);
+            renderSurfaceElement.UnregisterCallback<PointerMoveEvent>(OnRenderSurfacePointerMove);
+            renderSurfaceElement.UnregisterCallback<PointerUpEvent>(OnRenderSurfacePointerUp);
+            renderSurfaceElement.UnregisterCallback<PointerCancelEvent>(OnRenderSurfacePointerCancel);
+            renderSurfaceElement.UnregisterCallback<WheelEvent>(OnRenderSurfaceWheel);
+            renderSurfaceElement.RegisterCallback<PointerDownEvent>(OnRenderSurfacePointerDown);
+            renderSurfaceElement.RegisterCallback<PointerMoveEvent>(OnRenderSurfacePointerMove);
+            renderSurfaceElement.RegisterCallback<PointerUpEvent>(OnRenderSurfacePointerUp);
+            renderSurfaceElement.RegisterCallback<PointerCancelEvent>(OnRenderSurfacePointerCancel);
+            renderSurfaceElement.RegisterCallback<WheelEvent>(OnRenderSurfaceWheel);
+        }
+
+        private void OnRenderSurfacePointerDown(PointerDownEvent evt)
+        {
+            if (renderSurfaceElement == null || runtimeController == null)
+            {
+                return;
+            }
+
+            if (evt.button != LeftMouseButton && evt.button != RightMouseButton)
+            {
+                return;
+            }
+
+            pointerActive = true;
+            dragExceededThreshold = false;
+            activePointerId = evt.pointerId;
+            activeButton = evt.button;
+            pointerDownPosition = ToVector2(evt.position);
+            lastPointerPosition = pointerDownPosition;
+            renderSurfaceElement.CapturePointer(activePointerId);
+            evt.StopPropagation();
+        }
+
+        private void OnRenderSurfacePointerMove(PointerMoveEvent evt)
+        {
+            if (!pointerActive || evt.pointerId != activePointerId || runtimeController == null)
+            {
+                return;
+            }
+
+            var currentPosition = ToVector2(evt.position);
+            var delta = currentPosition - lastPointerPosition;
+            var exceedsThreshold = ExceedsDragThreshold(pointerDownPosition, currentPosition);
+            if (activeButton == LeftMouseButton)
+            {
+                if (exceedsThreshold)
+                {
+                    dragExceededThreshold = true;
+                    runtimeController.OrbitStageCamera(delta);
+                }
+            }
+            else if (activeButton == RightMouseButton)
+            {
+                if (exceedsThreshold)
+                {
+                    dragExceededThreshold = true;
+                    runtimeController.PanStageCamera(delta);
+                }
+            }
+
+            lastPointerPosition = currentPosition;
+            evt.StopPropagation();
+        }
+
+        private void OnRenderSurfacePointerUp(PointerUpEvent evt)
+        {
+            if (!pointerActive || evt.pointerId != activePointerId)
+            {
+                return;
+            }
+
+            var currentPosition = ToVector2(evt.position);
+            if (activeButton == LeftMouseButton
+                && !dragExceededThreshold
+                && !ExceedsDragThreshold(pointerDownPosition, currentPosition)
+                && TryGetNormalizedViewport(currentPosition, out var normalizedViewport))
+            {
+                runtimeController?.SelectRobotPartAtViewport(normalizedViewport);
+            }
+
+            ReleasePointerCapture();
+            ResetPointerState();
+            evt.StopPropagation();
+        }
+
+        private void OnRenderSurfacePointerCancel(PointerCancelEvent evt)
+        {
+            if (pointerActive && evt.pointerId == activePointerId)
+            {
+                ReleasePointerCapture();
+                ResetPointerState();
+                evt.StopPropagation();
+            }
+        }
+
+        private void OnRenderSurfaceWheel(WheelEvent evt)
+        {
+            if (runtimeController == null)
+            {
+                return;
+            }
+
+            runtimeController.ZoomStageCamera(evt.delta.y);
+            evt.StopPropagation();
+        }
+
+        private void ReleasePointerCapture()
+        {
+            if (renderSurfaceElement != null && activePointerId >= 0 && renderSurfaceElement.HasPointerCapture(activePointerId))
+            {
+                renderSurfaceElement.ReleasePointer(activePointerId);
+            }
+        }
+
+        private void ResetPointerState()
+        {
+            pointerActive = false;
+            dragExceededThreshold = false;
+            activePointerId = -1;
+            activeButton = -1;
+            pointerDownPosition = Vector2.zero;
+            lastPointerPosition = Vector2.zero;
+        }
+
+        private bool TryGetNormalizedViewport(Vector2 position, out Vector2 normalizedViewport)
+        {
+            normalizedViewport = default;
+            if (renderSurfaceElement == null)
+            {
+                return false;
             }
 
             var bounds = renderSurfaceElement.worldBound;
             if (bounds.width <= 1f || bounds.height <= 1f)
             {
-                return;
+                return false;
             }
 
-            var normalizedX = Mathf.Clamp01((evt.position.x - bounds.xMin) / bounds.width);
-            var normalizedY = Mathf.Clamp01(1f - ((evt.position.y - bounds.yMin) / bounds.height));
-            runtimeController.SelectRobotPartAtViewport(new Vector2(normalizedX, normalizedY));
-            evt.StopPropagation();
+            normalizedViewport = new Vector2(
+                Mathf.Clamp01((position.x - bounds.xMin) / bounds.width),
+                Mathf.Clamp01(1f - ((position.y - bounds.yMin) / bounds.height)));
+            return true;
+        }
+
+        private static bool ExceedsDragThreshold(Vector2 startPosition, Vector2 currentPosition)
+        {
+            return (currentPosition - startPosition).sqrMagnitude > DragThresholdPixels * DragThresholdPixels;
+        }
+
+        private static Vector2 ToVector2(Vector3 position)
+        {
+            return new Vector2(position.x, position.y);
         }
 
         private void UpdateDiagnosticLabel()
