@@ -107,9 +107,9 @@
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
 - live SDK gripper capability/readback scaffold를 연결했다.
-- Gripper `position=0`은 SDK상 percentage close command/readback으로 유지하되, Unity no-object visual에서는 inner finger faces가 닿아 보이도록 close-contact travel을 보정했다.
+- Gripper user `position=0`은 UI상 닫힘/contact로 유지하고, `GripperCalibrationProfile`에서 raw SDK percent와 visual pose ratio를 분리한다.
 - Close travel scalar로 맞지 않는 PGEA visual은 authored closed pose를 별도 캡처해서 `authored open -> authored closed` 보간으로 처리한다.
-- 현재 PGEA visual calibration은 `position=60%`를 no-object contact 지점으로 보고, `60% 이하`는 같은 closed/contact 포즈로 클램프한다.
+- 현재 PGEA calibration은 user `0%` -> raw `60%`, user `100%` -> raw `100%`, object stop raw `70%` 기준이다.
 - Desktop actual UI click matrix `98/98 PASS`.
 - Tablet/bottom representative actual click matrix `16/16 PASS`.
 - Popup confirm/cancel E2E `10/10 PASS`.

@@ -21,7 +21,6 @@ namespace KineTutor3D.Visualization
         [SerializeField] private Vector3 fingerLeftClosed;
         [SerializeField] private Vector3 fingerRightClosed;
         [SerializeField, Range(0f, 1f)] private float gripperOpenRatio = 1f;
-        [SerializeField, Range(0f, 0.95f)] private float visualClosedAtOpenRatio = 0.6f;
         [SerializeField, Range(0.05f, 2f)] private float gripperMotionDuration = 0.55f;
         [SerializeField, Range(0.005f, 0.2f)] private float gripProbeRadius = 0.035f;
         [SerializeField, Range(0.05f, 0.95f)] private float detectedObjectStopRatio = 0.7f;
@@ -115,8 +114,7 @@ namespace KineTutor3D.Visualization
             var leftDistance = GetFingerTargetDistance(fingerLeft, hasTarget, targetPosition);
             var rightDistance = GetFingerTargetDistance(fingerRight, hasTarget, targetPosition);
             var objectDetected = TryGetGripObjectStopRatio(out var stopRatio);
-            var poseOpenRatio = ResolveVisualPoseOpenRatio(gripperOpenRatio);
-            return $"target={targetName}; authoredOpenCaptured={fingerBaseCaptured}; authoredClosed={useAuthoredClosedPose}; visualClosedAt={visualClosedAtOpenRatio:0.##}; poseOpenRatio={poseOpenRatio:0.##}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftClosed=({fingerLeftClosed.x:0.####},{fingerLeftClosed.y:0.####},{fingerLeftClosed.z:0.####}); rightClosed=({fingerRightClosed.x:0.####},{fingerRightClosed.y:0.####},{fingerRightClosed.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
+            return $"target={targetName}; authoredOpenCaptured={fingerBaseCaptured}; authoredClosed={useAuthoredClosedPose}; poseOpenRatio={gripperOpenRatio:0.##}; objectDetected={objectDetected}; objectStop={stopRatio:0.##}; leftDistance={leftDistance:0.####}; rightDistance={rightDistance:0.####}; leftOpen=({fingerLeftOpen.x:0.####},{fingerLeftOpen.y:0.####},{fingerLeftOpen.z:0.####}); rightOpen=({fingerRightOpen.x:0.####},{fingerRightOpen.y:0.####},{fingerRightOpen.z:0.####}); leftClosed=({fingerLeftClosed.x:0.####},{fingerLeftClosed.y:0.####},{fingerLeftClosed.z:0.####}); rightClosed=({fingerRightClosed.x:0.####},{fingerRightClosed.y:0.####},{fingerRightClosed.z:0.####}); leftCloseTravel=({fingerLeftCloseTravel.x:0.####},{fingerLeftCloseTravel.y:0.####},{fingerLeftCloseTravel.z:0.####}); rightCloseTravel=({fingerRightCloseTravel.x:0.####},{fingerRightCloseTravel.y:0.####},{fingerRightCloseTravel.z:0.####})";
         }
 
         private void ApplyVisibilityMaterials()
@@ -268,20 +266,9 @@ namespace KineTutor3D.Visualization
                 return;
             }
 
-            var closeAmount = 1f - ResolveVisualPoseOpenRatio(gripperOpenRatio);
+            var closeAmount = 1f - gripperOpenRatio;
             fingerLeft.localPosition = fingerLeftOpen + fingerLeftCloseTravel * closeAmount;
             fingerRight.localPosition = fingerRightOpen + fingerRightCloseTravel * closeAmount;
-        }
-
-        private float ResolveVisualPoseOpenRatio(float openRatio)
-        {
-            var clampedRatio = Mathf.Clamp01(openRatio);
-            if (visualClosedAtOpenRatio <= 0.0001f)
-            {
-                return clampedRatio;
-            }
-
-            return Mathf.InverseLerp(visualClosedAtOpenRatio, 1f, clampedRatio);
         }
 
         private IEnumerator AnimateGripperOpenRatio(float targetRatio)

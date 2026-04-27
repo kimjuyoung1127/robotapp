@@ -73,13 +73,15 @@ Date: 2026-04-27 (KST)
 - Zero-position visual calibration:
   - FAIRINO SDK `pos=0` is a 0~100 percentage command/readback, not a universal mesh-contact guarantee.
   - In this Unity mock, the no-object visual contract is stricter: `position=0` and `openRatio=0.00` should look fully closed, with the inner finger faces meeting.
-  - PGEA rendered finger centers left visible clearance at exact center travel, so `FR5EndEffectorAttachment` now applies close-contact overtravel while preserving the official `0=close`, `100=open` mapping.
+  - `GripperCalibrationProfile` separates user percent, FAIRINO raw percent, and Unity visual pose ratio.
+  - Current observed PGEA calibration maps user `0%` closed/contact to raw `60%`, user `100%` open to raw `100%`, and object-stop to raw `70%`.
+  - UI slider/input and `GripperSummary` show user percent. Debug/SDK summaries also expose raw command/readback percent.
   - If a real workpiece is detected between the fingers, object-stop still takes priority and can keep actual above `0%`.
 - Authored closed-pose update:
   - Close travel scalar tuning is not treated as the final source of truth. If the PGEA mesh still does not visually meet at `0%`, use an authored closed pose.
   - `FR5EndEffectorAttachment` now stores optional `fingerLeftClosed` / `fingerRightClosed` local positions and interpolates `authored open -> authored closed` when enabled.
-  - Current visual calibration treats `position=60%` as the no-object contact point. `100%` remains fully open, and `60% -> 0%` is clamped to the same visual closed/contact pose instead of crushing farther inward.
-  - Mock object stop defaults above the contact point so a detected workpiece stops before the no-object finger-contact pose.
+  - `FR5EndEffectorAttachment` receives normalized visual pose only: `0.00` closed/contact, `1.00` open. It does not need to know the raw `60%` contact calibration.
+  - Mock object stop defaults above the raw contact point so a detected workpiece stops before the no-object finger-contact pose.
   - Debug bridge entry points:
     - `RecaptureGripperAuthoredOpenForDebug()`: capture the current local finger transforms as the 100% open baseline.
     - `RecaptureGripperAuthoredClosedForDebug()`: after manually aligning the fingers in Unity, capture the current local finger transforms as the 0% closed baseline.

@@ -9,6 +9,7 @@ namespace KineTutor3D.App.Fairino
     {
         private readonly FairinoConnectionService connectionService;
         private readonly RobotControlPeripheralState state = new();
+        private readonly GripperCalibrationProfile gripperCalibration = GripperCalibrationProfile.Pgea10040Observed;
 
         public RobotControlPeripheralFacade(FairinoConnectionService connectionService)
         {
@@ -24,28 +25,34 @@ namespace KineTutor3D.App.Fairino
 
         public FairinoResult SetGripperPosition(int positionPercent, bool allowDryRun, bool objectDetected, int objectStopPercent)
         {
+            var commandedUser = ClampPercent(positionPercent);
+            var commandedRaw = gripperCalibration.UserToRawPercent(commandedUser);
             if (!CanSimulateOrMock(allowDryRun, out var blockReason))
             {
-                var command = FairinoGripperCommand.ForPosition(positionPercent);
+                var command = FairinoGripperCommand.ForPosition(commandedRaw);
                 state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
-                state.LastPeripheralFeedback = $"{blockReason}; 공식 MoveGripper 후보: {command}";
+                state.LastPeripheralFeedback = $"{blockReason}; 공식 MoveGripper 후보: {command}; ui={commandedUser}%";
                 return FairinoResult.Fail(-60, blockReason);
             }
 
-            var commanded = ClampPercent(positionPercent);
-            var stopPercent = objectDetected ? ClampPercent(objectStopPercent) : 0;
-            var actual = objectDetected && commanded < stopPercent ? stopPercent : commanded;
-            state.GripperCommandedPositionPercent = commanded;
-            state.GripperActualPositionPercent = actual;
+            var stopRaw = objectDetected ? ClampPercent(objectStopPercent) : 0;
+            var actualRaw = objectDetected && commandedRaw < stopRaw ? stopRaw : commandedRaw;
+            var actualUser = gripperCalibration.RawToUserPercent(actualRaw);
+            var stopUser = objectDetected ? gripperCalibration.RawToUserPercent(stopRaw) : 0;
+            state.GripperCommandedPositionPercent = commandedUser;
+            state.GripperActualPositionPercent = actualUser;
+            state.GripperRawCommandedPositionPercent = commandedRaw;
+            state.GripperRawActualPositionPercent = actualRaw;
             state.GripperSpeedPercent = 50;
             state.GripperForcePercent = 50;
-            state.GripperOpen = actual >= 50;
-            state.GripperOpenRatio = actual / 100f;
+            state.GripperOpen = actualUser >= 50;
+            state.GripperOpenRatio = gripperCalibration.UserToVisualOpenRatio(actualUser);
             state.GripperObjectDetected = objectDetected;
-            state.GripperObjectStopPercent = stopPercent;
-            state.GripperHoldingObject = objectDetected && commanded < stopPercent;
-            state.LastPeripheralFeedback = BuildGripperFeedback(commanded, actual, objectDetected, stopPercent);
-            SyncMockSdkGripper(actual, state.GripperSpeedPercent, state.GripperForcePercent);
+            state.GripperObjectStopPercent = stopUser;
+            state.GripperRawObjectStopPercent = stopRaw;
+            state.GripperHoldingObject = objectDetected && commandedRaw < stopRaw;
+            state.LastPeripheralFeedback = BuildGripperFeedback(commandedUser, actualUser, commandedRaw, actualRaw, objectDetected, stopRaw);
+            SyncMockSdkGripper(actualRaw, state.GripperSpeedPercent, state.GripperForcePercent);
             return FairinoResult.Ok(state.LastPeripheralFeedback);
         }
 
@@ -122,14 +129,14 @@ namespace KineTutor3D.App.Fairino
 
             var profile = FairinoGripperProfile.Pgea10040Default;
             var openCommand = FairinoGripperCommand.ForOpen(true);
-            var closeCommand = FairinoGripperCommand.ForOpen(false);
+            var closeCommand = FairinoGripperCommand.ForPosition(gripperCalibration.UserToRawPercent(0));
             var capability = connectionService.ProbeGripperCapability();
             if (!capability.IsSuccess)
             {
-                return $"sdkGripper=probeFailed; code={capability.ErrorCode}; message={capability.Message}; profile={profile}; open={openCommand}; close={closeCommand}";
+                return $"sdkGripper=probeFailed; code={capability.ErrorCode}; message={capability.Message}; profile={profile}; calibration=({gripperCalibration}); open={openCommand}; close={closeCommand}";
             }
 
-            var summary = $"sdkGripper=probeOk; capability=({capability.Value}); profile=({profile}); open=({openCommand}); close=({closeCommand})";
+            var summary = $"sdkGripper=probeOk; capability=({capability.Value}); profile=({profile}); calibration=({gripperCalibration}); open=({openCommand}); close=({closeCommand})";
             if (!includeReadback)
             {
                 return summary;
@@ -155,11 +162,11 @@ namespace KineTutor3D.App.Fairino
             state.LastGripperSdkSummary = BuildGripperSdkSummary(includeReadback: true);
         }
 
-        private static string BuildGripperFeedback(int commanded, int actual, bool objectDetected, int stopPercent)
+        private static string BuildGripperFeedback(int commanded, int actual, int rawCommanded, int rawActual, bool objectDetected, int rawStopPercent)
         {
-            if (objectDetected && commanded < stopPercent)
+            if (objectDetected && rawCommanded < rawStopPercent)
             {
-                return $"[Mock Gripper] 물체 감지 · 요청 {commanded}% -> 안전 정지 {actual}% · 잡은 상태";
+                return $"[Mock Gripper] 물체 감지 · 요청 {commanded}% -> 안전 정지 {actual}% · 잡은 상태 (raw {rawCommanded}%->{rawActual}%)";
             }
 
             if (actual >= 99)
@@ -169,10 +176,10 @@ namespace KineTutor3D.App.Fairino
 
             if (actual <= 1)
             {
-                return "[Mock Gripper] 완전 닫힘 0%";
+                return $"[Mock Gripper] 완전 닫힘 0% (raw {rawActual}%)";
             }
 
-            return $"[Mock Gripper] 위치 {actual}%";
+            return $"[Mock Gripper] 위치 {actual}% (raw {rawActual}%)";
         }
 
         private static int ClampPercent(int value)

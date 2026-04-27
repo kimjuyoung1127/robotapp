@@ -10,11 +10,14 @@ namespace KineTutor3D.App.Fairino
         public float GripperOpenRatio { get; set; } = 1f;
         public int GripperCommandedPositionPercent { get; set; } = 100;
         public int GripperActualPositionPercent { get; set; } = 100;
+        public int GripperRawCommandedPositionPercent { get; set; } = 100;
+        public int GripperRawActualPositionPercent { get; set; } = 100;
         public int GripperSpeedPercent { get; set; } = 50;
         public int GripperForcePercent { get; set; } = 50;
         public bool GripperObjectDetected { get; set; }
         public bool GripperHoldingObject { get; set; }
         public int GripperObjectStopPercent { get; set; }
+        public int GripperRawObjectStopPercent { get; set; }
         public bool GripperVisualAttached { get; set; }
         public bool[] RobotDigitalOutputs { get; } = new bool[2];
         public bool[] ToolDigitalOutputs { get; } = new bool[2];
@@ -29,11 +32,14 @@ namespace KineTutor3D.App.Fairino
                 GripperOpenRatio = GripperOpenRatio,
                 GripperCommandedPositionPercent = GripperCommandedPositionPercent,
                 GripperActualPositionPercent = GripperActualPositionPercent,
+                GripperRawCommandedPositionPercent = GripperRawCommandedPositionPercent,
+                GripperRawActualPositionPercent = GripperRawActualPositionPercent,
                 GripperSpeedPercent = GripperSpeedPercent,
                 GripperForcePercent = GripperForcePercent,
                 GripperObjectDetected = GripperObjectDetected,
                 GripperHoldingObject = GripperHoldingObject,
                 GripperObjectStopPercent = GripperObjectStopPercent,
+                GripperRawObjectStopPercent = GripperRawObjectStopPercent,
                 GripperVisualAttached = GripperVisualAttached,
                 LastPeripheralFeedback = LastPeripheralFeedback,
                 LastGripperSdkSummary = LastGripperSdkSummary,

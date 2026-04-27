@@ -171,7 +171,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.PositionInput.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
             panel.State.text = $"{snapshot.GripperSummary} · visual={(snapshot.GripperVisualAttached ? "attached" : "no visual")}";
             panel.GripSafety.text = snapshot.GripperObjectDetected
-                ? $"물체 감지 {(snapshot.GripperHoldingObject ? "· 잡은 상태" : $"· 정지선 {snapshot.GripperObjectStopPercent}%")}"
+                ? $"물체 감지 {(snapshot.GripperHoldingObject ? "· 잡은 상태" : $"· 정지선 {snapshot.GripperObjectStopPercent}%")} · raw {snapshot.GripperRawObjectStopPercent}%"
                 : "물체 감지 없음 · 0%까지 완전 닫힘";
             panel.Output.text = $"{snapshot.RobotDoSummary}\n{snapshot.ToolDoSummary}";
             panel.Feedback.text = snapshot.PeripheralFeedback;

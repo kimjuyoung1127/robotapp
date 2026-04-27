@@ -90,11 +90,14 @@ namespace KineTutor3D.App.Fairino
         public float GripperOpenRatio { get; set; }
         public int GripperCommandedPositionPercent { get; set; } = 100;
         public int GripperActualPositionPercent { get; set; } = 100;
+        public int GripperRawCommandedPositionPercent { get; set; } = 100;
+        public int GripperRawActualPositionPercent { get; set; } = 100;
         public int GripperSpeedPercent { get; set; } = 50;
         public int GripperForcePercent { get; set; } = 50;
         public bool GripperObjectDetected { get; set; }
         public bool GripperHoldingObject { get; set; }
         public int GripperObjectStopPercent { get; set; }
+        public int GripperRawObjectStopPercent { get; set; }
         public bool GripperVisualAttached { get; set; }
         public string RobotDoSummary { get; set; } = "DO0 OFF / DO1 OFF";
         public string ToolDoSummary { get; set; } = "ToolDO0 OFF / ToolDO1 OFF";
@@ -177,11 +180,14 @@ namespace KineTutor3D.App.Fairino
                 GripperOpenRatio = GripperOpenRatio,
                 GripperCommandedPositionPercent = GripperCommandedPositionPercent,
                 GripperActualPositionPercent = GripperActualPositionPercent,
+                GripperRawCommandedPositionPercent = GripperRawCommandedPositionPercent,
+                GripperRawActualPositionPercent = GripperRawActualPositionPercent,
                 GripperSpeedPercent = GripperSpeedPercent,
                 GripperForcePercent = GripperForcePercent,
                 GripperObjectDetected = GripperObjectDetected,
                 GripperHoldingObject = GripperHoldingObject,
                 GripperObjectStopPercent = GripperObjectStopPercent,
+                GripperRawObjectStopPercent = GripperRawObjectStopPercent,
                 GripperVisualAttached = GripperVisualAttached,
                 RobotDoSummary = RobotDoSummary,
                 ToolDoSummary = ToolDoSummary,

@@ -30,6 +30,58 @@ namespace KineTutor3D.App.Fairino
     }
 
     /// <summary>
+    /// Pendant 사용자 개도율, FAIRINO SDK raw percent, Unity visual pose를 분리하는 그리퍼 보정값입니다.
+    /// </summary>
+    internal readonly struct GripperCalibrationProfile
+    {
+        public GripperCalibrationProfile(int closedRawPercent, int openRawPercent, int objectStopRawPercent)
+        {
+            ClosedRawPercent = ClampPercent(closedRawPercent);
+            OpenRawPercent = ClampPercent(openRawPercent);
+            ObjectStopRawPercent = ClampPercent(objectStopRawPercent);
+        }
+
+        public int ClosedRawPercent { get; }
+        public int OpenRawPercent { get; }
+        public int ObjectStopRawPercent { get; }
+
+        public static GripperCalibrationProfile Pgea10040Observed => new(60, 100, 70);
+
+        public int UserToRawPercent(int userPercent)
+        {
+            var user = ClampPercent(userPercent) / 100f;
+            return ClampPercent(UnityEngine.Mathf.RoundToInt(UnityEngine.Mathf.Lerp(ClosedRawPercent, OpenRawPercent, user)));
+        }
+
+        public int RawToUserPercent(int rawPercent)
+        {
+            var raw = ClampPercent(rawPercent);
+            if (OpenRawPercent == ClosedRawPercent)
+            {
+                return raw >= OpenRawPercent ? 100 : 0;
+            }
+
+            var user = UnityEngine.Mathf.InverseLerp(ClosedRawPercent, OpenRawPercent, raw);
+            return ClampPercent(UnityEngine.Mathf.RoundToInt(user * 100f));
+        }
+
+        public float UserToVisualOpenRatio(int userPercent)
+        {
+            return ClampPercent(userPercent) / 100f;
+        }
+
+        public override string ToString()
+        {
+            return $"closedRaw={ClosedRawPercent}; openRaw={OpenRawPercent}; objectStopRaw={ObjectStopRawPercent}";
+        }
+
+        private static int ClampPercent(int value)
+        {
+            return value < 0 ? 0 : value > 100 ? 100 : value;
+        }
+    }
+
+    /// <summary>
     /// FAIRINO SDK MoveGripper 명령 파라미터입니다.
     /// </summary>
     public readonly struct FairinoGripperCommand
