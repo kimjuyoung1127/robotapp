@@ -34,6 +34,8 @@ namespace KineTutor3D.Visualization
         private float gripObjectStopRatio;
         private Coroutine gripperMotionCoroutine;
         private const float DistortedFingerLocalPositionSqrMagnitude = 1f;
+        // PGEA meshes leave a small visible clearance when their rendered centers meet.
+        private const float ClosedContactTravelScale = 1.08f;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;
@@ -475,20 +477,26 @@ namespace KineTutor3D.Visualization
                 closeCenterWorld = midpointWorld + axisWorld * offset;
             }
 
-            leftTravel = fingerLeft.parent.InverseTransformVector(closeCenterWorld - leftCenter);
-            rightTravel = fingerRight.parent.InverseTransformVector(closeCenterWorld - rightCenter);
+            leftTravel = fingerLeft.parent.InverseTransformVector((closeCenterWorld - leftCenter) * ClosedContactTravelScale);
+            rightTravel = fingerRight.parent.InverseTransformVector((closeCenterWorld - rightCenter) * ClosedContactTravelScale);
         }
 
         private static Vector3 ResolveRendererCenter(Transform root)
         {
+            return TryResolveRendererBounds(root, out var bounds) ? bounds.center : root != null ? root.position : Vector3.zero;
+        }
+
+        private static bool TryResolveRendererBounds(Transform root, out Bounds bounds)
+        {
             var renderers = root != null ? root.GetComponentsInChildren<Renderer>(true) : null;
             if (renderers == null || renderers.Length == 0)
             {
-                return root != null ? root.position : Vector3.zero;
+                bounds = new Bounds(root != null ? root.position : Vector3.zero, Vector3.zero);
+                return false;
             }
 
             var found = false;
-            var bounds = new Bounds(root.position, Vector3.zero);
+            bounds = new Bounds(root.position, Vector3.zero);
             for (var i = 0; i < renderers.Length; i++)
             {
                 var renderer = renderers[i];
@@ -508,7 +516,7 @@ namespace KineTutor3D.Visualization
                 }
             }
 
-            return found ? bounds.center : root.position;
+            return found;
         }
 
         private static float GetFingerTargetDistance(Transform finger, bool hasTarget, Vector3 targetPosition)

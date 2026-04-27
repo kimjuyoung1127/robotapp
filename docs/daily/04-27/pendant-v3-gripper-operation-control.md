@@ -70,6 +70,11 @@ Date: 2026-04-27 (KST)
   - no-object verification after asset refresh and Onboarding -> RobotControlV3: `renderers=5`, `target=TcpFrame`, `objectDetected=False`, `objectStop=0`.
   - close verification without real object: `SetGripperPositionForDebug [0]` returns `Cmd 0% / Actual 0%`, visual `openRatio=0.00`.
   - this matches the official SDK readback model: Unity visual/mock hold should come from real object/contact evidence, while live 판단은 `GetGripperCurPosition`, `GetGripperCurCurrent`, and `GetGripperMotionDone` readback 비교로 확정한다.
+- Zero-position visual calibration:
+  - FAIRINO SDK `pos=0` is a 0~100 percentage command/readback, not a universal mesh-contact guarantee.
+  - In this Unity mock, the no-object visual contract is stricter: `position=0` and `openRatio=0.00` should look fully closed, with the inner finger faces meeting.
+  - PGEA rendered finger centers left a small visible clearance at exact center travel, so `FR5EndEffectorAttachment` now applies a small close-contact travel scale while preserving the official `0=close`, `100=open` mapping.
+  - If a real workpiece is detected between the fingers, object-stop still takes priority and can keep actual above `0%`.
 
 ## Notes
 

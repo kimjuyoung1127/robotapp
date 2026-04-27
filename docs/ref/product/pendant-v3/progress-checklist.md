@@ -107,6 +107,7 @@
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
 - live SDK gripper capability/readback scaffold를 연결했다.
+- Gripper `position=0`은 SDK상 percentage close command/readback으로 유지하되, Unity no-object visual에서는 inner finger faces가 닿아 보이도록 close-contact travel을 보정했다.
 - Desktop actual UI click matrix `98/98 PASS`.
 - Tablet/bottom representative actual click matrix `16/16 PASS`.
 - Popup confirm/cancel E2E `10/10 PASS`.
