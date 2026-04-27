@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace KineTutor3D.UI.RobotControlV3
 {
     /// <summary>
-    /// Pendant V3 I/O와 그리퍼 mock/live-gated 상태 패널을 구성합니다.
+    /// Pendant V3 그리퍼 개도 조작 패널을 구성합니다.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class IoPanelController : MonoBehaviour
@@ -125,14 +125,6 @@ namespace KineTutor3D.UI.RobotControlV3
                 panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
                 ApplyGripperPosition(panel, draftPositionPercent);
             });
-            RegisterClick(panel.BtnDo0On, () => runtimeController.SetRobotDigitalOutput(0, true));
-            RegisterClick(panel.BtnDo0Off, () => runtimeController.SetRobotDigitalOutput(0, false));
-            RegisterClick(panel.BtnDo1On, () => runtimeController.SetRobotDigitalOutput(1, true));
-            RegisterClick(panel.BtnDo1Off, () => runtimeController.SetRobotDigitalOutput(1, false));
-            RegisterClick(panel.BtnToolDo0On, () => runtimeController.SetToolDigitalOutput(0, true));
-            RegisterClick(panel.BtnToolDo0Off, () => runtimeController.SetToolDigitalOutput(0, false));
-            RegisterClick(panel.BtnToolDo1On, () => runtimeController.SetToolDigitalOutput(1, true));
-            RegisterClick(panel.BtnToolDo1Off, () => runtimeController.SetToolDigitalOutput(1, false));
         }
 
         private static void RegisterClick(Button button, System.Action handler)
@@ -169,12 +161,6 @@ namespace KineTutor3D.UI.RobotControlV3
             draftPositionPercent = snapshot.GripperCommandedPositionPercent;
             panel.PositionSlider.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
             panel.PositionInput.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
-            panel.State.text = $"{snapshot.GripperSummary} · visual={(snapshot.GripperVisualAttached ? "attached" : "no visual")}";
-            panel.GripSafety.text = snapshot.GripperObjectDetected
-                ? $"물체 감지 {(snapshot.GripperHoldingObject ? "· 잡은 상태" : $"· 정지선 {snapshot.GripperObjectStopPercent}%")} · raw {snapshot.GripperRawObjectStopPercent}%"
-                : "물체 감지 없음 · 0%까지 완전 닫힘";
-            panel.Output.text = $"{snapshot.RobotDoSummary}\n{snapshot.ToolDoSummary}";
-            panel.Feedback.text = snapshot.PeripheralFeedback;
             var enabled = snapshot.DryRunEnabled || snapshot.StatusKind is RobotControlV3RuntimeStatusKind.ReadyToJog or RobotControlV3RuntimeStatusKind.ConnectedUnsynced;
             panel.SetEnabled(enabled);
         }
@@ -198,39 +184,21 @@ namespace KineTutor3D.UI.RobotControlV3
         private sealed class PanelElements
         {
             public readonly VisualElement Root = new();
-            public readonly Label State = new("Gripper: --");
-            public readonly Label GripSafety = new("물체 감지 없음 · 0%까지 완전 닫힘");
-            public readonly Label Output = new("DO0 OFF / DO1 OFF");
-            public readonly Label Feedback = new("주변장치 조작 전");
             public readonly SliderInt PositionSlider = new("위치 %", 0, 100) { name = "GripperPositionSlider", value = 100 };
             public readonly IntegerField PositionInput = new("위치") { name = "GripperPositionInput", value = 100 };
             public readonly Button BtnGripperApply = new() { name = "BtnIoGripperApply", text = "위치 적용" };
             public readonly Button BtnGripperOpen = new() { name = "BtnIoGripperOpen", text = "그리퍼 열기" };
             public readonly Button BtnGripperClose = new() { name = "BtnIoGripperClose", text = "그리퍼 닫기" };
-            public readonly Button BtnDo0On = new() { name = "BtnRobotDo0On", text = "DO0 ON" };
-            public readonly Button BtnDo0Off = new() { name = "BtnRobotDo0Off", text = "DO0 OFF" };
-            public readonly Button BtnDo1On = new() { name = "BtnRobotDo1On", text = "DO1 ON" };
-            public readonly Button BtnDo1Off = new() { name = "BtnRobotDo1Off", text = "DO1 OFF" };
-            public readonly Button BtnToolDo0On = new() { name = "BtnToolDo0On", text = "TDO0 ON" };
-            public readonly Button BtnToolDo0Off = new() { name = "BtnToolDo0Off", text = "TDO0 OFF" };
-            public readonly Button BtnToolDo1On = new() { name = "BtnToolDo1On", text = "TDO1 ON" };
-            public readonly Button BtnToolDo1Off = new() { name = "BtnToolDo1Off", text = "TDO1 OFF" };
 
             public PanelElements()
             {
-                Root.Add(new Label("그리퍼 / I/O") { name = "IoPanelTitle" });
+                Root.Add(new Label("그리퍼") { name = "IoPanelTitle" });
                 Root.Q<Label>("IoPanelTitle").AddToClassList("rc-panel-title");
-                AddCopy(State);
-                AddCopy(GripSafety);
                 PositionSlider.AddToClassList("rc-speed-slider");
                 PositionInput.AddToClassList("rc-point-field");
                 Root.Add(PositionSlider);
                 AddRow(PositionInput, BtnGripperApply);
-                AddCopy(Output);
-                AddCopy(Feedback);
                 AddRow(BtnGripperOpen, BtnGripperClose);
-                AddRow(BtnDo0On, BtnDo0Off, BtnDo1On, BtnDo1Off);
-                AddRow(BtnToolDo0On, BtnToolDo0Off, BtnToolDo1On, BtnToolDo1Off);
             }
 
             public void SetEnabled(bool enabled)
@@ -240,21 +208,6 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnGripperApply.SetEnabled(enabled);
                 BtnGripperOpen.SetEnabled(enabled);
                 BtnGripperClose.SetEnabled(enabled);
-                BtnDo0On.SetEnabled(enabled);
-                BtnDo0Off.SetEnabled(enabled);
-                BtnDo1On.SetEnabled(enabled);
-                BtnDo1Off.SetEnabled(enabled);
-                BtnToolDo0On.SetEnabled(enabled);
-                BtnToolDo0Off.SetEnabled(enabled);
-                BtnToolDo1On.SetEnabled(enabled);
-                BtnToolDo1Off.SetEnabled(enabled);
-            }
-
-            private void AddCopy(Label label)
-            {
-                label.AddToClassList("rc-panel-copy");
-                label.AddToClassList("rc-panel-copy--compact");
-                Root.Add(label);
             }
 
             private void AddRow(params VisualElement[] elements)

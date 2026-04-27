@@ -105,11 +105,12 @@
 - Point list/select/delete 최소 UX를 연결했다.
 - Point rename/export/persistence cleanup을 연결했다.
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
+- Gripper UI는 실조작에 쓰는 열기/닫기/position slider/numeric input/위치 적용만 남기고 DO/ToolDO 버튼과 보조 상태 문구는 제거했다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
 - live SDK gripper capability/readback scaffold를 연결했다.
-- Gripper user `position=0`은 UI상 닫힘/contact로 유지하고, `GripperCalibrationProfile`에서 raw SDK percent와 visual pose ratio를 분리한다.
+- Gripper user `position=0`은 UI상 닫힘/contact로 유지하고, `GripperCalibrationProfile`에서 raw SDK percent와 visual input/pose ratio를 분리한다.
 - Close travel scalar로 맞지 않는 PGEA visual은 authored closed pose를 별도 캡처해서 `authored open -> authored closed` 보간으로 처리한다.
-- 현재 PGEA calibration은 user `0%` -> raw `60%`, user `100%` -> raw `100%`, object stop raw `70%` 기준이다.
+- 현재 PGEA calibration은 user `0%` -> raw `60%` / previous visual input `0.60`, user `100%` -> raw `100%` / visual input `1.00`, object stop raw `70%` 기준이다.
 - Desktop actual UI click matrix `98/98 PASS`.
 - Tablet/bottom representative actual click matrix `16/16 PASS`.
 - Popup confirm/cancel E2E `10/10 PASS`.
@@ -915,6 +916,7 @@
 ## 2026-04-27 Gripper Operation Control Reposition
 
 - `그리퍼 / I/O` 보조 패널을 `NavPoints`가 아니라 `NavMotion + TabEasyMotion` / `BottomTabEasyMotion`에서 표시하도록 바꿨다.
+- 후속 정리: UI label은 `그리퍼`로 줄이고 실제 조작에 쓰지 않는 DO/ToolDO 버튼, output/feedback/safety copy는 제거했다.
 - legacy local state normalize:
   - `NavIo` -> `NavMotion`
   - `BottomTabIo` -> `BottomTabEasyMotion`

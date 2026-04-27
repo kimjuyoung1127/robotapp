@@ -1410,7 +1410,7 @@ namespace KineTutor3D.App
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetTeachingFunctionUiSummaryForDebug, "[Function From]");
 
-            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off" })
+            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply" })
             {
                 AddCase(buttonName, () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
             }
@@ -1551,7 +1551,6 @@ namespace KineTutor3D.App
             AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
             AddCase("BtnPointApply", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 100%");
-            AddCase("BtnRobotDo0On", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "DO0 ON");
             AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
 
@@ -4090,30 +4089,6 @@ namespace KineTutor3D.App
                 case "BtnIoGripperClose":
                 case "BtnGripperClose":
                     runtime.SetGripperOpen(false);
-                    return true;
-                case "BtnRobotDo0On":
-                    runtime.SetRobotDigitalOutput(0, true);
-                    return true;
-                case "BtnRobotDo0Off":
-                    runtime.SetRobotDigitalOutput(0, false);
-                    return true;
-                case "BtnRobotDo1On":
-                    runtime.SetRobotDigitalOutput(1, true);
-                    return true;
-                case "BtnRobotDo1Off":
-                    runtime.SetRobotDigitalOutput(1, false);
-                    return true;
-                case "BtnToolDo0On":
-                    runtime.SetToolDigitalOutput(0, true);
-                    return true;
-                case "BtnToolDo0Off":
-                    runtime.SetToolDigitalOutput(0, false);
-                    return true;
-                case "BtnToolDo1On":
-                    runtime.SetToolDigitalOutput(1, true);
-                    return true;
-                case "BtnToolDo1Off":
-                    runtime.SetToolDigitalOutput(1, false);
                     return true;
                 case "BtnRun":
                 case "BtnRunBottom":

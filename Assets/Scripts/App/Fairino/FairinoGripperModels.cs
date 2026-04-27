@@ -34,18 +34,27 @@ namespace KineTutor3D.App.Fairino
     /// </summary>
     internal readonly struct GripperCalibrationProfile
     {
-        public GripperCalibrationProfile(int closedRawPercent, int openRawPercent, int objectStopRawPercent)
+        public GripperCalibrationProfile(
+            int closedRawPercent,
+            int openRawPercent,
+            int objectStopRawPercent,
+            float closedVisualInputOpenRatio,
+            float openVisualInputOpenRatio)
         {
             ClosedRawPercent = ClampPercent(closedRawPercent);
             OpenRawPercent = ClampPercent(openRawPercent);
             ObjectStopRawPercent = ClampPercent(objectStopRawPercent);
+            ClosedVisualInputOpenRatio = UnityEngine.Mathf.Clamp01(closedVisualInputOpenRatio);
+            OpenVisualInputOpenRatio = UnityEngine.Mathf.Clamp01(openVisualInputOpenRatio);
         }
 
         public int ClosedRawPercent { get; }
         public int OpenRawPercent { get; }
         public int ObjectStopRawPercent { get; }
+        public float ClosedVisualInputOpenRatio { get; }
+        public float OpenVisualInputOpenRatio { get; }
 
-        public static GripperCalibrationProfile Pgea10040Observed => new(60, 100, 70);
+        public static GripperCalibrationProfile Pgea10040Observed => new(60, 100, 70, 0.6f, 1f);
 
         public int UserToRawPercent(int userPercent)
         {
@@ -67,12 +76,13 @@ namespace KineTutor3D.App.Fairino
 
         public float UserToVisualOpenRatio(int userPercent)
         {
-            return ClampPercent(userPercent) / 100f;
+            var user = ClampPercent(userPercent) / 100f;
+            return UnityEngine.Mathf.Clamp01(UnityEngine.Mathf.Lerp(ClosedVisualInputOpenRatio, OpenVisualInputOpenRatio, user));
         }
 
         public override string ToString()
         {
-            return $"closedRaw={ClosedRawPercent}; openRaw={OpenRawPercent}; objectStopRaw={ObjectStopRawPercent}";
+            return $"closedRaw={ClosedRawPercent}; openRaw={OpenRawPercent}; objectStopRaw={ObjectStopRawPercent}; visualClosedInput={ClosedVisualInputOpenRatio:0.##}; visualOpenInput={OpenVisualInputOpenRatio:0.##}";
         }
 
         private static int ClampPercent(int value)

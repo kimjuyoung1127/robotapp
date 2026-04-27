@@ -4,7 +4,8 @@ Date: 2026-04-27 (KST)
 
 ## Decision
 
-- `그리퍼 / I/O` 보조 패널은 `포인트`가 아니라 `조작 > 기본` 흐름에 둔다.
+- 그리퍼 보조 패널은 `포인트`가 아니라 `조작 > 기본` 흐름에 둔다.
+- 패널 UI는 실제 조작에 쓰는 `열기`, `닫기`, position slider, numeric input, `위치 적용`만 남긴다.
 - 그리퍼 기본 상태는 `position=100`, visual open ratio `1.00`인 완전 열림이다.
 - 완전 닫힘은 `position=0`, visual open ratio `0.00`이며 finger 안쪽이 서로 닿는 상태로 본다.
 - `TcpMarker` 구체 prefab은 제거한다. grip target은 `TcpFrame`과 finger center로 계산하고, object hold는 핑거 사이 실제 collider/renderer가 감지될 때만 발생한다.
@@ -32,7 +33,7 @@ Date: 2026-04-27 (KST)
 ## Changed
 
 - `IoPanelController` 표시 조건을 `NavMotion + TabEasyMotion` / `BottomTabEasyMotion`으로 옮겼다.
-- `그리퍼 / I/O` 패널에 position slider와 numeric input을 추가했다.
+- 그리퍼 패널에 position slider와 numeric input을 추가하고, DO/ToolDO 버튼과 상태/피드백 복사 문구는 제거했다.
 - `RobotControlPeripheralFacade`를 bool open/close 중심에서 commanded/actual position percent 중심으로 확장했다.
 - `RobotControlPeripheralState`와 `RobotControlV3RuntimeSnapshot`에 commanded/actual/speed/force/object-detected/holding/stop-percent 상태를 추가했다.
 - `FR5EndEffectorAttachment`는 `TcpMarker` 이름을 더 이상 grip object로 보지 않는다. 명시적 `gripObjectRoot` 또는 핑거 사이 probe에 걸린 외부 collider/renderer만 grip object로 본다.
@@ -72,15 +73,15 @@ Date: 2026-04-27 (KST)
   - this matches the official SDK readback model: Unity visual/mock hold should come from real object/contact evidence, while live 판단은 `GetGripperCurPosition`, `GetGripperCurCurrent`, and `GetGripperMotionDone` readback 비교로 확정한다.
 - Zero-position visual calibration:
   - FAIRINO SDK `pos=0` is a 0~100 percentage command/readback, not a universal mesh-contact guarantee.
-  - In this Unity mock, the no-object visual contract is stricter: `position=0` and `openRatio=0.00` should look fully closed, with the inner finger faces meeting.
-  - `GripperCalibrationProfile` separates user percent, FAIRINO raw percent, and Unity visual pose ratio.
-  - Current observed PGEA calibration maps user `0%` closed/contact to raw `60%`, user `100%` open to raw `100%`, and object-stop to raw `70%`.
+  - In this Unity mock, the no-object visual contract is stricter: `position=0` should look fully closed, with the inner finger faces meeting.
+  - `GripperCalibrationProfile` separates user percent, FAIRINO raw percent, and Unity visual input/pose ratio.
+  - Current observed PGEA calibration maps user `0%` closed/contact to raw `60%` and previous visual input `0.60`, user `100%` open to raw `100%` and visual input `1.00`, and object-stop to raw `70%`.
   - UI slider/input and `GripperSummary` show user percent. Debug/SDK summaries also expose raw command/readback percent.
   - If a real workpiece is detected between the fingers, object-stop still takes priority and can keep actual above `0%`.
 - Authored closed-pose update:
   - Close travel scalar tuning is not treated as the final source of truth. If the PGEA mesh still does not visually meet at `0%`, use an authored closed pose.
   - `FR5EndEffectorAttachment` now stores optional `fingerLeftClosed` / `fingerRightClosed` local positions and interpolates `authored open -> authored closed` when enabled.
-  - `FR5EndEffectorAttachment` receives normalized visual pose only: `0.00` closed/contact, `1.00` open. It does not need to know the raw `60%` contact calibration.
+  - `FR5EndEffectorAttachment` receives the calibrated visual input ratio and resolves `visualClosedAt=0.60` to pose `0.00` closed/contact. It does not need to know the raw `60%` SDK contact calibration.
   - Mock object stop defaults above the raw contact point so a detected workpiece stops before the no-object finger-contact pose.
   - Debug bridge entry points:
     - `RecaptureGripperAuthoredOpenForDebug()`: capture the current local finger transforms as the 100% open baseline.

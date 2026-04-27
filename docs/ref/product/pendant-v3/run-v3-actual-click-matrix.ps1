@@ -206,7 +206,7 @@ foreach ($button in @("BtnPointMoveJ", "BtnPointMoveL", "BtnPointPreview", "BtnP
     $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavMotion" "TabPointMove" "BottomTabPointMove"; Set-PointDefaults; Invoke-Debug CleanupPointMoveForDebug | Out-Null; Invoke-Debug SavePointMoveForDebug | Out-Null } "GetPointMoveListSummaryForDebug" "points="))
 }
 
-foreach ($button in @("BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnRobotDo0On", "BtnRobotDo0Off", "BtnRobotDo1On", "BtnRobotDo1Off", "BtnToolDo0On", "BtnToolDo0Off", "BtnToolDo1On", "BtnToolDo1Off")) {
+foreach ($button in @("BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply")) {
     $cases.Add((New-Case $button { Set-Ready; Set-Shell "NavMotion" "TabEasyMotion" "BottomTabEasyMotion" } "GetMovementStateSummaryForDebug" "status=ReadyToJog"))
 }
 
