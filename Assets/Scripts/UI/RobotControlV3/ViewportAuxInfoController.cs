@@ -154,7 +154,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "TabJointJog" => "관절",
                 "TabTcpJog" => "TCP",
-                "TabPointMove" => "포인트",
+                "TabPointMove" => "저장 위치",
                 _ => "쉬운조작",
             };
         }
@@ -163,7 +163,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (snapshot.HasPendingPreview)
             {
-                return snapshot.PendingCommandSummary.Contains("MoveL") ? "MoveL" : "MoveJ";
+                return snapshot.PendingCommandSummary.Contains("MoveL") ? "직선" : "관절";
             }
 
             return snapshot.StatusMotion switch
@@ -178,14 +178,14 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (shellState.ActiveNavSection == "NavPoints")
             {
-                return $"티칭 포인트 · {snapshot.PendingCommandSummary}";
+                return $"저장 위치 · {snapshot.PendingCommandSummary}";
             }
 
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => $"관절 조그 · {snapshot.StatusMotion}",
                 "TabTcpJog" => $"TCP 조그 · {shellState.CoordSystem} · {snapshot.PendingCommandSummary}",
-                "TabPointMove" => $"포인트 이동 · {snapshot.PendingCommandSummary}",
+                "TabPointMove" => $"저장 위치 · {snapshot.PendingCommandSummary}",
                 _ => $"쉬운 조작 · {snapshot.PendingCommandSummary}",
             };
         }
@@ -194,14 +194,14 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (shellState.ActiveNavSection == "NavPoints")
             {
-                return "저장 포인트, 시퀀스 실행, 함수 묶음은 포인트 탭에서 다룬다. 메인패널은 현재 로봇 위치와 고스트/경로 확인에 집중한다.";
+                return "저장 위치, 실행 순서, 작업 묶음은 저장 메뉴에서 다룬다. 메인패널은 현재 로봇 위치와 미리보기 확인에 집중한다.";
             }
 
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => "메인패널에서는 로봇만 보고, 관절값 입력/버튼은 보조패널에서만 만진다. 미리보기 후 적용 순서를 유지한다.",
                 "TabTcpJog" => $"TCP는 {shellState.CoordSystem} 기준으로 조작한다. Z/RX/RY/RZ 보조 조작은 로봇을 가리지 않게 여기서만 보여준다. {snapshot.ActionWhy}",
-                "TabPointMove" => "목표 좌표 입력과 실행 준비는 보조패널에서만 본다. 메인패널은 로봇/고스트/경로 확인에 집중한다.",
+                "TabPointMove" => "목표 위치 입력과 실행 준비는 보조패널에서만 본다. 메인패널은 로봇과 미리보기 확인에 집중한다.",
                 _ => "프리셋, 그리퍼, 작은 이동은 보조패널에서 다루고 메인패널은 로봇 상태 확인에 집중한다.",
             };
         }

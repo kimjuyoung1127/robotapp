@@ -1,0 +1,105 @@
+.rc-point-work-tab {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.rc-point-tab-toolbar {
+    flex-grow: 0;
+    flex-shrink: 0;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.rc-point-search-input {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 30px;
+    margin-top: 6px;
+}
+
+.rc-point-filter-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 6px;
+}
+
+.rc-point-filter-button {
+    flex-grow: 1;
+    min-width: 54px;
+    min-height: 28px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    font-size: 10px;
+}
+
+.rc-point-filter-button--active {
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
+}
+
+.rc-point-toolbar-bottom {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 4px;
+}
+
+.rc-point-selection-count {
+    flex-grow: 1;
+    min-width: 72px;
+    margin-right: 4px;
+    font-size: 10px;
+    color: var(--rc-muted-text);
+}
+
+.rc-point-toolbar-action {
+    flex-grow: 0;
+    min-width: 72px;
+}
+
+.rc-point-tab-list {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 112px;
+    height: auto;
+    max-height: none;
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.rc-point-tab-list--primary {
+    min-height: 156px;
+}
+
+.rc-point-tab-list--function {
+    min-height: 150px;
+}
+
+.rc-point-tab-list--sequence {
+    min-height: 104px;
+}
+
+.rc-point-tab-list--modal {
+    min-height: 120px;
+    height: 220px;
+    max-height: 220px;
+}
+
+.rc-point-tab-detail {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.rc-point-tab-compact-card {
+    flex-grow: 0;
+    flex-shrink: 0;
+}

@@ -1,15 +1,17 @@
 /* Pendant V3 - Workspace Boundary: Phase 2C-2 boundary/collision style tokens */
 .rc-workspace-toggle {
     border-width: 1px;
-    border-color: rgba(80, 140, 255, 0.2);
+    border-color: var(--rc-button-border);
 }
 
 .rc-workspace-toggle--active {
-    border-color: rgba(80, 140, 255, 0.5);
-    background-color: rgba(80, 140, 255, 0.2);
+    border-color: var(--rc-accent);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-collision-toggle--active {
-    border-color: rgba(255, 70, 70, 0.52);
-    background-color: rgba(255, 70, 70, 0.2);
+    border-color: var(--rc-danger);
+    background-color: var(--rc-button-bg-danger-strong);
+    color: var(--rc-button-text-strong);
 }

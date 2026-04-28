@@ -313,7 +313,25 @@ namespace KineTutor3D.UI.RobotControlV3
             highlightedAxis = index;
             highlightedDirection = direction;
             ApplyAll();
-            runtimeController?.PreviewTcpPose(ToTcpPoseArray(), $"TCP {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")} 프리뷰");
+            DispatchTcpStep(index, direction);
+        }
+
+        private void DispatchTcpStep(int index, int direction)
+        {
+            if (runtimeController == null)
+            {
+                return;
+            }
+
+            var reason = $"TCP {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")} 조그";
+            var target = ToTcpPoseArray();
+            if (runtimeController.CurrentSnapshot.DryRunEnabled)
+            {
+                runtimeController.ApplyTcpPose(target, reason);
+                return;
+            }
+
+            runtimeController.PreviewTcpPose(target, $"{reason} 프리뷰");
         }
 
         private PendantV3LocalState GetLocalState()

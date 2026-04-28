@@ -46,6 +46,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnPause;
         private Button btnSync;
         private Button btnResetError;
+        private Button btnPopupProbe;
         private Button btnRunBottom;
         private Button btnStopBottom;
         private EventCallback<ClickEvent> connectClickCallback;
@@ -240,8 +241,10 @@ namespace KineTutor3D.UI.RobotControlV3
             btnPause = root.Q<Button>("BtnPause");
             btnSync = root.Q<Button>("BtnSync");
             btnResetError = root.Q<Button>("BtnResetError");
+            btnPopupProbe = root.Q<Button>("BtnPopupProbe");
             btnRunBottom = root.Q<Button>("BtnRunBottom");
             btnStopBottom = root.Q<Button>("BtnStopBottom");
+            ApplyTopHeaderVisibility();
         }
 
         private void BuildPanels()
@@ -346,6 +349,34 @@ namespace KineTutor3D.UI.RobotControlV3
             btnPause?.SetEnabled(data.PauseEnabled);
             btnSync?.SetEnabled(data.SyncEnabled);
             btnResetError?.SetEnabled(data.ResetEnabled);
+            ApplyTopHeaderVisibility();
+        }
+
+        private void ApplyTopHeaderVisibility()
+        {
+            SetTopHeaderButtonVisible(btnServoEnable, true);
+            SetTopHeaderButtonVisible(btnRun, false);
+            SetTopHeaderButtonVisible(btnStop, false);
+            SetTopHeaderButtonVisible(btnPause, false);
+            SetTopHeaderButtonVisible(btnSync, true);
+            SetTopHeaderButtonVisible(btnResetError, false);
+            SetTopHeaderButtonVisible(btnPopupProbe, false);
+
+            if (btnSync != null)
+            {
+                btnSync.text = "현재 위치 읽기";
+            }
+        }
+
+        private static void SetTopHeaderButtonVisible(Button button, bool visible)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            button.EnableInClassList("rc-hidden", !visible);
+            button.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void ApplyPanel(PanelElements panel, RobotControlV3RuntimeSnapshot data)

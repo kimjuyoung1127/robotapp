@@ -6,8 +6,8 @@
 .rc-help-card {
     margin-top: 10px;
     padding: 10px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-soft);
 }
 
 .rc-help-subtitle {

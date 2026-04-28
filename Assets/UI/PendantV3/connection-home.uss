@@ -57,7 +57,7 @@
 
 .rc-home-button--primary {
     background-color: var(--rc-accent);
-    color: var(--rc-title-text);
+    color: var(--rc-button-text-on-accent);
 }
 
 .rc-home-state-row {
@@ -72,5 +72,6 @@
 }
 
 .rc-home-state-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }

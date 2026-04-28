@@ -947,6 +947,29 @@
   - `asset refresh` + Onboarding `BtnOpenRobotControlV3`: pass
   - `SetGripperPositionForDebug [0]`: pass without marker/object hold, `Cmd 0% / Actual 0%`
 
+## 2026-04-27 Style Token + Button Feedback
+
+- Pendant V3 USS의 색/radius 하드코딩 후보를 토큰 소비 구조로 정리했다.
+  - root token 정의부는 `Assets/UI/PendantV3/pendant-v3.uss`에 둔다.
+  - consumer USS에서는 직접 `rgba(...)`, `rgb(...)`, numeric `border-radius`를 쓰지 않고 `var(--rc-...)` 토큰을 소비한다.
+- 버튼 공통 기준을 `--rc-button-*` 토큰으로 분리했다.
+  - 기본 회색 버튼은 blue-tinted surface로 바꾸고, 텍스트는 순백색 고정 대신 `--rc-button-text` / `--rc-button-text-strong`를 쓰게 했다.
+  - hover / active / focus / pressed / selected 상태는 배경과 border가 같이 바뀌도록 해서 클릭/선택 여부가 보이게 했다.
+  - active class 계열(`nav`, `tab`, `coord`, `joint`, `point`, `viewport`, `workspace`, `collision`)은 active border token을 공통 적용한다.
+- stage / diagnostic / axis widget / debug highlight / split handle / modal / status / safety 색은 목적별 토큰 묶음으로 분리했다.
+- UGUI 버튼도 왼쪽 패널 버튼과 같은 rounded sliced background를 쓰도록 `UiRuntimeStyle.EnsureButtonBackground(...)`를 추가하고, label/icon button 생성 경로에서 호출한다.
+- guard test를 확장했다.
+  - button radius, button bg/text token, `:active`, `:focus`, active border token 존재를 확인한다.
+  - Pendant V3 USS consumer에서 직접 색/radius literal이 다시 늘어나면 실패한다.
+- 검증:
+  - `unityctl check --type compile`: pass
+  - `unityctl test --mode edit --filter KineTutor3D.Tests.EditMode.RobotControlV3HardcodingGuardTests`: `4/4 PASS`
+  - static style scan: direct color/radius consumer 없음
+  - `git diff --check -- Assets/UI/PendantV3 Assets/Tests/EditMode/Validation/RobotControlV3HardcodingGuardTests.cs`: pass
+- 남은 확인:
+  - 실제 화면에서 hover/pressed/selected 상태가 충분히 보이는지 screenshot 기준으로 한 번 더 본다.
+  - tablet breakpoint에서도 버튼 텍스트 대비와 active border가 과하지 않은지 확인한다.
+
 ## Source Docs
 
 - [README.md](./README.md)

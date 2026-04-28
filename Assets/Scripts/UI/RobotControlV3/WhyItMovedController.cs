@@ -110,7 +110,6 @@ namespace KineTutor3D.UI.RobotControlV3
                 PendantV3PreviewState.Kind.AutoReconnect => "통신이 흔들리는 동안은 자동 재연결이 먼저라서 조작보다 상태 복귀를 기다리는 흐름이다.",
                 _ => data.ActionNow,
             };
-            whyItMovedCard.EnableInClassList("rc-hidden", false);
         }
     }
 }

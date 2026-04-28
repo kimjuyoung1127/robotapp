@@ -31,7 +31,8 @@
 }
 
 .rc-point-motion-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-subview-tabs {
@@ -50,7 +51,8 @@
 }
 
 .rc-point-subview-tab--active {
-    background-color: rgba(80, 140, 255, 0.28);
+    background-color: var(--rc-button-bg-pressed);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-subview {
@@ -83,11 +85,12 @@
     margin-top: 8px;
     font-size: 14px;
     -unity-font-style: bold;
-    background-color: rgba(80, 140, 255, 0.32);
+    background-color: var(--rc-button-bg-primary);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-name-input--danger {
-    background-color: rgba(255, 70, 70, 0.16);
+    background-color: var(--rc-button-bg-danger-soft);
 }
 
 .rc-point-coord-row {
@@ -105,7 +108,8 @@
 }
 
 .rc-point-coord-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-grid {
@@ -124,8 +128,8 @@
     margin-right: 6px;
     margin-bottom: 6px;
     padding: 6px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-faint);
 }
 
 .rc-point-cell-label {
@@ -143,7 +147,7 @@
 }
 
 .rc-point-cell-input--danger {
-    background-color: rgba(255, 70, 70, 0.16);
+    background-color: var(--rc-button-bg-danger-soft);
 }
 
 .rc-point-cell-unit {
@@ -155,8 +159,8 @@
 .rc-point-footer-card {
     margin-top: 8px;
     padding: 8px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-faint);
     min-width: 0;
     max-width: 100%;
 }
@@ -164,8 +168,8 @@
 .rc-point-execution-card {
     margin-top: 8px;
     padding: 8px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-faint);
     min-width: 0;
     max-width: 100%;
 }
@@ -181,8 +185,8 @@
 .rc-point-inventory-summary {
     margin-top: 8px;
     padding: 6px;
-    border-radius: 6px;
-    background-color: rgba(80, 140, 255, 0.10);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-button-bg);
     font-size: 10px;
     white-space: normal;
     min-width: 0;
@@ -211,7 +215,8 @@
 }
 
 .rc-point-list-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-row {
@@ -219,23 +224,23 @@
     min-width: 0;
     margin-bottom: 6px;
     padding: 6px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.035);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-subtle);
 }
 
 .rc-point-row--active {
-    background-color: rgba(80, 140, 255, 0.16);
+    background-color: var(--rc-button-bg-hover);
 }
 
 .rc-point-row--selected {
     border-width: 1px;
-    border-color: rgba(80, 220, 180, 0.42);
-    background-color: rgba(80, 220, 180, 0.09);
+    border-color: var(--rc-selection-border);
+    background-color: var(--rc-selection-bg);
 }
 
 .rc-point-row-summary {
     font-size: 10px;
-    white-space: normal;
+    white-space: nowrap;
     min-width: 0;
 }
 
@@ -250,7 +255,9 @@
     flex-grow: 1;
     width: 45%;
     min-width: 0;
+    height: 26px;
     min-height: 26px;
+    max-height: 26px;
     margin-right: 2px;
     margin-bottom: 4px;
     font-size: 9px;
@@ -274,7 +281,8 @@
 }
 
 .rc-point-loop-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-loop-status {
@@ -285,8 +293,8 @@
 .rc-point-detail-card {
     margin-top: 6px;
     padding: 7px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.035);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-subtle);
     min-width: 0;
     max-width: 100%;
 }
@@ -294,8 +302,8 @@
 .rc-point-function-card {
     margin-top: 8px;
     padding: 8px;
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-surface-faint);
     min-width: 0;
     max-width: 100%;
 }
@@ -307,17 +315,17 @@
     top: 0;
     bottom: 0;
     padding: 10px;
-    background-color: rgba(8, 12, 18, 0.72);
+    background-color: var(--rc-modal-scrim);
     justify-content: center;
     align-items: stretch;
 }
 
 .rc-point-modal-card {
     padding: 10px;
-    border-radius: 6px;
-    background-color: rgb(22, 27, 35);
+    border-radius: var(--rc-radius);
+    background-color: var(--rc-modal-card-bg);
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--rc-modal-card-border);
     min-width: 0;
     max-width: 100%;
 }
@@ -362,11 +370,13 @@
 }
 
 .rc-point-timing-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-timing-button--primary {
-    background-color: rgba(80, 140, 255, 0.16);
+    background-color: var(--rc-button-bg-hover);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-dwell-input {
@@ -378,7 +388,7 @@
 }
 
 .rc-point-dwell-input--danger {
-    background-color: rgba(255, 70, 70, 0.16);
+    background-color: var(--rc-button-bg-danger-soft);
 }
 
 .rc-point-action-row {
@@ -405,9 +415,11 @@
 }
 
 .rc-point-action-button--primary {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-point-action-button--danger {
-    background-color: rgba(255, 70, 70, 0.18);
+    background-color: var(--rc-button-bg-danger);
+    color: var(--rc-button-text-strong);
 }

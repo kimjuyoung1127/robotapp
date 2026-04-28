@@ -24,8 +24,8 @@
     padding-right: 6px;
     padding-top: 3px;
     padding-bottom: 3px;
-    border-radius: 999px;
-    background-color: rgba(80, 140, 255, 0.18);
+    border-radius: var(--rc-radius-pill);
+    background-color: var(--rc-button-bg-hover);
     color: var(--rc-title-text);
     font-size: 10px;
 }
@@ -73,8 +73,8 @@
     margin-right: 4px;
     margin-bottom: 6px;
     padding: 6px;
-    border-radius: 8px;
-    background-color: rgba(18, 18, 24, 0.55);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-row-strong);
 }
 
 .rc-coord-cell-label {
@@ -106,5 +106,6 @@
 }
 
 .rc-coord-mode-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }

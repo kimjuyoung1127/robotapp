@@ -1,32 +1,32 @@
 <!-- Pendant V3 - Point Move: Phase 2B-4 minimum scaffold -->
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="point-tab-workspace.uss" />
     <ui:Style src="point-move-panel.uss" />
     <ui:VisualElement name="PointMoveRoot" class="rc-point-root">
         <ui:VisualElement class="rc-point-header">
-            <ui:Label name="PointPanelTitle" text="포인트 이동" class="rc-panel-title" />
+            <ui:Label name="PointPanelTitle" text="저장 위치" class="rc-panel-title" />
             <ui:VisualElement class="rc-point-motion-row">
-                <ui:Button name="BtnPointMoveJ" text="MoveJ" class="rc-point-motion-button rc-point-motion-button--active" />
-                <ui:Button name="BtnPointMoveL" text="MoveL" class="rc-point-motion-button" />
+                <ui:Button name="BtnPointMoveJ" text="관절 이동" class="rc-point-motion-button rc-point-motion-button--active" />
+                <ui:Button name="BtnPointMoveL" text="직선 이동" class="rc-point-motion-button" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:Label
             name="PointMoveHint"
-            text="현재 TCP를 기준으로 목표 좌표를 다듬고, 적용 전 미리보기로 방향을 먼저 확인한다."
+            text="현재 위치를 기준으로 저장할 위치를 다듬고, 실행 전 미리 확인한다."
             class="rc-panel-copy rc-panel-copy--compact" />
 
         <ui:VisualElement class="rc-point-subview-tabs">
-            <ui:Button name="BtnPointSubview" text="포인트" class="rc-point-subview-tab rc-point-subview-tab--active" />
+            <ui:Button name="BtnPointSubview" text="저장 위치" class="rc-point-subview-tab rc-point-subview-tab--active" />
             <ui:Button name="BtnFunctionSubview" text="묶음" class="rc-point-subview-tab" />
             <ui:Button name="BtnSequenceSubview" text="시퀀스" class="rc-point-subview-tab" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="PointSubview" class="rc-point-subview">
+        <ui:VisualElement name="PointSubview" class="rc-point-subview rc-point-work-tab rc-point-work-tab--point">
             <ui:VisualElement class="rc-point-name-row">
-                <ui:Label text="포인트 이름" class="rc-point-name-label" />
+                <ui:Label text="위치 이름" class="rc-point-name-label" />
                 <ui:TextField name="PointNameInput" value="Point" class="rc-point-name-input" />
             </ui:VisualElement>
-            <ui:Button name="BtnPointSave" text="현재 위치 저장" class="rc-point-primary-save" />
             <ui:VisualElement class="rc-point-coord-row">
                 <ui:Button name="BtnPointCoordBase" text="Base" class="rc-point-coord-button rc-point-coord-button--active" />
                 <ui:Button name="BtnPointCoordTool" text="Tool" class="rc-point-coord-button" />
@@ -65,49 +65,88 @@
                     <ui:Label name="PointUnit6" text="deg" class="rc-point-cell-unit" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Label name="PointInventorySummary" text="포인트 0개 · 함수 0개 · 속도 slow 0 / medium 0 / fast 0 · 선택 0개" class="rc-point-inventory-summary" />
-            <ui:VisualElement name="PointBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
-                <ui:Button name="BtnPointRowActionsToggle" text="버튼 접기" class="rc-point-action-button" />
-                <ui:Button name="BtnPointBulkClear" text="선택 해제" class="rc-point-action-button" />
-                <ui:Button name="BtnPointBulkFunction" text="선택 묶음 준비" class="rc-point-action-button" />
-                <ui:Button name="BtnPointBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
+            <ui:VisualElement name="PointTabToolbar" class="rc-point-tab-toolbar">
+                <ui:TextField name="PointSearchInput" label="검색" value="" class="rc-point-search-input" />
+                <ui:VisualElement class="rc-point-filter-row">
+                    <ui:Button name="BtnPointFilterAll" text="전체" class="rc-point-filter-button rc-point-filter-button--active" />
+                    <ui:Button name="BtnPointFilterSelected" text="선택됨" class="rc-point-filter-button" />
+                    <ui:Button name="BtnPointFilterMoveJ" text="관절 이동" class="rc-point-filter-button" />
+                    <ui:Button name="BtnPointFilterMoveL" text="직선 이동" class="rc-point-filter-button" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rc-point-toolbar-bottom">
+                    <ui:Label name="PointSelectionCount" text="선택 0개" class="rc-point-selection-count" />
+                    <ui:Button name="BtnPointRowActionsToggle" text="버튼 접기" class="rc-point-action-button rc-point-toolbar-action" />
+                    <ui:Button name="BtnPointSave" text="현재 위치 저장" class="rc-point-primary-save rc-point-toolbar-action" />
+                </ui:VisualElement>
+                <ui:Label name="PointInventorySummary" text="저장 위치 0개 · 묶음 0개 · 느림 0 / 중간 0 / 빠름 0 · 선택 0개" class="rc-point-inventory-summary" />
+                <ui:VisualElement name="PointBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
+                    <ui:Button name="BtnPointBulkClear" text="선택 해제" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointBulkFunction" text="선택 묶음 준비" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="PointListContainer" class="rc-point-list" />
-            <ui:VisualElement class="rc-point-execution-card">
-                <ui:Label text="함수 라이브러리로 저장" class="rc-point-detail-title" />
-                <ui:Label name="PointFunctionBuildSummary" text="선택한 포인트가 있으면 그걸 바로 함수로 등록한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:VisualElement class="rc-point-name-row">
-                    <ui:Label text="함수 이름" class="rc-point-name-label" />
-                    <ui:TextField name="PointFunctionNameInput" value="Pick" class="rc-point-name-input" />
+            <ui:ListView name="PointListContainer" class="rc-point-list rc-point-tab-list rc-point-tab-list--primary" />
+            <ui:VisualElement name="PointEditSubview" class="rc-point-subview rc-point-tab-detail">
+                <ui:VisualElement name="PointDetailCard" class="rc-point-detail-card">
+                    <ui:Label name="PointDetailTitle" text="선택된 저장 위치 없음" class="rc-point-detail-title" />
+                    <ui:Label name="PointDetailMeta" text="저장 위치를 선택하면 이동 방식과 저장된 속도/대기 시간이 보인다." class="rc-panel-copy rc-panel-copy--compact" />
+                    <ui:Label name="PointDetailJoints" text="J: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                    <ui:Label name="PointDetailTcp" text="TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 </ui:VisualElement>
-                <ui:Label name="PointFunctionSelectionSummary" text="선택 소스 없음" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
-                    <ui:Button name="BtnPointFunctionClearSelection" text="후보 초기화" class="rc-point-action-button" />
-                    <ui:Button name="BtnPointFunctionCreate" text="함수 등록" class="rc-point-action-button rc-point-action-button--primary" />
-                </ui:VisualElement>
+                <ui:Label name="PointFeedbackSummary" text="" class="rc-panel-copy rc-panel-copy--compact rc-point-feedback-line" />
+            </ui:VisualElement>
+            <ui:VisualElement name="PointEditActions" class="rc-point-action-row rc-point-tab-detail">
+                <ui:Button name="BtnPointRestore" text="현재값 다시 읽기" class="rc-point-action-button" />
+                <ui:Button name="BtnPointRecall" text="불러오기" class="rc-point-action-button" />
+                <ui:Button name="BtnPointDelete" text="삭제" class="rc-point-action-button" />
+                <ui:Button name="BtnPointRename" text="이름" class="rc-point-action-button" />
+                <ui:Button name="BtnPointDuplicate" text="복사" class="rc-point-action-button" />
+                <ui:Button name="BtnPointUp" text="위로" class="rc-point-action-button" />
+                <ui:Button name="BtnPointDown" text="아래" class="rc-point-action-button" />
+                <ui:Button name="BtnPointOverwrite" text="덮어쓰기" class="rc-point-action-button" />
+                <ui:Button name="BtnPointExport" text="내보내기" class="rc-point-action-button" />
+                <ui:Button name="BtnPointCleanup" text="정리" class="rc-point-action-button" />
+                <ui:Button name="BtnPointPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />
+                <ui:Button name="BtnPointApply" text="적용" class="rc-point-action-button rc-point-action-button--danger" />
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="SequenceSubview" class="rc-point-subview rc-hidden">
-            <ui:VisualElement class="rc-point-execution-card">
+        <ui:VisualElement name="SequenceSubview" class="rc-point-subview rc-point-work-tab rc-point-work-tab--sequence rc-hidden">
+            <ui:VisualElement class="rc-point-execution-card rc-point-tab-compact-card rc-point-tab-toolbar">
                 <ui:Label text="작업 시퀀스" class="rc-point-detail-title" />
-                <ui:Label name="BlockSequenceSummary" text="블록 0개 · 펼친 포인트 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:TextField name="SequenceSearchInput" label="검색" value="" class="rc-point-search-input" />
+                <ui:VisualElement class="rc-point-filter-row">
+                    <ui:Button name="BtnSequenceFilterAll" text="전체" class="rc-point-filter-button rc-point-filter-button--active" />
+                    <ui:Button name="BtnSequenceFilterSelected" text="선택됨" class="rc-point-filter-button" />
+                    <ui:Button name="BtnSequenceFilterDeletable" text="삭제 가능" class="rc-point-filter-button" />
+                    <ui:Button name="BtnSequenceFilterProtected" text="보호됨" class="rc-point-filter-button" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rc-point-toolbar-bottom">
+                    <ui:Label name="SequenceSelectionCount" text="선택 0개" class="rc-point-selection-count" />
+                    <ui:Button name="BtnSequenceRowActionsToggle" text="버튼 접기" class="rc-point-action-button rc-point-toolbar-action" />
+                    <ui:Button name="BtnBlockAddPoint" text="위치 추가" class="rc-point-action-button rc-point-toolbar-action" />
+                    <ui:Button name="BtnBlockAddBundle" text="묶음 추가" class="rc-point-action-button rc-point-toolbar-action" />
+                </ui:VisualElement>
+                <ui:Label name="BlockSequenceSummary" text="블록 0개 · 펼친 저장 위치 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:Label name="SequenceLibrarySummary" text="저장한 위치 순서 0개 / 기록한 경로 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:Label name="SequenceInventorySummary" text="실행 목록 0개 · 삭제 가능 0개 · 선택 0개" class="rc-point-inventory-summary" />
+                <ui:VisualElement name="SequenceBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
+                    <ui:Button name="BtnSequenceBulkClear" text="선택 해제" class="rc-point-action-button" />
+                    <ui:Button name="BtnSequenceBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:ListView name="BlockSequenceListContainer" class="rc-point-list rc-point-tab-list rc-point-tab-list--sequence" />
+            <ui:ListView name="SequenceListContainer" class="rc-point-list rc-point-tab-list rc-point-tab-list--sequence" />
+            <ui:VisualElement class="rc-point-execution-card rc-point-tab-compact-card">
+                <ui:Label text="저장한 위치 순서" class="rc-point-detail-title" />
+                <ui:Label name="SelectedSequenceDetail" text="PendantV3Points · 0개 위치" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
-                    <ui:Button name="BtnBlockAddPoint" text="포인트 추가" class="rc-point-action-button" />
-                    <ui:Button name="BtnBlockAddBundle" text="묶음 추가" class="rc-point-action-button" />
                     <ui:Button name="BtnBlockPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />
                     <ui:Button name="BtnBlockRun" text="실행" class="rc-point-action-button rc-point-action-button--primary" />
-                </ui:VisualElement>
-                <ui:VisualElement name="BlockSequenceListContainer" class="rc-point-list" />
-            </ui:VisualElement>
-            <ui:VisualElement class="rc-point-execution-card">
-                <ui:Label text="저장한 포인트 순서" class="rc-point-detail-title" />
-                <ui:Label name="SelectedSequenceDetail" text="PendantV3Points · 0개 포인트" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
-                    <ui:Button name="BtnPointRunSequence" text="Run" class="rc-point-action-button rc-point-action-button--primary" />
-                    <ui:Button name="BtnPointStepBack" text="Step◀" class="rc-point-action-button" />
-                    <ui:Button name="BtnPointStepForward" text="Step▶" class="rc-point-action-button" />
-                    <ui:Button name="BtnPointStopSequence" text="Stop" class="rc-point-action-button rc-point-action-button--danger" />
+                    <ui:Button name="BtnPointRunSequence" text="실행" class="rc-point-action-button rc-point-action-button--primary" />
+                    <ui:Button name="BtnPointStepBack" text="이전" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointStepForward" text="다음" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointStopSequence" text="정지" class="rc-point-action-button rc-point-action-button--danger" />
                     <ui:Button name="BtnPointRunFromSelected" text="선택부터" class="rc-point-action-button rc-point-action-button--primary" />
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -115,7 +154,7 @@
                 <ui:Button name="BtnPointLoop" text="반복 OFF" class="rc-point-loop-button" />
                 <ui:Label name="PointLoopStatus" text="반복 실행: 꺼짐" class="rc-panel-copy rc-panel-copy--compact rc-point-loop-status" />
             </ui:VisualElement>
-            <ui:VisualElement class="rc-point-execution-card">
+            <ui:VisualElement class="rc-point-execution-card rc-point-tab-compact-card">
                 <ui:Label text="기록한 경로" class="rc-point-detail-title" />
                 <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
                     <ui:Button name="BtnPathRecordStart" text="기록 시작" class="rc-point-action-button rc-point-action-button--primary" />
@@ -126,37 +165,16 @@
                 </ui:VisualElement>
                 <ui:Label name="PathRecordSummary" text="기록: 대기 / 샘플 0개" class="rc-panel-copy rc-panel-copy--compact" />
             </ui:VisualElement>
-            <ui:VisualElement class="rc-point-execution-card">
-                <ui:Label text="실행 목록" class="rc-point-detail-title" />
-                <ui:Label name="SequenceLibrarySummary" text="저장한 포인트 순서 0개 / 기록한 경로 0개" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:Label name="SequenceInventorySummary" text="실행 목록 0개 · 삭제 가능 0개 · 선택 0개" class="rc-point-inventory-summary" />
-                <ui:VisualElement name="SequenceBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
-                    <ui:Button name="BtnSequenceRowActionsToggle" text="버튼 접기" class="rc-point-action-button" />
-                    <ui:Button name="BtnSequenceBulkClear" text="선택 해제" class="rc-point-action-button" />
-                    <ui:Button name="BtnSequenceBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
-                </ui:VisualElement>
-                <ui:VisualElement name="SequenceListContainer" class="rc-point-list" />
-            </ui:VisualElement>
-            <ui:Label name="PointStoreSummary" text="저장된 포인트: 없음" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
+            <ui:Label name="PointStoreSummary" text="저장 위치: 없음" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
             <ui:Label name="PointCoordSummary" text="좌표계: Base / 현재 TCP 기준으로 시작" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
-            <ui:Label name="PointMotionSummary" text="이동 방식: MoveJ / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
-            <ui:Label name="PointPreviewSummary" text="미리보기로 3D 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
-        </ui:VisualElement>
-
-        <ui:VisualElement name="PointEditSubview" class="rc-point-subview">
-            <ui:VisualElement name="PointDetailCard" class="rc-point-detail-card">
-                <ui:Label name="PointDetailTitle" text="선택된 포인트 없음" class="rc-point-detail-title" />
-                <ui:Label name="PointDetailMeta" text="포인트를 선택하면 이동 방식과 저장된 속도/대기 시간이 보인다." class="rc-panel-copy rc-panel-copy--compact" />
-                <ui:Label name="PointDetailJoints" text="J: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:Label name="PointDetailTcp" text="TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-            </ui:VisualElement>
-            <ui:Label name="PointFeedbackSummary" text="" class="rc-panel-copy rc-panel-copy--compact rc-point-feedback-line" />
+            <ui:Label name="PointMotionSummary" text="이동 방식: 관절 이동 / 관절 중심으로 먼저 후보를 확인" class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
+            <ui:Label name="PointPreviewSummary" text="미리보기로 화면 위치를 먼저 확인한 뒤 실제 이동을 보낸다." class="rc-panel-copy rc-panel-copy--compact rc-hidden" />
         </ui:VisualElement>
 
         <ui:VisualElement name="PointActionModal" class="rc-point-modal rc-hidden">
             <ui:VisualElement class="rc-point-modal-card">
-                <ui:Label name="PointActionModalTitle" text="포인트 작업" class="rc-point-detail-title" />
-                <ui:Label name="PointActionModalSummary" text="포인트를 선택하면 작업 내용을 확인한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:Label name="PointActionModalTitle" text="저장 위치 작업" class="rc-point-detail-title" />
+                <ui:Label name="PointActionModalSummary" text="저장 위치를 선택하면 작업 내용을 확인한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:Label name="PointActionModalPose" text="J: - / TCP: -" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
                 <ui:VisualElement class="rc-point-name-row">
                     <ui:Label text="이름" class="rc-point-name-label" />
@@ -182,7 +200,7 @@
             <ui:VisualElement class="rc-point-modal-card">
                 <ui:Label text="묶음 라이브러리" class="rc-point-detail-title" />
                 <ui:Label name="BundlePickerSummary" text="작업 시퀀스에 넣을 묶음을 고른다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
-                <ui:VisualElement name="BundlePickerListContainer" class="rc-point-list" />
+                <ui:ListView name="BundlePickerListContainer" class="rc-point-list rc-point-tab-list rc-point-tab-list--modal" />
                 <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
                     <ui:Button name="BtnBundlePickerConfirm" text="시퀀스 추가" class="rc-point-action-button rc-point-action-button--primary" />
                     <ui:Button name="BtnBundlePickerClose" text="닫기" class="rc-point-action-button" />
@@ -190,44 +208,51 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="FunctionSubview" class="rc-point-subview rc-point-function-card rc-hidden">
-            <ui:Label text="함수 라이브러리" class="rc-point-detail-title" />
-            <ui:Label text="여기서는 저장된 묶음을 보고 이름 변경, 복사, 삭제, 일괄 관리만 한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+        <ui:VisualElement name="FunctionSubview" class="rc-point-subview rc-point-work-tab rc-point-work-tab--function rc-point-function-card rc-hidden">
+            <ui:Label text="작업 묶음" class="rc-point-detail-title" />
+            <ui:TextField name="FunctionSearchInput" label="검색" value="" class="rc-point-search-input" />
+            <ui:VisualElement class="rc-point-filter-row">
+                <ui:Button name="BtnFunctionFilterAll" text="전체" class="rc-point-filter-button rc-point-filter-button--active" />
+                <ui:Button name="BtnFunctionFilterSelected" text="선택됨" class="rc-point-filter-button" />
+                <ui:Button name="BtnFunctionFilterMissing" text="누락 있음" class="rc-point-filter-button" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rc-point-toolbar-bottom">
+                <ui:Label name="FunctionSelectionCount" text="선택 0개" class="rc-point-selection-count" />
+                <ui:Button name="BtnFunctionRowActionsToggle" text="버튼 접기" class="rc-point-action-button rc-point-toolbar-action" />
+            </ui:VisualElement>
+            <ui:Label text="저장된 묶음을 보고 이름 변경, 복사, 삭제, 일괄 관리한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+            <ui:VisualElement class="rc-point-execution-card rc-point-tab-detail">
+                <ui:Label text="묶음 등록" class="rc-point-detail-title" />
+                <ui:Label name="PointFunctionBuildSummary" text="선택한 저장 위치가 있으면 바로 묶음으로 등록한다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:VisualElement class="rc-point-name-row">
+                    <ui:Label text="묶음 이름" class="rc-point-name-label" />
+                    <ui:TextField name="PointFunctionNameInput" value="Pick" class="rc-point-name-input" />
+                </ui:VisualElement>
+                <ui:Label name="PointFunctionSelectionSummary" text="선택 소스 없음" class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+                <ui:VisualElement class="rc-point-action-row rc-point-action-row--left">
+                    <ui:Button name="BtnPointFunctionClearSelection" text="후보 초기화" class="rc-point-action-button" />
+                    <ui:Button name="BtnPointFunctionCreate" text="묶음 등록" class="rc-point-action-button rc-point-action-button--primary" />
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement class="rc-point-name-row">
                 <ui:Label text="선택 묶음 이름" class="rc-point-name-label" />
                 <ui:TextField name="FunctionNameInput" value="Pick" class="rc-point-name-input" />
             </ui:VisualElement>
             <ui:Label name="FunctionSummary" text="묶음 없음" class="rc-panel-copy rc-panel-copy--compact" />
-            <ui:Label name="FunctionInventorySummary" text="묶음 0개 · 총 포인트 참조 0개 · 선택 0개" class="rc-point-inventory-summary" />
+            <ui:Label name="FunctionInventorySummary" text="묶음 0개 · 포함 위치 0개 · 선택 0개" class="rc-point-inventory-summary" />
             <ui:VisualElement name="FunctionBulkActions" class="rc-point-action-row rc-point-action-row--left rc-point-bulk-actions">
-                <ui:Button name="BtnFunctionRowActionsToggle" text="버튼 접기" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionBulkClear" text="선택 해제" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionBulkDuplicate" text="선택 복사" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionBulkDelete" text="선택 삭제" class="rc-point-action-button rc-point-action-button--danger" />
                 <ui:Button name="BtnFunctionDeleteAll" text="전체 삭제" class="rc-point-action-button rc-point-action-button--danger" />
             </ui:VisualElement>
-            <ui:VisualElement name="FunctionListContainer" class="rc-point-list" />
-            <ui:Label name="FunctionDetail" text="묶음을 선택하면 참조 포인트가 보인다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
+            <ui:ListView name="FunctionListContainer" class="rc-point-list rc-point-tab-list rc-point-tab-list--function" />
+            <ui:Label name="FunctionDetail" text="묶음을 선택하면 포함된 저장 위치가 보인다." class="rc-panel-copy rc-panel-copy--compact rc-point-detail-line" />
             <ui:VisualElement class="rc-point-action-row rc-point-function-actions">
                 <ui:Button name="BtnFunctionRename" text="묶음 이름" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionDuplicate" text="묶음 복사" class="rc-point-action-button" />
                 <ui:Button name="BtnFunctionDelete" text="묶음 삭제" class="rc-point-action-button" />
             </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement name="PointEditActions" class="rc-point-action-row">
-            <ui:Button name="BtnPointRestore" text="현재값 다시 읽기" class="rc-point-action-button" />
-            <ui:Button name="BtnPointRecall" text="불러오기" class="rc-point-action-button" />
-            <ui:Button name="BtnPointDelete" text="삭제" class="rc-point-action-button" />
-            <ui:Button name="BtnPointRename" text="이름" class="rc-point-action-button" />
-            <ui:Button name="BtnPointDuplicate" text="복사" class="rc-point-action-button" />
-            <ui:Button name="BtnPointUp" text="위로" class="rc-point-action-button" />
-            <ui:Button name="BtnPointDown" text="아래" class="rc-point-action-button" />
-            <ui:Button name="BtnPointOverwrite" text="덮어쓰기" class="rc-point-action-button" />
-            <ui:Button name="BtnPointExport" text="내보내기" class="rc-point-action-button" />
-            <ui:Button name="BtnPointCleanup" text="정리" class="rc-point-action-button" />
-            <ui:Button name="BtnPointPreview" text="미리보기" class="rc-point-action-button rc-point-action-button--primary" />
-            <ui:Button name="BtnPointApply" text="적용" class="rc-point-action-button rc-point-action-button--danger" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

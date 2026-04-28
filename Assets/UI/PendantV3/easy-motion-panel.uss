@@ -20,8 +20,8 @@
     padding-right: 8px;
     padding-top: 3px;
     padding-bottom: 3px;
-    border-radius: 999px;
-    background-color: rgba(60, 200, 120, 0.16);
+    border-radius: var(--rc-radius-pill);
+    background-color: var(--rc-button-bg-success-soft);
     color: var(--rc-success);
     font-size: 12px;
 }
@@ -57,7 +57,8 @@
     font-size: 11px;
     white-space: normal;
     -unity-text-align: middle-center;
-    background-color: rgba(36, 36, 48, 0.96);
+    background-color: var(--rc-button-bg);
+    color: var(--rc-button-text);
 }
 
 .rc-easy-gripper-row {
@@ -69,8 +70,8 @@
 .rc-easy-option-card {
     margin-top: 10px;
     padding: 8px;
-    border-radius: 10px;
-    background-color: rgba(18, 18, 24, 0.55);
+    border-radius: var(--rc-radius-xl);
+    background-color: var(--rc-surface-row-strong);
     min-width: 0;
     max-width: 100%;
 }
@@ -97,9 +98,11 @@
 }
 
 .rc-easy-action-button--primary {
-    background-color: rgba(60, 200, 120, 0.18);
+    background-color: var(--rc-button-bg-success);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-easy-action-button--danger {
-    background-color: rgba(255, 70, 70, 0.18);
+    background-color: var(--rc-button-bg-danger);
+    color: var(--rc-button-text-strong);
 }

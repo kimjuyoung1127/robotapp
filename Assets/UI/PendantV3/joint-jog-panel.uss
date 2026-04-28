@@ -29,7 +29,8 @@
 }
 
 .rc-joint-mode-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-joint-list {
@@ -40,8 +41,8 @@
     flex-direction: column;
     margin-bottom: 8px;
     padding: 7px;
-    border-radius: 8px;
-    background-color: rgba(18, 18, 24, 0.38);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-row);
     min-width: 0;
     max-width: 100%;
 }
@@ -114,8 +115,8 @@
 .rc-joint-footer-card {
     margin-top: 10px;
     padding: 8px;
-    border-radius: 8px;
-    background-color: rgba(18, 18, 24, 0.55);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-row-strong);
     min-width: 0;
     max-width: 100%;
 }
@@ -136,9 +137,11 @@
 }
 
 .rc-joint-action-button--primary {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-joint-action-button--danger {
-    background-color: rgba(255, 70, 70, 0.18);
+    background-color: var(--rc-button-bg-danger);
+    color: var(--rc-button-text-strong);
 }

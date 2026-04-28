@@ -98,7 +98,7 @@
 
         <ui:VisualElement class="rc-tcp-action-row">
             <ui:Button name="BtnTcpPreview" text="미리보기" class="rc-tcp-action-button rc-tcp-action-button--primary" />
-            <ui:Button name="BtnTcpApply" text="적용(MoveL)" class="rc-tcp-action-button rc-tcp-action-button--danger" />
+            <ui:Button name="BtnTcpApply" text="적용(직선 이동)" class="rc-tcp-action-button rc-tcp-action-button--danger" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

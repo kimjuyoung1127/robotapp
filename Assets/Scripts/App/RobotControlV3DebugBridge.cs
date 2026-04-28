@@ -133,7 +133,6 @@ namespace KineTutor3D.App
                 case "TabEasyMotion":
                 case "TabJointJog":
                 case "TabTcpJog":
-                case "TabPointMove":
                     shell.SetDebugSelection(state.ActiveNavSection, buttonName, state.ActiveTabletTab);
                     return $"button={buttonName}; found=True; action=work-tab; {shell.GetDebugSummary()}";
                 case "BottomTabEasyMotion":
@@ -771,6 +770,12 @@ namespace KineTutor3D.App
             return GetRuntimeController().ExecuteTeachingBlockSequenceDryRun();
         }
 
+        public static string AddBuchimgaeCookingSequenceForDebug()
+        {
+            var result = BuchimgaeCookingSequencePreset.Apply();
+            return $"{result}; {new TeachingBlockSequenceStore().BuildSummary()}";
+        }
+
         public static string ToggleTeachingSequenceSelectionForDebug(string sequenceName)
         {
             var pointMove = GetPointMoveController();
@@ -1032,7 +1037,7 @@ namespace KineTutor3D.App
             AddCase("BtnTcpPreview", () => runtime.PreviewTcpPose(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "audit tcp preview"), "pending=대기 명령: MoveL", VisualCheck, "cameraVisible=True");
             AddCase("BtnTcpApply", () => runtime.ApplyTcpPose(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "audit tcp apply"), "[DryRun Apply]", VisualCheck, "cameraVisible=True");
 
-            SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
             GetPointMoveController().ForceInitialize();
             SetPointMoveValueForDebug("X", 540f);
             SetPointMoveValueForDebug("Y", 130f);
@@ -1257,7 +1262,7 @@ namespace KineTutor3D.App
                 AddCase(buttonName, () =>
                 {
                     EnsureReady();
-                    Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                    Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                     PointDefaults();
                     CleanupPointMoveForDebug();
                     SavePointMoveForDebug();
@@ -1267,7 +1272,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointDuplicate", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetPointMoveListSummaryForDebug, "AUDIT_UI_A_COPY");
@@ -1275,7 +1280,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointUp", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetPointMoveListSummaryForDebug, "AUDIT_UI_B");
@@ -1283,7 +1288,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointDown", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetPointMoveListSummaryForDebug, "AUDIT_UI_A");
@@ -1291,7 +1296,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointOverwrite", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetPointMoveControllerSummary, "[Confirm]");
@@ -1299,7 +1304,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointSpeedSlow", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetPointMoveControllerSummary, "speed=slow");
@@ -1307,7 +1312,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointSpeedMedium", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
                 SetPointMoveTimingForDebug("fast", 1.2);
@@ -1316,7 +1321,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointSpeedFast", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetPointMoveControllerSummary, "speed=fast");
@@ -1324,7 +1329,7 @@ namespace KineTutor3D.App
             AddCase("BtnPointTimingApply", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
                 SetPointMoveTimingForDebug("slow", 2.5);
@@ -1333,14 +1338,14 @@ namespace KineTutor3D.App
             AddCase("BtnPointLoop", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
             }, GetTeachingLoopSummaryForDebug, "loopEnabled=True");
 
             AddCase("BtnPointRunFromSelected", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetPointMoveControllerSummary, "[Teaching From]");
@@ -1348,7 +1353,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionCreate", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 AddSelectedPointToFunctionForDebug("AUDIT_UI_A");
             }, GetTeachingFunctionUiSummaryForDebug, "functions=");
@@ -1356,7 +1361,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionRun", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_UI");
             }, GetTeachingFunctionUiSummaryForDebug, "[Function Run]");
@@ -1364,7 +1369,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionRename", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_RENAME");
             }, GetTeachingFunctionUiSummaryForDebug, "AUDIT_FUNC_RENAME");
@@ -1372,7 +1377,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionDuplicate", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_DUP");
             }, GetTeachingFunctionUiSummaryForDebug, "COPY");
@@ -1380,7 +1385,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionDelete", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_DELETE");
             }, GetTeachingFunctionUiSummaryForDebug, "삭제");
@@ -1388,7 +1393,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionAddPoint", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 RecallPointMoveForDebug("AUDIT_UI_A");
             }, GetTeachingFunctionUiSummaryForDebug, "AUDIT_UI_A");
@@ -1396,7 +1401,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionClearSelection", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 AddSelectedPointToFunctionForDebug("AUDIT_UI_A");
             }, GetTeachingFunctionUiSummaryForDebug, "후보 초기화");
@@ -1404,7 +1409,7 @@ namespace KineTutor3D.App
             AddCase("BtnFunctionRunFromSelected", () =>
             {
                 EnsureReady();
-                Select("NavMotion", "TabPointMove", "BottomTabPointMove");
+                Select("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 SeedUiPointOrder();
                 CreateTeachingFunctionForDebug("AUDIT_FUNC_RUN_FROM");
                 RecallPointMoveForDebug("AUDIT_UI_B");
@@ -1548,8 +1553,8 @@ namespace KineTutor3D.App
             AddCase("BtnEasyReady", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "MoveJ");
             AddCase("BtnJoint1Plus", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); }, GetMovementStateSummaryForDebug, "MoveJ");
             AddCase("BtnTcp3Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
-            AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
-            AddCase("BtnPointApply", () => { EnsureReady(); Select("NavMotion", "TabPointMove", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
+            AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavPoints", "TabTcpJog", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");
+            AddCase("BtnPointApply", () => { EnsureReady(); Select("NavPoints", "TabTcpJog", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); PreviewPointMoveForDebug(); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnIoGripperOpen", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 100%");
             AddCase("BtnRunBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[DryRun Apply]");
             AddCase("BtnStopBottom", () => { EnsureReady(); runtime.PreviewPreset("Ready"); }, GetMovementStateSummaryForDebug, "[Stop]");
@@ -1609,7 +1614,7 @@ namespace KineTutor3D.App
             void SeedFunctionPoints()
             {
                 EnsureReady();
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -1739,7 +1744,7 @@ namespace KineTutor3D.App
             void SeedClickSequence()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -1877,7 +1882,7 @@ namespace KineTutor3D.App
             void Seed()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -2162,13 +2167,13 @@ namespace KineTutor3D.App
             AddCase("motion-pointmove-is-move-target", () =>
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
             }, "surface=MoveTarget; subview=Point; tabsHidden=True; motionRowHidden=False; coordGridHidden=False; listHidden=True");
 
             AddCase("navpoints-is-teaching-point", () =>
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
             }, "surface=Teaching; subview=Point; tabsHidden=False; motionRowHidden=True; coordGridHidden=True; listHidden=False");
 
             return CompleteGenericMatrix(payload, "robotcontrolv3-pointmove-surface-separation.json", "PointMoveSurfaceSeparation");
@@ -2212,11 +2217,11 @@ namespace KineTutor3D.App
             }
 
             var runtime = GetRuntimeController();
-            AddCase("navmotion-shows-four-work-tabs", () =>
+            AddCase("navmotion-shows-three-work-tabs", () =>
             {
                 EnsureRuntimeReady(runtime);
                 SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
-            }, GetShellControllerSummary, "workTabs=4/4; workTabParent=ControlDockHost; workTabDockClass=True; workTabHidden=False");
+            }, GetShellControllerSummary, "workTabs=3/3; workTabParent=ControlDockHost; workTabDockClass=True; workTabHidden=False");
 
             AddCase("joint-tab-visible-and-routes-controller", () =>
             {
@@ -2228,15 +2233,15 @@ namespace KineTutor3D.App
                 SetShellSelection("NavMotion", "TabTcpJog", "BottomTabTcpJog");
             }, () => GetShellControllerSummary() + " | " + GetTcpJogControllerSummary(), "desktopVisible=True");
 
-            AddCase("pointmove-tab-visible-and-routes-controller", () =>
+            AddCase("points-nav-visible-and-routes-controller", () =>
             {
-                SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
-            }, () => GetShellControllerSummary() + " | " + GetPointMoveControllerSummary(), "surface=MoveTarget");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
+            }, () => GetShellControllerSummary() + " | " + GetPointMoveControllerSummary(), "surface=Teaching");
 
             AddCase("tablet-motion-tabs-visible", () =>
             {
                 SetShellSelection("NavMotion", "TabEasyMotion", "BottomTabEasyMotion");
-            }, GetShellControllerSummary, "bottomTabs=7/7");
+            }, GetShellControllerSummary, "bottomTabs=6/6");
 
             AddCase("non-motion-hides-motion-subtabs", () =>
             {
@@ -2287,7 +2292,7 @@ namespace KineTutor3D.App
             void Seed()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 runtime.DeleteWaypointSequence("PendantV3RecordedPath");
                 WaypointStore.Delete(customName);
                 var pointSequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
@@ -2414,7 +2419,7 @@ namespace KineTutor3D.App
             void Seed()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -2500,7 +2505,7 @@ namespace KineTutor3D.App
             void Seed()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 ClearFunctionPointSelectionForDebug();
                 ClearTeachingBlockSequenceForDebug();
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
@@ -2583,7 +2588,7 @@ namespace KineTutor3D.App
             void SeedPoints()
             {
                 EnsureRuntimeReady(runtime);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 var sequence = WaypointStore.CreateEmpty(TeachingPointStoreAdapter.DefaultSequenceName);
                 WaypointStore.AddWaypoint(sequence, new Waypoint
                 {
@@ -2851,7 +2856,7 @@ namespace KineTutor3D.App
                     runtime.ToggleDryRun();
                 }
 
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
                 GetPanelControllerSummary();
                 SetPointMoveNameForDebug("READBACK_A");
             }
@@ -2972,7 +2977,7 @@ namespace KineTutor3D.App
                     dwellSec = 0.0
                 });
                 store.Save(sequence);
-                SetShellSelection("NavPoints", "TabPointMove", "BottomTabPointMove");
+                SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
             }
 
             AddCase(
@@ -3311,7 +3316,7 @@ namespace KineTutor3D.App
 
             var runtime = GetRuntimeController();
             EnsureRuntimeReady(runtime);
-            SetShellSelection("NavMotion", "TabPointMove", "BottomTabPointMove");
+            SetShellSelection("NavPoints", "TabTcpJog", "BottomTabPointMove");
 
             AddPointGuard(payload, "reachable-position-preview", () => runtime.PreviewPointMoveJ(new[] { 540d, 130d, 440d, 180d, 0d, 95d }, "guard reachable"), "MoveJ");
             AddPointGuard(payload, "unreachable-target-fails", () => runtime.PreviewPointMoveJ(new[] { 9999d, 9999d, 9999d, 180d, 0d, 95d }, "guard unreachable"), "IK 실패");
@@ -3695,6 +3700,72 @@ namespace KineTutor3D.App
             return $"offsetY={scrollView.scrollOffset.y:F1}; viewportHeight={viewportHeight:F1}; contentHeight={contentHeight:F1}";
         }
 
+        public static string RunContextPanelTabMatrixForDebug()
+        {
+            var contract = GetInputContract();
+            var root = contract.GetComponent<UIDocument>()?.rootVisualElement;
+            if (root == null)
+            {
+                throw new MissingReferenceException("RobotControlV3 UIDocument root not found.");
+            }
+
+            var controller = Object.FindFirstObjectByType<ContextPanelTabController>(FindObjectsInactive.Include);
+            if (controller == null || !controller.ForceInitialize())
+            {
+                throw new MissingReferenceException("ContextPanelTabController not initialized.");
+            }
+
+            ClickUiButton("BtnContextTabStatus", "desktop", out _, out _, out _);
+            var statusSummary = BuildContextTabStateSummary(root);
+            var statusPass = IsContextTabState(root, expectStatus: true);
+
+            ClickUiButton("BtnContextTabCoordinate", "desktop", out _, out _, out _);
+            var coordinateSummary = BuildContextTabStateSummary(root);
+            var coordinatePass = IsContextTabState(root, expectStatus: false);
+
+            var pass = statusPass && coordinatePass;
+            return $"{(pass ? "PASS" : "FAIL")}; status=({statusSummary}); coordinate=({coordinateSummary})";
+        }
+
+        private static string BuildContextTabStateSummary(VisualElement root)
+        {
+            return $"statusTab={HasClass<Button>(root, "BtnContextTabStatus", "rc-context-tab--active")}; "
+                + $"coordTab={HasClass<Button>(root, "BtnContextTabCoordinate", "rc-context-tab--active")}; "
+                + $"toolbarHidden={IsHidden(root, "ViewportToolbarHost")}; "
+                + $"coordHidden={IsHidden(root, "CoordStripHost")}; "
+                + $"statusHidden={IsHidden(root, "StatusCardHost")}; "
+                + $"safetyHidden={IsHidden(root, "SafetyDiagnosticsHost")}; "
+                + $"actionHidden={IsHidden(root, "ActionHint")}; "
+                + $"whyHidden={IsHidden(root, "WhyItMoved")}";
+        }
+
+        private static bool IsContextTabState(VisualElement root, bool expectStatus)
+        {
+            var statusActive = HasClass<Button>(root, "BtnContextTabStatus", "rc-context-tab--active");
+            var coordinateActive = HasClass<Button>(root, "BtnContextTabCoordinate", "rc-context-tab--active");
+            var toolbarHidden = IsHidden(root, "ViewportToolbarHost");
+            var coordHidden = IsHidden(root, "CoordStripHost");
+            var statusHidden = IsHidden(root, "StatusCardHost");
+            var safetyHidden = IsHidden(root, "SafetyDiagnosticsHost");
+            var actionHidden = IsHidden(root, "ActionHint");
+            var whyHidden = IsHidden(root, "WhyItMoved");
+
+            return expectStatus
+                ? statusActive && !coordinateActive && toolbarHidden && coordHidden && !statusHidden && !safetyHidden && !actionHidden && !whyHidden
+                : !statusActive && coordinateActive && !toolbarHidden && !coordHidden && statusHidden && safetyHidden && actionHidden && whyHidden;
+        }
+
+        private static bool HasClass<TElement>(VisualElement root, string elementName, string className)
+            where TElement : VisualElement
+        {
+            return root.Q<TElement>(elementName)?.ClassListContains(className) ?? false;
+        }
+
+        private static bool IsHidden(VisualElement root, string elementName)
+        {
+            return root.Q<VisualElement>(elementName)?.ClassListContains("rc-hidden") ?? true;
+        }
+
         public static string GetAuxLayoutSummaryForDebug()
         {
             var contract = GetInputContract();
@@ -4045,7 +4116,7 @@ namespace KineTutor3D.App
                     return true;
                 }
 
-                if (buttonName is "TabEasyMotion" or "TabJointJog" or "TabTcpJog" or "TabPointMove")
+                if (buttonName is "TabEasyMotion" or "TabJointJog" or "TabTcpJog")
                 {
                     shell.SetDebugSelection(state.ActiveNavSection, buttonName, state.ActiveTabletTab);
                     return true;

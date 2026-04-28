@@ -21,12 +21,12 @@
 
             <ui:VisualElement name="ControlSection" class="rc-top-controls">
                 <ui:Button name="BtnServoEnable" text="서보ON" class="rc-top-button" />
-                <ui:Button name="BtnRun" text="시작" class="rc-top-button" />
-                <ui:Button name="BtnStop" text="정지" class="rc-top-button rc-top-button--danger" />
-                <ui:Button name="BtnPause" text="일시정지" class="rc-top-button" />
-                <ui:Button name="BtnSync" text="동기화" class="rc-top-button" />
-                <ui:Button name="BtnResetError" text="오류초기화" class="rc-top-button" />
-                <ui:Button name="BtnPopupProbe" text="포커스 점검" class="rc-probe-button" />
+                <ui:Button name="BtnRun" text="시작" class="rc-top-button rc-hidden" />
+                <ui:Button name="BtnStop" text="정지" class="rc-top-button rc-top-button--danger rc-hidden" />
+                <ui:Button name="BtnPause" text="일시정지" class="rc-top-button rc-hidden" />
+                <ui:Button name="BtnSync" text="현재 위치 읽기" class="rc-top-button" />
+                <ui:Button name="BtnResetError" text="오류초기화" class="rc-top-button rc-hidden" />
+                <ui:Button name="BtnPopupProbe" text="포커스 점검" class="rc-probe-button rc-hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -34,7 +34,7 @@
             <ui:VisualElement name="NavRail" class="rc-nav-rail" view-data-key="pendant-v3-nav-rail">
                 <ui:Button name="NavHome" text="🏠&#10;Home" class="rc-nav-item" />
                 <ui:Button name="NavMotion" text="🔧&#10;조작" class="rc-nav-item rc-nav-item--active" />
-                <ui:Button name="NavPoints" text="📍&#10;포인트" class="rc-nav-item" />
+                <ui:Button name="NavPoints" text="📍&#10;저장" class="rc-nav-item" />
                 <ui:Button name="NavStatus" text="📊&#10;상태" class="rc-nav-item" />
                 <ui:Button name="NavHelp" text="❓&#10;도움" class="rc-nav-item" />
             </ui:VisualElement>
@@ -44,7 +44,6 @@
                     <ui:Button name="TabEasyMotion" text="기본" class="rc-tab" />
                     <ui:Button name="TabJointJog" text="관절" class="rc-tab" />
                     <ui:Button name="TabTcpJog" text="TCP" class="rc-tab" />
-                    <ui:Button name="TabPointMove" text="좌표" class="rc-tab" />
                 </ui:VisualElement>
 
                 <ui:VisualElement name="MainSplit" class="rc-main-split" view-data-key="pendant-v3-main-split">
@@ -137,7 +136,7 @@
                 <ui:Button name="BottomTabEasyMotion" text="쉬운조작" class="rc-bottom-tab rc-bottom-tab--active" />
                 <ui:Button name="BottomTabJointJog" text="관절" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabTcpJog" text="TCP" class="rc-bottom-tab" />
-                <ui:Button name="BottomTabPointMove" text="포인트" class="rc-bottom-tab" />
+                <ui:Button name="BottomTabPointMove" text="저장" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabStatus" text="상태" class="rc-bottom-tab" />
                 <ui:Button name="BottomTabHelp" text="도움" class="rc-bottom-tab" />
             </ui:VisualElement>
@@ -157,15 +156,15 @@
         <ui:VisualElement name="BottomBar" class="rc-bottom-bar">
             <ui:Button name="BtnRunBottom" text="실행" class="rc-bottom-button" />
             <ui:Button name="BtnStopBottom" text="정지" class="rc-bottom-button" />
-            <ui:Button name="BtnDryRun" text="DryRun" class="rc-bottom-button" />
-            <ui:Button name="BtnUndo" text="Undo" class="rc-bottom-button" />
-            <ui:Button name="BtnRedo" text="Redo" class="rc-bottom-button" />
-            <ui:Button name="BtnStepBack" text="Step◀" class="rc-bottom-button" />
-            <ui:Button name="BtnStepForward" text="Step▶" class="rc-bottom-button" />
-            <ui:Button name="BtnCoordSystem" text="좌표 Base" class="rc-bottom-chip" view-data-key="pendant-v3-coord-system" />
-            <ui:Button name="BtnIncrement" text="증분 5" class="rc-bottom-chip" view-data-key="pendant-v3-increment" />
-            <ui:Slider name="SpeedSlider" low-value="1" high-value="100" value="30" class="rc-speed-slider" view-data-key="pendant-v3-speed-slider" />
-            <ui:Label name="SpeedValueLabel" text="30%" class="rc-speed-value" />
+            <ui:Button name="BtnDryRun" text="미리보기" class="rc-bottom-button" />
+            <ui:Button name="BtnUndo" text="Undo" class="rc-bottom-button rc-hidden" />
+            <ui:Button name="BtnRedo" text="Redo" class="rc-bottom-button rc-hidden" />
+            <ui:Button name="BtnStepBack" text="이전" class="rc-bottom-button rc-hidden" />
+            <ui:Button name="BtnStepForward" text="다음" class="rc-bottom-button rc-hidden" />
+            <ui:Button name="BtnCoordSystem" text="좌표 Base" class="rc-bottom-chip rc-hidden" view-data-key="pendant-v3-coord-system" />
+            <ui:Button name="BtnIncrement" text="증분 5" class="rc-bottom-chip rc-hidden" view-data-key="pendant-v3-increment" />
+            <ui:Slider name="SpeedSlider" low-value="1" high-value="100" value="30" class="rc-speed-slider rc-hidden" view-data-key="pendant-v3-speed-slider" />
+            <ui:Label name="SpeedValueLabel" text="30%" class="rc-speed-value rc-hidden" />
         </ui:VisualElement>
 
             <ui:VisualElement name="PopupLayer" class="rc-popup-layer" picking-mode="Ignore">

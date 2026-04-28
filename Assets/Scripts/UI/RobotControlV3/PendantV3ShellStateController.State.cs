@@ -194,7 +194,7 @@ namespace KineTutor3D.UI.RobotControlV3
             var dryRunEnabled = runtime?.CurrentSnapshot.DryRunEnabled ?? true;
             if (dryRunButton != null)
             {
-                dryRunButton.text = dryRunEnabled ? "DryRun ON" : "DryRun OFF";
+                dryRunButton.text = dryRunEnabled ? "미리보기 ON" : "미리보기 OFF";
                 dryRunButton.EnableInClassList("rc-bottom-tab--active", dryRunEnabled);
             }
         }
@@ -256,7 +256,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (state.ActiveNavSection == "NavPoints")
             {
-                return "티칭 포인트";
+                return "저장 위치";
             }
 
             if (state.ActiveNavSection == "NavMotion")
@@ -268,7 +268,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "TabJointJog" => "관절",
                 "TabTcpJog" => "TCP",
-                "TabPointMove" => "포인트 이동",
+                "TabPointMove" => "저장 위치",
                 "NavHelp" => "도움말",
                 _ => "쉬운 조작",
             };
@@ -280,7 +280,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "BottomTabJointJog" => "관절",
                 "BottomTabTcpJog" => "TCP",
-                "BottomTabPointMove" => "포인트",
+                "BottomTabPointMove" => "저장",
                 "BottomTabStatus" => "상태",
                 "BottomTabHelp" => "도움말",
                 _ => "쉬운조작",
@@ -291,7 +291,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (state.ActiveNavSection == "NavPoints")
             {
-                return "저장 포인트, 순서 실행, 함수 묶음을 한곳에서 관리한다.";
+                return "저장 위치, 실행 순서, 작업 묶음을 한곳에서 관리한다.";
             }
 
             if (state.ActiveNavSection == "NavMotion")
@@ -303,7 +303,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "TabJointJog" => "메인 로봇 뷰 · 관절",
                 "TabTcpJog" => "메인 로봇 뷰 · TCP",
-                "TabPointMove" => "메인 로봇 뷰 · 포인트 이동",
+                "TabPointMove" => "메인 로봇 뷰 · 저장 위치",
                 _ => "메인 로봇 뷰 · 쉬운 조작",
             };
         }
@@ -314,7 +314,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "BottomTabJointJog" => "태블릿에서는 관절 조그를 하단 시트에서 열어 3D 뷰를 가리지 않게 유지한다.",
                 "BottomTabTcpJog" => "태블릿에서는 TCP 조그와 좌표계 전환을 하단 시트에 모아 한 손 조작 흐름을 유지한다.",
-                "BottomTabPointMove" => "태블릿에서는 포인트와 묶음을 하단 시트에서 한 흐름으로 확인한다.",
+                "BottomTabPointMove" => "태블릿에서는 저장 위치와 묶음을 하단 시트에서 한 흐름으로 확인한다.",
                 "BottomTabStatus" => "태블릿에서는 상태/알람 요약을 하단 시트에서 열어 현재 위험도를 먼저 읽게 한다.",
                 "BottomTabHelp" => "태블릿에서는 현재 단계 도움말을 하단 시트에서 바로 열어 작업 흐름을 끊지 않게 유지한다.",
                 _ => "태블릿에서는 쉬운 조작 프리셋, 그리퍼, I/O를 하단 시트에서 바로 연다.",

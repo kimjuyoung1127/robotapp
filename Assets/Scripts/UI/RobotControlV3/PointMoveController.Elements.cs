@@ -37,6 +37,12 @@ namespace KineTutor3D.UI.RobotControlV3
                 PreviewSummary = root.Q<Label>("PointPreviewSummary");
                 StoreSummary = root.Q<Label>("PointStoreSummary");
                 PointInventorySummary = root.Q<Label>("PointInventorySummary");
+                PointSearchInput = root.Q<TextField>("PointSearchInput");
+                PointSelectionCount = root.Q<Label>("PointSelectionCount");
+                BtnPointFilterAll = root.Q<Button>("BtnPointFilterAll");
+                BtnPointFilterSelected = root.Q<Button>("BtnPointFilterSelected");
+                BtnPointFilterMoveJ = root.Q<Button>("BtnPointFilterMoveJ");
+                BtnPointFilterMoveL = root.Q<Button>("BtnPointFilterMoveL");
                 PointBulkActions = root.Q<VisualElement>("PointBulkActions");
                 BtnPointRowActionsToggle = root.Q<Button>("BtnPointRowActionsToggle");
                 BtnPointBulkClear = root.Q<Button>("BtnPointBulkClear");
@@ -61,7 +67,8 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnPathRecordDelete = root.Q<Button>("BtnPathRecordDelete");
                 PathRecordSummary = root.Q<Label>("PathRecordSummary");
                 BlockSequenceSummary = root.Q<Label>("BlockSequenceSummary");
-                BlockSequenceListContainer = root.Q<VisualElement>("BlockSequenceListContainer");
+                BlockSequenceListView = root.Q<ListView>("BlockSequenceListContainer");
+                BlockSequenceListContainer = BlockSequenceListView ?? root.Q<VisualElement>("BlockSequenceListContainer");
                 BtnBlockAddPoint = root.Q<Button>("BtnBlockAddPoint");
                 BtnBlockAddBundle = root.Q<Button>("BtnBlockAddBundle");
                 BtnBlockPreview = root.Q<Button>("BtnBlockPreview");
@@ -69,12 +76,20 @@ namespace KineTutor3D.UI.RobotControlV3
                 SequenceLibrarySummary = root.Q<Label>("SequenceLibrarySummary");
                 SelectedSequenceDetail = root.Q<Label>("SelectedSequenceDetail");
                 SequenceInventorySummary = root.Q<Label>("SequenceInventorySummary");
+                SequenceSearchInput = root.Q<TextField>("SequenceSearchInput");
+                SequenceSelectionCount = root.Q<Label>("SequenceSelectionCount");
+                BtnSequenceFilterAll = root.Q<Button>("BtnSequenceFilterAll");
+                BtnSequenceFilterSelected = root.Q<Button>("BtnSequenceFilterSelected");
+                BtnSequenceFilterDeletable = root.Q<Button>("BtnSequenceFilterDeletable");
+                BtnSequenceFilterProtected = root.Q<Button>("BtnSequenceFilterProtected");
                 SequenceBulkActions = root.Q<VisualElement>("SequenceBulkActions");
                 BtnSequenceRowActionsToggle = root.Q<Button>("BtnSequenceRowActionsToggle");
                 BtnSequenceBulkClear = root.Q<Button>("BtnSequenceBulkClear");
                 BtnSequenceBulkDelete = root.Q<Button>("BtnSequenceBulkDelete");
-                SequenceListContainer = root.Q<VisualElement>("SequenceListContainer");
-                PointListContainer = root.Q<VisualElement>("PointListContainer");
+                SequenceListView = root.Q<ListView>("SequenceListContainer");
+                SequenceListContainer = SequenceListView ?? root.Q<VisualElement>("SequenceListContainer");
+                PointListView = root.Q<ListView>("PointListContainer");
+                PointListContainer = PointListView ?? root.Q<VisualElement>("PointListContainer");
                 DetailTitle = root.Q<Label>("PointDetailTitle");
                 DetailMeta = root.Q<Label>("PointDetailMeta");
                 DetailJoints = root.Q<Label>("PointDetailJoints");
@@ -101,14 +116,21 @@ namespace KineTutor3D.UI.RobotControlV3
                 BtnPointModalClose = root.Q<Button>("BtnPointModalClose");
                 BundlePickerModal = root.Q<VisualElement>("BundlePickerModal");
                 BundlePickerSummary = root.Q<Label>("BundlePickerSummary");
-                BundlePickerListContainer = root.Q<VisualElement>("BundlePickerListContainer");
+                BundlePickerListView = root.Q<ListView>("BundlePickerListContainer");
+                BundlePickerListContainer = BundlePickerListView ?? root.Q<VisualElement>("BundlePickerListContainer");
                 BtnBundlePickerConfirm = root.Q<Button>("BtnBundlePickerConfirm");
                 BtnBundlePickerClose = root.Q<Button>("BtnBundlePickerClose");
                 FunctionNameInput = root.Q<TextField>("FunctionNameInput");
                 FunctionSummary = root.Q<Label>("FunctionSummary");
                 FunctionInventorySummary = root.Q<Label>("FunctionInventorySummary");
+                FunctionSearchInput = root.Q<TextField>("FunctionSearchInput");
+                FunctionSelectionCount = root.Q<Label>("FunctionSelectionCount");
+                BtnFunctionFilterAll = root.Q<Button>("BtnFunctionFilterAll");
+                BtnFunctionFilterSelected = root.Q<Button>("BtnFunctionFilterSelected");
+                BtnFunctionFilterMissing = root.Q<Button>("BtnFunctionFilterMissing");
                 FunctionBulkActions = root.Q<VisualElement>("FunctionBulkActions");
-                FunctionListContainer = root.Q<VisualElement>("FunctionListContainer");
+                FunctionListView = root.Q<ListView>("FunctionListContainer");
+                FunctionListContainer = FunctionListView ?? root.Q<VisualElement>("FunctionListContainer");
                 FunctionDetail = root.Q<Label>("FunctionDetail");
                 BtnFunctionRowActionsToggle = root.Q<Button>("BtnFunctionRowActionsToggle");
                 BtnFunctionBulkClear = root.Q<Button>("BtnFunctionBulkClear");
@@ -189,6 +211,12 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label PreviewSummary { get; }
             public Label StoreSummary { get; }
             public Label PointInventorySummary { get; }
+            public TextField PointSearchInput { get; }
+            public Label PointSelectionCount { get; }
+            public Button BtnPointFilterAll { get; }
+            public Button BtnPointFilterSelected { get; }
+            public Button BtnPointFilterMoveJ { get; }
+            public Button BtnPointFilterMoveL { get; }
             public VisualElement PointBulkActions { get; }
             public Button BtnPointRowActionsToggle { get; }
             public Button BtnPointBulkClear { get; }
@@ -214,6 +242,7 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label PathRecordSummary { get; }
             public Label BlockSequenceSummary { get; }
             public VisualElement BlockSequenceListContainer { get; }
+            public ListView BlockSequenceListView { get; }
             public Button BtnBlockAddPoint { get; }
             public Button BtnBlockAddBundle { get; }
             public Button BtnBlockPreview { get; }
@@ -221,12 +250,20 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label SequenceLibrarySummary { get; }
             public Label SelectedSequenceDetail { get; }
             public Label SequenceInventorySummary { get; }
+            public TextField SequenceSearchInput { get; }
+            public Label SequenceSelectionCount { get; }
+            public Button BtnSequenceFilterAll { get; }
+            public Button BtnSequenceFilterSelected { get; }
+            public Button BtnSequenceFilterDeletable { get; }
+            public Button BtnSequenceFilterProtected { get; }
             public VisualElement SequenceBulkActions { get; }
             public Button BtnSequenceRowActionsToggle { get; }
             public Button BtnSequenceBulkClear { get; }
             public Button BtnSequenceBulkDelete { get; }
             public VisualElement SequenceListContainer { get; }
+            public ListView SequenceListView { get; }
             public VisualElement PointListContainer { get; }
+            public ListView PointListView { get; }
             public Label DetailTitle { get; }
             public Label DetailMeta { get; }
             public Label DetailJoints { get; }
@@ -254,13 +291,20 @@ namespace KineTutor3D.UI.RobotControlV3
             public VisualElement BundlePickerModal { get; }
             public Label BundlePickerSummary { get; }
             public VisualElement BundlePickerListContainer { get; }
+            public ListView BundlePickerListView { get; }
             public Button BtnBundlePickerConfirm { get; }
             public Button BtnBundlePickerClose { get; }
             public TextField FunctionNameInput { get; }
             public Label FunctionSummary { get; }
             public Label FunctionInventorySummary { get; }
+            public TextField FunctionSearchInput { get; }
+            public Label FunctionSelectionCount { get; }
+            public Button BtnFunctionFilterAll { get; }
+            public Button BtnFunctionFilterSelected { get; }
+            public Button BtnFunctionFilterMissing { get; }
             public VisualElement FunctionBulkActions { get; }
             public VisualElement FunctionListContainer { get; }
+            public ListView FunctionListView { get; }
             public Label FunctionDetail { get; }
             public Button BtnFunctionRowActionsToggle { get; }
             public Button BtnFunctionBulkClear { get; }

@@ -10,6 +10,74 @@
     --rc-danger: rgb(255, 70, 70);
     --rc-title-text: rgb(240, 240, 245);
     --rc-muted-text: rgb(140, 140, 160);
+    --rc-button-text: rgb(205, 216, 232);
+    --rc-button-text-strong: rgb(232, 238, 248);
+    --rc-button-text-on-accent: rgb(12, 18, 30);
+    --rc-button-bg: rgba(80, 140, 255, 0.10);
+    --rc-button-bg-hover: rgba(80, 140, 255, 0.16);
+    --rc-button-bg-active: rgba(80, 140, 255, 0.34);
+    --rc-button-bg-pressed: rgba(80, 140, 255, 0.46);
+    --rc-button-bg-primary: rgba(80, 140, 255, 0.42);
+    --rc-button-bg-success-soft: rgba(60, 200, 120, 0.16);
+    --rc-button-bg-success: rgba(60, 200, 120, 0.18);
+    --rc-button-bg-danger-soft: rgba(255, 70, 70, 0.16);
+    --rc-button-bg-danger: rgba(255, 70, 70, 0.18);
+    --rc-button-bg-danger-strong: rgba(255, 70, 70, 0.22);
+    --rc-button-bg-danger-pressed: rgba(255, 70, 70, 0.34);
+    --rc-button-bg-success-pressed: rgba(60, 200, 120, 0.34);
+    --rc-button-border: rgba(80, 140, 255, 0.18);
+    --rc-button-border-active: rgba(140, 185, 255, 0.78);
+    --rc-button-border-pressed: rgba(190, 215, 255, 0.95);
+    --rc-button-border-subtle: rgba(255, 255, 255, 0.08);
+    --rc-surface-faint: rgba(255, 255, 255, 0.03);
+    --rc-surface-soft: rgba(255, 255, 255, 0.04);
+    --rc-surface-subtle: rgba(255, 255, 255, 0.05);
+    --rc-surface-row: rgba(18, 18, 24, 0.38);
+    --rc-surface-row-strong: rgba(18, 18, 24, 0.55);
+    --rc-surface-card-overlay: rgba(30, 30, 40, 0.96);
+    --rc-surface-card-overlay-strong: rgba(30, 30, 40, 0.98);
+    --rc-overlay-clear: rgba(0, 0, 0, 0.0);
+    --rc-overlay-scrim: rgba(0, 0, 0, 0.6);
+    --rc-overlay-backdrop: rgba(0, 0, 0, 0.52);
+    --rc-axis-x: rgb(255, 104, 104);
+    --rc-axis-y: rgb(92, 215, 138);
+    --rc-axis-z: rgb(91, 155, 255);
+    --rc-axis-r: rgb(255, 196, 88);
+    --rc-axis-x-soft: rgba(255, 104, 104, 0.18);
+    --rc-axis-y-soft: rgba(92, 215, 138, 0.18);
+    --rc-axis-z-soft: rgba(91, 155, 255, 0.18);
+    --rc-axis-r-soft: rgba(255, 196, 88, 0.18);
+    --rc-stage-overlay-panel: rgba(18, 18, 24, 0.86);
+    --rc-stage-axis-panel: rgba(30, 30, 40, 0.82);
+    --rc-stage-render-placeholder: rgba(180, 30, 30, 0.24);
+    --rc-stage-diagnostic-bg: rgba(0, 0, 0, 0.58);
+    --rc-stage-diagnostic-text: rgb(255, 255, 255);
+    --rc-axis-widget-bg: rgba(10, 12, 18, 0.74);
+    --rc-axis-widget-border: rgba(255, 255, 255, 0.10);
+    --rc-axis-widget-center: rgba(255, 255, 255, 0.88);
+    --rc-axis-widget-label: rgb(245, 245, 245);
+    --rc-axis-widget-x: rgba(255, 76, 76, 0.88);
+    --rc-axis-widget-y: rgba(68, 210, 120, 0.88);
+    --rc-axis-widget-z: rgba(88, 148, 255, 0.88);
+    --rc-debug-highlight-fill: rgba(255, 180, 40, 0.04);
+    --rc-debug-badge-border: rgba(255, 180, 40, 0.52);
+    --rc-split-handle-bg: rgba(80, 140, 255, 0.12);
+    --rc-viewport-boundary-border: rgba(80, 140, 255, 0.36);
+    --rc-viewport-boundary-bg: rgba(80, 140, 255, 0.04);
+    --rc-viewport-collision-border: rgba(255, 70, 70, 0.42);
+    --rc-viewport-collision-bg: rgba(255, 70, 70, 0.05);
+    --rc-selection-border: rgba(80, 220, 180, 0.42);
+    --rc-selection-bg: rgba(80, 220, 180, 0.09);
+    --rc-modal-scrim: rgba(8, 12, 18, 0.72);
+    --rc-modal-card-bg: rgb(22, 27, 35);
+    --rc-modal-card-border: rgba(255, 255, 255, 0.12);
+    --rc-status-success-bg: rgba(60, 200, 120, 0.10);
+    --rc-status-warning-bg: rgba(255, 180, 40, 0.12);
+    --rc-safety-success-bg: rgba(60, 200, 120, 0.14);
+    --rc-safety-warning-bg: rgba(255, 180, 40, 0.14);
+    --rc-surface-emphasis: rgba(255, 255, 255, 0.06);
+    --rc-surface-raised-line: rgba(255, 255, 255, 0.08);
+    --rc-toolbar-bg: rgba(18, 20, 28, 0.86);
     --rc-top-bar-height: 56px;
     --rc-nav-rail-width: 72px;
     --rc-context-panel-width: 320px;
@@ -17,13 +85,22 @@
     --rc-work-tab-height: 40px;
     --rc-gap: 4px;
     --rc-card-padding: 12px;
+    --rc-radius-xs: 4px;
+    --rc-radius-sm: 5px;
     --rc-radius: 6px;
+    --rc-radius-lg: 8px;
+    --rc-radius-xl: 10px;
+    --rc-radius-card: 12px;
+    --rc-radius-axis: 9px;
+    --rc-radius-pill: 999px;
+    --rc-button-radius: var(--rc-radius);
+    --rc-sheet-radius: 12px 12px 0 0;
     --rc-stage-backdrop: rgb(12, 14, 20);
     --rc-stage-border: rgba(80, 140, 255, 0.20);
     --rc-stage-overlay: rgba(18, 18, 24, 0.78);
     --rc-aux-surface: rgb(10, 10, 14);
     --rc-aux-border: rgba(80, 140, 255, 0.12);
-    --rc-aux-muted-panel: rgba(255, 255, 255, 0.03);
+    --rc-aux-muted-panel: var(--rc-surface-faint);
     --rc-highlight-border: rgba(255, 180, 40, 0.82);
     --rc-highlight-shadow: rgba(255, 180, 40, 0.22);
     --rc-highlight-fill: rgba(255, 180, 40, 0.16);
@@ -44,6 +121,73 @@
 
 .rc-root .unity-text-input {
     color: var(--rc-input-text);
+}
+
+.rc-root .unity-button {
+    border-radius: var(--rc-button-radius);
+    background-color: var(--rc-button-bg);
+    color: var(--rc-button-text);
+    border-width: 1px;
+    border-color: var(--rc-button-border);
+}
+
+.rc-root .unity-button:hover {
+    background-color: var(--rc-button-bg-hover);
+    border-color: var(--rc-button-border-active);
+    color: var(--rc-button-text-strong);
+}
+
+.rc-root .unity-button:active {
+    background-color: var(--rc-button-bg-pressed);
+    border-color: var(--rc-button-border-pressed);
+    color: var(--rc-button-text-strong);
+}
+
+.rc-root .unity-button:focus {
+    border-color: var(--rc-button-border-active);
+    color: var(--rc-button-text-strong);
+}
+
+.rc-nav-item--active,
+.rc-tab--active,
+.rc-context-tab--active,
+.rc-bottom-tab--active,
+.rc-home-state-button--active,
+.rc-coord-mode-button--active,
+.rc-joint-mode-button--active,
+.rc-tcp-coord-button--active,
+.rc-point-motion-button--active,
+.rc-point-subview-tab--active,
+.rc-point-coord-button--active,
+.rc-point-list-button--active,
+.rc-point-loop-button--active,
+.rc-point-timing-button--active,
+.rc-viewport-toolbar-button--active,
+.rc-workspace-toggle--active,
+.rc-collision-toggle--active {
+    border-width: 1px;
+    border-color: var(--rc-button-border-active);
+}
+
+.rc-root .unity-button.rc-home-button--primary:hover,
+.rc-root .unity-button.rc-popup-button--primary:hover,
+.rc-root .unity-button.rc-point-primary-save:hover {
+    background-color: var(--rc-button-bg-pressed);
+}
+
+.rc-root .unity-button.rc-easy-action-button--primary:hover {
+    background-color: var(--rc-button-bg-success-pressed);
+}
+
+.rc-root .unity-button.rc-top-button--danger:hover,
+.rc-root .unity-button.rc-popup-button--danger:hover,
+.rc-root .unity-button.rc-fault-overlay-button--danger:hover,
+.rc-root .unity-button.rc-easy-action-button--danger:hover,
+.rc-root .unity-button.rc-joint-action-button--danger:hover,
+.rc-root .unity-button.rc-tcp-action-button--danger:hover,
+.rc-root .unity-button.rc-point-action-button--danger:hover {
+    background-color: var(--rc-button-bg-danger-pressed);
+    border-color: var(--rc-danger);
 }
 
 .rc-top-status-bar {
@@ -84,7 +228,8 @@
 }
 
 .rc-top-button--danger {
-    background-color: rgba(255, 70, 70, 0.18);
+    background-color: var(--rc-button-bg-danger);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-title {
@@ -114,7 +259,7 @@
     padding-right: 8px;
     padding-top: 2px;
     padding-bottom: 2px;
-    border-radius: 6px;
+    border-radius: var(--rc-radius);
     font-size: 12px;
     background-color: var(--rc-card);
     flex-shrink: 0;
@@ -164,13 +309,14 @@
     margin-right: 4px;
     margin-top: 4px;
     margin-bottom: 4px;
-    border-radius: 6px;
+    border-radius: var(--rc-radius);
     -unity-text-align: middle-center;
     white-space: normal;
 }
 
 .rc-nav-item--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-main-content {
@@ -193,9 +339,9 @@
 
 .rc-work-tab-bar--dock {
     margin-bottom: 10px;
-    border-radius: 8px;
+    border-radius: var(--rc-radius-lg);
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--rc-button-border-subtle);
 }
 
 .rc-tab {
@@ -210,7 +356,8 @@
 }
 
 .rc-tab--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-main-split {
@@ -231,7 +378,7 @@
 .rc-work-panel--debug-highlight {
     border-width: 2px;
     border-color: var(--rc-highlight-border);
-    background-color: rgba(255, 180, 40, 0.04);
+    background-color: var(--rc-debug-highlight-fill);
 }
 
 .rc-panel-header {
@@ -264,15 +411,15 @@
     padding-right: 5px;
     padding-top: 1px;
     padding-bottom: 1px;
-    border-radius: 5px;
+    border-radius: var(--rc-radius-sm);
     font-size: 9px;
     color: var(--rc-muted-text);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--rc-surface-subtle);
 }
 
 .rc-work-panel-chip--primary {
     color: var(--rc-title-text);
-    background-color: rgba(80, 140, 255, 0.18);
+    background-color: var(--rc-button-bg-hover);
 }
 
 .rc-work-panel-debug-badge {
@@ -282,9 +429,9 @@
     padding-right: 10px;
     padding-top: 4px;
     padding-bottom: 4px;
-    border-radius: 12px;
+    border-radius: var(--rc-radius-card);
     border-width: 1px;
-    border-color: rgba(255, 180, 40, 0.52);
+    border-color: var(--rc-debug-badge-border);
     background-color: var(--rc-highlight-fill);
     color: var(--rc-highlight-text);
     font-size: 12px;
@@ -307,7 +454,7 @@
 .rc-robot-stage-host {
     flex-grow: 1;
     min-height: 600px;
-    border-radius: 8px;
+    border-radius: var(--rc-radius-lg);
     border-width: 1px;
     border-color: var(--rc-stage-border);
     background-color: var(--rc-stage-backdrop);
@@ -321,7 +468,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: rgba(180, 30, 30, 0.24);
+    background-color: var(--rc-stage-render-placeholder);
 }
 
 .rc-robot-stage-diagnostic {
@@ -333,9 +480,9 @@
     padding-right: 8px;
     padding-top: 6px;
     padding-bottom: 6px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.58);
-    color: rgb(255, 255, 255);
+    border-radius: var(--rc-radius-xs);
+    background-color: var(--rc-stage-diagnostic-bg);
+    color: var(--rc-stage-diagnostic-text);
     font-size: 11px;
 }
 
@@ -352,10 +499,10 @@
 .rc-robot-stage-orientation-widget {
     width: 88px;
     height: 88px;
-    border-radius: 8px;
-    background-color: rgba(10, 12, 18, 0.74);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-axis-widget-bg);
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.10);
+    border-color: var(--rc-axis-widget-border);
 }
 
 .rc-robot-stage-orientation-center {
@@ -364,32 +511,32 @@
     top: 39px;
     width: 10px;
     height: 10px;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.88);
+    border-radius: var(--rc-radius-sm);
+    background-color: var(--rc-axis-widget-center);
 }
 
 .rc-robot-stage-orientation-axis {
     position: absolute;
     width: 18px;
     height: 18px;
-    border-radius: 9px;
+    border-radius: var(--rc-radius-axis);
     -unity-text-align: middle-center;
     font-size: 10px;
     -unity-font-style: bold;
-    color: rgb(245, 245, 245);
+    color: var(--rc-axis-widget-label);
     cursor: pointer;
 }
 
 .rc-robot-stage-orientation-axis--x {
-    background-color: rgba(255, 76, 76, 0.88);
+    background-color: var(--rc-axis-widget-x);
 }
 
 .rc-robot-stage-orientation-axis--y {
-    background-color: rgba(68, 210, 120, 0.88);
+    background-color: var(--rc-axis-widget-y);
 }
 
 .rc-robot-stage-orientation-axis--z {
-    background-color: rgba(88, 148, 255, 0.88);
+    background-color: var(--rc-axis-widget-z);
 }
 
 .rc-robot-stage-overlay-host {
@@ -398,7 +545,7 @@
     right: 12px;
     bottom: 12px;
     padding: 10px;
-    border-radius: 6px;
+    border-radius: var(--rc-radius);
     background-color: var(--rc-stage-overlay);
 }
 
@@ -421,12 +568,12 @@
     min-width: 8px;
     margin-left: var(--rc-gap);
     margin-right: var(--rc-gap);
-    border-radius: 4px;
-    background-color: rgba(80, 140, 255, 0.12);
+    border-radius: var(--rc-radius-xs);
+    background-color: var(--rc-split-handle-bg);
 }
 
 .rc-split-handle--dragging {
-    background-color: rgba(80, 140, 255, 0.28);
+    background-color: var(--rc-button-bg-pressed);
 }
 
 .rc-viewport-host {
@@ -444,13 +591,13 @@
 }
 
 .rc-viewport-host--boundary {
-    border-color: rgba(80, 140, 255, 0.36);
-    background-color: rgba(80, 140, 255, 0.04);
+    border-color: var(--rc-viewport-boundary-border);
+    background-color: var(--rc-viewport-boundary-bg);
 }
 
 .rc-viewport-host--collision {
-    border-color: rgba(255, 70, 70, 0.42);
-    background-color: rgba(255, 70, 70, 0.05);
+    border-color: var(--rc-viewport-collision-border);
+    background-color: var(--rc-viewport-collision-bg);
 }
 
 .rc-viewport-toolbar-host {
@@ -517,7 +664,7 @@
 }
 
 .rc-viewport-scroll {
-    border-radius: 8px;
+    border-radius: var(--rc-radius-lg);
     background-color: var(--rc-aux-muted-panel);
     padding-left: 6px;
     padding-right: 6px;
@@ -560,7 +707,8 @@
 }
 
 .rc-context-tab--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-context-host {
@@ -620,8 +768,8 @@
     margin-left: 4px;
     margin-right: 4px;
     margin-bottom: 4px;
-    border-radius: 12px 12px 0 0;
-    background-color: rgba(30, 30, 40, 0.96);
+    border-radius: var(--rc-sheet-radius);
+    background-color: var(--rc-surface-card-overlay);
 }
 
 .rc-bottom-sheet-header {
@@ -659,8 +807,8 @@
 .rc-accordion-card {
     margin-bottom: 6px;
     padding: 6px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-soft);
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
@@ -701,7 +849,8 @@
 }
 
 .rc-bottom-tab--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-bottom-sheet-content {
@@ -745,14 +894,14 @@
     bottom: 0;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.0);
+    background-color: var(--rc-overlay-clear);
 }
 
 .rc-popup-card {
     min-width: 360px;
     max-width: 420px;
     padding: 16px;
-    border-radius: 12px;
+    border-radius: var(--rc-radius-card);
     background-color: var(--rc-card-alt);
 }
 
@@ -763,8 +912,8 @@
 .rc-popup-template-body {
     margin-top: 4px;
     padding: 10px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-soft);
 }
 
 .rc-popup-template-title {
@@ -793,11 +942,12 @@
 
 .rc-popup-button--primary {
     background-color: var(--rc-accent);
-    color: var(--rc-title-text);
+    color: var(--rc-button-text-on-accent);
 }
 
 .rc-popup-button--danger {
-    background-color: rgba(255, 70, 70, 0.22);
+    background-color: var(--rc-button-bg-danger-strong);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-hidden {
@@ -805,7 +955,7 @@
 }
 
 .rc-popup-layer--active {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: var(--rc-overlay-scrim);
 }
 
 .rc-popup-placeholder {

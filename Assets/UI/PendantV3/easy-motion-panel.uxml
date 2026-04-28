@@ -23,7 +23,7 @@
         </ui:VisualElement>
 
         <ui:VisualElement class="rc-easy-option-card">
-            <ui:Label name="EasyDryRunLabel" text="미리보기 먼저 (DryRun ON)" class="rc-panel-copy" />
+            <ui:Label name="EasyDryRunLabel" text="미리보기 먼저 켜짐" class="rc-panel-copy" />
             <ui:Label name="EasyActionHint" text="Home나 Ready 같은 작은 이동부터 확인하는 게 덜 위험함." class="rc-easy-hint" />
         </ui:VisualElement>
 

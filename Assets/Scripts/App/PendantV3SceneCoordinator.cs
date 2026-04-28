@@ -19,6 +19,7 @@ namespace KineTutor3D.App
         [SerializeField] private RobotStageRenderSurface robotStageRenderSurface;
         [SerializeField] private RobotStageOrientationGizmoController robotStageOrientationGizmoController;
         [SerializeField] private ViewportAuxInfoController viewportAuxInfoController;
+        [SerializeField] private ContextPanelTabController contextPanelTabController;
         [SerializeField] private EasyMotionController easyMotionController;
         [SerializeField] private JointJogController jointJogController;
         [SerializeField] private TcpJogController tcpJogController;
@@ -53,7 +54,7 @@ namespace KineTutor3D.App
 
         public string GetDebugSummary()
         {
-            return $"bootstrapped={isBootstrapped}; documentReady={document != null && document.IsReadyForSceneBootstrap()}; binder={(binder != null)}; home={(connectionHomeController != null)}; motion={(easyMotionController != null && jointJogController != null && tcpJogController != null && pointMoveController != null)}; io={(ioPanelController != null)}; popup={(popupCoordinator != null)}";
+            return $"bootstrapped={isBootstrapped}; documentReady={document != null && document.IsReadyForSceneBootstrap()}; binder={(binder != null)}; home={(connectionHomeController != null)}; contextTabs={(contextPanelTabController != null)}; motion={(easyMotionController != null && jointJogController != null && tcpJogController != null && pointMoveController != null)}; io={(ioPanelController != null)}; popup={(popupCoordinator != null)}";
         }
 
         private System.Collections.IEnumerator BootstrapWhenReady()
@@ -81,6 +82,7 @@ namespace KineTutor3D.App
             robotStageRenderSurface ??= GetComponent<RobotStageRenderSurface>() ?? gameObject.AddComponent<RobotStageRenderSurface>();
             robotStageOrientationGizmoController ??= GetComponent<RobotStageOrientationGizmoController>() ?? gameObject.AddComponent<RobotStageOrientationGizmoController>();
             viewportAuxInfoController ??= GetComponent<ViewportAuxInfoController>() ?? gameObject.AddComponent<ViewportAuxInfoController>();
+            contextPanelTabController ??= GetComponent<ContextPanelTabController>() ?? gameObject.AddComponent<ContextPanelTabController>();
             easyMotionController ??= GetComponent<EasyMotionController>();
             jointJogController ??= GetComponent<JointJogController>();
             tcpJogController ??= GetComponent<TcpJogController>();
@@ -97,6 +99,7 @@ namespace KineTutor3D.App
             var renderReady = robotStageRenderSurface == null || robotStageRenderSurface.ForceInitialize();
             var orientationReady = robotStageOrientationGizmoController == null || robotStageOrientationGizmoController.ForceInitialize();
             var auxInfoReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
+            var contextTabsReady = contextPanelTabController == null || contextPanelTabController.ForceInitialize();
             var homeReady = connectionHomeController == null || connectionHomeController.ForceInitialize();
             var binderReady = binder == null || binder.ForceInitialize();
             var easyReady = easyMotionController == null || easyMotionController.ForceInitialize();
@@ -106,7 +109,7 @@ namespace KineTutor3D.App
             var ioReady = ioPanelController == null || ioPanelController.ForceInitialize();
             var popupReady = popupCoordinator == null || popupCoordinator.ForceInitialize();
 
-            isBootstrapped = runtimeReady && renderReady && orientationReady && auxInfoReady && homeReady && binderReady && easyReady && jointReady && tcpReady && pointReady && ioReady && popupReady;
+            isBootstrapped = runtimeReady && renderReady && orientationReady && auxInfoReady && contextTabsReady && homeReady && binderReady && easyReady && jointReady && tcpReady && pointReady && ioReady && popupReady;
             return isBootstrapped;
         }
     }

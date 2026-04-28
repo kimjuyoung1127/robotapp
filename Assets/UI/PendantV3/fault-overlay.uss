@@ -3,15 +3,15 @@
     flex-grow: 1;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.52);
+    background-color: var(--rc-overlay-backdrop);
 }
 
 .rc-fault-overlay-card {
     width: 420px;
     max-width: 92%;
     padding: 16px;
-    border-radius: 12px;
-    background-color: rgba(30, 30, 40, 0.98);
+    border-radius: var(--rc-radius-card);
+    background-color: var(--rc-surface-card-overlay-strong);
 }
 
 .rc-fault-overlay-actions {
@@ -27,5 +27,6 @@
 }
 
 .rc-fault-overlay-button--danger {
-    background-color: rgba(255, 70, 70, 0.22);
+    background-color: var(--rc-button-bg-danger-strong);
+    color: var(--rc-button-text-strong);
 }

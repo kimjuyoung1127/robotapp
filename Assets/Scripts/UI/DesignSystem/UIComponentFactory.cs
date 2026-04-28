@@ -130,21 +130,13 @@ namespace KineTutor3D.UI
             var rect = UiRuntimeStyle.EnsureRectChild(parent, name);
             rect.sizeDelta = new Vector2(size, size);
 
-            var image = rect.GetComponent<Image>();
-            if (image == null)
-            {
-                image = rect.gameObject.AddComponent<Image>();
-            }
-
-            image.color = Color.clear;
-
             var button = rect.GetComponent<Button>();
             if (button == null)
             {
                 button = rect.gameObject.AddComponent<Button>();
             }
 
-            button.colors = UIDesignTokens.ButtonColors(UIDesignTokens.Colors.SurfaceRaisedAlt);
+            UiRuntimeStyle.EnsureButtonBackground(button, UIDesignTokens.Colors.SurfaceRaisedAlt);
 
             UIIconResolver.CreateIcon(rect, "Icon", iconName, size * 0.6f, UIDesignTokens.Colors.TextPrimary);
 

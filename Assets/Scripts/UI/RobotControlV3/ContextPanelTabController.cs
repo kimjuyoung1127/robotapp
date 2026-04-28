@@ -21,17 +21,15 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement root;
         private Button btnStatusTab;
         private Button btnCoordinateTab;
+        private VisualElement viewportToolbarHost;
         private VisualElement coordStripHost;
         private VisualElement statusCardHost;
         private VisualElement safetyDiagnosticsHost;
         private VisualElement actionHintCard;
-        private WhyItMovedController whyItMovedController;
-        private SafetyDiagnosticsController safetyDiagnosticsController;
+        private VisualElement whyItMovedCard;
         private ContextTabMode activeMode = ContextTabMode.Status;
         private bool isInitialized;
         private Coroutine initializeCoroutine;
-        private EventCallback<ClickEvent> statusTabCallback;
-        private EventCallback<ClickEvent> coordinateTabCallback;
 
         private void OnEnable()
         {
@@ -60,8 +58,11 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             var statusVisible = !(statusCardHost?.ClassListContains("rc-hidden") ?? true);
             var coordVisible = !(coordStripHost?.ClassListContains("rc-hidden") ?? true);
+            var toolbarVisible = !(viewportToolbarHost?.ClassListContains("rc-hidden") ?? true);
+            var safetyVisible = !(safetyDiagnosticsHost?.ClassListContains("rc-hidden") ?? true);
             var actionVisible = !(actionHintCard?.ClassListContains("rc-hidden") ?? true);
-            return $"initialized={isInitialized}; mode={activeMode}; statusVisible={statusVisible}; coordVisible={coordVisible}; actionVisible={actionVisible}";
+            var whyVisible = !(whyItMovedCard?.ClassListContains("rc-hidden") ?? true);
+            return $"initialized={isInitialized}; mode={activeMode}; statusVisible={statusVisible}; coordVisible={coordVisible}; toolbarVisible={toolbarVisible}; safetyVisible={safetyVisible}; actionVisible={actionVisible}; whyVisible={whyVisible}";
         }
 
         private System.Collections.IEnumerator WaitForInitialize()
@@ -91,14 +92,21 @@ namespace KineTutor3D.UI.RobotControlV3
 
             btnStatusTab = root.Q<Button>("BtnContextTabStatus");
             btnCoordinateTab = root.Q<Button>("BtnContextTabCoordinate");
+            viewportToolbarHost = root.Q<VisualElement>("ViewportToolbarHost");
             coordStripHost = root.Q<VisualElement>("CoordStripHost");
             statusCardHost = root.Q<VisualElement>("StatusCardHost");
             safetyDiagnosticsHost = root.Q<VisualElement>("SafetyDiagnosticsHost");
             actionHintCard = root.Q<VisualElement>("ActionHint");
-            whyItMovedController ??= GetComponent<WhyItMovedController>();
-            safetyDiagnosticsController ??= GetComponent<SafetyDiagnosticsController>();
+            whyItMovedCard = root.Q<VisualElement>("WhyItMoved");
 
-            if (btnStatusTab == null || btnCoordinateTab == null || coordStripHost == null || statusCardHost == null || actionHintCard == null)
+            if (btnStatusTab == null
+                || btnCoordinateTab == null
+                || viewportToolbarHost == null
+                || coordStripHost == null
+                || statusCardHost == null
+                || safetyDiagnosticsHost == null
+                || actionHintCard == null
+                || whyItMovedCard == null)
             {
                 isInitialized = false;
                 return false;
@@ -112,25 +120,33 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void BindListeners()
         {
-            statusTabCallback ??= _ => SetMode(ContextTabMode.Status);
-            coordinateTabCallback ??= _ => SetMode(ContextTabMode.Coordinate);
-            btnStatusTab.UnregisterCallback(statusTabCallback);
-            btnCoordinateTab.UnregisterCallback(coordinateTabCallback);
-            btnStatusTab.RegisterCallback(statusTabCallback);
-            btnCoordinateTab.RegisterCallback(coordinateTabCallback);
+            btnStatusTab.clicked -= HandleStatusTabClicked;
+            btnCoordinateTab.clicked -= HandleCoordinateTabClicked;
+            btnStatusTab.clicked += HandleStatusTabClicked;
+            btnCoordinateTab.clicked += HandleCoordinateTabClicked;
         }
 
         private void UnbindListeners()
         {
-            if (btnStatusTab != null && statusTabCallback != null)
+            if (btnStatusTab != null)
             {
-                btnStatusTab.UnregisterCallback(statusTabCallback);
+                btnStatusTab.clicked -= HandleStatusTabClicked;
             }
 
-            if (btnCoordinateTab != null && coordinateTabCallback != null)
+            if (btnCoordinateTab != null)
             {
-                btnCoordinateTab.UnregisterCallback(coordinateTabCallback);
+                btnCoordinateTab.clicked -= HandleCoordinateTabClicked;
             }
+        }
+
+        private void HandleStatusTabClicked()
+        {
+            SetMode(ContextTabMode.Status);
+        }
+
+        private void HandleCoordinateTabClicked()
+        {
+            SetMode(ContextTabMode.Coordinate);
         }
 
         private void SetMode(ContextTabMode mode)
@@ -145,9 +161,12 @@ namespace KineTutor3D.UI.RobotControlV3
             btnStatusTab?.EnableInClassList("rc-context-tab--active", isStatusMode);
             btnCoordinateTab?.EnableInClassList("rc-context-tab--active", !isStatusMode);
 
+            viewportToolbarHost?.EnableInClassList("rc-hidden", isStatusMode);
             statusCardHost?.EnableInClassList("rc-hidden", !isStatusMode);
             coordStripHost?.EnableInClassList("rc-hidden", isStatusMode);
+            safetyDiagnosticsHost?.EnableInClassList("rc-hidden", !isStatusMode);
             actionHintCard?.EnableInClassList("rc-hidden", !isStatusMode);
+            whyItMovedCard?.EnableInClassList("rc-hidden", !isStatusMode);
         }
     }
 }

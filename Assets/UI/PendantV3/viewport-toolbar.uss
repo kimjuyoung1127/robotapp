@@ -4,11 +4,11 @@
 }
 
 .rc-viewport-toolbar-root {
-    border-radius: 8px;
+    border-radius: var(--rc-radius-lg);
     padding: 6px;
-    background-color: rgba(18, 20, 28, 0.86);
+    background-color: var(--rc-toolbar-bg);
     border-width: 1px;
-    border-color: rgba(80, 140, 255, 0.18);
+    border-color: var(--rc-button-bg-hover);
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
@@ -34,14 +34,15 @@
 }
 
 .rc-viewport-toolbar-button--active {
-    background-color: rgba(80, 140, 255, 0.22);
+    background-color: var(--rc-button-bg-active);
+    color: var(--rc-button-text-strong);
 }
 
 .rc-viewport-toolbar-status {
     margin-top: 2px;
     padding-top: 4px;
     border-top-width: 1px;
-    border-top-color: rgba(255, 255, 255, 0.08);
+    border-top-color: var(--rc-button-border-subtle);
 }
 
 .rc-viewport-toolbar-status-line {

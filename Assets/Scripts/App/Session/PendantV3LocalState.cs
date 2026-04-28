@@ -73,6 +73,10 @@ namespace KineTutor3D.App
             {
                 state.ActiveWorkTab = DefaultWorkTab;
             }
+            else if (string.Equals(state.ActiveWorkTab, "TabPointMove", StringComparison.Ordinal))
+            {
+                state.ActiveWorkTab = "TabTcpJog";
+            }
 
             if (string.IsNullOrWhiteSpace(state.ActiveTabletTab))
             {

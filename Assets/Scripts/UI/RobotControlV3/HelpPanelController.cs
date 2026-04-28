@@ -222,7 +222,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (state.ActiveNavSection == "NavPoints")
             {
-                return "티칭 포인트 패널";
+                return "저장 위치 패널";
             }
 
             return state.ActiveNavSection == "NavHome"
@@ -231,7 +231,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 {
                     "TabJointJog" => "관절 패널",
                     "TabTcpJog" => "TCP 패널",
-                    "TabPointMove" => "포인트 이동 패널",
+                    "TabPointMove" => "저장 위치 패널",
                     _ => "쉬운 조작 패널",
                 };
         }
@@ -240,7 +240,7 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (state.ActiveNavSection == "NavPoints")
             {
-                return "포인트 저장, 조회, 수정, 순서 실행, 함수 묶음을 포인트 탭에서 한 번에 다룬다.";
+                return "저장 위치 만들기, 수정, 순서 실행, 작업 묶음을 한곳에서 다룬다.";
             }
 
             return state.ActiveNavSection == "NavHome"
@@ -249,7 +249,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 {
                     "TabJointJog" => "로봇 표시 목표 패널. 6축 관절값을 슬라이더, 단일축 버튼, 숫자 입력으로 바로 다루는 큰 작업 패널.",
                     "TabTcpJog" => "로봇 표시 목표 패널. Base·Tool·User 좌표계 기준으로 XYZ·RPY 조그를 다루는 큰 작업 패널.",
-                    "TabPointMove" => "로봇 표시 목표 패널. 지정 좌표를 입력하고 MoveJ·MoveL 후보를 준비하는 큰 작업 패널.",
+                    "TabPointMove" => "로봇 표시 목표 패널. 지정 위치를 입력하고 관절 이동·직선 이동 후보를 준비하는 큰 작업 패널.",
                     _ => "로봇 표시 목표 패널. 자주 쓰는 포즈와 작은 이동부터 시작하는 큰 작업 패널.",
                 };
         }
@@ -260,7 +260,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "BottomTabJointJog" => "BottomSheet · 관절",
                 "BottomTabTcpJog" => "BottomSheet · TCP",
-                "BottomTabPointMove" => "BottomSheet · 포인트",
+                "BottomTabPointMove" => "BottomSheet · 저장",
                 "BottomTabStatus" => "BottomSheet · 상태",
                 "BottomTabHelp" => "BottomSheet · 도움말",
                 _ => "BottomSheet · 쉬운조작",
@@ -273,7 +273,7 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 "BottomTabJointJog" => "태블릿에서는 관절 조그를 하단 시트에서 열어 3D 뷰를 가리지 않게 유지한다.",
                 "BottomTabTcpJog" => "태블릿에서는 TCP 조그와 좌표계 전환을 하단 시트에 모아 한 손 조작 흐름을 유지한다.",
-                    "BottomTabPointMove" => "태블릿에서는 포인트와 묶음을 하단 시트에서 한 흐름으로 확인한다.",
+                    "BottomTabPointMove" => "태블릿에서는 저장 위치와 묶음을 하단 시트에서 한 흐름으로 확인한다.",
                 "BottomTabStatus" => "태블릿에서는 상태/알람 요약을 하단 시트에서 열어 현재 위험도를 먼저 읽게 한다.",
                 "BottomTabHelp" => "태블릿에서는 하단 시트로 현재 단계 도움말을 바로 연다.",
                 _ => "태블릿에서는 쉬운 조작 프리셋과 작은 이동을 하단 시트에서 바로 연다.",

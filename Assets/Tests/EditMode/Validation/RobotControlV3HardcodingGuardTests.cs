@@ -16,6 +16,8 @@ namespace KineTutor3D.Tests.EditMode
     public class RobotControlV3HardcodingGuardTests
     {
         private const string RuntimeControllerRoot = "Assets/Scripts/UI/RobotControlV3";
+        private const string PendantV3RootStyleSheet = "Assets/UI/PendantV3/pendant-v3.uss";
+        private const string PendantV3StyleRoot = "Assets/UI/PendantV3";
 
         private static readonly string[] ExcludedFiles =
         {
@@ -63,6 +65,25 @@ namespace KineTutor3D.Tests.EditMode
             "작업공간 경계: 표시",
             "작업공간 경계: 숨김",
             "카메라 리셋 요청을 받았다. 실제 카메라 프로필 연결은 2C-2 후속에서 붙인다.",
+        };
+
+        private static readonly string[] ForbiddenStyleLiteralPatterns =
+        {
+            "background-color: rgba(",
+            "background-color: rgb(",
+            "border-color: rgba(",
+            "border-top-color: rgba(",
+            "color: rgb(",
+            "border-radius: 0",
+            "border-radius: 1",
+            "border-radius: 2",
+            "border-radius: 3",
+            "border-radius: 4",
+            "border-radius: 5",
+            "border-radius: 6",
+            "border-radius: 7",
+            "border-radius: 8",
+            "border-radius: 9",
         };
 
         [Test]
@@ -118,6 +139,57 @@ namespace KineTutor3D.Tests.EditMode
             if (issues.Count > 0)
             {
                 Assert.Fail("RobotControlV3 UI copy 하드코딩 가드 위반:\n" + string.Join("\n", issues));
+            }
+        }
+
+        [Test]
+        public void RobotControlV3_PendantStyleSheet_DefinesTokenBackedGlobalButtonRadius()
+        {
+            Assert.That(File.Exists(PendantV3RootStyleSheet), Is.True, $"검사 대상 USS가 없습니다: {PendantV3RootStyleSheet}");
+            var text = File.ReadAllText(PendantV3RootStyleSheet);
+
+            Assert.That(text, Does.Contain("--rc-button-radius: var(--rc-radius);"), "버튼 반경은 왼쪽 nav 버튼과 같은 루트 radius 토큰을 따라야 합니다.");
+            Assert.That(text, Does.Contain("--rc-button-bg: rgba(80, 140, 255, 0.10);"), "기본 버튼 배경은 회색 literal 대신 버튼 배경 토큰으로 관리해야 합니다.");
+            Assert.That(text, Does.Contain("--rc-button-text: rgb(205, 216, 232);"), "기본 버튼 텍스트는 순백 대신 읽기 쉬운 버튼 텍스트 토큰을 사용해야 합니다.");
+            Assert.That(text, Does.Contain("--rc-button-border-active:"), "선택/포커스 상태는 배경만이 아니라 active border 토큰으로 구분해야 합니다.");
+            Assert.That(text, Does.Contain(".rc-root .unity-button:active"), "클릭 중인 버튼은 active pseudo-state로 즉시 색 피드백을 줘야 합니다.");
+            Assert.That(text, Does.Contain(".rc-root .unity-button:focus"), "클릭 후 포커스 상태는 border 색으로 남아야 합니다.");
+            Assert.That(text, Does.Contain(".rc-root .unity-button"), "모든 Pendant V3 버튼에 전역 버튼 스타일이 적용되어야 합니다.");
+            Assert.That(text, Does.Contain("border-radius: var(--rc-button-radius);"), "전역 버튼 스타일은 하드코딩 반경 대신 버튼 radius 토큰을 사용해야 합니다.");
+            Assert.That(text, Does.Contain("background-color: var(--rc-button-bg);"), "전역 버튼 스타일은 하드코딩 회색 배경 대신 버튼 배경 토큰을 사용해야 합니다.");
+            Assert.That(text, Does.Contain("color: var(--rc-button-text);"), "전역 버튼 스타일은 순백 텍스트 대신 버튼 텍스트 토큰을 사용해야 합니다.");
+        }
+
+        [Test]
+        public void RobotControlV3_PendantStyleSheets_UseTokensForColorAndRadiusConsumers()
+        {
+            var issues = new List<string>();
+            Assert.That(Directory.Exists(PendantV3StyleRoot), Is.True, $"검사 대상 폴더가 없습니다: {PendantV3StyleRoot}");
+
+            foreach (var path in Directory.GetFiles(PendantV3StyleRoot, "*.uss", SearchOption.TopDirectoryOnly))
+            {
+                var lines = File.ReadAllLines(path);
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var trimmed = lines[i].TrimStart();
+                    if (path.EndsWith("pendant-v3.uss") && trimmed.StartsWith("--rc-"))
+                    {
+                        continue;
+                    }
+
+                    foreach (var pattern in ForbiddenStyleLiteralPatterns)
+                    {
+                        if (trimmed.Contains(pattern))
+                        {
+                            issues.Add($"{path}:{i + 1} -> direct style literal: {pattern}");
+                        }
+                    }
+                }
+            }
+
+            if (issues.Count > 0)
+            {
+                Assert.Fail("RobotControlV3 USS token guard 위반:\n" + string.Join("\n", issues));
             }
         }
     }

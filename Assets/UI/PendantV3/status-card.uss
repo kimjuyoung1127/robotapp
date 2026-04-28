@@ -9,8 +9,8 @@
 .rc-status-summary-card {
     margin-top: 8px;
     padding: 10px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-surface-soft);
 }
 
 .rc-status-summary-title {
@@ -20,15 +20,15 @@
 }
 
 .rc-status-summary-card--safe {
-    background-color: rgba(60, 200, 120, 0.10);
+    background-color: var(--rc-status-success-bg);
 }
 
 .rc-status-summary-card--warning {
-    background-color: rgba(255, 180, 40, 0.12);
+    background-color: var(--rc-status-warning-bg);
 }
 
 .rc-status-summary-card--danger {
-    background-color: rgba(255, 70, 70, 0.16);
+    background-color: var(--rc-button-bg-danger-soft);
 }
 
 .rc-status-card-section {
@@ -84,7 +84,7 @@
     height: 1px;
     margin-top: 8px;
     margin-bottom: 2px;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: var(--rc-surface-raised-line);
 }
 
 .rc-status-inline-actions {

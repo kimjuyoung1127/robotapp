@@ -1,8 +1,8 @@
 /* Pendant V3 - Cartesian Arrows Overlay: Phase 2B-3 first slice */
 .rc-cartesian-root {
     padding: 7px;
-    border-radius: 10px;
-    background-color: rgba(18, 18, 24, 0.86);
+    border-radius: var(--rc-radius-xl);
+    background-color: var(--rc-stage-overlay-panel);
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
@@ -23,9 +23,9 @@
 
 .rc-cartesian-badge {
     padding: 2px 8px;
-    border-radius: 6px;
-    color: rgb(91, 155, 255);
-    background-color: rgba(80, 140, 255, 0.16);
+    border-radius: var(--rc-radius);
+    color: var(--rc-axis-z);
+    background-color: var(--rc-button-bg-hover);
     font-size: 11px;
 }
 
@@ -36,34 +36,34 @@
 .rc-cartesian-axis {
     margin-top: 6px;
     padding: 7px;
-    border-radius: 8px;
-    background-color: rgba(30, 30, 40, 0.82);
+    border-radius: var(--rc-radius-lg);
+    background-color: var(--rc-stage-axis-panel);
     min-width: 0;
     max-width: 100%;
 }
 
 .rc-cartesian-axis--active {
-    background-color: rgba(80, 140, 255, 0.2);
+    background-color: var(--rc-button-bg-active);
 }
 
 .rc-cartesian-axis--x {
     border-left-width: 3px;
-    border-left-color: rgb(255, 104, 104);
+    border-left-color: var(--rc-axis-x);
 }
 
 .rc-cartesian-axis--y {
     border-left-width: 3px;
-    border-left-color: rgb(92, 215, 138);
+    border-left-color: var(--rc-axis-y);
 }
 
 .rc-cartesian-axis--z {
     border-left-width: 3px;
-    border-left-color: rgb(91, 155, 255);
+    border-left-color: var(--rc-axis-z);
 }
 
 .rc-cartesian-axis--r {
     border-left-width: 3px;
-    border-left-color: rgb(255, 196, 88);
+    border-left-color: var(--rc-axis-r);
 }
 
 .rc-cartesian-axis-value {

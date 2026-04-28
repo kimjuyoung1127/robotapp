@@ -128,7 +128,6 @@ namespace KineTutor3D.UI.RobotControlV3
             AddButton(workTabButtons, "TabEasyMotion");
             AddButton(workTabButtons, "TabJointJog");
             AddButton(workTabButtons, "TabTcpJog");
-            AddButton(workTabButtons, "TabPointMove");
             AddButton(bottomTabButtons, "BottomTabEasyMotion");
             AddButton(bottomTabButtons, "BottomTabJointJog");
             AddButton(bottomTabButtons, "BottomTabTcpJog");

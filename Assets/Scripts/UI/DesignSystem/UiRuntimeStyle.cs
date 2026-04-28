@@ -282,7 +282,7 @@ namespace KineTutor3D.UI
             rect.anchoredPosition = anchoredPosition;
         }
 
-        public static Text EnsureButtonLabel(Button button, Font font, string label, Color backgroundColor)
+        public static Image EnsureButtonBackground(Button button, Color backgroundColor)
         {
             var image = button.GetComponent<Image>();
             if (image == null)
@@ -293,14 +293,12 @@ namespace KineTutor3D.UI
             if (image.sprite == null)
             {
                 image.sprite = ResolveDefaultSprite();
-                image.type = Image.Type.Sliced;
             }
 
+            image.type = Image.Type.Sliced;
             image.color = backgroundColor;
-
-            var labelText = EnsureText(button.transform, "Label", font, UIDesignTokens.Type.HeadingSm, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
-            Stretch(labelText.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 4f), new Vector2(-10f, -4f));
-            labelText.text = label;
+            image.raycastTarget = true;
+            button.targetGraphic = image;
 
             var colors = button.colors;
             colors.normalColor = backgroundColor;
@@ -309,6 +307,17 @@ namespace KineTutor3D.UI
             colors.disabledColor = new Color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.35f);
             colors.selectedColor = colors.highlightedColor;
             button.colors = colors;
+
+            return image;
+        }
+
+        public static Text EnsureButtonLabel(Button button, Font font, string label, Color backgroundColor)
+        {
+            EnsureButtonBackground(button, backgroundColor);
+
+            var labelText = EnsureText(button.transform, "Label", font, UIDesignTokens.Type.HeadingSm, FontStyle.Bold, TextAnchor.MiddleCenter, UIDesignTokens.Colors.TextPrimary);
+            Stretch(labelText.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 4f), new Vector2(-10f, -4f));
+            labelText.text = label;
 
             return labelText;
         }
