@@ -108,8 +108,10 @@ git log -1 --oneline
 기대값:
 
 ```text
-d8c0726 Add FR5 readback-only live monitor
+4b41280 docs: add FR5 MacBook field handoff
 ```
+
+또는 그보다 최신 커밋이어도 된다. 단, history 안에 `d8c0726 Add FR5 readback-only live monitor`가 반드시 있어야 한다.
 
 이미 clone되어 있으면:
 
