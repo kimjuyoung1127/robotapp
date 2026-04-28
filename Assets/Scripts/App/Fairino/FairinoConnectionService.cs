@@ -137,7 +137,7 @@ namespace KineTutor3D.App.Fairino
             useMock = mock;
             client = mock
                 ? (IFairinoRobotClient)new MockFairinoClient()
-                : new LiveFairinoClient(errorTranslator);
+                : FairinoRobotClientFactory.CreateLive(errorTranslator);
             lastState = FairinoRobotState.Zero();
             lastCoordContext = FairinoCoordContext.Default();
             lastControllerFault = FairinoControllerFault.None();
@@ -165,7 +165,7 @@ namespace KineTutor3D.App.Fairino
             }
 
             consecutiveErrors = 0;
-            if (!useMock)
+            if (!useMock && client is not IFairinoLiveClientDiagnostics { IsReadbackOnly: true })
             {
                 BestEffortInvoke(() => client.SetReconnect(
                     liveDefaults.reconnectEnabled,

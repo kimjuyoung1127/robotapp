@@ -54,6 +54,7 @@ namespace KineTutor3D.App.Fairino
         private WaypointCycleRunner waypointRunner;
         private RobotControlPeripheralFacade peripheralFacade;
         private LiveCommandSafetyGate liveCommandSafetyGate;
+        private Fr5LiveStateRecorder liveStateRecorder;
         private ManualReadbackTeachingProbe manualReadbackTeachingProbe;
         private TeachingPointStoreAdapter teachingPointStoreAdapter;
         private TeachingSequenceRuntime teachingSequenceRuntime;
@@ -124,6 +125,7 @@ namespace KineTutor3D.App.Fairino
 
         private void OnDisable()
         {
+            liveStateRecorder?.Detach();
             UnbindConnectionEvents();
             UnbindWaypointRunnerEvents();
             selectedLinkHighlighter?.Clear();
@@ -2485,6 +2487,7 @@ namespace KineTutor3D.App.Fairino
                 connectionService = templateDefinition.ConnectionServiceFactory(new FairinoErrorTranslator());
                 connectionService.SetMockMode(true);
                 connectionService.ApplyLiveDefaults(config.liveDefaults);
+                liveStateRecorder = null;
                 kinematicsFacade = templateDefinition.KinematicsFactory();
                 previewKinematicsFacade = templateDefinition.KinematicsFactory();
                 EnsureRobotSelection();
@@ -2520,6 +2523,12 @@ namespace KineTutor3D.App.Fairino
             BindWaypointRunnerEvents();
             peripheralFacade ??= new RobotControlPeripheralFacade(connectionService);
             liveCommandSafetyGate ??= new LiveCommandSafetyGate();
+            liveStateRecorder ??= new Fr5LiveStateRecorder(
+                connectionService,
+                BuildDisplayStateForDrift,
+                ApplyLiveDriftBlockedReason);
+            liveStateRecorder.SetConnectionInfo(templateDefinition.RobotId, config.defaultIp);
+            liveStateRecorder.Attach();
             manualReadbackTeachingProbe ??= new ManualReadbackTeachingProbe(connectionService);
             teachingPointStoreAdapter ??= new TeachingPointStoreAdapter();
             teachingSequenceRuntime ??= new TeachingSequenceRuntime(teachingPointStoreAdapter);
@@ -2682,6 +2691,7 @@ namespace KineTutor3D.App.Fairino
         private void BindConnectionEvents()
         {
             UnbindConnectionEvents();
+            liveStateRecorder?.Attach();
             connectionService.OnStateUpdated += HandleStateUpdated;
             connectionService.OnConnectionStateChanged += HandleConnectionStateChanged;
             connectionService.OnEnableStateChanged += HandleEnableStateChanged;
@@ -2696,6 +2706,7 @@ namespace KineTutor3D.App.Fairino
                 return;
             }
 
+            liveStateRecorder?.Detach();
             connectionService.OnStateUpdated -= HandleStateUpdated;
             connectionService.OnConnectionStateChanged -= HandleConnectionStateChanged;
             connectionService.OnEnableStateChanged -= HandleEnableStateChanged;
@@ -2729,6 +2740,19 @@ namespace KineTutor3D.App.Fairino
         private void HandleModeChanged(bool _)
         {
             RefreshSnapshot();
+        }
+
+        private FairinoRobotState BuildDisplayStateForDrift()
+        {
+            return new FairinoRobotState(
+                currentState.JointPosDeg,
+                ComputeDisplayedTcpPose(),
+                isRobotEnabled: connectionService?.Client.IsEnabled ?? false);
+        }
+
+        private void ApplyLiveDriftBlockedReason(string message)
+        {
+            snapshot.LiveBlockedReason = message ?? string.Empty;
         }
 
         private void EnsureRobotSelection()

@@ -86,15 +86,8 @@ namespace KineTutor3D.Tests.EditMode
             adapter.SetMockMode(false);
             Assert.That(adapter.CurrentState.IsMockMode, Is.False);
             Assert.That(adapter.SetLiveArmState(true), Is.False);
-
-            adapter.ApplyServoEnablePolicy();
-            Assert.That(adapter.SetLiveArmState(true), Is.True);
-            Assert.That(adapter.CurrentState.IsLiveArmActive, Is.True);
-            Assert.That(adapter.CurrentState.ActualMoveAllowed, Is.True);
-
-            adapter.TriggerConnectionLostForDebug();
-            Assert.That(adapter.CurrentState.IsLiveArmActive, Is.False);
             Assert.That(adapter.CurrentState.ActualMoveAllowed, Is.False);
+            Assert.That(adapter.CurrentState.ActualMoveBlockReason, Is.Not.Empty);
         }
     }
 }

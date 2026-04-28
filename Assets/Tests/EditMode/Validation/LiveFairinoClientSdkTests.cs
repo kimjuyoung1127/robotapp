@@ -3,6 +3,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using KineTutor3D.App.Fairino;
 using NUnit.Framework;
 
 namespace KineTutor3D.Tests.EditMode
@@ -18,6 +19,17 @@ namespace KineTutor3D.Tests.EditMode
             var robotType = assembly.GetType("fairino.Robot");
 
             Assert.That(robotType, Is.Not.Null, "fairino.Robot type should exist in libfairino.dll");
+        }
+
+        [Test]
+        public void FairinoSdk_CompatibilityProbeDetectsManagedAssembly()
+        {
+            var report = FairinoSdkCompatibilityProbe.Probe();
+
+            Assert.That(report.assemblyFound, Is.True, "probe should find libfairino assembly");
+            Assert.That(report.managedAssembly, Is.True, "repo libfairino.dll should be a managed .NET assembly");
+            Assert.That(report.robotTypeFound, Is.True, "probe should find fairino.Robot");
+            Assert.That(report.sdkRuntime, Is.Not.Empty);
         }
 
         [Test]
