@@ -1,5 +1,13 @@
 # RobotControl Next Session Handoff
 
+## MacBook FR5 Field Session Must Read First
+- 맥북에서 FR5 실기 연결을 시도하는 세션은 이 문서를 먼저 읽고, 곧바로 [FR5 Live Field Checklist](../roadmap/fr5-live-field-checklist.md)를 읽는다.
+- 이번 실기 목표는 `readback-only`다. `Connect`, `SDK 확인`, `현재 관절/TCP 읽기`, `상태 파일 기록`, `드리프트 감지`까지만 허용한다.
+- `Enable`, `MoveJ`, `MoveL`, `IO`, `Gripper` live 실행은 현장 승인 전까지 계속 차단한다.
+- 맥북에서는 `main`을 바로 기준으로 삼지 말고, 먼저 `codex/robotcontrol-v3-toolkit` 브랜치를 clone/pull해서 `d8c0726 Add FR5 readback-only live monitor` 이후 상태인지 확인한다.
+- 실기 연결 성공 증거는 UI 문구만이 아니라 `Artifacts/live/fr5/latest-state.json`, `latest-drift.json`, `sessions/*-readback.ndjson`, `sessions/*-events.ndjson`까지 같이 확인한다.
+- direct C# SDK가 macOS에서 실패하면 실패로 끝내지 말고 `FAIRINO_BRIDGE_URL=http://127.0.0.1:5055` bridge fallback 경로로 readback을 재시도한다.
+
 ## Goal
 - `RobotControlShell`부터 시작하는 V2 구현을 바로 시작한다.
 - 첫 구현 목표는 `TopStatusBar`와 authored-first 셸 구조를 고정하는 것이다.
@@ -8,7 +16,7 @@
 - 새 세션에서는 이 문서와 SSOT 링크만 읽고 폴더 생성부터 시작한다.
 
 ## Last Updated
-- 2026-04-01 (KST)
+- 2026-04-28 (KST)
 
 ## Current V2 Shell Status
 - `RobotControlV2`는 이제 old `RobotControlSceneCoordinator` 누적 경로가 아니라 별도 V2 composition root를 사용한다.

@@ -42,6 +42,16 @@
   - `Assets/Editor/KineTutor3D/FairinoLiveSmokeTools.cs`
 - SDK 존재 검증용 테스트 추가
   - `Assets/Tests/EditMode/Validation/LiveFairinoClientSdkTests.cs`
+- Readback-only live monitor 추가
+  - `Assets/Scripts/App/Fairino/FairinoRobotClientFactory.cs`
+  - `Assets/Scripts/App/Fairino/FairinoSdkCompatibilityProbe.cs`
+  - `Assets/Scripts/App/Fairino/DirectReadbackFairinoClient.cs`
+  - `Assets/Scripts/App/Fairino/FairinoBridgeClient.cs`
+  - `Assets/Scripts/App/Fairino/Fr5LiveStateRecorder.cs`
+- 맥북 field-readback 기준선 추가
+  - 구현 커밋: `d8c0726 Add FR5 readback-only live monitor`
+  - 검증 브랜치: `codex/robotcontrol-v3-toolkit`
+  - field guide: `docs/ref/product/roadmap/fr5-live-field-checklist.md`
 
 ### Not Finished Yet
 
@@ -50,7 +60,8 @@
 - `ServoCart`는 SDK에 존재하지만 앱 계층 미연결
 - live state를 3D joint mirror에 더 정밀하게 묶는 전용 adapter가 아직 없음
 - 실기 현장 검증 이력은 `connect fail` 수준까지만 존재
-- 실제 컨트롤러 handshake 성공 / enable / small `MoveJ` 검증 미완료
+- 실제 컨트롤러 handshake 성공 / 현재 관절/TCP readback 검증 미완료
+- Enable / small `MoveJ`는 이번 readback-only 범위가 아니며, 별도 승인 전까지 차단 상태로 둠
 
 ## Implementation Readiness Estimate
 
@@ -87,7 +98,7 @@ Internal source map:
 
 ### P0
 
-목표: 실기 연결을 "안전하게 읽고 아주 작게 움직일 수 있는 수준"까지 올린다.
+목표: 실기 연결을 먼저 "안전하게 읽는 수준"까지 올린다. motion은 readback 성공 뒤 별도 phase에서 연다.
 
 #### P0-1. SDK handshake 진짜 구현
 
@@ -113,9 +124,9 @@ Internal source map:
 
 #### P0-4. Safe motion 최소 경로
 
-- 실기 첫 명령은 `MoveJ`만 허용
-- joint limit, speed, acc, connection, enable 검사 통과 시에만 전송
-- 첫 현장 검증은 "작은 범위 MoveJ 1회"만 목표로 잡음
+- readback-only 성공 전에는 `Enable`, `MoveJ`, `MoveL`, `IO`, `Gripper`를 모두 차단
+- readback 세션 2회 이상 성공하고 drift가 안정적일 때 별도 motion gate 문서를 작성
+- 첫 motion 검증은 후속 phase에서 "작은 범위 MoveJ 1회"만 따로 승인
 
 #### P0-5. Live mode guardrails
 
@@ -128,8 +139,9 @@ Internal source map:
 - 실기 컨트롤러에 연결 성공
 - 실제 버전 정보 표시 성공
 - 실제 joint / TCP 읽기 성공
-- enable 성공
-- 제한된 작은 `MoveJ` 1회 성공
+- `Artifacts/live/fr5/latest-state.json` 갱신 성공
+- `Artifacts/live/fr5/latest-drift.json` 갱신 성공
+- session NDJSON append 성공
 - 실패 시 사용자에게 이유가 분리되어 보임
 
 ### P1
@@ -244,11 +256,12 @@ Internal source map:
 
 다음 작업은 P0 기준으로 아래 순서를 권장한다.
 
-1. live diagnostics drawer에 실제 handshake 결과 표시
-2. `Mode`, `GetSafetyCode`, `GetRobotRealtimeStateSamplePeriod` 연결
-3. 실제 컨트롤러 환경에서 `Connect -> GetVersion -> ReadState` 재검증
-4. 같은 환경에서 `Enable -> small MoveJ` 검증
-5. 현장 결과를 바탕으로 template extraction boundary 확정
+1. 맥북에서 `codex/robotcontrol-v3-toolkit` 브랜치 clone/pull
+2. `ping 192.168.58.2`와 `nc -vz 192.168.58.2 8080` 기록
+3. Unity direct SDK readback 시도
+4. direct 실패 시 `FAIRINO_BRIDGE_URL=http://127.0.0.1:5055` bridge readback 재시도
+5. `latest-state.json`, `latest-drift.json`, `sessions/*.ndjson`를 field evidence로 저장
+6. 현장 결과를 바탕으로 main 병합과 motion gate 분리 판단
 
 ## Template Strategy
 
@@ -260,6 +273,19 @@ Internal source map:
 즉, 최종 목표는 "실기 연동이 검증된 뒤 그 중 공통적인 live adapter 층만 별도 템플릿화"다.
 
 ## Latest Execution Note
+
+2026-04-28 기준 로컬 실행:
+
+- `unityctl check --type compile`
+  - PASS
+- `unityctl test --mode edit --filter KineTutor3D.Tests.EditMode.Fr5LiveReadbackTests`
+  - PASS (`6 passed`)
+- 구현 커밋:
+  - `d8c0726 Add FR5 readback-only live monitor`
+- 정책:
+  - 맥북 field session은 `main`이 아니라 `codex/robotcontrol-v3-toolkit` 브랜치에서 먼저 수행
+  - 안전 모니터링이 성공해도 live motion은 자동으로 열지 않음
+  - direct C# SDK 실패 시 bridge fallback으로 readback-only 유지
 
 2026-03-25 기준 로컬 실행:
 
