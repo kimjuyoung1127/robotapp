@@ -33,7 +33,7 @@ namespace KineTutor3D.App.Fairino
                 {
                     robotId = "FAIRINO_FR5",
                     displayName = "FAIRINO FR5",
-                    defaultIp = "192.168.58.2",
+                    defaultIp = "192.168.57.2",
                     defaultPort = 8080,
                     dof = 6,
                     jointLimits = new[]
@@ -50,6 +50,25 @@ namespace KineTutor3D.App.Fairino
                         slow = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 10, accPercent = 20 },
                         medium = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 30, accPercent = 50 },
                         fast = new FairinoRobotConfig.SpeedPreset { jointSpeedPercent = 60, accPercent = 80 }
+                    },
+                    gripperDefaults = new FairinoRobotConfig.GripperDefaultsBlock
+                    {
+                        profile = new FairinoRobotConfig.GripperProfileEntry
+                        {
+                            company = 2,
+                            device = 4,
+                            softVersion = 0,
+                            bus = 0,
+                            index = 1,
+                        },
+                        calibration = new FairinoRobotConfig.GripperCalibrationEntry
+                        {
+                            closedRawPercent = 0,
+                            openRawPercent = 100,
+                            objectStopRawPercent = 70,
+                            closedVisualInputOpenRatio = 0.6f,
+                            openVisualInputOpenRatio = 1f,
+                        }
                     }
                 }
             };

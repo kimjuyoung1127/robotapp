@@ -39,7 +39,9 @@ namespace KineTutor3D.Visualization
         private Coroutine gripperMotionCoroutine;
         private const float DistortedFingerLocalPositionSqrMagnitude = 1f;
         // Fallback only. Prefer an authored closed pose for the PGEA finger mesh.
-        private const float ClosedContactTravelScale = 1.2f;
+        // Bump the fallback close travel so user 0% appears much nearer to real contact
+        // when we do not yet have reliable live gripper readback or an authored closed pose.
+        private const float ClosedContactTravelScale = 1.6f;
 
         public string AttachmentId => attachmentId;
         public Transform VisualRoot => visualRoot;

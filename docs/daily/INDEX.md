@@ -1,3 +1,13 @@
+---
+title: "Daily Log Index"
+doc_type: "index"
+status: "active"
+domain: "daily"
+audience: "human-and-agent"
+canonical: true
+last_updated: "2026-04-29"
+---
+
 # Daily Log Index
 
 일일 로그 빠른 탐색용 목차다.

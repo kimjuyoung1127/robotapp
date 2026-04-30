@@ -20,6 +20,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label whyItMovedSummary;
         private ConnectionHomeController connectionHomeController;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -63,25 +64,43 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             root = document?.rootVisualElement;
-            if (root == null || connectionHomeController == null)
+            try
             {
-                return false;
-            }
+                if (root == null || connectionHomeController == null)
+                {
+                    return false;
+                }
 
-            whyItMovedCard = root.Q<VisualElement>("WhyItMoved");
-            whyItMovedTitle = root.Q<Label>("WhyItMovedTitle");
-            whyItMovedSummary = root.Q<Label>("WhyItMovedSummary");
-            if (whyItMovedCard == null || whyItMovedTitle == null || whyItMovedSummary == null)
+                whyItMovedCard = root.Q<VisualElement>("WhyItMoved");
+                whyItMovedTitle = root.Q<Label>("WhyItMovedTitle");
+                whyItMovedSummary = root.Q<Label>("WhyItMovedSummary");
+                if (whyItMovedCard == null || whyItMovedTitle == null || whyItMovedSummary == null)
+                {
+                    return false;
+                }
+
+                isInitialized = true;
+                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+                return true;
+            }
+            finally
             {
-                return false;
+                isInitializing = false;
             }
-
-            ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            isInitialized = true;
-            return true;
         }
 
         private System.Collections.IEnumerator WaitForInitialize()

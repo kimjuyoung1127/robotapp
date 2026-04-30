@@ -33,6 +33,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private StatusCardElements statusCard;
         private CoordStripMode coordStripMode = CoordStripMode.Both;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -54,50 +55,68 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             shellStateController ??= GetComponent<PendantV3ShellStateController>();
             root = document?.rootVisualElement;
-            if (root == null || coordStripTemplate == null || statusCardTemplate == null || connectionHomeController == null)
+            try
             {
-                return false;
-            }
+                if (root == null || coordStripTemplate == null || statusCardTemplate == null || connectionHomeController == null)
+                {
+                    return false;
+                }
 
-            CacheShellElements();
-            if (coordStripHost == null || statusCardHost == null)
+                CacheShellElements();
+                if (coordStripHost == null || statusCardHost == null)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                if (coordStrip == null || statusCard == null || coordStripHost.childCount == 0 || statusCardHost.childCount == 0)
+                {
+                    BuildPanels();
+                }
+
+                if (statusCard?.BtnFaultDetail != null)
+                {
+                    faultDetailClickCallback ??= _ => HandleFaultDetailClicked();
+                    statusCard.BtnFaultDetail.clicked -= HandleFaultDetailClicked;
+                    statusCard.BtnFaultDetail.clicked += HandleFaultDetailClicked;
+                    statusCard.BtnFaultDetail.UnregisterCallback<ClickEvent>(faultDetailClickCallback);
+                    statusCard.BtnFaultDetail.RegisterCallback<ClickEvent>(faultDetailClickCallback);
+                }
+
+                if (statusCard?.BtnSafetyDetail != null)
+                {
+                    safetyDetailClickCallback ??= _ => HandleSafetyDetailClicked();
+                    statusCard.BtnSafetyDetail.clicked -= HandleSafetyDetailClicked;
+                    statusCard.BtnSafetyDetail.clicked += HandleSafetyDetailClicked;
+                    statusCard.BtnSafetyDetail.UnregisterCallback<ClickEvent>(safetyDetailClickCallback);
+                    statusCard.BtnSafetyDetail.RegisterCallback<ClickEvent>(safetyDetailClickCallback);
+                }
+
+                BindCoordModeButtons();
+
+                isInitialized = true;
+                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            if (coordStrip == null || statusCard == null || coordStripHost.childCount == 0 || statusCardHost.childCount == 0)
-            {
-                BuildPanels();
-            }
-
-            if (statusCard?.BtnFaultDetail != null)
-            {
-                faultDetailClickCallback ??= _ => HandleFaultDetailClicked();
-                statusCard.BtnFaultDetail.clicked -= HandleFaultDetailClicked;
-                statusCard.BtnFaultDetail.clicked += HandleFaultDetailClicked;
-                statusCard.BtnFaultDetail.UnregisterCallback<ClickEvent>(faultDetailClickCallback);
-                statusCard.BtnFaultDetail.RegisterCallback<ClickEvent>(faultDetailClickCallback);
-            }
-
-            if (statusCard?.BtnSafetyDetail != null)
-            {
-                safetyDetailClickCallback ??= _ => HandleSafetyDetailClicked();
-                statusCard.BtnSafetyDetail.clicked -= HandleSafetyDetailClicked;
-                statusCard.BtnSafetyDetail.clicked += HandleSafetyDetailClicked;
-                statusCard.BtnSafetyDetail.UnregisterCallback<ClickEvent>(safetyDetailClickCallback);
-                statusCard.BtnSafetyDetail.RegisterCallback<ClickEvent>(safetyDetailClickCallback);
-            }
-
-            BindCoordModeButtons();
-
-            isInitialized = true;
-            ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            return true;
         }
 
         public bool ForceInitialize()
@@ -216,7 +235,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            coordStrip.CoordSystemBadge.text = $"좌표계: {data.CoordSystem}";
+            coordStrip.CoordSystemBadge.text = data.CoordChip;
             SetValues(coordStrip.JointValues, data.JointValues);
             SetValues(coordStrip.TcpValues, data.TcpValues);
             ApplyCoordStripMode();
@@ -253,19 +272,38 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (actionHintTitle != null)
             {
-                actionHintTitle.text = "다음 행동 추천";
+                actionHintTitle.text = "운영자 상태";
             }
 
             if (actionHintPrimary != null)
             {
-                actionHintPrimary.text = data.ActionPrimary;
+                actionHintPrimary.text = data.OperatorStatusHeadline;
             }
 
             if (actionHintSummary != null)
             {
-                actionHintSummary.text = data.ActionWhy;
+                actionHintSummary.text = $"{data.LiveTrackingStatus} / {BuildGateSummary(data)}";
+            }
+        }
+
+        private static string BuildGateSummary(RobotControlV3RuntimeSnapshot data)
+        {
+            if (data == null)
+            {
+                return "잠금 이유: 확인 중 · 언제 풀리는지: 확인 중";
             }
 
+            var reason = !string.IsNullOrWhiteSpace(data.MotionGateWhyLocked)
+                ? data.MotionGateWhyLocked
+                : !string.IsNullOrWhiteSpace(data.LiveBlockedReason)
+                    ? $"잠금 이유: {data.LiveBlockedReason}"
+                    : data.MotionGateDetail;
+
+            var unlock = !string.IsNullOrWhiteSpace(data.MotionGateUnlockWhen)
+                ? data.MotionGateUnlockWhen
+                : data.MotionGateNextStep;
+
+            return $"{reason} · {unlock}";
         }
 
         private static void SetValues(Label[] labels, string[] values)

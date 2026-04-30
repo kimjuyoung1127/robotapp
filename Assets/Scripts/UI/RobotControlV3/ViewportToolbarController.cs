@@ -33,6 +33,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool collisionWarning;
         private bool collisionDanger;
         private Coroutine initializeCoroutine;
+        private bool isInitializing;
 
         private void OnEnable()
         {
@@ -76,33 +77,51 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || viewportToolbarTemplate == null || connectionHomeController == null)
+            try
             {
-                return false;
-            }
+                if (root == null || viewportToolbarTemplate == null || connectionHomeController == null)
+                {
+                    return false;
+                }
 
-            viewportHost = root.Q<VisualElement>("ViewportHost");
-            viewportToolbarHost = root.Q<VisualElement>("ViewportToolbarHost");
-            if (viewportHost == null || viewportToolbarHost == null)
+                viewportHost = root.Q<VisualElement>("ViewportHost");
+                viewportToolbarHost = root.Q<VisualElement>("ViewportToolbarHost");
+                if (viewportHost == null || viewportToolbarHost == null)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                if (elements == null || viewportToolbarHost.childCount == 0)
+                {
+                    elements = CreateToolbar(viewportToolbarHost);
+                }
+
+                runtimeController?.ForceInitialize();
+                isInitialized = true;
+                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+                ApplyAll();
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            if (elements == null || viewportToolbarHost.childCount == 0)
-            {
-                elements = CreateToolbar(viewportToolbarHost);
-            }
-
-            runtimeController?.ForceInitialize();
-            ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            ApplyAll();
-            isInitialized = true;
-            return true;
         }
 
         private System.Collections.IEnumerator WaitForInitialize()

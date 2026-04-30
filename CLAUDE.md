@@ -8,15 +8,16 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 
 ## 시작 순서
 1. `AGENTS.md` 또는 `CLAUDE.md`
-2. `docs/ref/architecture-mermaid.md`
-3. `docs/ref/project-flow-code-review.md`
-4. `docs/ref/csharp-master-harness.md` (C# 생성/수정 시 상위 운영 규칙)
-5. `docs/ref/code-patterns.md` (구현 디테일과 패턴)
-6. `docs/status/PRODUCT-DOC-BOARD.md`
-7. `docs/ref/PRD.md`
-8. `docs/ref/WIREFRAME.md`
-9. `docs/ref/PRODUCT-ROADMAP.md`
-10. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시)
+2. `harness/REGISTRY.md` (하네스 및 자동화 지침 확인)
+3. `docs/ref/architecture-mermaid.md`
+4. `docs/ref/project-flow-code-review.md`
+5. `docs/ref/csharp-master-harness.md` (C# 생성/수정 시 상위 운영 규칙 및 헤더 규격)
+6. `docs/ref/code-patterns.md` (구현 디테일과 패턴)
+7. `docs/status/PRODUCT-DOC-BOARD.md`
+8. `docs/ref/PRD.md`
+9. `docs/ref/WIREFRAME.md`
+10. `docs/ref/PRODUCT-ROADMAP.md`
+11. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시)
 
 ## 현재 구조 요약
 - 현재 씬 흐름은 `Boot -> Onboarding -> RobotLibrary -> {MathReadiness, Sandbox, RobotControl}` 입니다.
@@ -28,13 +29,15 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 - `Home`과 `Main`은 현재 구조 기준으로는 역사적 이름입니다. 최신 판단에는 사용하지 않습니다.
 
 ## 핵심 규칙
-1. 기존 코드, 타입, 유틸리티를 우선 재사용합니다.
-2. `Math`, `Types`, `Kinematics`, `Templates`는 pure C# `double` 기반으로 유지합니다.
-3. C# 수정 전에는 `docs/ref/csharp-master-harness.md`와 `docs/ref/code-patterns.md`를 읽고 운영 규칙과 구현 패턴을 맞춥니다.
-4. Unity 작업의 기본 도구는 `unityctl`입니다. `unityctl`에 없는 작업만 MCP로 폴백합니다.
-5. 문서와 코드가 다르면 현재 코드와 테스트 결과를 우선합니다.
-6. 하위 폴더 규칙이 바뀌면 가장 가까운 `AGENTS.md` 또는 `CLAUDE.md`를 같이 갱신합니다.
-7. 외부 범용 하네스는 운영 원칙과 템플릿 참고원으로만 사용합니다. 이 저장소의 SSOT는 계속 로컬 `AGENTS.md`, `CLAUDE.md`, `docs/ref/csharp-master-harness.md`입니다.
+1. 모든 `.cs` 파일 최상단에 `<ai_context>` 헤더를 유지/관리합니다. (csharp-master-harness 참조)
+2. 기존 코드, 타입, 유틸리티를 우선 재사용합니다.
+3. `Math`, `Kinematics`, `Types`는 pure C# `double` 기반으로 유지합니다.
+4. 작업 완료 전 `harness/code-health-audit.md`를 참고하여 품질 게이트를 통과하는지 확인합니다.
+5. C# 수정 전에는 `docs/ref/csharp-master-harness.md`와 `docs/ref/code-patterns.md`를 읽고 운영 규칙과 구현 패턴을 맞춥니다.
+6. Unity 작업의 기본 도구는 `unityctl`입니다. `unityctl`에 없는 작업만 MCP로 폴백합니다.
+7. 문서와 코드가 다르면 현재 코드와 테스트 결과를 우선합니다.
+8. 하위 폴더 규칙이 바뀌면 가장 가까운 `AGENTS.md` 또는 `CLAUDE.md`를 같이 갱신합니다.
+9. 외부 범용 하네스는 운영 원칙과 템플릿 참고원으로만 사용합니다. 이 저장소의 SSOT는 계속 로컬 `AGENTS.md`, `CLAUDE.md`, `docs/ref/csharp-master-harness.md`입니다.
 
 ## RobotControl 구현 규율
 1. `RobotControl`은 full rewrite가 아니라 `구조적 재조립`으로 진행합니다.
@@ -55,6 +58,15 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
    - 관련 `test --mode edit`
    - 필요 시 `play start`, `console get-entries`, `scene snapshot`, `screenshot capture`
 9. 각 Phase 커밋은 해당 범위만 포함합니다. unrelated 변경을 같이 묶지 않습니다.
+
+## FR5 Live 문서 운영 규칙
+1. FR5 live 관련 현재 판단은 항상 `docs/status/ACTIVE-WORK-INDEX.md`에서 시작합니다.
+2. 다음 운영 세션용 요약은 `docs/ref/product/ux/robotcontrol-next-session-handoff.md`만 봅니다.
+3. 현재 세션 체크는 `docs/ref/product/roadmap/fr5-live-field-checklist.md`만 봅니다.
+4. gripper 상세 절차와 성공패턴은 `docs/ref/product/roadmap/fr5-gripper-live-success-pattern.md`를 SSOT로 봅니다.
+5. tiny joint 상세 절차와 narrow verified scope는 `docs/ref/product/roadmap/fr5-tiny-joint-live-success-pattern.md`를 SSOT로 봅니다.
+6. 과거 현장 서사와 시행착오는 `docs/ref/product/roadmap/fr5-live-field-history.md`에만 둡니다. current checklist/handoff에는 다시 섞지 않습니다.
+7. `V1`, `V2`는 active 운영 표면이 아닙니다. 문서에는 `개발 목적`과 `이력`만 남기고, 현재판 판단 근거로 사용하지 않습니다.
 
 ## Unityctl Quickstart
 - 고정 경로:
@@ -117,6 +129,7 @@ $project = 'C:\Users\ezen601\Desktop\Jason\robotapp2'
 ### Editor 도구 / QA / unityctl exec helper
 - 에디터 도구 요약: `Assets/Editor/KineTutor3D/CLAUDE.md`
 - CLI helper 요약: `Assets/Editor/KineTutor3D/CliTools/CLAUDE.md`
+- Claude command/hook 운영 자산: `.claude/commands/CLAUDE.md`, `harness/REGISTRY.md`
 
 ### 테스트
 - 테스트 루트: `Assets/Tests/CLAUDE.md`

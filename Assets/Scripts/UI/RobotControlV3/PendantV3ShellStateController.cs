@@ -114,6 +114,24 @@ namespace KineTutor3D.UI.RobotControlV3
             return PendantV3LocalState.Normalize(state);
         }
 
+        public string SetSpeedPercentForDebug(int speedPercent)
+        {
+            state.SpeedPercent = Mathf.Clamp(speedPercent, 1, 100);
+            ApplySpeedState();
+            QueueSave();
+            EmitStateSnapshotChanged();
+            return GetDebugSummary();
+        }
+
+        public string SetJogIncrementForDebug(int jogIncrement)
+        {
+            state.JogIncrement = jogIncrement == 1 || jogIncrement == 10 ? jogIncrement : 5;
+            ApplyIncrementState();
+            QueueSave();
+            EmitStateSnapshotChanged();
+            return GetDebugSummary();
+        }
+
         private void CacheElements()
         {
             navButtons.Clear();

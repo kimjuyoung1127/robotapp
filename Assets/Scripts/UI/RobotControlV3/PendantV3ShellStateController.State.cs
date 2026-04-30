@@ -16,7 +16,6 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ApplyState()
         {
             state = PendantV3LocalState.Normalize(state);
-            state.DesktopSplitRatio = Mathf.Min(state.DesktopSplitRatio, PendantV3LocalState.DefaultSplitRatio);
             ApplyNavState();
             ApplyWorkTabState();
             ApplyBottomTabState();
@@ -119,15 +118,26 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             if (coordSystemLabel != null)
             {
-                coordSystemLabel.text = $"좌표계: {state.CoordSystem}";
+                coordSystemLabel.text = $"좌표 기준: {FormatCoordSystemDisplay(state.CoordSystem)}";
             }
 
             if (coordSystemButton != null)
             {
-                coordSystemButton.text = $"좌표 {state.CoordSystem}";
+                coordSystemButton.text = $"기준 {FormatCoordSystemDisplay(state.CoordSystem)}";
             }
 
             NotifyPanelControllers();
+        }
+
+        private static string FormatCoordSystemDisplay(string coordSystem)
+        {
+            return coordSystem switch
+            {
+                "Tool" => "툴",
+                "User" => "작업",
+                "Base" => "로봇",
+                _ => string.IsNullOrWhiteSpace(coordSystem) ? "--" : coordSystem,
+            };
         }
 
         private void ApplyIncrementState()
@@ -165,7 +175,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var desktopSplitRatio = Mathf.Clamp(
                 state.DesktopSplitRatio,
-                PendantV3LocalState.DefaultSplitRatio,
+                PendantV3LocalState.MinSplitRatio,
                 PendantV3LocalState.MaxSplitRatio);
             workPanel.style.flexGrow = 1f - desktopSplitRatio;
             viewportHost.style.flexGrow = desktopSplitRatio;
@@ -191,7 +201,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ApplyBottomBarState()
         {
             var runtime = runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
-            var dryRunEnabled = runtime?.CurrentSnapshot.DryRunEnabled ?? true;
+            var dryRunEnabled = runtime?.CurrentSnapshot.DryRunEnabled ?? false;
             if (dryRunButton != null)
             {
                 dryRunButton.text = dryRunEnabled ? "미리보기 ON" : "미리보기 OFF";

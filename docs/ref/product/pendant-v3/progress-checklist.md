@@ -6,7 +6,7 @@
 - daily log와 달리 "지금 어디까지 왔는지"만 짧게 유지한다.
 
 ## Last Updated
-- 2026-04-27 (KST)
+- 2026-04-29 (KST)
 
 ## Current Phase Snapshot
 
@@ -23,7 +23,7 @@
 | `2B-1` 쉬운 조작 | done | EasyMotion + Zero preset + actual click matrix 통과 |
 | `2B-2` 관절 조그 | done | Joint jog preview/apply/restore + actual click matrix 통과 |
 | `2B-3` TCP 조그 | done | TCP jog + Cartesian arrows + actual click matrix 통과 |
-| `2B-4` 포인트 이동 | in_progress | MoveL/MoveJ preview/apply, save/recall/list/delete/rename/export/cleanup 연결 완료. Numerical IK live는 safety gate에서 차단 |
+| `2B-4` 포인트 이동 | in_progress | MoveL/MoveJ preview/apply, save/recall/list/delete/rename/export/cleanup 연결 완료. Saved `MoveJ` single-point live apply, `PendantV3Points` two-point once, `QA0430_HOME_2PT_T6`, `QA0430_HOME_MULTIAXIS_T5_T6` one-shot repeatability는 green. point save/apply/run 앞에는 `Sync + RefreshLiveEvidence` gate를 강제하고, manual pose 변경 시 synced `Home` 저장 후 repeatability를 시작한다. loop/broad named live는 아직 잠금 |
 | `2C-1` 안전/진단 | done | safety/fault actual flow `5/5 PASS`, fault overlay popup route 확인 |
 | `2C-2` 뷰포트 보조 UI | in_progress | toolbar/frame/path/ghost/bound/coll/cam actual click matrix 통과. 실데이터 boundary/collision은 후속 |
 | `2D` 팝업/도움말 | done | popup confirm/cancel E2E `10/10 PASS`, status detail help routing 확인 |
@@ -31,7 +31,7 @@
 | `3A-1` context density quick relief | done | CoordStrip 접기/토글화 + UITK click smoke 완료 |
 | `3A-2` status/safety rebalance | done | StatusCard 안전 요약 추가 + SafetyDiagnostics 정상 숨김 / fault 재노출 확인 |
 | `3A-3` context panel tab split | done | 상태/좌표 탭 분리 + 우측 패널 scroll/overflow fix + visual smoke 완료 |
-| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1-polish `33/33 PASS` |
+| `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1-polish `33/33 PASS`, shared live QA runner scaffold 추가, verified controller mode path + header `자동/수동` 버튼 노출, teaching point live `single point / two-point once` green |
 | `3C` mock e2e | done | Desktop actual click baseline `110/110 PASS`, function actual click current contract `7/7 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
 

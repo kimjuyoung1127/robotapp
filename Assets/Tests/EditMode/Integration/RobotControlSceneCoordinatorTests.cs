@@ -31,7 +31,10 @@ namespace KineTutor3D.Tests.EditMode
             {
                 var method = typeof(RobotControlSceneCoordinator).GetMethod(
                     "FindSceneRuntimeRoot",
-                    BindingFlags.NonPublic | BindingFlags.Static);
+                    BindingFlags.NonPublic | BindingFlags.Static,
+                    null,
+                    System.Type.EmptyTypes,
+                    null);
 
                 Assert.That(method, Is.Not.Null);
 

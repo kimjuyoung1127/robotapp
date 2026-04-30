@@ -22,10 +22,13 @@ namespace KineTutor3D.UI.RobotControlV3
         [SerializeField] private WhyItMovedController whyItMovedController;
 
         private bool isInitialized;
+        private bool isInitializing;
         private bool subscriptionsBound;
         private Coroutine initializeCoroutine;
         private RobotControlV3RuntimeSnapshot lastPreviewDefinition;
         private PendantV3LocalState lastShellState;
+        private bool isRefreshingPanels;
+        private bool refreshQueued;
 
         private void OnEnable()
         {
@@ -84,6 +87,17 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             shellStateController ??= GetComponent<PendantV3ShellStateController>();
             statusCardController ??= GetComponent<StatusCardController>();
@@ -93,27 +107,34 @@ namespace KineTutor3D.UI.RobotControlV3
             helpPanelController ??= GetComponent<HelpPanelController>();
             whyItMovedController ??= GetComponent<WhyItMovedController>();
 
-            if (connectionHomeController == null || shellStateController == null)
+            try
             {
-                return false;
-            }
+                if (connectionHomeController == null || shellStateController == null)
+                {
+                    return false;
+                }
 
-            var statusReady = statusCardController == null || statusCardController.ForceInitialize();
-            var safetyReady = safetyDiagnosticsController == null || safetyDiagnosticsController.ForceInitialize();
-            var toolbarReady = viewportToolbarController == null || viewportToolbarController.ForceInitialize();
-            var auxReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
-            var helpReady = helpPanelController == null || helpPanelController.ForceInitialize();
-            var whyReady = whyItMovedController == null || whyItMovedController.ForceInitialize();
-            if (!statusReady || !safetyReady || !toolbarReady || !auxReady || !helpReady || !whyReady)
+                var statusReady = statusCardController == null || statusCardController.ForceInitialize();
+                var safetyReady = safetyDiagnosticsController == null || safetyDiagnosticsController.ForceInitialize();
+                var toolbarReady = viewportToolbarController == null || viewportToolbarController.ForceInitialize();
+                var auxReady = viewportAuxInfoController == null || viewportAuxInfoController.ForceInitialize();
+                var helpReady = helpPanelController == null || helpPanelController.ForceInitialize();
+                var whyReady = whyItMovedController == null || whyItMovedController.ForceInitialize();
+                if (!statusReady || !safetyReady || !toolbarReady || !auxReady || !helpReady || !whyReady)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                BindSubscriptions();
+                isInitialized = true;
+                RefreshFromSources();
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            BindSubscriptions();
-            RefreshFromSources();
-            isInitialized = true;
-            return true;
         }
 
         private void BindSubscriptions()
@@ -150,7 +171,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void HandlePreviewChanged(RobotControlV3RuntimeSnapshot data)
         {
-            lastPreviewDefinition = data;
+            lastPreviewDefinition = data?.Clone();
             lastShellState = shellStateController != null
                 ? shellStateController.GetStateSnapshot()
                 : lastShellState;
@@ -160,25 +181,54 @@ namespace KineTutor3D.UI.RobotControlV3
         private void HandleShellStateChanged(PendantV3LocalState shellState)
         {
             lastShellState = PendantV3LocalState.Normalize(shellState);
-            lastPreviewDefinition = connectionHomeController.CurrentPreviewDefinition;
+            lastPreviewDefinition = connectionHomeController.CurrentPreviewDefinition?.Clone();
             RefreshDisplayPanels(lastPreviewDefinition, lastShellState);
         }
 
         private void RefreshFromSources()
         {
-            lastPreviewDefinition = connectionHomeController.CurrentPreviewDefinition;
+            lastPreviewDefinition = connectionHomeController.CurrentPreviewDefinition?.Clone();
             lastShellState = shellStateController.GetStateSnapshot();
             RefreshDisplayPanels(lastPreviewDefinition, lastShellState);
         }
 
         private void RefreshDisplayPanels(RobotControlV3RuntimeSnapshot previewDefinition, PendantV3LocalState shellState)
         {
-            statusCardController?.RefreshFromBinder(previewDefinition);
-            safetyDiagnosticsController?.RefreshFromBinder(previewDefinition);
-            viewportToolbarController?.RefreshFromBinder(previewDefinition);
-            viewportAuxInfoController?.RefreshFromBinder(previewDefinition, shellState);
-            helpPanelController?.RefreshFromBinder(previewDefinition, shellState);
-            whyItMovedController?.RefreshFromBinder(previewDefinition);
+            if (previewDefinition == null)
+            {
+                return;
+            }
+
+            if (isRefreshingPanels)
+            {
+                refreshQueued = true;
+                lastPreviewDefinition = previewDefinition.Clone();
+                lastShellState = shellState;
+                return;
+            }
+
+            isRefreshingPanels = true;
+            try
+            {
+                do
+                {
+                    refreshQueued = false;
+                    var currentPreview = lastPreviewDefinition?.Clone() ?? previewDefinition.Clone();
+                    var currentShellState = lastShellState;
+
+                    statusCardController?.RefreshFromBinder(currentPreview);
+                    safetyDiagnosticsController?.RefreshFromBinder(currentPreview);
+                    viewportToolbarController?.RefreshFromBinder(currentPreview);
+                    viewportAuxInfoController?.RefreshFromBinder(currentPreview, currentShellState);
+                    helpPanelController?.RefreshFromBinder(currentPreview, currentShellState);
+                    whyItMovedController?.RefreshFromBinder(currentPreview);
+                }
+                while (refreshQueued);
+            }
+            finally
+            {
+                isRefreshingPanels = false;
+            }
         }
     }
 }

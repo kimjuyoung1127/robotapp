@@ -12,10 +12,12 @@
 - FR5를 Robot Library 후보나 실기 제어 대상 로봇으로 다룰 때
 - Unity UI 입력값을 FAIRINO C# SDK 호출로 연결할 때
 - FR5 하드웨어 사양, 설치 조건, DH 파라미터, 피드백 포트, 명령 프로토콜의 공식 출처가 필요할 때
+- 공식 C# SDK 문서와 현재 repo/live evidence가 실제로 어디서 맞고 어긋나는지 봐야 할 때는 `docs/ref/product/roadmap/fr5-live-official-sdk-audit.md`를 먼저 연다
 
 ## Status
 - Research / integration planning + initial runtime baseline
 - 문서화와 skillization 완료
+- 2026-04-29 기준 official SDK 문서 vs current repo vs field evidence를 대조한 current audit SSOT는 `docs/ref/product/roadmap/fr5-live-official-sdk-audit.md`다
 - `RobotControl.unity`, `FairinoConnectionService`, FR5 config/template, preview/control prefab split까지는 코드 반영됨
 - 남은 핵심 이슈는 `RobotControl`에서 URDF control prefab의 최종 visible state와 FR5 state -> 3D joint mirror 경로다
 - 2026-03-17 기준 공식 C# SDK ZIP에서 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`을 로컬 `Assets/Plugins/Fairino/`에 staging 완료
@@ -25,10 +27,11 @@
   - drag teach 종료 + auto mode 준비
   - reconnect / realtime sample defaults
   - Live v1에서 `ServoJ` / `ServoCart` 비활성화
-- 현재는 현장 네트워크 응답과 실제 FR5 컨트롤러 상태 검증만 남아 있다.
+- 현재 이 문서는 source map과 구조 기준선 역할로 유지한다.
+- current branch의 실제 live truth, field blocker, 공식 SDK 대비 mismatch/backlog는 `fr5-live-official-sdk-audit.md`와 `FR5-LIVE-INTEGRATION-ROADMAP.md`를 우선한다.
 
 ## Last Updated
-- 2026-03-31 (KST)
+- 2026-04-29 (KST)
 
 ## Collection Verdict
 - `가능`: FR5 관련 공식 자료는 FAIRINO Read the Docs, FAIRINO 공식 제품 페이지, 공식 GitHub SDK 링크에서 수집할 수 있다.
@@ -140,6 +143,7 @@
 - C# SDK 문서에는 `20004 port feedback cycle` 설정 인터페이스가 따로 있다.
 - 따라서 현재 단계에서는 `8083 binary packet`과 `20004 feedback configuration`을 같은 것으로 단정하지 말고, 현장 controller firmware에서 각각 어떻게 노출되는지 별도 검증해야 한다.
 - Unity live integration에서는 이 차이를 문서화된 risk로 남기고, 초기 구현은 `C# SDK status API` 우선으로 시작하는 편이 안전하다.
+- 현재 branch의 실제 판정과 backlog는 위 risk까지 포함해서 `fr5-live-official-sdk-audit.md`에 유지한다.
 
 ## Recommended Unity Architecture
 1. `UI input layer`
@@ -154,6 +158,8 @@
    - 실제 명령 전송은 adapter 안에서만 일어나게 하고, 실패/에러 코드를 UI에 다시 올린다.
 
 ## Current Repo Reality Check
+- 이 섹션은 `공식 source map -> Unity 구조`를 설명하는 기반 메모다.
+- 현재 branch의 정확한 live truth, mismatch, backlog 판정은 `docs/ref/product/roadmap/fr5-live-official-sdk-audit.md`와 `docs/status/FR5-LIVE-INTEGRATION-ROADMAP.md`를 우선한다.
 - `RobotLibrary` / showroom은 `RobotPreviewFactory`가 `Resources/Robots/FAIRINO_FR5.prefab` donor preview를 mesh-only clone으로 띄우는 경로가 이미 안정적이다.
 - `RobotControl`은 `Resources/Robots/FAIRINO_FR5_Control.prefab` URDF control prefab을 사용한다.
 - `Assets/Plugins/Fairino/`에는 공식 SDK ZIP에서 확인한 `libfairino.dll`, `CookComputing.XmlRpcV2.dll`이 로컬 staging 되었다.

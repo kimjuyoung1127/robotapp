@@ -50,6 +50,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private string pendingLiveApprovalSummary = string.Empty;
         private bool restoreFaultOverlayAfterPopup;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -68,6 +69,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public bool ForceInitialize()
@@ -86,6 +88,19 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             inputContract ??= GetComponent<PendantV3InputContract>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
@@ -131,6 +146,11 @@ namespace KineTutor3D.UI.RobotControlV3
             BindButtons();
             isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private System.Collections.IEnumerator WaitForInitialize()
@@ -333,6 +353,26 @@ namespace KineTutor3D.UI.RobotControlV3
             OpenPopup(moveConfirmTemplate);
         }
 
+        public void OpenMoveConfirmForProduct()
+        {
+            if (!isInitialized && !TryInitialize())
+            {
+                return;
+            }
+
+            OpenMoveConfirm();
+        }
+
+        public void OpenRunConfirmForProduct()
+        {
+            if (!isInitialized && !TryInitialize())
+            {
+                return;
+            }
+
+            OpenRunConfirm();
+        }
+
         private void OpenWarningDialog()
         {
             activePopupKind = "warning";
@@ -385,6 +425,40 @@ namespace KineTutor3D.UI.RobotControlV3
                     return $"popupKind={popupKind}; supported=servo,reset,run,move,warning,recovery,unsaved";
             }
 
+            return GetDebugSummary();
+        }
+
+        public string ConfirmActivePopupForDebug()
+        {
+            if (!isInitialized && !TryInitialize())
+            {
+                return GetDebugSummary();
+            }
+
+            if (popupTemplateHost == null || popupTemplateHost.childCount == 0)
+            {
+                return GetDebugSummary();
+            }
+
+            ExecuteConfirmedAction();
+            CloseActivePopup();
+            return GetDebugSummary();
+        }
+
+        public string CancelActivePopupForDebug()
+        {
+            if (!isInitialized && !TryInitialize())
+            {
+                return GetDebugSummary();
+            }
+
+            if (popupTemplateHost == null || popupTemplateHost.childCount == 0)
+            {
+                return GetDebugSummary();
+            }
+
+            runtimeController?.CancelLiveCommandApprovalForProduct();
+            CloseActivePopup();
             return GetDebugSummary();
         }
 
@@ -444,7 +518,23 @@ namespace KineTutor3D.UI.RobotControlV3
                 case "move":
                     if (ConfirmLiveApprovalIfNeeded())
                     {
-                        runtimeController?.ExecutePrimaryAction();
+                        var commandKind = runtimeController?.ResolvePendingLiveCommandKindForProduct();
+                        if (string.Equals(commandKind, "MoveGripper", System.StringComparison.Ordinal))
+                        {
+                            runtimeController?.ExecutePendingGripperOperatorCommand();
+                        }
+                        else if (runtimeController != null && runtimeController.HasPendingSavedPointOperatorApproval())
+                        {
+                            runtimeController.ExecutePendingSavedPointOperatorCommand();
+                        }
+                        else if (runtimeController != null && runtimeController.HasPendingWaypointSequenceOperatorApproval())
+                        {
+                            runtimeController.ExecutePendingWaypointSequenceOperatorCommand();
+                        }
+                        else
+                        {
+                            runtimeController?.ExecutePreparedPreviewForProduct();
+                        }
                     }
                     break;
                 case "warning":
@@ -513,14 +603,19 @@ namespace KineTutor3D.UI.RobotControlV3
             var commandKind = runtimeController.ResolvePendingLiveCommandKindForProduct();
             pendingLiveApprovalSummary = runtimeController.BeginLiveCommandApprovalForProduct(commandKind);
             pendingLiveApprovalToken = ExtractToken(pendingLiveApprovalSummary);
-            var label = new Label($"Live 승인: {FormatApprovalSummary(pendingLiveApprovalSummary)}")
-            {
-                name = "LiveApprovalTokenLabel",
-            };
-            label.AddToClassList("rc-popup-template-line");
-            label.AddToClassList("rc-popup-template-token");
             var body = tree.Q<VisualElement>("ActionRunConfirmBody") ?? tree.Q<VisualElement>("MoveConfirmBody") ?? tree;
-            body.Add(label);
+            popupCardSummary.text = BuildApprovalTargetHeadline(commandKind, pendingLiveApprovalSummary);
+
+            var metaBlock = new VisualElement
+            {
+                name = "LiveApprovalMetaBlock",
+            };
+            metaBlock.AddToClassList("rc-popup-template-meta");
+
+            metaBlock.Add(BuildPopupLine($"승인 대상: {BuildApprovalTargetLabel(commandKind)}"));
+            metaBlock.Add(BuildPopupLine($"확인 요약: {FormatApprovalLeadSummary(pendingLiveApprovalSummary)}"));
+            metaBlock.Add(BuildPopupLine($"승인 토큰: {pendingLiveApprovalToken}"));
+            body.Insert(0, metaBlock);
         }
 
         private bool ConfirmLiveApprovalIfNeeded()
@@ -575,6 +670,43 @@ namespace KineTutor3D.UI.RobotControlV3
                 .Replace("token=", "토큰=")
                 .Replace("expires=", "만료=")
                 .Replace("reason=dry-run", "DryRun");
+        }
+
+        private static string FormatApprovalLeadSummary(string summary)
+        {
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                return "승인 상태 확인 중";
+            }
+
+            return summary
+                .Replace("approvalRequired=True", "승인 필요")
+                .Replace("approvalRequired=False", "승인 생략")
+                .Replace("kind=", "명령=")
+                .Replace("expires=", "만료=")
+                .Replace("reason=dry-run", "DryRun");
+        }
+
+        private static string BuildApprovalTargetLabel(string commandKind)
+        {
+            return string.Equals(commandKind, "MoveJ", System.StringComparison.OrdinalIgnoreCase)
+                ? "tiny MoveJ 1회"
+                : commandKind;
+        }
+
+        private static string BuildApprovalTargetHeadline(string commandKind, string summary)
+        {
+            return $"승인 대상: {BuildApprovalTargetLabel(commandKind)} · {FormatApprovalLeadSummary(summary)}";
+        }
+
+        private static Label BuildPopupLine(string text)
+        {
+            var label = new Label(text)
+            {
+                name = "LiveApprovalLine",
+            };
+            label.AddToClassList("rc-popup-template-line");
+            return label;
         }
     }
 }

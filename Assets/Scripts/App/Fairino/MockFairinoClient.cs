@@ -343,6 +343,22 @@ namespace KineTutor3D.App.Fairino
                 "Mock gripper status");
         }
 
+        public FairinoResult<FairinoGripperConfigState> ReadGripperConfig()
+        {
+            if (!IsConnected)
+            {
+                return FairinoResult<FairinoGripperConfigState>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            return FairinoResult<FairinoGripperConfigState>.Ok(
+                new FairinoGripperConfigState(
+                    gripperProfile.Company,
+                    gripperProfile.Device,
+                    gripperProfile.SoftVersion,
+                    gripperProfile.Bus),
+                $"Mock gripper config: {gripperProfile}");
+        }
+
         public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
         {
             if (!IsConnected)

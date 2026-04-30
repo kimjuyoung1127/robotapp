@@ -15,7 +15,7 @@ namespace KineTutor3D.App.Fairino
         private const float ReconnectIntervalSeconds = 3f;
         private const int MaxReconnectAttempts = 10;
 
-        [SerializeField] private bool mockModeByDefault = true;
+        [SerializeField] private bool mockModeByDefault = false;
 
         private FairinoConnectionService connectionService;
         private RobotControlTemplateDefinition templateDefinition;
@@ -30,7 +30,7 @@ namespace KineTutor3D.App.Fairino
         private float reconnectSecondsUntilRetry;
         private string reconnectFailureSummary = string.Empty;
         private string lastErrorSummary = string.Empty;
-        private string actualMoveBlockReason = "Mock 모드라 실제 이동을 잠가 둔다.";
+        private string actualMoveBlockReason = "Live Arm을 먼저 켜라.";
         private bool liveArmActive;
         private bool popupBlockActive;
         private bool debugOverrideActive;

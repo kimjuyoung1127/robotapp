@@ -256,7 +256,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unityctl.bridge": {
-      "version": "file:C:/Users/ezen601/Desktop/Jason/unityctl/src/Unityctl.Plugin",
+      "version": "file:/Users/family/jason/unityctl/src/Unityctl.Plugin",
       "depth": 0,
       "source": "local",
       "dependencies": {

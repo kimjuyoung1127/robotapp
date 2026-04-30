@@ -1,4 +1,10 @@
-﻿// Folder: Types - Domain value types; no UnityEngine references.
+﻿/// <ai_context>
+/// Component: Types
+/// Responsibility: 엔드이펙터의 위치와 회전을 포함하는 불변 포즈(Pose) 타입 정의.
+/// Dependencies: Math (Pure C#)
+/// Quality Gate: EditMode Tests (PoseTests.cs)
+/// Navigation: Assets/Scripts/Types/AGENTS.md
+/// </ai_context>
 using System;
 using KineTutor3D.Math;
 

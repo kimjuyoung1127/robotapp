@@ -18,7 +18,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         internal event System.Action<RobotControlV3RuntimeSnapshot> PreviewChanged;
 
-        private readonly List<(Button button, EventCallback<ClickEvent> callback, System.Action clicked)> presetButtons = new();
+        private readonly List<(Button button, System.Action clicked)> presetButtons = new();
 
         private VisualElement root;
         private VisualElement workTabBar;
@@ -40,7 +40,12 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label userLabel;
         private Label safetyLabel;
         private Label faultLabel;
+        private Label quickControllerModeLabel;
+        private Label quickLiveArmLabel;
+        private Label headerNextActionLabel;
         private Button btnServoEnable;
+        private Button btnHeaderModeAuto;
+        private Button btnHeaderModeManual;
         private Button btnRun;
         private Button btnStop;
         private Button btnPause;
@@ -49,15 +54,17 @@ namespace KineTutor3D.UI.RobotControlV3
         private Button btnPopupProbe;
         private Button btnRunBottom;
         private Button btnStopBottom;
-        private EventCallback<ClickEvent> connectClickCallback;
-        private EventCallback<ClickEvent> disconnectClickCallback;
-        private EventCallback<ClickEvent> primaryActionClickCallback;
-        private EventCallback<ClickEvent> servoClickCallback;
-        private EventCallback<ClickEvent> runClickCallback;
-        private EventCallback<ClickEvent> stopClickCallback;
-        private EventCallback<ClickEvent> resetClickCallback;
-        private EventCallback<ClickEvent> pauseClickCallback;
-        private EventCallback<ClickEvent> syncClickCallback;
+        private System.Action connectClickedAction;
+        private System.Action disconnectClickedAction;
+        private System.Action primaryClickedAction;
+        private System.Action servoClickedAction;
+        private System.Action runClickedAction;
+        private System.Action stopClickedAction;
+        private System.Action resetClickedAction;
+        private System.Action pauseClickedAction;
+        private System.Action autoModeClickedAction;
+        private System.Action manualModeClickedAction;
+        private System.Action syncClickedAction;
         private RobotControlV3RuntimeController runtimeController;
 
         private PanelElements desktopPanel;
@@ -67,6 +74,9 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isHomeActive;
         private bool isPointsActive;
         private bool isInitialized;
+        private bool isInitializing;
+        private bool isApplyingPreview;
+        private RobotControlV3RuntimeSnapshot queuedPreview;
         private Coroutine initializeCoroutine;
 
         internal PendantV3PreviewState.Kind CurrentPreviewState => previewState;
@@ -97,6 +107,8 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isApplyingPreview = false;
+            queuedPreview = null;
         }
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
@@ -172,36 +184,54 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || connectionHomeTemplate == null || runtimeController == null)
+            try
             {
-                return false;
-            }
+                if (root == null || connectionHomeTemplate == null || runtimeController == null)
+                {
+                    return false;
+                }
 
-            CacheShellElements();
-            if (homePanelHost == null || homeSheetHost == null)
+                CacheShellElements();
+                if (homePanelHost == null || homeSheetHost == null)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                if (desktopPanel == null || tabletPanel == null || homePanelHost.childCount == 0 || homeSheetHost.childCount == 0)
+                {
+                    BuildPanels();
+                }
+
+                runtimeController.SnapshotChanged -= HandleRuntimeSnapshotChanged;
+                runtimeController.SnapshotChanged += HandleRuntimeSnapshotChanged;
+                UnbindRuntimeButtons();
+                BindRuntimeButtons();
+                ApplyShellStateSnapshot();
+                debugOverrideSnapshot = null;
+                isInitialized = true;
+                ApplyPreview(CurrentPreviewDefinition ?? CreateFallbackSnapshot(previewState));
+                ApplyHomeVisibility();
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            if (desktopPanel == null || tabletPanel == null || homePanelHost.childCount == 0 || homeSheetHost.childCount == 0)
-            {
-                BuildPanels();
-            }
-
-            runtimeController.SnapshotChanged -= HandleRuntimeSnapshotChanged;
-            runtimeController.SnapshotChanged += HandleRuntimeSnapshotChanged;
-            UnbindRuntimeButtons();
-            BindRuntimeButtons();
-            ApplyShellStateSnapshot();
-            debugOverrideSnapshot = null;
-            ApplyPreview(CurrentPreviewDefinition ?? CreateFallbackSnapshot(previewState));
-            ApplyHomeVisibility();
-            isInitialized = true;
-            return true;
         }
 
         private void ApplyShellStateSnapshot()
@@ -235,7 +265,12 @@ namespace KineTutor3D.UI.RobotControlV3
             userLabel = root.Q<Label>("UserLabel");
             safetyLabel = root.Q<Label>("SafetyLabel");
             faultLabel = root.Q<Label>("FaultLabel");
+            quickControllerModeLabel = root.Q<Label>("QuickControllerMode");
+            quickLiveArmLabel = root.Q<Label>("QuickLiveArm");
+            headerNextActionLabel = root.Q<Label>("HeaderNextActionLabel");
             btnServoEnable = root.Q<Button>("BtnServoEnable");
+            btnHeaderModeAuto = root.Q<Button>("BtnHeaderModeAuto");
+            btnHeaderModeManual = root.Q<Button>("BtnHeaderModeManual");
             btnRun = root.Q<Button>("BtnRun");
             btnStop = root.Q<Button>("BtnStop");
             btnPause = root.Q<Button>("BtnPause");
@@ -288,18 +323,15 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            EventCallback<ClickEvent> callback = _ => SetPreviewState(state);
             System.Action clicked = () => SetPreviewState(state);
-            button.RegisterCallback<ClickEvent>(callback);
             button.clicked += clicked;
-            presetButtons.Add((button, callback, clicked));
+            presetButtons.Add((button, clicked));
         }
 
         private void UnbindPresetButtons()
         {
-            foreach (var (button, callback, clicked) in presetButtons)
+            foreach (var (button, clicked) in presetButtons)
             {
-                button.UnregisterCallback<ClickEvent>(callback);
                 button.clicked -= clicked;
             }
 
@@ -320,11 +352,32 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            previewState = MapStatusKind(data.StatusKind);
-            ApplyTopStatusBar(data);
-            ApplyPanel(desktopPanel, data);
-            ApplyPanel(tabletPanel, data);
-            PreviewChanged?.Invoke(data);
+            if (isApplyingPreview)
+            {
+                queuedPreview = data.Clone();
+                return;
+            }
+
+            isApplyingPreview = true;
+            try
+            {
+                var current = data;
+                do
+                {
+                    queuedPreview = null;
+                    previewState = MapStatusKind(current.StatusKind);
+                    ApplyTopStatusBar(current);
+                    ApplyPanel(desktopPanel, current);
+                    ApplyPanel(tabletPanel, current);
+                    PreviewChanged?.Invoke(current);
+                    current = queuedPreview;
+                }
+                while (current != null);
+            }
+            finally
+            {
+                isApplyingPreview = false;
+            }
         }
 
         private void ApplyTopStatusBar(RobotControlV3RuntimeSnapshot data)
@@ -342,8 +395,16 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyChip(userLabel, data.UserChip, "rc-status-chip--muted");
             ApplyChip(safetyLabel, data.SafetyChip, data.SafetyClass);
             ApplyChip(faultLabel, data.FaultChip, data.FaultClass);
+            ApplyChip(quickControllerModeLabel, data.QuickControllerMode, "rc-status-chip--muted");
+            ApplyChip(quickLiveArmLabel, data.QuickLiveArm, "rc-status-chip--muted");
+            if (headerNextActionLabel != null)
+            {
+                headerNextActionLabel.text = data.HeaderNextAction;
+            }
 
             btnServoEnable?.SetEnabled(data.ServoEnabled);
+            btnHeaderModeAuto?.SetEnabled(data.AutoModeSwitchEnabled);
+            btnHeaderModeManual?.SetEnabled(data.ManualModeSwitchEnabled);
             btnRun?.SetEnabled(data.RunEnabled);
             btnStop?.SetEnabled(data.StopEnabled);
             btnPause?.SetEnabled(data.PauseEnabled);
@@ -355,17 +416,14 @@ namespace KineTutor3D.UI.RobotControlV3
         private void ApplyTopHeaderVisibility()
         {
             SetTopHeaderButtonVisible(btnServoEnable, true);
+            SetTopHeaderButtonVisible(btnHeaderModeAuto, true);
+            SetTopHeaderButtonVisible(btnHeaderModeManual, true);
             SetTopHeaderButtonVisible(btnRun, false);
             SetTopHeaderButtonVisible(btnStop, false);
             SetTopHeaderButtonVisible(btnPause, false);
-            SetTopHeaderButtonVisible(btnSync, true);
+            SetTopHeaderButtonVisible(btnSync, false);
             SetTopHeaderButtonVisible(btnResetError, false);
             SetTopHeaderButtonVisible(btnPopupProbe, false);
-
-            if (btnSync != null)
-            {
-                btnSync.text = "현재 위치 읽기";
-            }
         }
 
         private static void SetTopHeaderButtonVisible(Button button, bool visible)
@@ -375,6 +433,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            button.SetEnabled(visible);
             button.EnableInClassList("rc-hidden", !visible);
             button.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
@@ -395,15 +454,18 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.QuickServo.text = data.QuickServo;
             panel.QuickMode.text = data.QuickMode;
             panel.QuickSync.text = data.QuickSync;
+            panel.QuickControllerMode.text = data.QuickControllerMode;
+            panel.QuickLiveArm.text = data.QuickLiveArm;
+            panel.BtnModeAuto?.SetEnabled(data.AutoModeSwitchEnabled);
+            panel.BtnModeManual?.SetEnabled(data.ManualModeSwitchEnabled);
             panel.BtnQuickAction.text = data.QuickActionLabel;
             panel.BtnQuickAction.SetEnabled(data.QuickActionEnabled);
 
             panel.ActionNow.text = data.ActionNow;
-            panel.ActionPrimary.text = data.ActionPrimary;
-            panel.ActionWhy.text = data.ActionWhy;
+            panel.ActionPrimary.text = $"다음 행동: {data.OperatorNextAction}";
+            panel.ActionWhy.text = $"분류: {data.FailureCategory} · {BuildGateSummary(data)}";
             panel.BtnPrimaryAction.text = data.PrimaryActionLabel;
             panel.BtnPrimaryAction.SetEnabled(data.PrimaryActionEnabled);
-
             SetPresetActive(panel.BtnPresetDisconnected, previewState == PendantV3PreviewState.Kind.Disconnected);
             SetPresetActive(panel.BtnPresetServoOff, previewState == PendantV3PreviewState.Kind.ConnectedServoOff);
             SetPresetActive(panel.BtnPresetUnsynced, previewState == PendantV3PreviewState.Kind.ConnectedUnsynced);
@@ -450,6 +512,26 @@ namespace KineTutor3D.UI.RobotControlV3
             label.EnableInClassList("rc-status-chip--danger", className == "rc-status-chip--danger");
         }
 
+        private static string BuildGateSummary(RobotControlV3RuntimeSnapshot data)
+        {
+            if (data == null)
+            {
+                return "잠금 이유: 확인 중 · 언제 풀리는지: 확인 중";
+            }
+
+            var reason = !string.IsNullOrWhiteSpace(data.MotionGateWhyLocked)
+                ? data.MotionGateWhyLocked
+                : !string.IsNullOrWhiteSpace(data.LiveBlockedReason)
+                    ? $"잠금 이유: {data.LiveBlockedReason}"
+                    : data.MotionGateDetail;
+
+            var unlock = !string.IsNullOrWhiteSpace(data.MotionGateUnlockWhen)
+                ? data.MotionGateUnlockWhen
+                : data.MotionGateNextStep;
+
+            return $"{reason} · {unlock}";
+        }
+
         private static void SetPresetActive(Button button, bool active)
         {
             button?.EnableInClassList("rc-home-state-button--active", active);
@@ -457,119 +539,162 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void BindRuntimeButtons()
         {
-            connectClickCallback ??= _ => HandleConnectClicked();
-            disconnectClickCallback ??= _ => HandleDisconnectClicked();
-            primaryActionClickCallback ??= _ => HandlePrimaryActionClicked();
-            servoClickCallback ??= _ => HandleServoClicked();
-            runClickCallback ??= _ => HandleRunClicked();
-            stopClickCallback ??= _ => HandleStopClicked();
-            resetClickCallback ??= _ => HandleResetClicked();
-            pauseClickCallback ??= _ => HandlePauseClicked();
-            syncClickCallback ??= _ => HandleSyncClicked();
-
+            connectClickedAction ??= HandleConnectClicked;
+            disconnectClickedAction ??= HandleDisconnectClicked;
+            primaryClickedAction ??= HandlePrimaryActionClicked;
+            servoClickedAction ??= HandleServoClicked;
+            runClickedAction ??= HandleRunClicked;
+            stopClickedAction ??= HandleStopClicked;
+            resetClickedAction ??= HandleResetClicked;
+            pauseClickedAction ??= HandlePauseClicked;
+            syncClickedAction ??= HandleSyncClicked;
+            autoModeClickedAction ??= HandleAutoModeClicked;
+            manualModeClickedAction ??= HandleManualModeClicked;
             if (btnServoEnable != null)
             {
-                btnServoEnable.RegisterCallback(servoClickCallback);
+                btnServoEnable.clicked += servoClickedAction;
             }
 
             if (btnRun != null)
             {
-                btnRun.RegisterCallback(runClickCallback);
+                btnRun.clicked += runClickedAction;
             }
 
             if (btnStop != null)
             {
-                btnStop.RegisterCallback(stopClickCallback);
+                btnStop.clicked += stopClickedAction;
             }
 
             if (btnRunBottom != null)
             {
-                btnRunBottom.RegisterCallback(runClickCallback);
+                btnRunBottom.clicked += runClickedAction;
+            }
+
+            if (btnHeaderModeAuto != null)
+            {
+                btnHeaderModeAuto.clicked += autoModeClickedAction;
+            }
+
+            if (btnHeaderModeManual != null)
+            {
+                btnHeaderModeManual.clicked += manualModeClickedAction;
             }
 
             if (btnStopBottom != null)
             {
-                btnStopBottom.RegisterCallback(stopClickCallback);
+                btnStopBottom.clicked += stopClickedAction;
             }
 
             if (btnPause != null)
             {
-                btnPause.RegisterCallback(pauseClickCallback);
+                btnPause.clicked += pauseClickedAction;
             }
 
             if (btnSync != null)
             {
-                btnSync.RegisterCallback(syncClickCallback);
+                btnSync.clicked += syncClickedAction;
             }
 
             if (btnResetError != null)
             {
-                btnResetError.RegisterCallback(resetClickCallback);
+                btnResetError.clicked += resetClickedAction;
             }
 
             if (desktopPanel != null)
             {
-                desktopPanel.BtnConnect.RegisterCallback(connectClickCallback);
-                desktopPanel.BtnDisconnect.RegisterCallback(disconnectClickCallback);
-                desktopPanel.BtnQuickAction.RegisterCallback(primaryActionClickCallback);
-                desktopPanel.BtnPrimaryAction.RegisterCallback(primaryActionClickCallback);
+                desktopPanel.BtnConnect.clicked += connectClickedAction;
+                desktopPanel.BtnDisconnect.clicked += disconnectClickedAction;
+                if (desktopPanel.BtnModeAuto != null)
+                {
+                    desktopPanel.BtnModeAuto.clicked += autoModeClickedAction;
+                }
+                if (desktopPanel.BtnModeManual != null)
+                {
+                    desktopPanel.BtnModeManual.clicked += manualModeClickedAction;
+                }
+                desktopPanel.BtnQuickAction.clicked += primaryClickedAction;
+                desktopPanel.BtnPrimaryAction.clicked += primaryClickedAction;
             }
 
             if (tabletPanel != null)
             {
-                tabletPanel.BtnConnect.RegisterCallback(connectClickCallback);
-                tabletPanel.BtnDisconnect.RegisterCallback(disconnectClickCallback);
-                tabletPanel.BtnQuickAction.RegisterCallback(primaryActionClickCallback);
-                tabletPanel.BtnPrimaryAction.RegisterCallback(primaryActionClickCallback);
+                tabletPanel.BtnConnect.clicked += connectClickedAction;
+                tabletPanel.BtnDisconnect.clicked += disconnectClickedAction;
+                if (tabletPanel.BtnModeAuto != null)
+                {
+                    tabletPanel.BtnModeAuto.clicked += autoModeClickedAction;
+                }
+                if (tabletPanel.BtnModeManual != null)
+                {
+                    tabletPanel.BtnModeManual.clicked += manualModeClickedAction;
+                }
+                tabletPanel.BtnQuickAction.clicked += primaryClickedAction;
+                tabletPanel.BtnPrimaryAction.clicked += primaryClickedAction;
             }
         }
 
         private void UnbindRuntimeButtons()
         {
-            if (btnServoEnable != null && servoClickCallback != null)
+            if (btnServoEnable != null && servoClickedAction != null)
             {
-                btnServoEnable.UnregisterCallback(servoClickCallback);
+                btnServoEnable.clicked -= servoClickedAction;
             }
 
-            if (btnRun != null && runClickCallback != null)
+            if (btnRun != null && runClickedAction != null)
             {
-                btnRun.UnregisterCallback(runClickCallback);
+                btnRun.clicked -= runClickedAction;
             }
 
-            if (btnStop != null && stopClickCallback != null)
+            if (btnStop != null && stopClickedAction != null)
             {
-                btnStop.UnregisterCallback(stopClickCallback);
+                btnStop.clicked -= stopClickedAction;
             }
 
-            if (btnRunBottom != null && runClickCallback != null)
+            if (btnRunBottom != null && runClickedAction != null)
             {
-                btnRunBottom.UnregisterCallback(runClickCallback);
+                btnRunBottom.clicked -= runClickedAction;
             }
 
-            if (btnStopBottom != null && stopClickCallback != null)
+            if (btnHeaderModeAuto != null)
             {
-                btnStopBottom.UnregisterCallback(stopClickCallback);
+                if (autoModeClickedAction != null)
+                {
+                    btnHeaderModeAuto.clicked -= autoModeClickedAction;
+                }
+            }
+
+            if (btnHeaderModeManual != null)
+            {
+                if (manualModeClickedAction != null)
+                {
+                    btnHeaderModeManual.clicked -= manualModeClickedAction;
+                }
+            }
+
+            if (btnStopBottom != null && stopClickedAction != null)
+            {
+                btnStopBottom.clicked -= stopClickedAction;
             }
 
             if (btnPause != null)
             {
-                if (pauseClickCallback != null)
+                if (pauseClickedAction != null)
                 {
-                    btnPause.UnregisterCallback(pauseClickCallback);
+                    btnPause.clicked -= pauseClickedAction;
                 }
             }
 
             if (btnSync != null)
             {
-                if (syncClickCallback != null)
+                if (syncClickedAction != null)
                 {
-                    btnSync.UnregisterCallback(syncClickCallback);
+                    btnSync.clicked -= syncClickedAction;
                 }
             }
 
-            if (btnResetError != null && resetClickCallback != null)
+            if (btnResetError != null && resetClickedAction != null)
             {
-                btnResetError.UnregisterCallback(resetClickCallback);
+                btnResetError.clicked -= resetClickedAction;
             }
 
             if (desktopPanel != null)
@@ -590,20 +715,36 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            if (connectClickCallback != null)
+            if (connectClickedAction != null)
             {
-                panel.BtnConnect.UnregisterCallback(connectClickCallback);
+                panel.BtnConnect.clicked -= connectClickedAction;
             }
 
-            if (disconnectClickCallback != null)
+            if (disconnectClickedAction != null)
             {
-                panel.BtnDisconnect.UnregisterCallback(disconnectClickCallback);
+                panel.BtnDisconnect.clicked -= disconnectClickedAction;
             }
 
-            if (primaryActionClickCallback != null)
+            if (autoModeClickedAction != null)
             {
-                panel.BtnQuickAction.UnregisterCallback(primaryActionClickCallback);
-                panel.BtnPrimaryAction.UnregisterCallback(primaryActionClickCallback);
+                if (panel.BtnModeAuto != null)
+                {
+                    panel.BtnModeAuto.clicked -= autoModeClickedAction;
+                }
+            }
+
+            if (manualModeClickedAction != null)
+            {
+                if (panel.BtnModeManual != null)
+                {
+                    panel.BtnModeManual.clicked -= manualModeClickedAction;
+                }
+            }
+
+            if (primaryClickedAction != null)
+            {
+                panel.BtnQuickAction.clicked -= primaryClickedAction;
+                panel.BtnPrimaryAction.clicked -= primaryClickedAction;
             }
         }
 
@@ -616,7 +757,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private void HandleConnectClicked()
         {
             debugOverrideSnapshot = null;
-            runtimeController?.ConnectDefault();
+            runtimeController?.ConnectAndSyncDefaultAsync();
         }
 
         private void HandleDisconnectClicked()
@@ -658,7 +799,19 @@ namespace KineTutor3D.UI.RobotControlV3
         private void HandleSyncClicked()
         {
             debugOverrideSnapshot = null;
-            runtimeController?.SyncCurrentState();
+            runtimeController?.SyncCurrentStateAsync();
+        }
+
+        private void HandleAutoModeClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.RequestAutoMode();
+        }
+
+        private void HandleManualModeClicked()
+        {
+            debugOverrideSnapshot = null;
+            runtimeController?.RequestManualMode();
         }
 
         private void HandleResetClicked()

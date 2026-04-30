@@ -25,7 +25,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
-        private int draftPositionPercent = 100;
+        private bool isInitializing;
+        private float draftPositionPercent = 100f;
 
         private void OnEnable()
         {
@@ -40,6 +41,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public bool ForceInitialize()
@@ -66,6 +68,19 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
@@ -90,11 +105,16 @@ namespace KineTutor3D.UI.RobotControlV3
                 tabletPanel = CreatePanel(ioSheetHost);
             }
 
+            isInitialized = true;
             connectionHomeController.PreviewChanged -= ApplyPreview;
             connectionHomeController.PreviewChanged += ApplyPreview;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private PanelElements CreatePanel(VisualElement host)
@@ -114,16 +134,29 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnGripperApply, () => ApplyGripperPosition(panel, panel.PositionInput.value));
             panel.PositionSlider.RegisterValueChangedCallback(evt =>
             {
-                draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
+                draftPositionPercent = Mathf.Clamp(evt.newValue, 0f, 100f);
                 panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
                 ApplyGripperPosition(panel, draftPositionPercent);
             });
             panel.PositionInput.RegisterValueChangedCallback(evt =>
             {
-                draftPositionPercent = Mathf.Clamp(evt.newValue, 0, 100);
+                draftPositionPercent = Mathf.Clamp(evt.newValue, 0f, 100f);
+                panel.HasPendingPositionDraft = true;
+                panel.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
+            });
+            panel.PositionInput.RegisterCallback<FocusInEvent>(_ =>
+            {
+                panel.IsEditingPositionInput = true;
+                panel.HasPendingPositionDraft = false;
+                panel.PositionInput.SelectAll();
+            });
+            panel.PositionInput.RegisterCallback<FocusOutEvent>(_ =>
+            {
+                draftPositionPercent = Mathf.Clamp(panel.PositionInput.value, 0f, 100f);
+                panel.HasPendingPositionDraft = true;
                 panel.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
                 panel.PositionInput.SetValueWithoutNotify(draftPositionPercent);
-                ApplyGripperPosition(panel, draftPositionPercent);
+                panel.IsEditingPositionInput = false;
             });
         }
 
@@ -137,12 +170,16 @@ namespace KineTutor3D.UI.RobotControlV3
             button.clicked += handler;
         }
 
-        private void ApplyGripperPosition(PanelElements panel, int positionPercent)
+        private void ApplyGripperPosition(PanelElements panel, float positionPercent)
         {
-            draftPositionPercent = Mathf.Clamp(positionPercent, 0, 100);
+            draftPositionPercent = Mathf.Clamp(positionPercent, 0f, 100f);
+            if (panel != null)
+            {
+                panel.HasPendingPositionDraft = false;
+            }
             panel?.PositionSlider.SetValueWithoutNotify(draftPositionPercent);
             panel?.PositionInput.SetValueWithoutNotify(draftPositionPercent);
-            runtimeController.SetGripperPositionPercent(draftPositionPercent);
+            runtimeController.SetGripperPositionPercentFromOperator(draftPositionPercent);
         }
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot snapshot)
@@ -158,10 +195,16 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            draftPositionPercent = snapshot.GripperCommandedPositionPercent;
-            panel.PositionSlider.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
-            panel.PositionInput.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
-            var enabled = snapshot.DryRunEnabled || snapshot.StatusKind is RobotControlV3RuntimeStatusKind.ReadyToJog or RobotControlV3RuntimeStatusKind.ConnectedUnsynced;
+            if (!IsEditingPositionInput(panel) && !panel.HasPendingPositionDraft)
+            {
+                draftPositionPercent = snapshot.GripperCommandedPositionPercent;
+                panel.PositionSlider.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
+                panel.PositionInput.SetValueWithoutNotify(snapshot.GripperCommandedPositionPercent);
+            }
+            var enabled = snapshot.DryRunEnabled
+                || snapshot.StatusKind is RobotControlV3RuntimeStatusKind.ConnectedServoOff
+                    or RobotControlV3RuntimeStatusKind.ConnectedUnsynced
+                    or RobotControlV3RuntimeStatusKind.ReadyToJog;
             panel.SetEnabled(enabled);
         }
 
@@ -181,14 +224,34 @@ namespace KineTutor3D.UI.RobotControlV3
             ioSheetHost?.EnableInClassList("rc-hidden", !isTabletVisible);
         }
 
+        private static bool IsEditingPositionInput(PanelElements panel)
+        {
+            if (panel == null)
+            {
+                return false;
+            }
+
+            if (panel.IsEditingPositionInput)
+            {
+                return true;
+            }
+
+            var focused = panel.PositionInput?.panel?.focusController?.focusedElement as VisualElement;
+            return focused != null
+                && panel.PositionInput != null
+                && (focused == panel.PositionInput || panel.PositionInput.Contains(focused));
+        }
+
         private sealed class PanelElements
         {
             public readonly VisualElement Root = new();
-            public readonly SliderInt PositionSlider = new("위치 %", 0, 100) { name = "GripperPositionSlider", value = 100 };
-            public readonly IntegerField PositionInput = new("위치") { name = "GripperPositionInput", value = 100 };
+            public readonly Slider PositionSlider = new("위치 %", 0f, 100f) { name = "GripperPositionSlider", value = 100f };
+            public readonly FloatField PositionInput = new("위치") { name = "GripperPositionInput", value = 100f, isDelayed = true };
             public readonly Button BtnGripperApply = new() { name = "BtnIoGripperApply", text = "위치 적용" };
             public readonly Button BtnGripperOpen = new() { name = "BtnIoGripperOpen", text = "그리퍼 열기" };
             public readonly Button BtnGripperClose = new() { name = "BtnIoGripperClose", text = "그리퍼 닫기" };
+            public bool IsEditingPositionInput { get; set; }
+            public bool HasPendingPositionDraft { get; set; }
 
             public PanelElements()
             {

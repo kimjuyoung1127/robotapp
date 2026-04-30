@@ -19,9 +19,12 @@ namespace KineTutor3D.Tests.EditMode
 
             SceneCameraDirector.ConfigureForScene(SceneId.Sandbox, camera);
 
-            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 1.8f, -7.4f)));
-            Assert.That(camera.fieldOfView, Is.EqualTo(82f));
-            Assert.That(camera.nearClipPlane, Is.EqualTo(0.3f));
+            Assert.That(camera.transform.position, Is.EqualTo(new Vector3(0f, 0.8f, -2.5f)));
+            Assert.That(camera.transform.eulerAngles.x, Is.EqualTo(10f).Within(0.01f));
+            Assert.That(camera.transform.eulerAngles.y, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(camera.transform.eulerAngles.z, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(camera.fieldOfView, Is.EqualTo(40f));
+            Assert.That(camera.nearClipPlane, Is.EqualTo(0.01f));
             Assert.That(camera.farClipPlane, Is.EqualTo(1000f));
 
             Object.DestroyImmediate(go);

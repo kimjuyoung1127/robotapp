@@ -204,8 +204,9 @@
 
 .rc-top-info {
     flex-grow: 1;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
     min-width: 0;
 }
 
@@ -214,6 +215,17 @@
     align-items: center;
     justify-content: flex-end;
     margin-left: 12px;
+}
+
+.rc-top-next-action {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--rc-muted-text);
+    unity-font-style: italic;
+    max-width: 720px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .rc-probe-button {
@@ -230,6 +242,14 @@
 .rc-top-button--danger {
     background-color: var(--rc-button-bg-danger);
     color: var(--rc-button-text-strong);
+}
+
+.rc-top-button--mode-auto {
+    background-color: var(--rc-button-bg-success-soft);
+}
+
+.rc-top-button--mode-manual {
+    background-color: var(--rc-button-bg);
 }
 
 .rc-title {

@@ -1,4 +1,10 @@
-﻿// Folder: Math - Pure C# double-precision math; no UnityEngine references.
+﻿/// <ai_context>
+/// Component: Math
+/// Responsibility: double 기반 3차원 벡터(Vec3D) 불변 구조체 및 산술 연산 정의.
+/// Dependencies: None (Pure C#)
+/// Quality Gate: EditMode Tests (Vec3DTests.cs)
+/// Navigation: Assets/Scripts/Math/AGENTS.md
+/// </ai_context>
 using System;
 using System.Globalization;
 

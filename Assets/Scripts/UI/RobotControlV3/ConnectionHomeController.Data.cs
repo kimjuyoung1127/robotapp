@@ -22,6 +22,8 @@ namespace KineTutor3D.UI.RobotControlV3
                 QuickSync = root.Q<Label>("QuickSync");
                 QuickControllerMode = root.Q<Label>("QuickControllerMode");
                 QuickLiveArm = root.Q<Label>("QuickLiveArm");
+                BtnModeAuto = root.Q<Button>("BtnModeAuto");
+                BtnModeManual = root.Q<Button>("BtnModeManual");
                 BtnMockMode = root.Q<Button>("BtnMockMode");
                 BtnLiveMode = root.Q<Button>("BtnLiveMode");
                 BtnArmLive = root.Q<Button>("BtnArmLive");
@@ -49,6 +51,8 @@ namespace KineTutor3D.UI.RobotControlV3
             public Label QuickSync { get; }
             public Label QuickControllerMode { get; }
             public Label QuickLiveArm { get; }
+            public Button BtnModeAuto { get; }
+            public Button BtnModeManual { get; }
             public Button BtnMockMode { get; }
             public Button BtnLiveMode { get; }
             public Button BtnArmLive { get; }

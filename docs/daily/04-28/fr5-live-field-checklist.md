@@ -11,21 +11,178 @@ Date: 2026-04-28 (KST)
 - Added clone/pull guidance for `codex/robotcontrol-v3-toolkit` and expected implementation commit `d8c0726 Add FR5 readback-only live monitor`.
 - Added direct SDK probe vs `FAIRINO_BRIDGE_URL` bridge fallback guidance for macOS.
 - Added field evidence requirements for `latest-state.json`, `latest-drift.json`, and session NDJSON logs.
+- Repaired macOS `unityctl` bridge binding: the blocker was not "ctl on Mac" but a Windows `com.unityctl.bridge` local path left in `Packages/manifest.json`.
+- Rebound the project with `unityctl init --project /Users/family/jason/FR5UNITY/robotapp --source /Users/family/jason/unityctl/src/Unityctl.Plugin`.
+- Verified `unityctl status --wait --json` returns `Ready`, `bridgeLoaded=true`, `ipcPipePresent=true` on the MacBook.
+- Added shared smoke runner so the live smoke path now follows `FairinoRobotClientFactory` and reports `client=direct|bridge`, `sdkLoadStatus`, and `sdkRuntime`.
+- Aligned V3 live readback UX so readback-only sessions tell the operator to use `현재 위치 읽기` instead of treating `서보 켜기` as the next action.
+- Verified `unityctl check --type compile` and `unityctl test --mode edit --filter KineTutor3D.Tests.EditMode.Fr5LiveReadbackTests` after the Mac bridge fix.
+- Verified field Ethernet readiness on the MacBook: `USB 10/100 LAN` set to `192.168.58.10/24`, `ping 192.168.58.2` returned `4/4`, and `nc -vz 192.168.58.2 8080` succeeded.
+- Verified direct FR5 live smoke readback on the MacBook. Result was `CONNECT_OK`, `client=direct`, `sdkLoadStatus=direct-ready`, runtime `OSXEditor / Arm64`, SDK `C#SDK-V1.2.4  Web-3.9.3`, with live joints/TCP values returned from the controller.
+- Verified the V3 live UI flow on the MacBook after restoring `unityctl` IPC on editor restart. `SetMockModeForDebug(false)` -> `ConnectDefaultForDebug()` -> `ExecutePrimaryActionForDebug()` produced a readback-only direct live session against `192.168.58.2:8080`.
+- Confirmed the V3 primary action in readback-only live is effectively `현재 위치 읽기`: after connect, the runtime stayed `connected=True`, `enabled=False`, and `ExecutePrimaryActionForDebug()` returned `[Sync] 현재 자세 동기화 완료`.
+- Captured the first clean V3 drift session as `Artifacts/live/fr5/sessions/20260428-021105-*.ndjson`. `latest-state.json` recorded `clientMode=direct`, `sdkLoadStatus=direct-ready`, and the real FR5 joints/TCP. `latest-drift.json` dropped to `severity=ok` with only micro drift after sync.
+- Confirmed a separate V3 editor/UI issue on the MacBook: outside Unity `GameView` preset `4K UHD`, the current V3 layout still collapses badly enough that non-4K editor verification is unreliable. This is tracked as a layout issue, not as a robot readback/blocker issue.
+- Re-ran the live matrix after the clean readback session and confirmed the numeric live pose still matches the controller baseline. The open blocker moved from pose mismatch to evidence freshness: new `sessions/*-events.ndjson` files are being created, but `latest-state.json` / `latest-drift.json` are not yet refreshing to the newest session timestamp.
+- Confirmed the remaining gate is not joint/TCP accuracy. `toolId=1`, `userId=1`, direct live connect, and post-sync drift baseline remain trusted; the missing piece is current-session `coordSystem` / latest-file evidence persistence.
+- Fixed the evidence-recorder freshness path on the current branch. After Unity restart and `RefreshLiveEvidenceForDebug()`, `latest-state.json`, `latest-drift.json`, and current-session NDJSON files updated again with `coordSystem=Base`.
+- Locked the next development priority: do not move to motion yet. First harden `run_fr5_live_checks.sh` so stale evidence cannot pass and tool/user/coord context becomes an automatic gate.
+- Added preservation policy for latest evidence. `Fr5LiveStateRecorder` now refuses to promote disconnected zero state or connected placeholder zero state over the last good live readback.
+- Re-ran the live matrix with the preservation policy. Current result is `25 passed / 0 failed / 3 skipped`; when a rerun only produces invalid zero/disconnect evidence, the runner now treats that as `latest-state preserved` instead of regressing the last known-good live truth.
+- Fixed the V3 motion-gate summary so a real FR5 readback-only live session no longer looks like `dry-run simulation`. The current `tiny MoveJ gate` summary now reports `status=ReadbackOnly`, `ready=False`, and includes the live readback context such as `tool=1`, `user=1`.
+- Measured live poll rates on the MacBook direct session and locked the runtime baseline:
+  - `100ms -> ~8.93Hz`
+  - `50ms -> ~18.66Hz`
+  - `33ms -> ~27.37Hz`
+  - policy: default live poll `33ms`, automatic fallback `50ms` when fast poll read errors repeat.
+- Re-ran the full Unity restart loop with `/Users/family/.codex/skills/unity-fr5-restart-live/scripts/restart_v3_live_loop.sh --connect --sync`.
+- Verified a fresh post-restart direct live session:
+  - session `20260428-064612`
+  - `latest-state.json` timestamp `2026-04-28T06:46:23.5345670Z`
+  - `clientMode=direct`, `toolId=1`, `userId=1`, `coordSystem=Base`
+- Verified `latest-drift.json` for the same session:
+  - `severity=ok`
+  - `maxJointDeg=0.0`
+  - `maxTcpMm=0.0`
+  - `maxTcpRotDeg=0.0`
+- Verified `GetLiveStateComparisonForDebug()` after sync:
+  - `clientRead`, `serviceLast`, `runtimeCurrent` all pointed to the same live pose
+  - representative pose was `joints=[-1.844,-89.828,90.071,-89.959,-90.029,0.007]`
+  - representative pose was `tcp=[-98.613,-583.014,-2.231,179.716,-0.034,88.149]`
+- Confirmed by direct visual check that the simulation robot pose also matched the real FR5 after `현재 위치 읽기`.
+- Closed the induced poll-fallback verification on the same date.
+  - added `scripts/tests/run_fr5_poll_fallback_check.sh` so the restart, connect, sync, `33ms` probe, forced read-error fallback, gate check, and evidence refresh can be replayed in one loop.
+  - session `20260428-070036` stayed `clientMode=direct`, `toolId=1`, `userId=1`, `coordSystem=Base`.
+  - normal probe held `poll=0.033s` with `readErrors=0`.
+  - after `ForceNextReadFailuresForDebug(2)`, probe dropped to `poll=0.05s` and cleared the forced failures.
+  - `tiny MoveJ gate` stayed `status=ReadbackOnly`, `ready=False`, `blocks=live client is readback-only`.
+  - refreshed `latest-state.json` / `latest-drift.json` remained fresh and `severity=ok` with drift `0.0`.
+- Re-ran regression tests after the fallback instrumentation:
+  - `KineTutor3D.Tests.EditMode.FairinoConnectionServiceTests`: `7 passed / 0 failed`
+  - `KineTutor3D.Tests.EditMode.Fr5LiveReadbackTests`: `10 passed / 0 failed`
+- Re-ran tiny `MoveJ` field validation after switching the motion runtime to reuse the existing live session instead of opening a second direct-motion RPC path.
+  - session `20260428-084436`
+  - evidence stayed fresh: `clientMode=direct`, `toolId=1`, `userId=1`, `coordSystem=Base`, drift `severity=ok`
+  - tiny target stayed conservative: `J6 +0.5deg @ 5%`
+  - the first blocker was no longer `readback-only` or a fresh motion-session bootstrap
+  - the real blocker was controller `fault=1/1`
+  - `ResetErrors()` returned `0/OK`, but follow-up sync still reported `fault=1/1`
+  - runtime was returned to `dryRun=True` after the blocked validation
+- Checked the public FAIRINO error meaning for the live blocker:
+  - `main error 1` = `Command Point Error`
+  - `sub error 1` = `Joint command point error`
+  - the public table marks this fault family as resettable, but in this session the controller stayed latched at `1/1` after reset
+- Re-ran the field loop after switching the physical Ethernet path and reconnecting the legacy teach pendant.
+  - confirmed FR5 `eth0 = 192.168.57.2`, `eth1 = 192.168.58.2`
+  - changed the MacBook `USB 10/100 LAN` service to `192.168.57.10/24`
+  - updated V3 runtime defaults and field resources from `192.168.58.2` to `192.168.57.2`
+  - sessions `20260428-103717` and `20260428-103915` restored direct live readback against `192.168.57.2:8080`
+  - `latest-state.json` stayed fresh with `clientMode=direct`, `toolId=1`, `userId=1`, `coordSystem=Base`, drift `0.0`
+- Confirmed the live controller mode changed under the new field condition.
+  - `latest-state.json` now reported `mode=1`
+  - `ProbeLiveGripperForDebug()` labeled the controller as `수동`
+  - `RequestAutoModeForDebug()` still stayed blocked on the readback-only safety policy
+- Confirmed the teach pendant materially changed gripper diagnostics.
+  - before the pendant-assisted retest, SDK gripper config had read as `company=3, device=4, soft=0, bus=0`
+  - after pendant reconnection, SDK gripper config changed to `company=1, device=3, soft=4, bus=0`
+  - V3 gripper defaults were updated to match the new measured config
+- Re-ran gripper live smoke with the updated `192.168.57.2` controller path and updated gripper profile.
+  - `ProbeLiveGripperForDebug()` then showed `matchesExpected=True`
+  - `activationFault` dropped to `0`, but `motionFault=1`, `done=0`, `position=0` remained
+  - `RunLiveGripperSmokeForDebug(95,15)` returned `요청 95% 전송 완료 · readback 확인 안 됨`
+  - runtime was returned to `dryRun=True` immediately after the smoke
+- Correlated the software readback with the teach pendant fault surface.
+  - teach pendant showed `그리퍼 485 시간초과`
+  - a manual pendant gripper attempt then showed `클램프 이동오류`
+  - gripper LED was observed blinking red
+  - robot joint motion from the same pendant still worked, so the open blocker is no longer controller-wide motion but the gripper-specific RS-485 / activation chain
+- Captured a new read-only gripper baseline before reopening Unity-side write tests.
+  - live reconnect to `192.168.57.2:8080` still succeeded
+  - current pure readback summary was:
+    - `mode=수동`
+    - `expectedProfile=(company=1, device=3, soft=4, bus=0, index=2)`
+    - `sdkConfig=(company=2, device=4, soft=0, bus=0)`
+    - `status=(motionFault=1, done=1, activationFault=0, activationMask=1, positionFault=0, position=59)`
+  - decision: do not send another Unity gripper write until the teach pendant's known-good gripper setting is re-confirmed and the Unity expected profile is matched to that setting
+- Teach pendant then confirmed the known-good operator setting explicitly:
+  - 제조업체 `DAHUAN`
+  - 유형 `PGI-140`
+  - 소프트웨어버전 `D1.0`
+  - 마운트위치 `말단 1번 포트`
+  - Unity expected gripper profile was updated next to match the pendant-confirmed baseline and the last stable SDK readback shape: `company=2, device=4, soft=0, bus=0, index=1`
+- Reopened the Unity-side gripper path behind a narrow `gripper-only` session and the dedicated live smoke flag.
+  - Unity was restarted with `FAIRINO_ENABLE_LIVE_GRIPPER_SMOKE=1`
+  - live reconnect and `현재 위치 읽기` completed again on `192.168.57.2`
+  - pure readback before the write still showed:
+    - `mode=수동`
+    - `sdkConfig matchesExpected=True`
+    - `motionFault=1`
+    - `activationFault=0`
+    - `positionFault=0`
+    - `position=59`
+  - `RunLiveGripperSmokeForDebug(100,15)` then sent a single Unity-side `open 100%` smoke through the gripper-only live path
+  - immediate feedback was `요청 100% 전송 완료 · readback 확인 안 됨 (motionFault=1; done=0; positionFault=0; raw=59)`
+  - follow-up probe about two seconds later read:
+    - `motionFault=1`
+    - `done=1`
+    - `activationFault=0`
+    - `positionFault=0`
+    - `position=100`
+  - runtime auto-returned to `readback-only`, and `dryRun=True` was restored after the smoke
+  - practical interpretation for the operator: Unity-side gripper live write reached hardware and the final readback latched to `open=100`
+  - practical interpretation for visibility: because this smoke commanded `100% open`, a finger movement might be minimal or visually unnoticed if the gripper was already fully or almost fully open before the command; treat the `59 -> 100` readback jump as a state/result signal, not as proof of a large visible travel
+- Reworked the V3 operator entry path on 2026-04-29 so `연결` now means `connect + current-position read` in one step.
+  - `RobotControlV3RuntimeController.ConnectAndSyncDefault()` was added and the Home `BtnConnect` path now calls it.
+  - the old separate top-bar `현재 위치 읽기` button was removed from `pendant-v3.uxml`
+  - Home labels were updated from `연결` / `서보 켜기` wording to `연결 + 위치 읽기`
+  - field verification after restart confirmed one `BtnConnect` click now lands on:
+    - `status=ConnectedServoOff`
+    - feedback `[Sync] 현재 자세 동기화 완료`
+    - evidence session `20260429-024123`, `clientMode=direct`, `toolId=1`, `userId=1`, `coordSystem=Base`, drift `0.0`
+- Added operator-facing gripper control to `Easy Motion` and verified the first visible live slider/button loop on 2026-04-29.
+  - Easy Motion now shows current opening, quick buttons, and percent control for the gripper.
+  - `gripper-only` live path with `FAIRINO_ENABLE_LIVE_GRIPPER_SMOKE=1` was verified from Unity.
+  - observed readback loops:
+    - `100 -> 96 -> 100`
+    - `100 -> 88 -> 100`
+    - `100 -> 80` hold via `50%` command
+  - operator also confirmed the `70` test was visually noticeable.
+  - note: current calibration maps user percent to SDK raw percent, so `70%` user target currently lands near raw `88%`, not raw `70%`.
 
 ## Decisions
 
 - Do not remove legacy V1/V2 before V3 is merged, field-readback verified, and rollback evidence exists.
 - Treat `서보ON` as robot enable/motor-ready, not as a normal beginner action.
 - Treat `현재 위치 읽기` as the plain-language replacement for sync/readback.
+- In readback-only live sessions, `현재 위치 읽기` is the primary operator action; `Enable` stays blocked.
 - Do not use one ever-growing JSON file for live telemetry.
 - Use `latest-state.json` for current state, `latest-drift.json` for comparison, and session `*.ndjson` for history.
 - AI agent may read/compare live values, but must not directly send live robot movement.
+- When `unityctl` fails on the MacBook, first inspect the local bridge package path before assuming macOS itself is unsupported.
+- Field network is considered ready only after the MacBook is really using `192.168.58.10`, not a fallback `169.254.*` address.
+- As of this session, bridge fallback is not required for first readback because macOS direct SDK readback succeeded against the real FR5 controller.
+- Play-mode verification must account for the project policy that starts from `Onboarding`. For `unityctl`-driven V3 checks, route back into `RobotControlV3` after Play starts instead of assuming the scene stays active.
+- The meaningful code-vs-reality mismatch is the unsynced display state before `현재 위치 읽기`, not a persistent kinematics error. Before sync, the live blocker showed roughly `joint 90.071deg / tcp 583.014mm / rot 179.717deg`; after sync the recorded drift was `joint 0.000221deg / tcp 0.000916mm / rot 0.000219deg`.
+- Current MacBook V3 layout remains trustworthy only in `4K UHD` GameView preview. Treat lower-resolution editor layouts as a known UI issue until a separate layout pass is done.
+- Treat `latest-state.json` as protected truth once a good live readback exists. Invalid zero/disconnect follow-up states must be recorded as skip/preservation events, not promoted over the last known-good live evidence.
+- Live poll default is no longer `100ms`. Current field baseline is `33ms`, with `50ms` as the first stability fallback.
+- As of restart-verified session `20260428-064612`, the open issue is no longer "does the pose resync after reconnect". That path is now green by both numeric evidence and operator visual confirmation.
+- As of the `eth0` retest, FR5 live readback is green on both `192.168.58.2` and `192.168.57.2` only when the MacBook IP matches the physically connected controller port.
+- As of the teach-pendant-assisted gripper retest, the current blocker is not arm motion or V3 readback. It is the gripper-specific `485 timeout / clamp movement error / red blinking LED` chain.
+- As of the `gripper-only` retest with `FAIRINO_ENABLE_LIVE_GRIPPER_SMOKE=1`, the current Unity-side safe baseline is `open=100`. For the next smoke, do not start with a closing command; first re-read the gripper state, then use only a very small delta from the known-open baseline if another write is needed.
+- As of 2026-04-29, the operator baseline flow is no longer `연결 -> 현재 위치 읽기`. It is one action: `연결 + 위치 읽기`.
+- As of 2026-04-29, the next live-control track is not broad motion enable. It is `Unity slider -> real hardware follow` with scope locked in this order:
+  - first `gripper-only` real-time slider behavior
+  - then only after stable repeatability, consider joint/TCP live slider design in a separate guarded track
 
 ## Sources Checked
 
 - `docs/ref/product/robots/fairino-fr5-integration-reference.md`
 - `Assets/Scripts/App/Fairino/LiveFairinoClient.cs`
 - `Assets/Editor/KineTutor3D/FairinoLiveSmokeTools.cs`
+- `Assets/Scripts/App/Fairino/FairinoLiveSmokeRunner.cs`
+- `Assets/Scripts/App/Fairino/RobotControlV3RuntimeController.cs`
+- `Packages/manifest.json`
 - FAIRINO SDK docs: `https://fairino-doc-en.readthedocs.io/latest/SDKManual/index.html`
 - FAIRINO C# intro: `https://fairino-doc-en.readthedocs.io/3.7.2/SDKManual/c%23_intro.html`
 - FAIRINO support/download surface: `https://fairino.support/`
@@ -33,5 +190,25 @@ Date: 2026-04-28 (KST)
 ## Follow-Up
 
 - Pull `codex/robotcontrol-v3-toolkit` on the MacBook before testing hardware.
+- Confirm `unityctl status --wait --json` is green on the MacBook before field smoke.
+- Confirm `USB 10/100 LAN` is still `192.168.58.10` before opening Unity if the adapter was replugged.
 - Run field smoke only after Ethernet/ping check.
+- If direct SDK fails, set `FAIRINO_BRIDGE_URL=http://127.0.0.1:5055` and rerun the same smoke path.
+- Use the direct smoke result as the current baseline before testing V3 `연결` and `현재 위치 읽기` UI flow.
+- If `unityctl` loses IPC after an editor restart, confirm the log prints `[unityctl] IPC server started...`, `[unityctl] Bridge initialized...`, and `[unityctl] Project bootstrap ensured IPC bridge start` before retrying V3 live checks.
 - Do not merge V3 to `main` or remove V1/V2 until readback evidence is captured.
+- For the next field-focused session, do not spend time polishing non-4K V3 editor layout first. Keep the issue documented and continue on direct FR5 readback / hardware evidence unless layout directly blocks the current live task.
+- Next coding target is no longer recorder repair. It is operator-facing motion-gate exposure on top of the now-stable readback evidence baseline, while keeping `scripts/tests/run_fr5_live_checks.sh` as the protection layer for freshness/preservation/context rules.
+- First recommended slice is to surface `tool/user/coordSystem + tiny MoveJ gate` directly in the V3 status/diagnostics UI so the operator can confirm "readback-only locked" without relying on a debug bridge call.
+- Next implementation slice is now `Unity slider live control`.
+  - first target: Easy Motion gripper slider should drive the real gripper continuously and predictably in `gripper-only` sessions
+  - success criteria: slider position, readback position, and visible finger motion match closely enough for operator use
+  - do not open joint/TCP live slider control until the gripper slider path is stable and the operator-facing wording is locked
+- If a future field session shows repeated live read errors at `33ms`, keep the session in readback-only mode and accept the automatic `50ms` fallback instead of manually opening motion.
+- The `33ms -> 50ms` fallback path is now verified under induced read-error conditions while motion stays locked.
+- The next recommended field task is now narrower than approval-gate work: confirm the real controller-side meaning and release condition for `fault 1/1`, clear it on the FR5, and only then rerun the same `J6 +0.5deg @ 5%` tiny `MoveJ` check.
+- Before more gripper smoke, first verify the physical gripper RS-485 chain:
+  - connector reseat
+  - power / LED state
+  - adapted-device configuration on the teach pendant
+  - `Reset -> Activate` behavior on the pendant

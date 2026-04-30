@@ -4,7 +4,7 @@
     <ui:VisualElement name="CoordStripRoot" class="rc-context-card rc-coord-strip-root">
         <ui:VisualElement class="rc-coord-strip-header">
             <ui:Label text="현재 좌표" class="rc-panel-title" />
-            <ui:Label name="CoordSystemBadge" text="좌표계: Base" class="rc-coord-badge" />
+            <ui:Label name="CoordSystemBadge" text="좌표 기준: 로봇 기준" class="rc-coord-badge" />
         </ui:VisualElement>
 
         <ui:Label name="CoordJointTitle" text="관절 (deg)" class="rc-coord-section-title" />

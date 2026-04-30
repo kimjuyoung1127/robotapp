@@ -25,6 +25,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private Label descriptionDetail;
         private bool descriptionExpanded;
         private bool initialized;
+        private bool isInitializing;
 
         private void OnEnable()
         {
@@ -60,6 +61,19 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (initialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             root = document?.rootVisualElement;
             if (root == null)
@@ -88,6 +102,11 @@ namespace KineTutor3D.UI.RobotControlV3
             UpdateAccordionState();
             initialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private void ApplyWorkPanelHeader(RobotControlV3RuntimeSnapshot snapshot, PendantV3LocalState shellState)
@@ -184,7 +203,7 @@ namespace KineTutor3D.UI.RobotControlV3
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => $"관절 조그 · {snapshot.StatusMotion}",
-                "TabTcpJog" => $"TCP 조그 · {shellState.CoordSystem} · {snapshot.PendingCommandSummary}",
+                "TabTcpJog" => $"TCP 조그 · {FormatCoordSystemDisplay(shellState.CoordSystem)} · {snapshot.PendingCommandSummary}",
                 "TabPointMove" => $"저장 위치 · {snapshot.PendingCommandSummary}",
                 _ => $"쉬운 조작 · {snapshot.PendingCommandSummary}",
             };
@@ -200,9 +219,20 @@ namespace KineTutor3D.UI.RobotControlV3
             return shellState.ActiveWorkTab switch
             {
                 "TabJointJog" => "메인패널에서는 로봇만 보고, 관절값 입력/버튼은 보조패널에서만 만진다. 미리보기 후 적용 순서를 유지한다.",
-                "TabTcpJog" => $"TCP는 {shellState.CoordSystem} 기준으로 조작한다. Z/RX/RY/RZ 보조 조작은 로봇을 가리지 않게 여기서만 보여준다. {snapshot.ActionWhy}",
+                "TabTcpJog" => $"TCP는 {FormatCoordSystemDisplay(shellState.CoordSystem)}으로 조작합니다. Z/RX/RY/RZ 보조 조작은 로봇을 가리지 않게 여기서만 보여줍니다. {snapshot.ActionWhy}",
                 "TabPointMove" => "목표 위치 입력과 실행 준비는 보조패널에서만 본다. 메인패널은 로봇과 미리보기 확인에 집중한다.",
                 _ => "프리셋, 그리퍼, 작은 이동은 보조패널에서 다루고 메인패널은 로봇 상태 확인에 집중한다.",
+            };
+        }
+
+        private static string FormatCoordSystemDisplay(string coordSystem)
+        {
+            return coordSystem switch
+            {
+                "Tool" => "툴 기준",
+                "User" => "작업 기준",
+                "Base" => "로봇 기준",
+                _ => string.IsNullOrWhiteSpace(coordSystem) ? "--" : coordSystem,
             };
         }
     }

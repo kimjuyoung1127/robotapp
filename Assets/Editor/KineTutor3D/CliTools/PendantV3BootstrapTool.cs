@@ -115,7 +115,7 @@ namespace KineTutor3D.Editor.CliTools
         private static void ApplyLockedPanelSettings(PanelSettings panelSettings, TMP_Settings textSettings)
         {
             var serialized = new SerializedObject(panelSettings);
-            serialized.FindProperty("m_ScaleMode").intValue = 1;
+            serialized.FindProperty("m_ScaleMode").intValue = 2;
             serialized.FindProperty("m_ReferenceResolution").vector2IntValue = new Vector2Int(1920, 1080);
             serialized.FindProperty("m_Match").floatValue = 0.5f;
             serialized.FindProperty("m_SortingOrder").intValue = 100;

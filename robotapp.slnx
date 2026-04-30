@@ -1,0 +1,12 @@
+﻿<Solution>
+  <Project Path="KineTutor3D.Runtime.csproj" />
+  <Project Path="UnityctlBridge.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="KineTutor3D.Tests.EditMode.csproj" />
+  <Project Path="KineTutor3D.Templates.csproj" />
+  <Project Path="KineTutor3D.Types.csproj" />
+  <Project Path="KineTutor3D.Tests.PlayMode.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="KineTutor3D.Math.csproj" />
+  <Project Path="KineTutor3D.Kinematics.csproj" />
+</Solution>

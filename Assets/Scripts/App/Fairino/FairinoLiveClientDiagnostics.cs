@@ -12,4 +12,12 @@ namespace KineTutor3D.App.Fairino
         string SdkRuntime { get; }
         bool IsReadbackOnly { get; }
     }
+
+    /// <summary>
+    /// readback-only 래퍼가 내부 motion-capable live 세션을 재사용할 수 있을 때 노출하는 계약입니다.
+    /// </summary>
+    public interface IFairinoMotionSessionProvider
+    {
+        bool TryGetMotionCapableClient(out IFairinoRobotClient motionClient);
+    }
 }

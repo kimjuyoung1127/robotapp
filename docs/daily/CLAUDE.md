@@ -1,3 +1,13 @@
+---
+title: "Daily Logs Agent Guide"
+doc_type: "agent-hub"
+status: "active"
+domain: "daily"
+audience: "agent"
+canonical: true
+last_updated: "2026-04-29"
+---
+
 # docs/daily/
 
 일일 실행 로그. `docs-nightly-organizer` 자동화의 입력.

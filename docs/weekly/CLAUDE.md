@@ -1,3 +1,13 @@
+---
+title: "Weekly Rollups Agent Guide"
+doc_type: "agent-hub"
+status: "active"
+domain: "weekly"
+audience: "agent"
+canonical: true
+last_updated: "2026-04-29"
+---
+
 # docs/weekly/
 
 주간 롤업 문서. `docs-nightly-organizer` 자동화가 자동 생성.

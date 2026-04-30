@@ -1,5 +1,6 @@
 // Folder: App - Application controllers and services; single UnityEngine entry point.
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace KineTutor3D.App.Fairino
     /// FAIRINO C# SDK(libfairino.dll)를 래핑하는 실기 연동 클라이언트입니다.
     /// SDK DLL이 Assets/Plugins/Fairino/에 배치되어야 동작합니다.
     /// </summary>
-    public sealed class LiveFairinoClient : IFairinoRobotClient
+    public sealed class LiveFairinoClient : IFairinoRobotClient, IFairinoLiveClientDiagnostics, IFairinoMotionSessionProvider
     {
         private const byte CurrentStateFlag = 0;
         private const int DefaultRealtimeStatePeriodMs = 100;
@@ -26,13 +27,40 @@ namespace KineTutor3D.App.Fairino
         private int lastRobotMode;
         private int lastSafetyCode;
         private int lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
+        private string cachedSdkVersion = string.Empty;
+        private bool attemptedSdkVersionResolve;
 
         public bool IsConnected => connected;
         public bool IsEnabled => enabled;
+        public string ClientMode => "direct-motion";
+        public string SdkLoadStatus => "direct-motion";
+        public string SdkVersion => TryResolveSdkVersion();
+        public string SdkRuntime => "libfairino";
+        public bool IsReadbackOnly => false;
 
         public LiveFairinoClient(FairinoErrorTranslator translator = null)
         {
             errorTranslator = translator ?? new FairinoErrorTranslator();
+        }
+
+        private string TryResolveSdkVersion()
+        {
+            if (!connected)
+            {
+                return string.Empty;
+            }
+
+            if (attemptedSdkVersionResolve)
+            {
+                return cachedSdkVersion;
+            }
+
+            attemptedSdkVersionResolve = true;
+            var versionResult = GetVersion();
+            cachedSdkVersion = versionResult.IsSuccess
+                ? versionResult.Value.SdkVersion ?? string.Empty
+                : string.Empty;
+            return cachedSdkVersion;
         }
 
         public FairinoResult Connect(string ip, int port)
@@ -70,6 +98,8 @@ namespace KineTutor3D.App.Fairino
                 lastRobotMode = 0;
                 lastSafetyCode = 0;
                 lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
+                cachedSdkVersion = string.Empty;
+                attemptedSdkVersionResolve = false;
                 return FairinoResult.Ok($"연결 성공: {ip}:{port}");
             }
             catch (Exception ex)
@@ -103,6 +133,8 @@ namespace KineTutor3D.App.Fairino
             lastRobotMode = 0;
             lastSafetyCode = 0;
             lastRealtimeStatePeriodMs = DefaultRealtimeStatePeriodMs;
+            cachedSdkVersion = string.Empty;
+            attemptedSdkVersionResolve = false;
             return FairinoResult.Ok("연결 해제");
         }
 
@@ -446,9 +478,18 @@ namespace KineTutor3D.App.Fairino
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[LiveFairinoClient] 좌표 문맥 읽기 실패: {ex.Message}");
-                return FairinoResult<FairinoCoordContext>.Fail(-6, ex.Message);
+                var fallback = lastCoordContext;
+                Debug.LogWarning($"[LiveFairinoClient] 좌표 문맥 읽기 경고: {ex.Message}. 마지막 tool/user 문맥을 유지합니다.");
+                return FairinoResult<FairinoCoordContext>.Ok(
+                    fallback,
+                    $"coord context fallback · tool={fallback.ToolId:00} user={fallback.UserId:00}");
             }
+        }
+
+        public bool TryGetMotionCapableClient(out IFairinoRobotClient motionClient)
+        {
+            motionClient = this;
+            return true;
         }
 
         public FairinoResult<FairinoControllerFault> ReadControllerFault()
@@ -548,6 +589,42 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
+        public FairinoResult<FairinoGripperConfigState> ReadGripperConfig()
+        {
+            if (!connected)
+            {
+                return FairinoResult<FairinoGripperConfigState>.Fail(-1, "연결되지 않은 상태입니다.");
+            }
+
+            if (!HasMethod("GetGripperConfig"))
+            {
+                return FairinoResult<FairinoGripperConfigState>.Fail(-81, "SDK gripper config readback을 지원하지 않는다.");
+            }
+
+            try
+            {
+                var args = new object[] { 0, 0, 0, 0 };
+                var result = InvokeSdkRaw("GetGripperConfig", args);
+                var errCode = ConvertSdkReturnCode(result, "GetGripperConfig");
+                if (errCode != 0)
+                {
+                    return FairinoResult<FairinoGripperConfigState>.Fail(errCode, errorTranslator.Translate(errCode));
+                }
+
+                var config = new FairinoGripperConfigState(
+                    Convert.ToInt32(args[0]),
+                    Convert.ToInt32(args[1]),
+                    Convert.ToInt32(args[2]),
+                    Convert.ToInt32(args[3]));
+                return FairinoResult<FairinoGripperConfigState>.Ok(config, config.ToString());
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LiveFairinoClient] gripper config 읽기 실패: {ex.Message}");
+                return FairinoResult<FairinoGripperConfigState>.Fail(-6, ex.Message);
+            }
+        }
+
         public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
         {
             if (!connected)
@@ -582,7 +659,8 @@ namespace KineTutor3D.App.Fairino
                 command.SpeedPercent,
                 command.ForcePercent,
                 command.MaxTimeMs,
-                command.Blocking ? 1 : 0,
+                // FAIRINO SDK docs use 0=blocking, 1=non-blocking.
+                command.Blocking ? 0 : 1,
                 command.GripperType,
                 command.RotateTurns,
                 command.RotateSpeedPercent,
@@ -616,7 +694,10 @@ namespace KineTutor3D.App.Fairino
                 throw new MissingMethodException($"SDK에 {methodName} 메서드가 없습니다.");
             }
 
-            return method.Invoke(sdkRobot, args);
+            var invokeArgs = CoerceArgumentsForMethod(method, args);
+            var result = method.Invoke(sdkRobot, invokeArgs);
+            CopyBackByRefArguments(method, invokeArgs, args);
+            return result;
         }
 
         private MethodInfo ResolveBestMethod(string methodName, object[] args)
@@ -686,6 +767,134 @@ namespace KineTutor3D.App.Fairino
             }
 
             return score;
+        }
+
+        private static object[] CoerceArgumentsForMethod(MethodInfo method, object[] args)
+        {
+            var parameters = method.GetParameters();
+            var invokeArgs = new object[args.Length];
+            for (var i = 0; i < args.Length; i++)
+            {
+                var parameterType = parameters[i].ParameterType;
+                var targetType = parameterType.IsByRef
+                    ? parameterType.GetElementType()
+                    : parameterType;
+                invokeArgs[i] = CoerceArgument(targetType, args[i]);
+            }
+
+            return invokeArgs;
+        }
+
+        private static void CopyBackByRefArguments(MethodInfo method, object[] invokeArgs, object[] originalArgs)
+        {
+            var parameters = method.GetParameters();
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].ParameterType.IsByRef)
+                {
+                    originalArgs[i] = invokeArgs[i];
+                }
+            }
+        }
+
+        private static object CoerceArgument(Type targetType, object value)
+        {
+            if (targetType == null || value == null)
+            {
+                return value;
+            }
+
+            var effectiveType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+            if (effectiveType.IsInstanceOfType(value))
+            {
+                return value;
+            }
+
+            if (effectiveType.IsEnum)
+            {
+                return value is string text
+                    ? Enum.Parse(effectiveType, text, ignoreCase: true)
+                    : Enum.ToObject(effectiveType, value);
+            }
+
+            if (effectiveType == typeof(bool))
+            {
+                return value switch
+                {
+                    byte byteValue => byteValue != 0,
+                    sbyte sbyteValue => sbyteValue != 0,
+                    short shortValue => shortValue != 0,
+                    ushort ushortValue => ushortValue != 0,
+                    int intValue => intValue != 0,
+                    uint uintValue => uintValue != 0,
+                    long longValue => longValue != 0,
+                    ulong ulongValue => ulongValue != 0,
+                    string text => bool.Parse(text),
+                    _ => Convert.ToBoolean(value, CultureInfo.InvariantCulture),
+                };
+            }
+
+            if (effectiveType == typeof(byte))
+            {
+                return Convert.ToByte(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(sbyte))
+            {
+                return Convert.ToSByte(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(short))
+            {
+                return Convert.ToInt16(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(ushort))
+            {
+                return Convert.ToUInt16(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(int))
+            {
+                return Convert.ToInt32(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(uint))
+            {
+                return Convert.ToUInt32(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(long))
+            {
+                return Convert.ToInt64(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(ulong))
+            {
+                return Convert.ToUInt64(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(float))
+            {
+                return Convert.ToSingle(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(double))
+            {
+                return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(decimal))
+            {
+                return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+            }
+
+            if (effectiveType == typeof(string))
+            {
+                return Convert.ToString(value, CultureInfo.InvariantCulture);
+            }
+
+            return Convert.ChangeType(value, effectiveType, CultureInfo.InvariantCulture);
         }
 
         private bool HasMethod(string methodName)
@@ -802,22 +1011,46 @@ namespace KineTutor3D.App.Fairino
             var payload = args[0];
             var joints = ReadDoubleArrayField(payload, "jt_cur_pos", 6);
             var tcp = ReadDoubleArrayField(payload, "tl_cur_pos", 6);
-            lastRobotMode = Convert.ToInt32(GetFieldValue(payload, "robot_mode"));
-            lastDragTeachActive = ReadDragTeachStateOrDefault();
+            lastRobotMode = ReadRobotModeOrDefault(payload);
+            lastDragTeachActive = ReadDragTeachStateOrDefault(payload);
             state = CreateState(
                 joints,
                 tcp,
                 robotMode: lastRobotMode,
-                motionQueueLength: Convert.ToInt32(GetFieldValue(payload, "mc_queue_len")),
-                isEmergencyStop: Convert.ToByte(GetFieldValue(payload, "EmergencyStop")) != 0,
-                isCollisionDetected: Convert.ToByte(GetFieldValue(payload, "collisionState")) != 0,
-                isRobotEnabled: Convert.ToInt32(GetFieldValue(payload, "rbtEnableState")) != 0,
+                motionQueueLength: ReadIntFieldOrDefault(payload, 0, "mc_queue_len", "mcQueueLen", "motion_queue_len", "motionQueueLength"),
+                isEmergencyStop: ReadBoolFieldOrDefault(payload, false, "EmergencyStop", "emergencyStop", "emergency_stop"),
+                isCollisionDetected: ReadBoolFieldOrDefault(payload, false, "collisionState", "collision_state", "isCollisionDetected"),
+                isRobotEnabled: ReadBoolFieldOrDefault(payload, enabled, "rbtEnableState", "robotEnableState", "robot_enable_state", "enableState", "enable_state"),
                 isInDragTeach: lastDragTeachActive);
+            enabled = state.IsRobotEnabled;
             return true;
         }
 
-        private bool ReadDragTeachStateOrDefault()
+        private int ReadRobotModeOrDefault(object payload)
         {
+            if (TryReadIntField(payload, out var mode, "robot_mode", "robotMode", "robotmode", "cur_mode", "curMode", "mode"))
+            {
+                lastRobotMode = mode;
+                return mode;
+            }
+
+            if (TryReadControllerModeByRef(out mode))
+            {
+                lastRobotMode = mode;
+                return mode;
+            }
+
+            return lastRobotMode;
+        }
+
+        private bool ReadDragTeachStateOrDefault(object payload)
+        {
+            if (TryReadBoolField(payload, out var dragTeachActive, "isInDragTeach", "is_in_drag_teach", "dragTeach", "drag_teach", "dragState", "drag_state"))
+            {
+                lastDragTeachActive = dragTeachActive;
+                return dragTeachActive;
+            }
+
             if (!HasMethod("IsInDragTeach"))
             {
                 return lastDragTeachActive;
@@ -833,12 +1066,53 @@ namespace KineTutor3D.App.Fairino
                     return lastDragTeachActive;
                 }
 
-                return Convert.ToInt32(args[0]) != 0;
+                lastDragTeachActive = Convert.ToInt32(args[0]) != 0;
+                return lastDragTeachActive;
             }
             catch
             {
                 return lastDragTeachActive;
             }
+        }
+
+        private bool TryReadControllerModeByRef(out int mode)
+        {
+            mode = lastRobotMode;
+            var methodNames = new[]
+            {
+                "GetRobotMode",
+                "GetCurRobotMode",
+                "GetCurrentMode",
+                "GetRobotCurMode",
+            };
+
+            foreach (var methodName in methodNames)
+            {
+                if (!HasMethod(methodName))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var args = new object[] { 0 };
+                    var code = InvokeSdkRaw(methodName, args);
+                    var errCode = ConvertSdkReturnCode(code, methodName);
+                    if (errCode != 0)
+                    {
+                        continue;
+                    }
+
+                    mode = Convert.ToInt32(args[0]);
+                    return true;
+                }
+                catch
+                {
+                    // Ignore optional getter signature mismatch and keep probing.
+                }
+            }
+
+            return false;
         }
 
         private double[] ReadJointPositionsFallback()
@@ -1049,6 +1323,75 @@ namespace KineTutor3D.App.Fairino
             }
 
             return field.GetValue(instance);
+        }
+
+        private static bool TryGetFieldValue(object instance, string fieldName, out object value)
+        {
+            value = null;
+            if (instance == null || string.IsNullOrWhiteSpace(fieldName))
+            {
+                return false;
+            }
+
+            var field = instance.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
+            {
+                return false;
+            }
+
+            value = field.GetValue(instance);
+            return true;
+        }
+
+        private static bool TryReadIntField(object instance, out int value, params string[] fieldNames)
+        {
+            value = 0;
+            if (instance == null || fieldNames == null)
+            {
+                return false;
+            }
+
+            foreach (var fieldName in fieldNames)
+            {
+                if (!TryGetFieldValue(instance, fieldName, out var raw) || raw == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    value = Convert.ToInt32(raw, CultureInfo.InvariantCulture);
+                    return true;
+                }
+                catch
+                {
+                    // Keep probing other aliases.
+                }
+            }
+
+            return false;
+        }
+
+        private static int ReadIntFieldOrDefault(object instance, int defaultValue, params string[] fieldNames)
+        {
+            return TryReadIntField(instance, out var value, fieldNames) ? value : defaultValue;
+        }
+
+        private static bool TryReadBoolField(object instance, out bool value, params string[] fieldNames)
+        {
+            value = false;
+            if (!TryReadIntField(instance, out var intValue, fieldNames))
+            {
+                return false;
+            }
+
+            value = intValue != 0;
+            return true;
+        }
+
+        private static bool ReadBoolFieldOrDefault(object instance, bool defaultValue, params string[] fieldNames)
+        {
+            return TryReadBoolField(instance, out var value, fieldNames) ? value : defaultValue;
         }
 
         private static int ConvertSdkReturnCode(object sdkResult, string methodName)

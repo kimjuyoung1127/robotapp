@@ -26,6 +26,9 @@ namespace KineTutor3D.App.Fairino
             messages[-7] = "자동 모드 전환에 실패했습니다. 수동/티칭 상태를 확인하세요.";
             messages[-8] = "드래그 티칭이 활성화되어 있습니다. 종료 후 재시도하세요.";
             messages[-9] = "컨트롤러 fault가 남아 있습니다. Reset Error 후 다시 시도하세요.";
+            messages[14] = "인터페이스 실행 실패: 컨트롤러 상태 피드백 또는 웹 인터페이스 fault를 확인하세요.";
+            messages[73] = "그리퍼 동작 오류: gripper 통신, reset/activate 초기화, 장치 번호와 기능 설정을 확인하세요.";
+            messages[154] = "관절 명령점 오류: MoveJ 목표점, tool/user 좌표, 현재 자세와 목표 자세를 다시 확인하세요.";
         }
 
         /// <summary>

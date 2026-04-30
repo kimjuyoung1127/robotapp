@@ -38,6 +38,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -60,6 +61,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
@@ -100,8 +102,33 @@ namespace KineTutor3D.UI.RobotControlV3
             return GetDebugSummary();
         }
 
+        public string PreviewCurrentPoseForDebug()
+        {
+            PreviewCurrentPose();
+            return GetDebugSummary();
+        }
+
+        public string ApplyCurrentPoseForDebug()
+        {
+            ApplyCurrentPose();
+            return GetDebugSummary();
+        }
+
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
@@ -133,11 +160,16 @@ namespace KineTutor3D.UI.RobotControlV3
             activeCoordSystem = localState.CoordSystem;
             isDesktopVisible = localState.ActiveNavSection == "NavMotion" && localState.ActiveWorkTab == "TabTcpJog";
             isTabletVisible = localState.ActiveNavSection == "NavMotion" && localState.ActiveTabletTab == "BottomTabTcpJog";
+            isInitialized = true;
             connectionHomeController.PreviewChanged -= ApplyPreview;
             connectionHomeController.PreviewChanged += ApplyPreview;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private System.Collections.IEnumerator WaitForInitialize()

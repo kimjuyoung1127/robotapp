@@ -1,7 +1,7 @@
 {
   "robotId": "FAIRINO_FR5",
   "displayName": "FAIRINO FR5",
-  "defaultIp": "192.168.58.2",
+  "defaultIp": "192.168.57.2",
   "defaultPort": 8080,
   "dof": 6,
   "dhParameters": [
@@ -40,7 +40,7 @@
     { "id": "state_monitor", "label": "상태 모니터", "icon": "icon-info" }
   ],
   "liveDefaults": {
-    "realtimeSampleMs": 100,
+    "realtimeSampleMs": 33,
     "reconnectEnabled": true,
     "reconnectTimeoutMs": 30000,
     "reconnectPeriodMs": 500

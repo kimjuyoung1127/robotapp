@@ -20,21 +20,27 @@ namespace KineTutor3D.App.Fairino
 
         private readonly FairinoConnectionService connectionService;
         private readonly Func<FairinoRobotState> displayStateProvider;
+        private readonly Func<string> coordSystemProvider;
         private readonly Action<string> liveBlockedReasonSink;
         private readonly string rootDirectory;
         private readonly string sessionId;
         private string robotId = "FAIRINO_FR5";
         private string ip = string.Empty;
         private bool attached;
+        private int? lastRecordedControllerMode;
+        private bool? lastRecordedDragTeach;
+        private bool? lastRecordedRobotEnabled;
 
         public Fr5LiveStateRecorder(
             FairinoConnectionService service,
             Func<FairinoRobotState> screenStateProvider = null,
+            Func<string> liveCoordSystemProvider = null,
             Action<string> blockedReasonSink = null,
             string rootPath = null)
         {
             connectionService = service ?? throw new ArgumentNullException(nameof(service));
             displayStateProvider = screenStateProvider;
+            coordSystemProvider = liveCoordSystemProvider;
             liveBlockedReasonSink = blockedReasonSink;
             rootDirectory = string.IsNullOrWhiteSpace(rootPath) ? ResolveDefaultRootPath() : rootPath;
             sessionId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
@@ -84,19 +90,46 @@ namespace KineTutor3D.App.Fairino
 
         public Fr5LiveDriftRecord RecordState(FairinoRobotState state)
         {
-            var drift = CreateDriftRecord(state, displayStateProvider?.Invoke());
+            var drift = CreateEmptyDriftRecord();
             try
             {
                 EnsureDirectories();
+                try
+                {
+                    drift = CreateDriftRecord(state, displayStateProvider?.Invoke());
+                }
+                catch (Exception driftEx)
+                {
+                    drift.liveBlockedReason = string.Empty;
+                    WriteEvent("readback-warning", -2, $"drift compare unavailable: {driftEx.GetType().Name}: {driftEx.Message}");
+                }
+
                 var stateRecord = CreateStateRecord(state);
+                if (!stateRecord.connected)
+                {
+                    WriteEvent("readback-skip", 0, "latest-state preserved; disconnected state not promoted");
+                    liveBlockedReasonSink?.Invoke(string.Empty);
+                    return drift;
+                }
+
+                if (IsPlaceholderZeroState(stateRecord))
+                {
+                    WriteEvent("readback-skip", 0, "latest-state preserved; placeholder zero state not promoted");
+                    liveBlockedReasonSink?.Invoke(string.Empty);
+                    return drift;
+                }
+
                 WriteLatest("latest-state.json", JsonUtility.ToJson(stateRecord, true));
                 AppendSession("readback", JsonUtility.ToJson(stateRecord, false));
                 WriteLatest("latest-drift.json", JsonUtility.ToJson(drift, true));
+                WriteEvent("readback", 0, $"latest-state updated tool={stateRecord.toolId:00} user={stateRecord.userId:00} coord={stateRecord.coordSystem}");
+                WriteControllerTruthEvents(stateRecord);
                 liveBlockedReasonSink?.Invoke(drift.severity == "ok" ? string.Empty : drift.liveBlockedReason);
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"[Fr5LiveStateRecorder] 기록 실패: {ex.Message}");
+                WriteEvent("readback-error", -1, $"{ex.GetType().Name}: {ex.Message}");
             }
 
             return drift;
@@ -130,6 +163,23 @@ namespace KineTutor3D.App.Fairino
         private Fr5LiveStateRecord CreateStateRecord(FairinoRobotState state)
         {
             var diagnostics = connectionService.Client as IFairinoLiveClientDiagnostics;
+            var coordSystem = "Base";
+            var context = connectionService.LastCoordContext;
+            var toolId = state.ToolId > 0 ? state.ToolId : context.ToolId;
+            var userId = state.UserId > 0 ? state.UserId : context.UserId;
+            try
+            {
+                var resolvedCoordSystem = coordSystemProvider?.Invoke();
+                if (!string.IsNullOrWhiteSpace(resolvedCoordSystem))
+                {
+                    coordSystem = resolvedCoordSystem;
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteEvent("readback-warning", -3, $"coord resolve unavailable: {ex.GetType().Name}: {ex.Message}");
+            }
+
             return new Fr5LiveStateRecord
             {
                 sessionId = sessionId,
@@ -139,8 +189,11 @@ namespace KineTutor3D.App.Fairino
                 connected = connectionService.Client?.IsConnected ?? false,
                 enabled = connectionService.Client?.IsEnabled ?? false,
                 mode = state.RobotMode,
-                toolId = state.ToolId,
-                userId = state.UserId,
+                isInDragTeach = state.IsInDragTeach,
+                isRobotEnabled = state.IsRobotEnabled,
+                toolId = toolId,
+                userId = userId,
+                coordSystem = coordSystem,
                 jointsDeg = Copy(state.JointPosDeg, 6),
                 tcpMmDeg = Copy(state.TcpPose, 6),
                 safety = BuildSafetySummary(state),
@@ -152,15 +205,30 @@ namespace KineTutor3D.App.Fairino
             };
         }
 
-        private Fr5LiveDriftRecord CreateDriftRecord(FairinoRobotState liveState, FairinoRobotState? displayState)
+        private static bool IsPlaceholderZeroState(Fr5LiveStateRecord record)
         {
-            var result = new Fr5LiveDriftRecord
+            return record != null
+                && record.connected
+                && record.toolId <= 0
+                && record.userId <= 0
+                && IsAllZero(record.jointsDeg)
+                && IsAllZero(record.tcpMmDeg);
+        }
+
+        private Fr5LiveDriftRecord CreateEmptyDriftRecord()
+        {
+            return new Fr5LiveDriftRecord
             {
                 sessionId = sessionId,
                 timestampUtc = DateTime.UtcNow.ToString("O"),
                 severity = "ok",
                 liveBlockedReason = string.Empty,
             };
+        }
+
+        private Fr5LiveDriftRecord CreateDriftRecord(FairinoRobotState liveState, FairinoRobotState? displayState)
+        {
+            var result = CreateEmptyDriftRecord();
 
             if (!displayState.HasValue)
             {
@@ -244,6 +312,30 @@ namespace KineTutor3D.App.Fairino
             File.AppendAllText(path, json + Environment.NewLine, Encoding.UTF8);
         }
 
+        private void WriteControllerTruthEvents(Fr5LiveStateRecord stateRecord)
+        {
+            if (!lastRecordedControllerMode.HasValue || lastRecordedControllerMode.Value != stateRecord.mode)
+            {
+                WriteEvent(
+                    "controller-mode",
+                    stateRecord.mode,
+                    $"controller mode -> {FormatControllerMode(stateRecord.mode)} · drag={(stateRecord.isInDragTeach ? "on" : "off")} · servo={(stateRecord.isRobotEnabled ? "on" : "off")}");
+                lastRecordedControllerMode = stateRecord.mode;
+            }
+
+            if (!lastRecordedDragTeach.HasValue || lastRecordedDragTeach.Value != stateRecord.isInDragTeach)
+            {
+                WriteEvent("drag-teach", stateRecord.isInDragTeach ? 1 : 0, stateRecord.isInDragTeach ? "drag teach ON" : "drag teach OFF");
+                lastRecordedDragTeach = stateRecord.isInDragTeach;
+            }
+
+            if (!lastRecordedRobotEnabled.HasValue || lastRecordedRobotEnabled.Value != stateRecord.isRobotEnabled)
+            {
+                WriteEvent("servo-truth", stateRecord.isRobotEnabled ? 1 : 0, stateRecord.isRobotEnabled ? "controller servo ON" : "controller servo OFF");
+                lastRecordedRobotEnabled = stateRecord.isRobotEnabled;
+            }
+        }
+
         private static string ResolveDefaultRootPath()
         {
             var projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Directory.GetCurrentDirectory();
@@ -299,6 +391,34 @@ namespace KineTutor3D.App.Fairino
 
             return max;
         }
+
+        private static bool IsAllZero(double[] values)
+        {
+            if (values == null || values.Length == 0)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (System.Math.Abs(values[i]) > 0.000001d)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string FormatControllerMode(int mode)
+        {
+            return mode switch
+            {
+                0 => "auto(0)",
+                1 => "manual(1)",
+                _ => $"mode({mode})",
+            };
+        }
     }
 
     [Serializable]
@@ -311,8 +431,11 @@ namespace KineTutor3D.App.Fairino
         public bool connected;
         public bool enabled;
         public int mode;
+        public bool isInDragTeach;
+        public bool isRobotEnabled;
         public int toolId;
         public int userId;
+        public string coordSystem;
         public double[] jointsDeg;
         public double[] tcpMmDeg;
         public string safety;

@@ -5,11 +5,11 @@
         <ui:VisualElement name="ConnectionCard" class="rc-home-card">
             <ui:Label text="연결 카드" class="rc-panel-title" />
             <ui:Label name="ConnectionRobot" text="FAIRINO FR5" class="rc-home-headline" />
-            <ui:Label name="ConnectionIp" text="IP: 192.168.58.2" class="rc-panel-copy" />
-            <ui:Label name="ConnectionStatus" text="상태: ● 연결됨" class="rc-panel-copy" />
-            <ui:Label text="연결/해제는 아직 mock 시안만 돈다." class="rc-home-note" />
+            <ui:Label name="ConnectionIp" text="IP: 192.168.57.2" class="rc-panel-copy" />
+            <ui:Label name="ConnectionStatus" text="대표 상태: 미연결" class="rc-panel-copy" />
+            <ui:Label text="연결 버튼을 누르면 현재 위치 읽기까지 같이 진행합니다." class="rc-home-note" />
             <ui:VisualElement class="rc-home-button-row">
-                <ui:Button name="BtnConnect" text="연결" class="rc-home-button" />
+                <ui:Button name="BtnConnect" text="연결 + 위치 읽기" class="rc-home-button" />
                 <ui:Button name="BtnDisconnect" text="연결 해제" class="rc-home-button" />
             </ui:VisualElement>
         </ui:VisualElement>
@@ -18,9 +18,13 @@
             <ui:Label text="빠른 상태" class="rc-panel-title" />
             <ui:Label name="QuickServo" text="서보: OFF → [서보 켜기]" class="rc-panel-copy" />
             <ui:Label name="QuickMode" text="모드: 수동" class="rc-panel-copy" />
-            <ui:Label name="QuickSync" text="마지막 동기화: 12초 전" class="rc-panel-copy" />
+            <ui:Label name="QuickSync" text="현재 위치 읽음: 아직 안 함" class="rc-panel-copy" />
             <ui:Label name="QuickControllerMode" text="컨트롤러: Mock" class="rc-panel-copy" />
             <ui:Label name="QuickLiveArm" text="Live Arm: Disarmed" class="rc-panel-copy" />
+            <ui:VisualElement class="rc-home-button-row">
+                <ui:Button name="BtnModeAuto" text="자동 전환" class="rc-home-button" />
+                <ui:Button name="BtnModeManual" text="수동 전환" class="rc-home-button" />
+            </ui:VisualElement>
             <ui:VisualElement class="rc-home-button-row">
                 <ui:Button name="BtnMockMode" text="Mock" class="rc-home-button" />
                 <ui:Button name="BtnLiveMode" text="Live" class="rc-home-button" />
@@ -30,17 +34,17 @@
                 <ui:Button name="BtnDisarmLive" text="Disarm" class="rc-home-button" />
             </ui:VisualElement>
             <ui:VisualElement class="rc-home-button-row">
-                <ui:Button name="BtnQuickAction" text="서보 켜기" class="rc-home-button rc-home-button--primary" />
+                <ui:Button name="BtnQuickAction" text="연결 + 위치 읽기" class="rc-home-button rc-home-button--primary" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="NextActionCard" class="rc-home-card rc-home-card--accent">
             <ui:Label text="다음 행동 추천" class="rc-panel-title" />
-            <ui:Label name="ActionNow" text="지금 상태: 연결됨 / 서보 OFF" class="rc-home-now" />
-            <ui:Label name="ActionPrimary" text="다음 행동: 서보를 먼저 켜기" class="rc-home-primary" />
-            <ui:Label name="ActionWhy" text="왜 먼저 하냐면 서보가 살아야 실제 이동을 보낼 수 있음." class="rc-panel-copy" />
+            <ui:Label name="ActionNow" text="지금 상태: 아직 미연결" class="rc-home-now" />
+            <ui:Label name="ActionPrimary" text="다음 행동: 연결하고 현재 위치 읽기" class="rc-home-primary" />
+            <ui:Label name="ActionWhy" text="연결되면 실기 위치를 바로 읽어 화면과 맞춥니다." class="rc-panel-copy" />
             <ui:VisualElement class="rc-home-button-row">
-                <ui:Button name="BtnPrimaryAction" text="서보 켜기 →" class="rc-home-button rc-home-button--primary" />
+                <ui:Button name="BtnPrimaryAction" text="연결 + 위치 읽기 →" class="rc-home-button rc-home-button--primary" />
             </ui:VisualElement>
         </ui:VisualElement>
 

@@ -34,6 +34,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isTabletHelpActive;
         private PendantV3LocalState currentShellState;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -82,31 +83,49 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             root = document?.rootVisualElement;
-            if (root == null || helpPanelTemplate == null || connectionHomeController == null)
+            try
             {
-                return false;
-            }
+                if (root == null || helpPanelTemplate == null || connectionHomeController == null)
+                {
+                    return false;
+                }
 
-            CacheShellElements();
-            if (helpPanelHost == null || helpSheetHost == null)
+                CacheShellElements();
+                if (helpPanelHost == null || helpSheetHost == null)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                if (desktopPanel == null || tabletPanel == null || helpPanelHost.childCount == 0 || helpSheetHost.childCount == 0)
+                {
+                    desktopPanel = CreatePanel(helpPanelHost);
+                    tabletPanel = CreatePanel(helpSheetHost);
+                }
+
+                currentShellState = ResolveShellStateSnapshot();
+                isInitialized = true;
+                RefreshFromBinder(connectionHomeController.CurrentPreviewDefinition, currentShellState);
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            if (desktopPanel == null || tabletPanel == null || helpPanelHost.childCount == 0 || helpSheetHost.childCount == 0)
-            {
-                desktopPanel = CreatePanel(helpPanelHost);
-                tabletPanel = CreatePanel(helpSheetHost);
-            }
-
-            currentShellState = ResolveShellStateSnapshot();
-            isInitialized = true;
-            RefreshFromBinder(connectionHomeController.CurrentPreviewDefinition, currentShellState);
-            return true;
         }
 
         private System.Collections.IEnumerator WaitForInitialize()

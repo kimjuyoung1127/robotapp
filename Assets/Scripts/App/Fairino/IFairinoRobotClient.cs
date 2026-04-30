@@ -140,6 +140,11 @@ namespace KineTutor3D.App.Fairino
         FairinoResult<FairinoGripperStatus> ReadGripperStatus();
 
         /// <summary>
+        /// SDK gripper 현재 설정을 읽습니다.
+        /// </summary>
+        FairinoResult<FairinoGripperConfigState> ReadGripperConfig();
+
+        /// <summary>
         /// SDK gripper 설정을 적용합니다.
         /// </summary>
         FairinoResult ConfigureGripper(FairinoGripperProfile profile);

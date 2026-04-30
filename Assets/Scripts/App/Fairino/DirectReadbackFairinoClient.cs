@@ -7,7 +7,7 @@ namespace KineTutor3D.App.Fairino
     /// <summary>
     /// FAIRINO direct SDK 클라이언트를 readback-only로 감싸는 어댑터입니다.
     /// </summary>
-    public sealed class DirectReadbackFairinoClient : FairinoReadbackOnlyClientBase
+    public sealed class DirectReadbackFairinoClient : FairinoReadbackOnlyClientBase, IFairinoMotionSessionProvider
     {
         private readonly LiveFairinoClient inner;
         private readonly FairinoSdkCompatibilityReport report;
@@ -85,9 +85,30 @@ namespace KineTutor3D.App.Fairino
             return inner.ReadCoordContext();
         }
 
+        public override FairinoResult SetMode(int mode)
+        {
+            return inner.SetMode(mode);
+        }
+
+        public override FairinoResult ExitDragTeach()
+        {
+            return inner.ExitDragTeach();
+        }
+
+        public override FairinoResult EnsureAutoMode()
+        {
+            return inner.EnsureAutoMode();
+        }
+
         public override FairinoResult<FairinoControllerFault> ReadControllerFault()
         {
             return inner.ReadControllerFault();
+        }
+
+        public bool TryGetMotionCapableClient(out IFairinoRobotClient motionClient)
+        {
+            motionClient = inner;
+            return motionClient != null;
         }
 
         private static bool CanOpenTcpPort(string ip, int port, int timeoutMs)

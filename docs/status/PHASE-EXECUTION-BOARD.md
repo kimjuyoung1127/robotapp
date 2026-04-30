@@ -1,5 +1,8 @@
 ﻿# Phase 실행 보드
 
+> Note: 이 문서는 broad phase board다.
+> 현재 FR5 / Pendant V3의 실제 우선순위와 열린 이슈는 먼저 [ACTIVE-WORK-INDEX.md](./ACTIVE-WORK-INDEX.md)를 본다.
+
 상태값: `Ready | InProgress | QA | Done | Hold`
 
 | phase | module | priority | status | owner | skills_required | must_read_docs | last_updated |

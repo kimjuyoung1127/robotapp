@@ -50,6 +50,27 @@ namespace KineTutor3D.Tests.EditMode
         }
 
         [Test]
+        public void Translate_Fourteen_ReturnsInterfaceExecutionMessage()
+        {
+            var msg = translator.Translate(14);
+            Assert.That(msg, Does.Contain("인터페이스 실행 실패"));
+        }
+
+        [Test]
+        public void Translate_SeventyThree_ReturnsGripperMovementMessage()
+        {
+            var msg = translator.Translate(73);
+            Assert.That(msg, Does.Contain("그리퍼 동작 오류"));
+        }
+
+        [Test]
+        public void Translate_OneFiftyFour_ReturnsJointCommandPointMessage()
+        {
+            var msg = translator.Translate(154);
+            Assert.That(msg, Does.Contain("관절 명령점 오류"));
+        }
+
+        [Test]
         public void Translate_UnknownCode_ReturnsUnknownMessage()
         {
             var msg = translator.Translate(-999);

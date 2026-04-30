@@ -17,7 +17,7 @@ namespace KineTutor3D.App
         public const int DefaultJogIncrement = 5;
         public const float DefaultSplitRatio = 0.30f;
         public const float MinSplitRatio = 0.22f;
-        public const float MaxSplitRatio = 0.36f;
+        public const float MaxSplitRatio = 0.62f;
         public const string DefaultPointName = "Point";
         public const string DefaultPointMotionKind = "MoveJ";
         public const int PointAxisCount = 6;

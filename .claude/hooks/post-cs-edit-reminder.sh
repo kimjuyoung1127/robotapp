@@ -11,4 +11,5 @@ if [[ "$file_path" != *.cs ]]; then
 fi
 
 echo "✓ C# 파일 수정됨: $(basename "$file_path") — UTF-8 BOM, camelCase 필드, Folder 헤더, BindListeners 패턴 준수 확인"
+echo "↳ 상태문구를 건드렸다면 docs/ref/product/roadmap/fr5-status-copy-ssot.md 와 /status-copy-review 기준도 같이 확인"
 exit 0

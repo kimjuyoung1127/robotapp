@@ -61,10 +61,37 @@
     color: var(--rc-button-text);
 }
 
-.rc-easy-gripper-row {
+.rc-easy-gripper-control-host {
+    margin-top: 8px;
+}
+
+.rc-easy-gripper-status {
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--rc-muted-text);
+}
+
+.rc-easy-gripper-meta {
+    margin-bottom: 4px;
+    font-size: 10px;
+    color: var(--rc-muted-text);
+}
+
+.rc-easy-control-row {
     flex-direction: row;
     flex-wrap: wrap;
-    margin-top: 8px;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.rc-easy-number-field {
+    flex-grow: 1;
+    min-width: 88px;
+    margin-right: 6px;
+}
+
+.rc-easy-quick-button {
+    min-width: 54px;
 }
 
 .rc-easy-option-card {

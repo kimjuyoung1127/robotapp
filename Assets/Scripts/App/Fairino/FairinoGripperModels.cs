@@ -21,7 +21,7 @@ namespace KineTutor3D.App.Fairino
         public int Bus { get; }
         public int Index { get; }
 
-        public static FairinoGripperProfile Pgea10040Default => new(4, 0, 0, 2, 2);
+        public static FairinoGripperProfile Pgea10040Default => new(2, 4, 0, 0, 1);
 
         public override string ToString()
         {
@@ -54,30 +54,47 @@ namespace KineTutor3D.App.Fairino
         public float ClosedVisualInputOpenRatio { get; }
         public float OpenVisualInputOpenRatio { get; }
 
-        public static GripperCalibrationProfile Pgea10040Observed => new(60, 100, 70, 0.6f, 1f);
+        public static GripperCalibrationProfile Pgea10040Observed => new(0, 100, 70, 0.6f, 1f);
 
         public int UserToRawPercent(int userPercent)
+        {
+            return UserToRawPercent((float)userPercent);
+        }
+
+        public int UserToRawPercent(float userPercent)
         {
             var user = ClampPercent(userPercent) / 100f;
             return ClampPercent(UnityEngine.Mathf.RoundToInt(UnityEngine.Mathf.Lerp(ClosedRawPercent, OpenRawPercent, user)));
         }
 
-        public int RawToUserPercent(int rawPercent)
+        public float RawToUserPercent(int rawPercent)
         {
             var raw = ClampPercent(rawPercent);
             if (OpenRawPercent == ClosedRawPercent)
             {
-                return raw >= OpenRawPercent ? 100 : 0;
+                return raw >= OpenRawPercent ? 100f : 0f;
             }
 
             var user = UnityEngine.Mathf.InverseLerp(ClosedRawPercent, OpenRawPercent, raw);
-            return ClampPercent(UnityEngine.Mathf.RoundToInt(user * 100f));
+            return ClampPercent(user * 100f);
         }
 
         public float UserToVisualOpenRatio(int userPercent)
         {
+            return UserToVisualOpenRatio((float)userPercent);
+        }
+
+        public float UserToVisualOpenRatio(float userPercent)
+        {
             var user = ClampPercent(userPercent) / 100f;
             return UnityEngine.Mathf.Clamp01(UnityEngine.Mathf.Lerp(ClosedVisualInputOpenRatio, OpenVisualInputOpenRatio, user));
+        }
+
+        public bool IsWithinObservedRawRange(int rawPercent)
+        {
+            var min = UnityEngine.Mathf.Min(ClosedRawPercent, OpenRawPercent);
+            var max = UnityEngine.Mathf.Max(ClosedRawPercent, OpenRawPercent);
+            return rawPercent >= min && rawPercent <= max;
         }
 
         public override string ToString()
@@ -88,6 +105,11 @@ namespace KineTutor3D.App.Fairino
         private static int ClampPercent(int value)
         {
             return value < 0 ? 0 : value > 100 ? 100 : value;
+        }
+
+        private static float ClampPercent(float value)
+        {
+            return value < 0f ? 0f : value > 100f ? 100f : value;
         }
     }
 
@@ -202,6 +224,38 @@ namespace KineTutor3D.App.Fairino
         public override string ToString()
         {
             return $"configure={CanConfigure}; activate={CanActivate}; move={CanMove}; motion={CanReadMotion}; active={CanReadActivation}; pos={CanReadPosition}; speed={CanReadSpeed}; current={CanReadCurrent}; voltage={CanReadVoltage}; temp={CanReadTemperature}";
+        }
+    }
+
+    /// <summary>
+    /// FAIRINO SDK gripper 현재 설정 readback입니다.
+    /// </summary>
+    public readonly struct FairinoGripperConfigState
+    {
+        public FairinoGripperConfigState(int company, int device, int softVersion, int bus)
+        {
+            Company = company;
+            Device = device;
+            SoftVersion = softVersion;
+            Bus = bus;
+        }
+
+        public int Company { get; }
+        public int Device { get; }
+        public int SoftVersion { get; }
+        public int Bus { get; }
+
+        public bool Matches(FairinoGripperProfile profile)
+        {
+            return Company == profile.Company
+                && Device == profile.Device
+                && SoftVersion == profile.SoftVersion
+                && Bus == profile.Bus;
+        }
+
+        public override string ToString()
+        {
+            return $"company={Company}; device={Device}; soft={SoftVersion}; bus={Bus}";
         }
     }
 

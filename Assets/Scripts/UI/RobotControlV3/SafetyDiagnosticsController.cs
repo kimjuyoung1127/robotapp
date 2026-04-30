@@ -24,6 +24,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private SafetyElements safetyElements;
         private FaultOverlayElements faultOverlayElements;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -69,42 +70,60 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
             root = document?.rootVisualElement;
-            if (root == null || safetyDiagnosticsTemplate == null || faultOverlayTemplate == null || connectionHomeController == null || runtimeController == null || !runtimeController.ForceInitialize())
+            try
             {
-                return false;
-            }
+                if (root == null || safetyDiagnosticsTemplate == null || faultOverlayTemplate == null || connectionHomeController == null || runtimeController == null || !runtimeController.ForceInitialize())
+                {
+                    return false;
+                }
 
-            safetyDiagnosticsHost = root.Q<VisualElement>("SafetyDiagnosticsHost");
-            faultOverlayHost = root.Q<VisualElement>("FaultOverlayHost");
-            if (safetyDiagnosticsHost == null || faultOverlayHost == null)
+                safetyDiagnosticsHost = root.Q<VisualElement>("SafetyDiagnosticsHost");
+                faultOverlayHost = root.Q<VisualElement>("FaultOverlayHost");
+                if (safetyDiagnosticsHost == null || faultOverlayHost == null)
+                {
+                    isInitialized = false;
+                    return false;
+                }
+
+                if (safetyElements == null || safetyDiagnosticsHost.childCount == 0)
+                {
+                    safetyElements = CreateSafetyPanel(safetyDiagnosticsHost);
+                }
+
+                if (faultOverlayElements == null || faultOverlayHost.childCount == 0)
+                {
+                    faultOverlayElements = CreateFaultOverlay(faultOverlayHost);
+                }
+
+                if (safetyElements?.BtnRecoveryPrimary != null)
+                {
+                    safetyElements.BtnRecoveryPrimary.clicked -= HandleRecoveryPrimaryClicked;
+                    safetyElements.BtnRecoveryPrimary.clicked += HandleRecoveryPrimaryClicked;
+                }
+
+                isInitialized = true;
+                ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
+                return true;
+            }
+            finally
             {
-                isInitialized = false;
-                return false;
+                isInitializing = false;
             }
-
-            if (safetyElements == null || safetyDiagnosticsHost.childCount == 0)
-            {
-                safetyElements = CreateSafetyPanel(safetyDiagnosticsHost);
-            }
-
-            if (faultOverlayElements == null || faultOverlayHost.childCount == 0)
-            {
-                faultOverlayElements = CreateFaultOverlay(faultOverlayHost);
-            }
-
-            if (safetyElements?.BtnRecoveryPrimary != null)
-            {
-                safetyElements.BtnRecoveryPrimary.clicked -= HandleRecoveryPrimaryClicked;
-                safetyElements.BtnRecoveryPrimary.clicked += HandleRecoveryPrimaryClicked;
-            }
-
-            ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
-            isInitialized = true;
-            return true;
         }
 
         private System.Collections.IEnumerator WaitForInitialize()
@@ -162,15 +181,15 @@ namespace KineTutor3D.UI.RobotControlV3
             SetChipState(safetyElements.SafetyStateValue, isFault, isWarning);
             SetFaultChipState(safetyElements.FaultStateValue, isFault);
 
-            safetyElements.RecoveryNow.text = $"지금 상태: {data.ActionNow}";
-            safetyElements.RecoveryPrimary.text = $"다음 행동: {data.ActionPrimary}";
-            safetyElements.RecoveryWhy.text = data.ActionWhy;
+            safetyElements.RecoveryNow.text = data.ActionNow;
+            safetyElements.RecoveryPrimary.text = $"다음 행동: {data.OperatorNextAction}";
+            safetyElements.RecoveryWhy.text = BuildGateSummary(data);
             safetyElements.BtnRecoveryPrimary.text = data.PrimaryActionLabel;
             safetyElements.BtnRecoveryPrimary.SetEnabled(data.PrimaryActionEnabled);
 
-            safetyElements.EventLogLine1.text = $"연결 {data.StatusConnection} · 서보 {data.StatusServo}";
-            safetyElements.EventLogLine2.text = $"상태 {data.StatusMotion} · Safety {data.StatusSafety}";
-            safetyElements.EventLogLine3.text = $"Fault {data.StatusFault} · Coord {data.CoordSystem}";
+            safetyElements.EventLogLine1.text = $"{data.ConnectionChip} · {data.QuickSync}";
+            safetyElements.EventLogLine2.text = $"{data.ToolChip} · {data.UserChip} · {data.CoordChip}";
+            safetyElements.EventLogLine3.text = $"{data.LiveTrackingStatus} · {data.MotionGateStatus} · {BuildGateReason(data)}";
 
             ApplyFaultOverlay(data, isFault);
         }
@@ -234,6 +253,53 @@ namespace KineTutor3D.UI.RobotControlV3
         private void HandleRecoveryPrimaryClicked()
         {
             runtimeController?.ExecutePrimaryAction();
+        }
+
+        private static string BuildGateReason(RobotControlV3RuntimeSnapshot data)
+        {
+            if (data == null)
+            {
+                return "잠금 이유: 확인 중";
+            }
+
+            if (!string.IsNullOrWhiteSpace(data.FailureCategory) && data.FailureCategory != "ready")
+            {
+                var detail = !string.IsNullOrWhiteSpace(data.LiveBlockedReason)
+                    ? data.LiveBlockedReason
+                    : !string.IsNullOrWhiteSpace(data.MotionGateWhyLocked)
+                        ? data.MotionGateWhyLocked
+                        : data.MotionGateDetail;
+                return $"분류: {data.FailureCategory} · {detail}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(data.MotionGateWhyLocked))
+            {
+                return data.MotionGateWhyLocked;
+            }
+
+            if (!string.IsNullOrWhiteSpace(data.LiveBlockedReason))
+            {
+                return $"잠금 이유: {data.LiveBlockedReason}";
+            }
+
+            return data.MotionGateDetail;
+        }
+
+        private static string BuildGateSummary(RobotControlV3RuntimeSnapshot data)
+        {
+            if (data == null)
+            {
+                return "잠금 이유: 확인 중 · 언제 풀리는지: 확인 중";
+            }
+
+            var reason = BuildGateReason(data);
+            var unlock = !string.IsNullOrWhiteSpace(data.OperatorNextAction)
+                ? $"복구 힌트: {data.OperatorNextAction}"
+                : !string.IsNullOrWhiteSpace(data.MotionGateUnlockWhen)
+                    ? data.MotionGateUnlockWhen
+                    : data.MotionGateNextStep;
+
+            return $"{reason} · {unlock}";
         }
 
 

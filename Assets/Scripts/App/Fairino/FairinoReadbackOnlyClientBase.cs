@@ -116,6 +116,11 @@ namespace KineTutor3D.App.Fairino
             return FairinoResult<FairinoGripperStatus>.Fail(-80, "readback-only gripper 상태 읽기를 아직 지원하지 않는다.");
         }
 
+        public virtual FairinoResult<FairinoGripperConfigState> ReadGripperConfig()
+        {
+            return FairinoResult<FairinoGripperConfigState>.Fail(-80, "readback-only gripper 설정 읽기를 아직 지원하지 않는다.");
+        }
+
         public virtual FairinoResult ConfigureGripper(FairinoGripperProfile profile)
         {
             return Blocked();

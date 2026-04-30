@@ -9,8 +9,11 @@ namespace KineTutor3D.App.Fairino
     public static class FairinoRobotClientFactory
     {
         public const string BridgeUrlEnvironmentVariable = "FAIRINO_BRIDGE_URL";
+        public const string ForceReadbackOnlyEnvironmentVariable = "FAIRINO_FORCE_READBACK_ONLY";
+        public const string TinyMoveJLiveEnvironmentVariable = "FAIRINO_ENABLE_TINY_MOVEJ_LIVE";
+        public const string LiveGripperSmokeEnvironmentVariable = "FAIRINO_ENABLE_LIVE_GRIPPER_SMOKE";
 
-        public static IFairinoRobotClient CreateLive(FairinoErrorTranslator translator = null)
+        public static IFairinoRobotClient CreateLive(FairinoErrorTranslator translator = null, bool preferMotionCapableDirect = false)
         {
             var bridgeUrl = Environment.GetEnvironmentVariable(BridgeUrlEnvironmentVariable);
             if (!string.IsNullOrWhiteSpace(bridgeUrl))
@@ -24,7 +27,43 @@ namespace KineTutor3D.App.Fairino
                 return new FairinoUnavailableClient(report);
             }
 
-            return new DirectReadbackFairinoClient(new LiveFairinoClient(translator), report);
+            if (IsTruthy(Environment.GetEnvironmentVariable(ForceReadbackOnlyEnvironmentVariable)))
+            {
+                return new DirectReadbackFairinoClient(new LiveFairinoClient(translator), report);
+            }
+
+            // V3 live는 단일 motion-capable 세션을 기본으로 사용한다.
+            // 지속 readback은 LiveFairinoClient 자체 polling으로 유지한다.
+            return new LiveFairinoClient(translator);
+        }
+
+        public static bool IsTinyMoveJLiveEnabled()
+        {
+            return IsTruthy(Environment.GetEnvironmentVariable(TinyMoveJLiveEnvironmentVariable));
+        }
+
+        public static bool IsLiveGripperSmokeEnabled()
+        {
+            return IsTruthy(Environment.GetEnvironmentVariable(LiveGripperSmokeEnvironmentVariable));
+        }
+
+        private static bool IsTruthy(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            switch (value.Trim().ToLowerInvariant())
+            {
+                case "1":
+                case "true":
+                case "yes":
+                case "on":
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

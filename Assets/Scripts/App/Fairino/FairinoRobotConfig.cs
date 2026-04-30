@@ -21,6 +21,7 @@ namespace KineTutor3D.App.Fairino
         public ErrorMessageEntry[] errorMessages;
         public UiTabEntry[] uiTabs;
         public LiveDefaultsBlock liveDefaults;
+        public GripperDefaultsBlock gripperDefaults;
 
         /// <summary>
         /// Resources/LearningTabs/ 경로에서 JSON 설정을 로드합니다.
@@ -114,6 +115,36 @@ namespace KineTutor3D.App.Fairino
             }
         }
 
+        public FairinoGripperProfile GetGripperProfile()
+        {
+            if (gripperDefaults?.profile != null)
+            {
+                return new FairinoGripperProfile(
+                    gripperDefaults.profile.company,
+                    gripperDefaults.profile.device,
+                    gripperDefaults.profile.softVersion,
+                    gripperDefaults.profile.bus,
+                    gripperDefaults.profile.index);
+            }
+
+            return FairinoGripperProfile.Pgea10040Default;
+        }
+
+        internal GripperCalibrationProfile GetGripperCalibration()
+        {
+            if (gripperDefaults?.calibration != null)
+            {
+                return new GripperCalibrationProfile(
+                    gripperDefaults.calibration.closedRawPercent,
+                    gripperDefaults.calibration.openRawPercent,
+                    gripperDefaults.calibration.objectStopRawPercent,
+                    gripperDefaults.calibration.closedVisualInputOpenRatio,
+                    gripperDefaults.calibration.openVisualInputOpenRatio);
+            }
+
+            return GripperCalibrationProfile.Pgea10040Observed;
+        }
+
         /// <summary>
         /// DH 파라미터 JSON 항목입니다.
         /// </summary>
@@ -193,10 +224,37 @@ namespace KineTutor3D.App.Fairino
         [Serializable]
         public sealed class LiveDefaultsBlock
         {
-            public int realtimeSampleMs = 100;
+            public int realtimeSampleMs = 33;
             public bool reconnectEnabled = true;
             public int reconnectTimeoutMs = 30000;
             public int reconnectPeriodMs = 500;
+        }
+
+        [Serializable]
+        public sealed class GripperDefaultsBlock
+        {
+            public GripperProfileEntry profile;
+            public GripperCalibrationEntry calibration;
+        }
+
+        [Serializable]
+        public sealed class GripperProfileEntry
+        {
+            public int company = 2;
+            public int device = 4;
+            public int softVersion;
+            public int bus;
+            public int index = 1;
+        }
+
+        [Serializable]
+        public sealed class GripperCalibrationEntry
+        {
+            public int closedRawPercent = 0;
+            public int openRawPercent = 100;
+            public int objectStopRawPercent = 70;
+            public float closedVisualInputOpenRatio = 0.6f;
+            public float openVisualInputOpenRatio = 1f;
         }
     }
 }

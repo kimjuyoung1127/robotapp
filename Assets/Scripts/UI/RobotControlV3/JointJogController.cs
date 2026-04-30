@@ -12,6 +12,7 @@ namespace KineTutor3D.UI.RobotControlV3
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     [RequireComponent(typeof(ConnectionHomeController))]
+    [RequireComponent(typeof(PopupCoordinatorV3))]
     public sealed class JointJogController : MonoBehaviour
     {
         private static readonly JointAxisSpec[] AxisSpecs =
@@ -36,6 +37,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement jointJogSheetHost;
         private ConnectionHomeController connectionHomeController;
         private RobotControlV3RuntimeController runtimeController;
+        private PopupCoordinatorV3 popupCoordinator;
 
         private PanelElements desktopPanel;
         private PanelElements tabletPanel;
@@ -43,6 +45,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -65,6 +68,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public void SetShellState(string activeNavSection, string activeWorkTab, string activeTabletTab)
@@ -149,13 +153,61 @@ namespace KineTutor3D.UI.RobotControlV3
             return BuildRowDebugSummary(axisNumber, row);
         }
 
+        public string SetJointTargetsForDebug(double[] jointAnglesDeg)
+        {
+            if (jointAnglesDeg == null || jointAnglesDeg.Length < AxisSpecs.Length)
+            {
+                return "jointTargets=missing";
+            }
+
+            for (var index = 0; index < AxisSpecs.Length; index++)
+            {
+                currentValues[index] = Mathf.Clamp((float)jointAnglesDeg[index], AxisSpecs[index].MinDegrees, AxisSpecs[index].MaxDegrees);
+            }
+
+            SyncAllRows();
+            return GetDebugSummary();
+        }
+
+        public string PreviewCurrentValuesForDebug()
+        {
+            PreviewCurrentValues();
+            return GetDebugSummary();
+        }
+
+        public string ApplyCurrentValuesForDebug()
+        {
+            ApplyCurrentValues();
+            return GetDebugSummary();
+        }
+
+        public string RestoreCurrentValuesForDebug()
+        {
+            ResetFromPreview();
+            return GetDebugSummary();
+        }
+
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
             root = document?.rootVisualElement;
-            if (root == null || jointJogTemplate == null || connectionHomeController == null || runtimeController == null)
+            if (root == null || jointJogTemplate == null || connectionHomeController == null || runtimeController == null || popupCoordinator == null)
             {
                 return false;
             }
@@ -173,13 +225,18 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             ApplyShellStateSnapshot();
+            isInitialized = true;
             connectionHomeController.PreviewChanged -= ApplyPreview;
             connectionHomeController.PreviewChanged += ApplyPreview;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
             ApplyModeState();
             ApplyVisibility();
-            isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private System.Collections.IEnumerator WaitForInitialize()
@@ -365,6 +422,18 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
         }
 
+        private void SyncAllRows()
+        {
+            for (var index = 0; index < AxisSpecs.Length; index++)
+            {
+                SyncRowValue(desktopPanel?.Rows[index], index);
+                SyncRowValue(tabletPanel?.Rows[index], index);
+            }
+
+            ApplyPanelState(desktopPanel, connectionHomeController.CurrentPreviewDefinition);
+            ApplyPanelState(tabletPanel, connectionHomeController.CurrentPreviewDefinition);
+        }
+
         private void SyncRowValue(JointRowElements row, int index)
         {
             if (row == null)
@@ -414,7 +483,18 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void ApplyCurrentValues()
         {
-            runtimeController?.ApplyJointAngles(ToJointAngleArray(), "관절 조그 적용");
+            var target = ToJointAngleArray();
+            if (popupCoordinator != null
+                && runtimeController != null
+                && runtimeController.ShouldRouteMoveJOperatorThroughLiveApproval())
+            {
+                runtimeController.PreviewJointAngles(target, "관절 조그 적용 후보");
+                runtimeController.PrepareMoveJOperatorApprovalSession();
+                popupCoordinator.OpenMoveConfirmForProduct();
+                return;
+            }
+
+            runtimeController?.ApplyJointAngles(target, "관절 조그 적용");
         }
 
         private double[] ToJointAngleArray()

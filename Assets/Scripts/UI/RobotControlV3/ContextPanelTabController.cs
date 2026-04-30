@@ -29,6 +29,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement whyItMovedCard;
         private ContextTabMode activeMode = ContextTabMode.Status;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -47,6 +48,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public bool ForceInitialize()
@@ -83,6 +85,19 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             root = document?.rootVisualElement;
             if (root == null)
@@ -116,6 +131,11 @@ namespace KineTutor3D.UI.RobotControlV3
             ApplyMode();
             isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private void BindListeners()

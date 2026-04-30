@@ -1,3 +1,13 @@
+---
+title: "Teaching Pendant V3"
+doc_type: "readme"
+status: "active"
+domain: "product-reference"
+audience: "human-and-agent"
+canonical: true
+last_updated: "2026-04-29"
+---
+
 # Teaching Pendant V3 - UI Toolkit 기반 소프트 티칭패드
 
 ## Purpose

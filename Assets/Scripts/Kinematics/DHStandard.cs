@@ -1,4 +1,10 @@
-﻿// Folder: Kinematics - DH parameter and FK algorithms; no UnityEngine references.
+﻿/// <ai_context>
+/// Component: Kinematics
+/// Responsibility: 표준 DH(Denavit-Hartenberg) 공식을 이용한 링크 변환 행렬 A_i 계산.
+/// Dependencies: Types, Math (Pure C#)
+/// Quality Gate: EditMode Tests (DHStandardTests.cs)
+/// Navigation: Assets/Scripts/Kinematics/AGENTS.md
+/// </ai_context>
 using System;
 using KineTutor3D.Math;
 using KineTutor3D.Types;

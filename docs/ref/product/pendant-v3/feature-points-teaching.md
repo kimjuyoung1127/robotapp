@@ -8,13 +8,15 @@
 - [README.md](./README.md)
 
 ## Last Updated
-- 2026-04-23 (KST)
+- 2026-04-30 (KST)
 
 ## SSOT 상태
 - **SSOT 확정**: V3 PointMove v1에서 save/recall/list/delete/rename/export/cleanup이 wired 상태다.
 - 저장소는 기존 `WaypointStore`를 재사용하며 V3 sequence 이름은 `PendantV3Points`다.
-- 현재 production gap은 `PendantV3Points`를 실행 가능한 teaching sequence로 승격하는 것이다.
+- saved `MoveJ` single-point live apply와 `PendantV3Points` two-point live run-once는 current branch에서 green이다.
+- 현재 production gap은 `broad named sequence live`와 `live loop`를 여는 것이지, `PendantV3Points` one-shot 자체가 아니다.
 - 전체 실행 계획은 [teaching-sequence-execution-plan.md](./teaching-sequence-execution-plan.md)를 SSOT로 본다.
+- 현재 실기 성공패턴은 [fr5-teaching-point-live-success-pattern.md](../roadmap/fr5-teaching-point-live-success-pattern.md)를 SSOT로 본다.
 - 확장 방향은 새 왼쪽 `Program` 탭이 아니라 기존 `NavPoints` 내부의 `포인트 / 시퀀스 / 함수` subview다.
 
 ---
@@ -85,7 +87,8 @@
   - `버튼 접기`는 실행 목록 row를 `선택 / 열기` 중심으로 줄인다.
   - `PendantV3Points` row의 삭제는 비활성화하고, 포인트 탭의 개별 삭제/정리 confirmation으로만 처리한다.
   - `기록 삭제` 버튼은 `PendantV3RecordedPath` 삭제 confirmation으로 연결된다.
-  - v1 row 재생/루프는 Unity/Mock 검증용이며, live 실기 실행은 기존 live gate 경로를 우회하지 않는다.
+  - v1 row `1회 재생`은 current branch에서 live gate + popup confirm 경로로 허용된다.
+  - v1 row `루프`는 아직 Unity/Mock 검증 범위에 가깝고 live 실기 실행은 계속 잠근다.
 - 묶음 row UX 기준:
   - 묶음 탭 상단 요약은 함수 라이브러리 개수, 선택 개수, 선택 묶음의 참조/누락 정보를 보여준다.
   - 묶음 row의 `선택` 버튼으로 여러 묶음을 선택할 수 있다.

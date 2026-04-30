@@ -60,5 +60,43 @@ namespace KineTutor3D.Tests.EditMode
 
             Assert.That(dispatchResult.IsSuccess, Is.True, dispatchResult.Message);
         }
+
+        [Test]
+        public void TryEvaluateTinyMoveJRange_Allows2DegDelta()
+        {
+            RobotSelectionBridge.SetSelection("FAIRINO_FR5", RobotSelectionBridge.RobotControlMode);
+            var createResult = RobotControlMotionRuntime.CreateFromSelection();
+
+            Assert.That(createResult.IsSuccess, Is.True, createResult.Message);
+
+            var allowed = createResult.Value.TryEvaluateTinyMoveJRange(
+                new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                new[] { 2d, 0d, 0d, 0d, 0d, 0d },
+                out var maxDelta,
+                out var maxIndex);
+
+            Assert.That(allowed, Is.True);
+            Assert.That(maxDelta, Is.EqualTo(2d).Within(0.0001d));
+            Assert.That(maxIndex, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TryEvaluateTinyMoveJRange_BlocksWhenDeltaExceeds2Deg()
+        {
+            RobotSelectionBridge.SetSelection("FAIRINO_FR5", RobotSelectionBridge.RobotControlMode);
+            var createResult = RobotControlMotionRuntime.CreateFromSelection();
+
+            Assert.That(createResult.IsSuccess, Is.True, createResult.Message);
+
+            var allowed = createResult.Value.TryEvaluateTinyMoveJRange(
+                new[] { 0d, 0d, 0d, 0d, 0d, 0d },
+                new[] { 2.1d, 0d, 0d, 0d, 0d, 0d },
+                out var maxDelta,
+                out var maxIndex);
+
+            Assert.That(allowed, Is.False);
+            Assert.That(maxDelta, Is.GreaterThan(RobotControlMotionRuntime.TinyMoveJMaxJointDeltaDeg));
+            Assert.That(maxIndex, Is.EqualTo(0));
+        }
     }
 }

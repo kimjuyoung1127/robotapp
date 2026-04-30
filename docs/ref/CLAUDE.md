@@ -1,3 +1,13 @@
+---
+title: "Reference Docs Agent Guide"
+doc_type: "agent-hub"
+status: "active"
+domain: "reference"
+audience: "agent"
+canonical: true
+last_updated: "2026-04-29"
+---
+
 # docs/ref/
 
 장기 참조 스펙 및 아키텍처 문서.

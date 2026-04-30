@@ -17,6 +17,14 @@ namespace KineTutor3D.App.Fairino
         MoveGripper,
     }
 
+    public enum LiveCommandSessionMode
+    {
+        LiveControl,
+        ReadbackOnly,
+        GripperOnly,
+        TinyMoveJOnly,
+    }
+
     public enum LiveCommandGateStatus
     {
         Allowed,
@@ -45,11 +53,45 @@ namespace KineTutor3D.App.Fairino
                 RequestedSpeedPercent = request.RequestedSpeedPercent,
                 SpeedCapPercent = request.SpeedCapPercent > 0 ? request.SpeedCapPercent : DefaultLiveSpeedCapPercent,
                 RiskLevel = ResolveRisk(request.Kind),
+                ToolId = request.ToolId,
+                UserId = request.UserId,
+                CoordSystem = request.CoordSystem,
+                HasResolvedCoordSystem = request.HasResolvedCoordSystem,
+                HasFreshLatestState = request.HasFreshLatestState,
+                HasFreshLatestDrift = request.HasFreshLatestDrift,
+                IsDriftWithinThreshold = request.IsDriftWithinThreshold,
+                LatestStateTimestampUtc = request.LatestStateTimestampUtc,
+                LatestDriftTimestampUtc = request.LatestDriftTimestampUtc,
             };
+
+            if (!IsCommandAllowedForSession(request.Kind, request.SessionMode))
+            {
+                result.Block($"session mode {request.SessionMode} does not allow {request.Kind}");
+                return result;
+            }
 
             if (request.ConnectionService == null || request.ConnectionService.Client == null)
             {
                 result.Block("connection service missing");
+                return result;
+            }
+
+            var usingReadbackOnlyClient = IsReadbackOnlyClient(request.ConnectionService.Client);
+            var allowTinyMoveJOverride =
+                request.Kind == LiveCommandKind.MoveJ
+                && request.HasDedicatedTinyMoveJMotionPath
+                && request.AllowReadbackOnlyMotionPathOverride
+                && request.SessionMode == LiveCommandSessionMode.TinyMoveJOnly;
+            var allowGripperOverride =
+                request.Kind == LiveCommandKind.MoveGripper
+                && request.AllowReadbackOnlyGripperPathOverride
+                && request.SessionMode == LiveCommandSessionMode.GripperOnly;
+
+            if (request.Kind != LiveCommandKind.ReadbackOnly && usingReadbackOnlyClient && !allowTinyMoveJOverride && !allowGripperOverride)
+            {
+                result.Status = LiveCommandGateStatus.ReadbackOnly;
+                result.BlockReasons.Add("live client is readback-only");
+                result.ClearedReasons.Add("actual motion/IO/gripper commands remain locked on macOS live readback");
                 return result;
             }
 
@@ -78,7 +120,9 @@ namespace KineTutor3D.App.Fairino
                 result.Block("not connected");
             }
 
-            if (!request.ConnectionService.Client.IsEnabled)
+            if (!allowTinyMoveJOverride
+                && request.Kind != LiveCommandKind.MoveGripper
+                && !request.ConnectionService.Client.IsEnabled)
             {
                 result.Block("servo disabled");
             }
@@ -112,6 +156,11 @@ namespace KineTutor3D.App.Fairino
                     result.Block("controller collision flag active");
                 }
 
+                if (!state.IsRobotEnabled)
+                {
+                    result.Block("servo disabled");
+                }
+
                 if (state.MainErrorCode != 0 || state.SubErrorCode != 0)
                 {
                     result.Block($"fault active main={state.MainErrorCode} sub={state.SubErrorCode}");
@@ -123,8 +172,48 @@ namespace KineTutor3D.App.Fairino
                 }
             }
 
+            if (request.ToolId <= 0)
+            {
+                result.Block("toolId missing");
+            }
+
+            if (request.UserId <= 0)
+            {
+                result.Block("userId missing");
+            }
+
+            if (!request.HasResolvedCoordSystem || string.IsNullOrWhiteSpace(request.CoordSystem))
+            {
+                result.Block("coordSystem unresolved");
+            }
+
+            if (!request.HasFreshLatestState)
+            {
+                result.Block("latest-state freshness failed");
+            }
+
+            if (!request.HasFreshLatestDrift)
+            {
+                result.Block("latest-drift freshness failed");
+            }
+
+            if (!request.IsDriftWithinThreshold)
+            {
+                result.Block("drift threshold failed");
+            }
+
             if (IsMotion(request.Kind))
             {
+                if (!request.HasMatchingPreparedTarget)
+                {
+                    result.Block("prepared target mismatch");
+                }
+
+                if (request.Kind == LiveCommandKind.MoveJ && !request.IsWithinTinyMoveRange)
+                {
+                    result.Block("tiny MoveJ range exceeded");
+                }
+
                 if (!request.HasDryRunPreviewArtifact)
                 {
                     result.Block("dry-run preview artifact missing");
@@ -135,12 +224,14 @@ namespace KineTutor3D.App.Fairino
                     result.Block("production IK guard not cleared");
                 }
 
-                if (!request.IsBoundaryDataReady || !request.IsTargetWithinBoundary)
+                if (!request.HasDedicatedTinyMoveJMotionPath
+                    && (!request.IsBoundaryDataReady || !request.IsTargetWithinBoundary))
                 {
                     result.Block("boundary data missing or target outside workspace");
                 }
 
-                if (!request.IsCollisionDataReady || !request.IsPredictedPathCollisionFree)
+                if (!request.HasDedicatedTinyMoveJMotionPath
+                    && (!request.IsCollisionDataReady || !request.IsPredictedPathCollisionFree))
                 {
                     result.Block("collision data missing or predicted path unsafe");
                 }
@@ -149,6 +240,11 @@ namespace KineTutor3D.App.Fairino
             if (request.Kind == LiveCommandKind.MoveGripper && !request.HasGripperReadback)
             {
                 result.Block("gripper readback missing");
+            }
+
+            if (!request.HasMatchingApprovalContext)
+            {
+                result.Block("operator approval target mismatch");
             }
 
             if (result.BlockReasons.Count > 0)
@@ -165,6 +261,20 @@ namespace KineTutor3D.App.Fairino
             }
 
             result.Status = LiveCommandGateStatus.Allowed;
+            result.ClearedReasons.Add($"tool/user/coord resolved: tool={request.ToolId}; user={request.UserId}; coord={request.CoordSystem}");
+            result.ClearedReasons.Add("latest-state freshness ok");
+            result.ClearedReasons.Add("latest-drift freshness ok");
+            result.ClearedReasons.Add("drift within threshold");
+            if (request.HasDedicatedTinyMoveJMotionPath)
+            {
+                result.ClearedReasons.Add("tiny MoveJ dedicated live path enabled");
+                result.ClearedReasons.Add("tiny MoveJ range guard within 2.0deg");
+            }
+            else if (request.Kind == LiveCommandKind.MoveGripper && request.AllowReadbackOnlyGripperPathOverride)
+            {
+                result.ClearedReasons.Add("gripper-only live path enabled");
+            }
+
             result.ClearedReasons.Add("operator confirm token accepted");
             result.ClearedReasons.Add("live preflight readback clear");
             return result;
@@ -197,6 +307,23 @@ namespace KineTutor3D.App.Fairino
             return kind is LiveCommandKind.MoveJ or LiveCommandKind.MoveL;
         }
 
+        private static bool IsCommandAllowedForSession(LiveCommandKind kind, LiveCommandSessionMode sessionMode)
+        {
+            return sessionMode switch
+            {
+                LiveCommandSessionMode.LiveControl => true,
+                LiveCommandSessionMode.ReadbackOnly => kind == LiveCommandKind.ReadbackOnly,
+                LiveCommandSessionMode.GripperOnly => kind is LiveCommandKind.ReadbackOnly or LiveCommandKind.MoveGripper,
+                LiveCommandSessionMode.TinyMoveJOnly => kind is LiveCommandKind.ReadbackOnly or LiveCommandKind.MoveJ,
+                _ => kind == LiveCommandKind.ReadbackOnly,
+            };
+        }
+
+        private static bool IsReadbackOnlyClient(IFairinoRobotClient client)
+        {
+            return client is IFairinoLiveClientDiagnostics { IsReadbackOnly: true };
+        }
+
         private static string BuildStateSummary(FairinoRobotState state)
         {
             return $"mode={state.RobotMode}; enabled={state.IsRobotEnabled}; queue={state.MotionQueueLength}; safety={state.SafetyCode}; fault={state.MainErrorCode}/{state.SubErrorCode}; eStop={state.IsEmergencyStop}; collision={state.IsCollisionDetected}; tool={state.ToolId}; user={state.UserId}";
@@ -209,8 +336,24 @@ namespace KineTutor3D.App.Fairino
         public FairinoConnectionService ConnectionService { get; set; }
         public bool AllowDryRun { get; set; }
         public bool OperatorConfirmed { get; set; }
+        public bool HasMatchingPreparedTarget { get; set; } = true;
+        public bool HasMatchingApprovalContext { get; set; } = true;
+        public LiveCommandSessionMode SessionMode { get; set; } = LiveCommandSessionMode.LiveControl;
+        public bool AllowReadbackOnlyMotionPathOverride { get; set; }
+        public bool AllowReadbackOnlyGripperPathOverride { get; set; }
+        public bool HasDedicatedTinyMoveJMotionPath { get; set; }
+        public bool IsWithinTinyMoveRange { get; set; } = true;
         public int RequestedSpeedPercent { get; set; }
         public int SpeedCapPercent { get; set; } = LiveCommandSafetyGate.DefaultLiveSpeedCapPercent;
+        public int ToolId { get; set; } = 1;
+        public int UserId { get; set; } = 1;
+        public string CoordSystem { get; set; } = "Base";
+        public bool HasResolvedCoordSystem { get; set; } = true;
+        public bool HasFreshLatestState { get; set; } = true;
+        public bool HasFreshLatestDrift { get; set; } = true;
+        public bool IsDriftWithinThreshold { get; set; } = true;
+        public string LatestStateTimestampUtc { get; set; } = string.Empty;
+        public string LatestDriftTimestampUtc { get; set; } = string.Empty;
         public bool HasDryRunPreviewArtifact { get; set; }
         public bool IsProductionIkSafe { get; set; }
         public bool IsBoundaryDataReady { get; set; }
@@ -228,6 +371,15 @@ namespace KineTutor3D.App.Fairino
         public LiveCommandRiskLevel RiskLevel { get; set; }
         public int RequestedSpeedPercent { get; set; }
         public int SpeedCapPercent { get; set; }
+        public int ToolId { get; set; }
+        public int UserId { get; set; }
+        public string CoordSystem { get; set; } = string.Empty;
+        public bool HasResolvedCoordSystem { get; set; }
+        public bool HasFreshLatestState { get; set; }
+        public bool HasFreshLatestDrift { get; set; }
+        public bool IsDriftWithinThreshold { get; set; }
+        public string LatestStateTimestampUtc { get; set; } = string.Empty;
+        public string LatestDriftTimestampUtc { get; set; } = string.Empty;
         public string ReadbackSummary { get; set; } = string.Empty;
         public List<string> BlockReasons { get; } = new();
         public List<string> ClearedReasons { get; } = new();
@@ -244,7 +396,7 @@ namespace KineTutor3D.App.Fairino
 
         public string ToSummary()
         {
-            return $"kind={Kind}; status={Status}; risk={RiskLevel}; speed={RequestedSpeedPercent}; cap={SpeedCapPercent}; blocks=[{string.Join(" | ", BlockReasons)}]; cleared=[{string.Join(" | ", ClearedReasons)}]; readback=[{ReadbackSummary}]";
+            return $"kind={Kind}; status={Status}; risk={RiskLevel}; speed={RequestedSpeedPercent}; cap={SpeedCapPercent}; tool={ToolId}; user={UserId}; coord={CoordSystem}; coordResolved={HasResolvedCoordSystem}; latestStateFresh={HasFreshLatestState}; latestDriftFresh={HasFreshLatestDrift}; driftWithinThreshold={IsDriftWithinThreshold}; latestStateUtc={LatestStateTimestampUtc}; latestDriftUtc={LatestDriftTimestampUtc}; blocks=[{string.Join(" | ", BlockReasons)}]; cleared=[{string.Join(" | ", ClearedReasons)}]; readback=[{ReadbackSummary}]";
         }
     }
 }

@@ -23,6 +23,8 @@ namespace KineTutor3D.UI.RobotControlV3
         private VisualElement easyMotionSheetHost;
         private ConnectionHomeController connectionHomeController;
         private RobotControlV3RuntimeController runtimeController;
+        private PopupCoordinatorV3 popupCoordinator;
+        private EasyMotionGripperLiveControl gripperControl;
         private string selectedPresetName = "Ready";
 
         private PanelElements desktopPanel;
@@ -30,6 +32,7 @@ namespace KineTutor3D.UI.RobotControlV3
         private bool isDesktopVisible;
         private bool isTabletVisible;
         private bool isInitialized;
+        private bool isInitializing;
         private Coroutine initializeCoroutine;
 
         private void OnEnable()
@@ -52,6 +55,7 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             isInitialized = false;
+            isInitializing = false;
         }
 
         public string GetDebugSummary()
@@ -84,17 +88,65 @@ namespace KineTutor3D.UI.RobotControlV3
             return TryInitialize();
         }
 
+        public string SetGripperSliderForDebug(int positionPercent)
+        {
+            if (!TryInitialize())
+            {
+                return "Easy Motion 초기화 실패";
+            }
+
+            var summary = gripperControl?.SetDraftForDebug(positionPercent, apply: true) ?? "Easy Motion 그리퍼 조작부를 찾지 못했다";
+            return $"legacySlider=removed; {summary}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}";
+        }
+
+        public string SetGripperInputForDebug(float positionPercent, bool apply = false)
+        {
+            if (!TryInitialize())
+            {
+                return "Easy Motion 초기화 실패";
+            }
+
+            var summary = gripperControl?.SetDraftForDebug(positionPercent, apply) ?? "Easy Motion 그리퍼 입력창을 찾지 못했다";
+            return $"{summary}; applied={apply}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}";
+        }
+
+        public string GetGripperInputStateForDebug()
+        {
+            if (!TryInitialize())
+            {
+                return "Easy Motion 초기화 실패";
+            }
+
+            var summary = gripperControl?.GetDebugState() ?? "Easy Motion 그리퍼 입력 상태를 찾지 못했다";
+            return $"{summary}; desktopVisible={isDesktopVisible}; tabletVisible={isTabletVisible}";
+        }
+
         private bool TryInitialize()
         {
+            if (isInitialized)
+            {
+                return true;
+            }
+
+            if (isInitializing)
+            {
+                return false;
+            }
+
+            isInitializing = true;
+            try
+            {
             document ??= GetComponent<UIDocument>();
             connectionHomeController ??= GetComponent<ConnectionHomeController>();
             runtimeController ??= GetComponent<RobotControlV3RuntimeController>();
+            popupCoordinator ??= GetComponent<PopupCoordinatorV3>();
             root = document?.rootVisualElement;
             if (root == null || easyMotionTemplate == null || connectionHomeController == null || runtimeController == null)
             {
                 return false;
             }
 
+            gripperControl ??= new EasyMotionGripperLiveControl(runtimeController, popupCoordinator);
             CacheShellElements();
             if (easyMotionPanelHost == null || easyMotionSheetHost == null)
             {
@@ -108,12 +160,17 @@ namespace KineTutor3D.UI.RobotControlV3
             }
 
             ApplyShellStateSnapshot();
+            isInitialized = true;
             connectionHomeController.PreviewChanged -= ApplyPreview;
             connectionHomeController.PreviewChanged += ApplyPreview;
             ApplyPreview(connectionHomeController.CurrentPreviewDefinition);
             ApplyVisibility();
-            isInitialized = true;
             return true;
+            }
+            finally
+            {
+                isInitializing = false;
+            }
         }
 
         private void ApplyShellStateSnapshot()
@@ -166,7 +223,7 @@ namespace KineTutor3D.UI.RobotControlV3
             host.Clear();
             var tree = easyMotionTemplate.CloneTree();
             host.Add(tree);
-            var panel = new PanelElements(tree);
+            var panel = new PanelElements(tree, gripperControl);
             RegisterPanel(panel);
             return panel;
         }
@@ -184,8 +241,6 @@ namespace KineTutor3D.UI.RobotControlV3
             RegisterClick(panel.BtnEasyZero, () => SelectPresetAndPreview("Zero"));
             RegisterClick(panel.BtnEasyPreview, PreviewSelectedPreset);
             RegisterClick(panel.BtnEasyApply, ApplySelectedPreset);
-            RegisterClick(panel.BtnGripperOpen, () => runtimeController?.SetGripperOpen(true));
-            RegisterClick(panel.BtnGripperClose, () => runtimeController?.SetGripperOpen(false));
         }
 
         private static void RegisterClick(Button button, System.Action handler)
@@ -200,6 +255,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void ApplyPreview(RobotControlV3RuntimeSnapshot data)
         {
+            gripperControl?.UpdateSnapshot(data);
             ApplyPanel(desktopPanel, data, connectionHomeController.CurrentPreviewState);
             ApplyPanel(tabletPanel, data, connectionHomeController.CurrentPreviewState);
         }
@@ -211,7 +267,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
-            panel.EasyStateSummary.text = $"{data.StatusConnection} · Tool {data.StatusTool} · User {data.StatusUser}";
+            panel.EasyStateSummary.text = $"{data.StatusConnection} · {data.StatusTool} · {data.StatusUser}";
             panel.EasyModeBadge.text = state == PendantV3PreviewState.Kind.ReadyToJog ? "조작 가능" : "초보자 시작";
             panel.EasyDryRunLabel.text = $"{data.GripperSummary} · {data.ToolDoSummary}";
             panel.EasyActionHint.text = $"{data.ActionWhy} / {data.PeripheralFeedback}";
@@ -219,10 +275,9 @@ namespace KineTutor3D.UI.RobotControlV3
             var canPreview = state != PendantV3PreviewState.Kind.AutoReconnect;
             var canApply = data.DryRunEnabled || state == PendantV3PreviewState.Kind.ReadyToJog;
             var canGrip = data.DryRunEnabled
-                || state is PendantV3PreviewState.Kind.ReadyToJog
-                    or PendantV3PreviewState.Kind.ConnectedUnsynced
-                    or PendantV3PreviewState.Kind.ConnectedServoOff
-                    or PendantV3PreviewState.Kind.Disconnected;
+                || data.StatusKind is RobotControlV3RuntimeStatusKind.ConnectedServoOff
+                    or RobotControlV3RuntimeStatusKind.ConnectedUnsynced
+                    or RobotControlV3RuntimeStatusKind.ReadyToJog;
             var canPreset = canPreview;
 
             panel.BtnEasyHome.SetEnabled(canPreset);
@@ -231,8 +286,7 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.BtnEasyZero.SetEnabled(canPreset);
             panel.BtnEasyPreview.SetEnabled(canPreview);
             panel.BtnEasyApply.SetEnabled(canApply);
-            panel.BtnGripperOpen.SetEnabled(canGrip);
-            panel.BtnGripperClose.SetEnabled(canGrip);
+            gripperControl?.RefreshView(panel.GripperView, canGrip);
         }
 
         private void SelectPresetAndPreview(string presetName)
@@ -269,34 +323,318 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private sealed class PanelElements
         {
-            public PanelElements(VisualElement root)
+            public PanelElements(VisualElement root, EasyMotionGripperLiveControl liveControl)
             {
                 EasyModeBadge = root.Q<Label>("EasyModeBadge");
                 EasyStateSummary = root.Q<Label>("EasyStateSummary");
                 EasyDryRunLabel = root.Q<Label>("EasyDryRunLabel");
                 EasyActionHint = root.Q<Label>("EasyActionHint");
+                EasyGripperControlHost = root.Q<VisualElement>("EasyGripperControlHost");
                 BtnEasyHome = root.Q<Button>("BtnEasyHome");
                 BtnEasyReady = root.Q<Button>("BtnEasyReady");
                 BtnEasyFolded = root.Q<Button>("BtnEasyFolded");
                 BtnEasyZero = root.Q<Button>("BtnEasyZero");
-                BtnGripperOpen = root.Q<Button>("BtnGripperOpen");
-                BtnGripperClose = root.Q<Button>("BtnGripperClose");
                 BtnEasyPreview = root.Q<Button>("BtnEasyPreview");
                 BtnEasyApply = root.Q<Button>("BtnEasyApply");
+                GripperView = liveControl?.Attach(EasyGripperControlHost);
             }
 
             public Label EasyModeBadge { get; }
             public Label EasyStateSummary { get; }
             public Label EasyDryRunLabel { get; }
             public Label EasyActionHint { get; }
+            public VisualElement EasyGripperControlHost { get; }
             public Button BtnEasyHome { get; }
             public Button BtnEasyReady { get; }
             public Button BtnEasyFolded { get; }
             public Button BtnEasyZero { get; }
-            public Button BtnGripperOpen { get; }
-            public Button BtnGripperClose { get; }
             public Button BtnEasyPreview { get; }
             public Button BtnEasyApply { get; }
+            public EasyMotionGripperLiveControl.ViewHandle GripperView { get; }
+        }
+    }
+
+    internal sealed class EasyMotionGripperLiveControl
+    {
+        private readonly RobotControlV3RuntimeController runtimeController;
+        private readonly PopupCoordinatorV3 popupCoordinator;
+        private readonly System.Collections.Generic.List<ViewHandle> views = new();
+        private float requestedPercent = 100f;
+        private float actualPercent = 100f;
+        private float pendingDraftPercent = 100f;
+        private int rawPercent = 100;
+        private bool hasPendingDraft;
+        private bool hasReliableReadback = true;
+        private string lastApplyResult = "아직 적용 전";
+
+        public EasyMotionGripperLiveControl(RobotControlV3RuntimeController runtimeController, PopupCoordinatorV3 popupCoordinator)
+        {
+            this.runtimeController = runtimeController;
+            this.popupCoordinator = popupCoordinator;
+        }
+
+        public ViewHandle Attach(VisualElement host)
+        {
+            if (host == null)
+            {
+                return null;
+            }
+
+            var view = new ViewHandle(host);
+            views.Add(view);
+            Bind(view);
+            RefreshView(view, true);
+            return view;
+        }
+
+        public void UpdateSnapshot(RobotControlV3RuntimeSnapshot snapshot)
+        {
+            if (snapshot == null)
+            {
+                return;
+            }
+
+            requestedPercent = NormalizePercent(snapshot.GripperCommandedPositionPercent, requestedPercent);
+            actualPercent = NormalizePercent(snapshot.GripperActualPositionPercent, actualPercent);
+            rawPercent = Mathf.Clamp(snapshot.GripperRawActualPositionPercent, 0, 100);
+            hasReliableReadback = snapshot.HasReliableGripperReadback;
+            if (!hasPendingDraft)
+            {
+                pendingDraftPercent = requestedPercent;
+            }
+
+            RefreshAllViews();
+        }
+
+        public void RefreshView(ViewHandle view, bool enabled)
+        {
+            if (view == null)
+            {
+                return;
+            }
+
+            view.Enabled = enabled;
+            view.ActualLabel.text = hasReliableReadback
+                ? $"현재 실제값 {FormatPercent(actualPercent)}%"
+                : "현재 실제값 확인 안 됨";
+            view.CommandLabel.text = $"현재 명령값 {FormatPercent(requestedPercent)}%";
+            view.RawLabel.text = $"SDK raw {rawPercent}%";
+            view.DraftLabel.text = hasPendingDraft
+                ? $"입력 대기 {FormatPercent(pendingDraftPercent)}% · 자동 덮어쓰기 잠금"
+                : "입력값 동기화됨";
+            view.ResultLabel.text = $"마지막 적용 {lastApplyResult}";
+            if (!view.IsEditingInput)
+            {
+                var visibleInput = hasPendingDraft ? pendingDraftPercent : requestedPercent;
+                view.PositionInput.SetValueWithoutNotify(visibleInput);
+            }
+
+            view.SetEnabled(enabled);
+        }
+
+        public string SetDraftForDebug(float positionPercent, bool apply)
+        {
+            var clamped = NormalizePercent(positionPercent, pendingDraftPercent);
+            if (apply)
+            {
+                ApplyRequestedPosition(clamped);
+            }
+            else
+            {
+                pendingDraftPercent = clamped;
+                hasPendingDraft = true;
+                RefreshAllViews();
+            }
+
+            return GetDebugState();
+        }
+
+        public string GetDebugState()
+        {
+            return $"requested={FormatPercent(requestedPercent)}; actual={FormatPercent(actualPercent)}; raw={rawPercent}; draft={FormatPercent(pendingDraftPercent)}; pending={hasPendingDraft}; readback={hasReliableReadback}; lastApply={lastApplyResult}";
+        }
+
+        private void Bind(ViewHandle view)
+        {
+            view.PositionInput.RegisterValueChangedCallback(evt =>
+            {
+                pendingDraftPercent = NormalizePercent(evt.newValue, pendingDraftPercent);
+                hasPendingDraft = true;
+                RefreshAllViews();
+            });
+            view.PositionInput.RegisterCallback<FocusInEvent>(_ =>
+            {
+                view.IsEditingInput = true;
+                view.PositionInput.SelectAll();
+            });
+            view.PositionInput.RegisterCallback<FocusOutEvent>(_ =>
+            {
+                pendingDraftPercent = NormalizePercent(view.PositionInput.value, pendingDraftPercent);
+                hasPendingDraft = true;
+                view.IsEditingInput = false;
+                RefreshAllViews();
+            });
+            view.ApplyButton.clicked += () => ApplyRequestedPosition(pendingDraftPercent);
+            view.Preset100Button.clicked += () => ApplyRequestedPosition(100f);
+            view.Preset70Button.clicked += () => ApplyRequestedPosition(70f);
+            view.Preset50Button.clicked += () => ApplyRequestedPosition(50f);
+        }
+
+        private void ApplyRequestedPosition(float positionPercent)
+        {
+            var clamped = NormalizePercent(positionPercent, pendingDraftPercent);
+            pendingDraftPercent = clamped;
+            hasPendingDraft = true;
+
+            if (runtimeController == null)
+            {
+                lastApplyResult = "런타임을 찾지 못했다.";
+                RefreshAllViews();
+                return;
+            }
+
+            if (popupCoordinator != null && runtimeController.ShouldRouteGripperOperatorThroughLiveApproval())
+            {
+                lastApplyResult = runtimeController.PrepareGripperOperatorApproval(clamped);
+                if (runtimeController.HasPendingGripperOperatorApproval())
+                {
+                    popupCoordinator.OpenMoveConfirmForProduct();
+                }
+
+                RefreshAllViews();
+                return;
+            }
+
+            var result = runtimeController.SetGripperPositionPercentFromOperator(clamped);
+            lastApplyResult = string.IsNullOrWhiteSpace(result.Message) ? "적용 결과 없음" : result.Message;
+            if (result.IsSuccess)
+            {
+                requestedPercent = clamped;
+                hasPendingDraft = false;
+                pendingDraftPercent = clamped;
+            }
+
+            RefreshAllViews();
+        }
+
+        private void RefreshAllViews()
+        {
+            for (var i = 0; i < views.Count; i++)
+            {
+                RefreshView(views[i], views[i].Enabled);
+            }
+        }
+
+        private static float NormalizePercent(float value, float fallback)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+            {
+                value = fallback;
+            }
+
+            return Mathf.Clamp(value, 0f, 100f);
+        }
+
+        private static string FormatPercent(float value)
+        {
+            return NormalizePercent(value, 0f).ToString("0.##");
+        }
+
+        internal sealed class ViewHandle
+        {
+            public ViewHandle(VisualElement host)
+            {
+                host.Clear();
+
+                ActualLabel = CreateLabel("EasyGripperActual", "rc-easy-gripper-status");
+                CommandLabel = CreateLabel("EasyGripperRequested", "rc-easy-gripper-status");
+                RawLabel = CreateLabel("EasyGripperRaw", "rc-easy-gripper-meta");
+                DraftLabel = CreateLabel("EasyGripperDraft", "rc-easy-gripper-meta");
+                ResultLabel = CreateLabel("EasyGripperResult", "rc-easy-gripper-meta");
+
+                PositionInput = new FloatField("입력 %")
+                {
+                    name = "EasyGripperPositionInput",
+                    value = 100f,
+                    isDelayed = false,
+                };
+                PositionInput.AddToClassList("rc-easy-number-field");
+
+                ApplyButton = new Button
+                {
+                    name = "BtnEasyGripperApply",
+                    text = "적용",
+                };
+                ApplyButton.AddToClassList("rc-easy-action-button");
+
+                Preset100Button = CreateQuickButton("BtnEasyGripper100", "100");
+                Preset70Button = CreateQuickButton("BtnEasyGripper70", "70");
+                Preset50Button = CreateQuickButton("BtnEasyGripper50", "50");
+
+                host.Add(ActualLabel);
+                host.Add(CommandLabel);
+                host.Add(RawLabel);
+                host.Add(DraftLabel);
+
+                var inputRow = new VisualElement();
+                inputRow.AddToClassList("rc-easy-control-row");
+                inputRow.Add(PositionInput);
+                inputRow.Add(ApplyButton);
+                host.Add(inputRow);
+
+                var quickRow = new VisualElement();
+                quickRow.AddToClassList("rc-easy-control-row");
+                quickRow.Add(Preset100Button);
+                quickRow.Add(Preset70Button);
+                quickRow.Add(Preset50Button);
+                host.Add(quickRow);
+
+                host.Add(ResultLabel);
+            }
+
+            public Label ActualLabel { get; }
+            public Label CommandLabel { get; }
+            public Label RawLabel { get; }
+            public Label DraftLabel { get; }
+            public Label ResultLabel { get; }
+            public FloatField PositionInput { get; }
+            public Button ApplyButton { get; }
+            public Button Preset100Button { get; }
+            public Button Preset70Button { get; }
+            public Button Preset50Button { get; }
+            public bool Enabled { get; set; }
+            public bool IsEditingInput { get; set; }
+
+            public void SetEnabled(bool enabled)
+            {
+                PositionInput.SetEnabled(enabled);
+                ApplyButton.SetEnabled(enabled);
+                Preset100Button.SetEnabled(enabled);
+                Preset70Button.SetEnabled(enabled);
+                Preset50Button.SetEnabled(enabled);
+            }
+
+            private static Label CreateLabel(string name, string className)
+            {
+                var label = new Label
+                {
+                    name = name,
+                };
+                label.AddToClassList(className);
+                return label;
+            }
+
+            private static Button CreateQuickButton(string name, string text)
+            {
+                var button = new Button
+                {
+                    name = name,
+                    text = text,
+                };
+                button.AddToClassList("rc-easy-action-button");
+                button.AddToClassList("rc-easy-quick-button");
+                return button;
+            }
         }
     }
 }

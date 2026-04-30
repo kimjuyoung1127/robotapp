@@ -277,6 +277,11 @@ namespace KineTutor3D.App.UniversalRobots
             return FairinoResult<FairinoGripperStatus>.Fail(-62, "Mock UR5e gripper unsupported");
         }
 
+        public FairinoResult<FairinoGripperConfigState> ReadGripperConfig()
+        {
+            return FairinoResult<FairinoGripperConfigState>.Fail(-62, "Mock UR5e gripper unsupported");
+        }
+
         public FairinoResult ConfigureGripper(FairinoGripperProfile profile)
         {
             return FairinoResult.Fail(-62, "Mock UR5e gripper unsupported");
