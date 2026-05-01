@@ -33,7 +33,12 @@
    - `FunctionBuilder`, `FunctionSelection`, `FunctionBulkOps`, `FunctionRunLoop`, `FunctionView`
    - `dotnet build` green
    - Unity compile check pass
-2. `RobotControlV3RuntimeController.ViewState.cs`
+2. `RobotControlV3RuntimeController.ViewState.cs` - completed
+   - `StatusSafety` bucket partial split
+   - `SnapshotComposition`, `OperatorCopy`, `GateSummary`, `ModeSessionLabels`
+   - `dotnet build` green
+   - Unity asset import/refresh 완료
+   - Unity compile check는 IPC recovery 후 재시도 필요
 3. `PointMoveController.PointActions.cs`
 4. `RobotControlV3RuntimeController.LiveApproval.cs`
 5. `PointMoveController.ListsAndModals.cs` second pass

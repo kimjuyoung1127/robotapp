@@ -158,6 +158,19 @@
      - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
      - `unityctl check --project /Users/family/jason/FR5UNITY/robotapp --type compile --json`
 
+2. `RobotControlV3RuntimeController.ViewState.cs`
+   - Completed as a `StatusSafety` bucket split inside `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/App/Fairino/RobotControlV3RuntimeController/StatusSafety`
+   - Result:
+     - `RobotControlV3RuntimeController.ViewState.cs` -> `ApplyVisualState` 중심 축소
+     - `RobotControlV3RuntimeController.SnapshotComposition.cs`
+     - `RobotControlV3RuntimeController.OperatorCopy.cs`
+     - `RobotControlV3RuntimeController.GateSummary.cs`
+     - `RobotControlV3RuntimeController.ModeSessionLabels.cs`
+   - Validation:
+     - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
+     - Unity asset import/refresh 완료
+     - Unity compile check는 IPC recovery 후 재시도 필요
+
 ### P1 - Immediate Follow-Up
 
 3. `PointMoveController.PointActions.cs`
@@ -201,9 +214,9 @@
 
 ## Suggested Execution Order
 
-1. `RobotControlV3RuntimeController.ViewState.cs`
-2. `PointMoveController.PointActions.cs`
-3. `RobotControlV3RuntimeController.LiveApproval.cs`
-4. `PointMoveController.ListsAndModals.cs` second pass
+1. `PointMoveController.PointActions.cs`
+2. `RobotControlV3RuntimeController.LiveApproval.cs`
+3. `PointMoveController.ListsAndModals.cs` second pass
+4. `RobotControlV3RuntimeController.Teaching.cs`
 
 This is the current recommended order unless a live robot blocker forces a different path.

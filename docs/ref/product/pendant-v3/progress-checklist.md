@@ -44,11 +44,17 @@
   - 새 partial: `FunctionBuilder`, `FunctionSelection`, `FunctionBulkOps`, `FunctionRunLoop`, `FunctionView`
   - `PointMoveController.Functions.cs`는 thin anchor partial로 축소됐다.
   - 검증: `dotnet build` green, Unity compile check pass
+- `RobotControlV3RuntimeController.ViewState.cs` 1차 분리는 완료했다.
+  - `StatusSafety` 버킷 안에서 같은 패턴으로 쪼갰다.
+  - 새 partial: `SnapshotComposition`, `OperatorCopy`, `GateSummary`, `ModeSessionLabels`
+  - `RobotControlV3RuntimeController.ViewState.cs`는 `ApplyVisualState()` 중심 파일로 축소됐다.
+  - 검증: `dotnet build` green
+  - Unity compile check는 새 partial import 뒤 IPC가 아직 `not ready` 상태라 재시도 필요
 - 다음 분리 우선순위:
-  1. `RobotControlV3RuntimeController.ViewState.cs`
-  2. `PointMoveController.PointActions.cs`
-  3. `RobotControlV3RuntimeController.LiveApproval.cs`
-  4. `PointMoveController.ListsAndModals.cs` second pass
+  1. `PointMoveController.PointActions.cs`
+  2. `RobotControlV3RuntimeController.LiveApproval.cs`
+  3. `PointMoveController.ListsAndModals.cs` second pass
+  4. `RobotControlV3RuntimeController.Teaching.cs`
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 현재 기준으로는 상대적으로 cohesive한 파일로 유지한다.
 
 ## 2026-04-20 Viewport Note

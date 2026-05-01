@@ -27,3 +27,7 @@ Safety/Status/WhyItMoved 패널이 쓰는 diagnostics, evidence, live safety bac
 - `RobotControlV3RuntimeController.Evidence.cs`
 - `RobotControlV3RuntimeController.StatusSafety.cs`
 - `RobotControlV3RuntimeController.LiveSafety.cs`
+- `RobotControlV3RuntimeController.SnapshotComposition.cs`
+- `RobotControlV3RuntimeController.OperatorCopy.cs`
+- `RobotControlV3RuntimeController.GateSummary.cs`
+- `RobotControlV3RuntimeController.ModeSessionLabels.cs`
