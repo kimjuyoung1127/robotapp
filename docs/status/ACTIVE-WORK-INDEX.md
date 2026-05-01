@@ -5,12 +5,12 @@ status: "active"
 domain: "status"
 audience: "human-and-agent"
 canonical: true
-last_updated: "2026-04-30"
+last_updated: "2026-05-01"
 ---
 
 # Active Work Index
 
-최종 업데이트: 2026-04-30 (KST)
+최종 업데이트: 2026-05-01 (KST)
 
 ## 목적
 
@@ -30,8 +30,9 @@ last_updated: "2026-04-30"
 8. [fr5-auto-manual-mode-transition-plan.md](../ref/product/roadmap/fr5-auto-manual-mode-transition-plan.md)
 9. [fr5-connect-sync-debug-success-pattern.md](../ref/product/roadmap/fr5-connect-sync-debug-success-pattern.md)
 10. [progress-checklist.md](../ref/product/pendant-v3/progress-checklist.md)
-11. 과거 현장 서사가 필요할 때만 [fr5-live-field-history.md](../ref/product/roadmap/fr5-live-field-history.md)
-12. 필요할 때만 [PRODUCT-DOC-BOARD.md](./PRODUCT-DOC-BOARD.md), [PHASE-EXECUTION-BOARD.md](./PHASE-EXECUTION-BOARD.md)
+11. [v3-componentization-priority-plan.md](../ref/product/pendant-v3/v3-componentization-priority-plan.md) - V3 구조 정리 우선순위 SSOT
+12. 과거 현장 서사가 필요할 때만 [fr5-live-field-history.md](../ref/product/roadmap/fr5-live-field-history.md)
+13. 필요할 때만 [PRODUCT-DOC-BOARD.md](./PRODUCT-DOC-BOARD.md), [PHASE-EXECUTION-BOARD.md](./PHASE-EXECUTION-BOARD.md)
 
 ## 현재 활성 트랙
 
@@ -83,6 +84,7 @@ last_updated: "2026-04-30"
 - SSOT:
   - [progress-checklist.md](../ref/product/pendant-v3/progress-checklist.md)
   - [README.md](../ref/product/pendant-v3/README.md)
+  - [v3-componentization-priority-plan.md](../ref/product/pendant-v3/v3-componentization-priority-plan.md)
 
 ## 아직 안 한 것만 보기
 
@@ -92,6 +94,7 @@ last_updated: "2026-04-30"
 | open | official SDK audit `P1`: current `J5/J6 both directions + same-day repeatability`를 `multi-cycle repeatability`와 next-joint expansion 기준으로 넓히기 | [fr5-live-official-sdk-audit.md](../ref/product/roadmap/fr5-live-official-sdk-audit.md), [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [fr5-tiny-joint-live-success-pattern.md](../ref/product/roadmap/fr5-tiny-joint-live-success-pattern.md) |
 | open | official SDK audit `P2`: tiny joint green을 바탕으로 joint/TCP operator/debug flow와 auto-mode dependency를 축약 | [fr5-live-official-sdk-audit.md](../ref/product/roadmap/fr5-live-official-sdk-audit.md), [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [fr5-auto-manual-mode-transition-plan.md](../ref/product/roadmap/fr5-auto-manual-mode-transition-plan.md) |
 | open | `Easy Motion` gripper confirm/debug flow를 단순화하고 `미리보기 적용 / 실제 이동` 분리 semantics를 실기에서 다시 검증 | [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [fr5-gripper-live-success-pattern.md](../ref/product/roadmap/fr5-gripper-live-success-pattern.md) |
+| open | V3 큰 파일의 다음 구조 정리를 `책임 혼합도` 기준으로 진행한다. 현재 첫 순서는 `PointMoveController.Functions -> ViewState -> PointActions -> LiveApproval`이다 | [v3-componentization-priority-plan.md](../ref/product/pendant-v3/v3-componentization-priority-plan.md), [progress-checklist.md](../ref/product/pendant-v3/progress-checklist.md) |
 | open | 공통 Live QA runner로 `joint/TCP/gripper/point` field evidence를 같은 형식으로 축적 | [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [robotcontrol-next-session-handoff.md](../ref/product/ux/robotcontrol-next-session-handoff.md) |
 | open | `Easy Motion` 슬라이더 조작이 실기 gripper를 실시간으로 따라오게 만들기 | [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [fr5-live-field-checklist.md](../ref/product/roadmap/fr5-live-field-checklist.md) |
 | open | tiny joint direct-input 성공패턴의 `5deg` acceptance를 다른 일부 축으로 넓힌다 | [FR5-LIVE-INTEGRATION-ROADMAP.md](./FR5-LIVE-INTEGRATION-ROADMAP.md), [fr5-tiny-joint-live-success-pattern.md](../ref/product/roadmap/fr5-tiny-joint-live-success-pattern.md) |

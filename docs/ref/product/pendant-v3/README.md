@@ -22,7 +22,7 @@ last_updated: "2026-04-29"
 - [robot-button-integration-plan.md](./robot-button-integration-plan.md) — V3 버튼-로봇 연동 SSOT
 
 ## Last Updated
-- 2026-04-22 (KST)
+- 2026-05-01 (KST)
 
 ---
 
@@ -81,6 +81,7 @@ last_updated: "2026-04-29"
   - 기존 상용 티칭펜던트보다 쉬운 UX를 목표로 `현재 위치로 덮어쓰기`, readable point detail, `선택 지점부터 실행`, 쉬운 함수명(`Pick`, `Place`)을 계획에 포함한다.
   - 포인트 이름은 사용자 입력으로 잠그고, 빈 이름 저장 금지, 중복 이름은 확인 후 덮어쓰기, 실행 중 편집 금지, 실패 시 즉시 정지로 정한다.
 - 최신 진행률/검증 수치는 [progress-checklist.md](./progress-checklist.md)를 SSOT로 본다.
+- V3 구조 분해의 현재 스캔 결과와 다음 분리 순서는 [v3-componentization-priority-plan.md](./v3-componentization-priority-plan.md)를 SSOT로 본다.
 - 오늘 구현 로그:
   - `docs/daily/04-22/pendant-v3-teaching-sequence-execution-plan.md`
   - `docs/daily/04-22/pendant-v3-product-live-confirm-token.md`

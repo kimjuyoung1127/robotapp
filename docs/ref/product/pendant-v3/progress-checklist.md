@@ -6,7 +6,7 @@
 - daily log와 달리 "지금 어디까지 왔는지"만 짧게 유지한다.
 
 ## Last Updated
-- 2026-04-29 (KST)
+- 2026-05-01 (KST)
 
 ## Current Phase Snapshot
 
@@ -34,6 +34,22 @@
 | `3B` 로컬 서비스 | in_progress | Product live confirm token 완료, manual readback `6/6 PASS`, sequence runtime/run-step/order-overwrite/detail/duplicate/timing/confirm/edit-lock/loop/run-from-selected/function-v1-polish `33/33 PASS`, shared live QA runner scaffold 추가, verified controller mode path + header `자동/수동` 버튼 노출, teaching point live `single point / two-point once` green |
 | `3C` mock e2e | done | Desktop actual click baseline `110/110 PASS`, function actual click current contract `7/7 PASS`, tablet/bottom representative `16/16 PASS`, popup/safety/point/live-readback/live-command gate artifacts 생성 |
 | `4` V2 vs V3 평가 | pending | 미착수 |
+
+## 2026-05-01 Componentization Backlog Lock
+
+- `RobotControlV3`의 다음 구조 정리 기준은 `줄 수`가 아니라 `책임 혼합도`다.
+- current canonical split priority는 [v3-componentization-priority-plan.md](./v3-componentization-priority-plan.md)로 잠근다.
+- `PointMoveController.Functions.cs` 1차 분리는 완료했다.
+  - 기존 `PointMoveController/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 새 partial: `FunctionBuilder`, `FunctionSelection`, `FunctionBulkOps`, `FunctionRunLoop`, `FunctionView`
+  - `PointMoveController.Functions.cs`는 thin anchor partial로 축소됐다.
+  - 검증: `dotnet build` green, Unity compile check pass
+- 다음 분리 우선순위:
+  1. `RobotControlV3RuntimeController.ViewState.cs`
+  2. `PointMoveController.PointActions.cs`
+  3. `RobotControlV3RuntimeController.LiveApproval.cs`
+  4. `PointMoveController.ListsAndModals.cs` second pass
+- `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 현재 기준으로는 상대적으로 cohesive한 파일로 유지한다.
 
 ## 2026-04-20 Viewport Note
 

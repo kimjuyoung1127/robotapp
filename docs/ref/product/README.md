@@ -28,3 +28,6 @@ last_updated: "2026-04-29"
 2. [roadmap/current-feature-checklist.md](./roadmap/current-feature-checklist.md)
 3. [ux/robotcontrol-next-session-handoff.md](./ux/robotcontrol-next-session-handoff.md)
 
+## Current Notes
+
+- `Pendant V3` 구조 정리 우선순위는 [pendant-v3/v3-componentization-priority-plan.md](./pendant-v3/v3-componentization-priority-plan.md)를 본다.
