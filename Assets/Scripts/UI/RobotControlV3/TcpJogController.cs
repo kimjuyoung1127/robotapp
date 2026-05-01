@@ -279,6 +279,10 @@ namespace KineTutor3D.UI.RobotControlV3
                 : "3D 방향 조작은 보조패널에서만 보여 로봇 메인 뷰를 가리지 않는다.";
             panel.BtnPreview.SetEnabled(CanPreview());
             panel.BtnApply.SetEnabled(CanApply());
+            if (!CanApply())
+            {
+                panel.Hint.text = "TCP 조그는 지금 프리뷰만 바뀐다. 실제 적용은 live 세션에서만 열린다.";
+            }
 
             for (var index = 0; index < panel.Rows.Length; index++)
             {
@@ -357,12 +361,6 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var reason = $"TCP {AxisSpecs[index].Label}{(direction > 0 ? "+" : "-")} 조그";
             var target = ToTcpPoseArray();
-            if (runtimeController.CurrentSnapshot.DryRunEnabled)
-            {
-                runtimeController.ApplyTcpPose(target, reason);
-                return;
-            }
-
             runtimeController.PreviewTcpPose(target, $"{reason} 프리뷰");
         }
 
@@ -376,7 +374,14 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private float GetIncrementValue() => GetLocalState().JogIncrement;
         private bool CanPreview() => connectionHomeController.CurrentPreviewState is not PendantV3PreviewState.Kind.Disconnected and not PendantV3PreviewState.Kind.AutoReconnect;
-        private bool CanApply() => connectionHomeController.CurrentPreviewState == PendantV3PreviewState.Kind.ReadyToJog;
+        private bool CanApply()
+        {
+            var snapshot = runtimeController?.CurrentSnapshot;
+            return connectionHomeController.CurrentPreviewState == PendantV3PreviewState.Kind.ReadyToJog
+                && snapshot != null
+                && !snapshot.DryRunEnabled
+                && snapshot.CurrentSessionMode is "live-control";
+        }
         private static float ParseValue(string rawValue) => float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0f;
 
         private static int ResolveAxisIndex(string axisLabel)

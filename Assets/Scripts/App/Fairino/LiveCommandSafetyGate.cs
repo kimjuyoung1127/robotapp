@@ -20,6 +20,7 @@ namespace KineTutor3D.App.Fairino
     public enum LiveCommandSessionMode
     {
         LiveControl,
+        LoopRunning,
         ReadbackOnly,
         GripperOnly,
         TinyMoveJOnly,
@@ -135,41 +136,23 @@ namespace KineTutor3D.App.Fairino
             var stateResult = request.ConnectionService.SyncCurrentState();
             if (!stateResult.IsSuccess)
             {
-                result.Block($"state readback failed: {stateResult.Message}");
+                if (request.AllowStateReadbackFailureFallback && request.HasFallbackState)
+                {
+                    var fallbackState = request.FallbackState;
+                    result.ReadbackSummary = BuildStateSummary(fallbackState);
+                    result.ClearedReasons.Add($"state fallback used: {request.StateReadbackFallbackReason}");
+                    ApplyStateChecks(fallbackState, result);
+                }
+                else
+                {
+                    result.Block($"state readback failed: {stateResult.Message}");
+                }
             }
             else
             {
                 var state = stateResult.Value;
                 result.ReadbackSummary = BuildStateSummary(state);
-                if (state.IsEmergencyStop)
-                {
-                    result.Block("emergency stop active");
-                }
-
-                if (state.IsSafetyStop)
-                {
-                    result.Block("safety stop active");
-                }
-
-                if (state.IsCollisionDetected)
-                {
-                    result.Block("controller collision flag active");
-                }
-
-                if (!state.IsRobotEnabled)
-                {
-                    result.Block("servo disabled");
-                }
-
-                if (state.MainErrorCode != 0 || state.SubErrorCode != 0)
-                {
-                    result.Block($"fault active main={state.MainErrorCode} sub={state.SubErrorCode}");
-                }
-
-                if (state.MotionQueueLength > 0)
-                {
-                    result.Block($"motion queue not empty: {state.MotionQueueLength}");
-                }
+                ApplyStateChecks(state, result);
             }
 
             if (request.ToolId <= 0)
@@ -312,6 +295,7 @@ namespace KineTutor3D.App.Fairino
             return sessionMode switch
             {
                 LiveCommandSessionMode.LiveControl => true,
+                LiveCommandSessionMode.LoopRunning => true,
                 LiveCommandSessionMode.ReadbackOnly => kind == LiveCommandKind.ReadbackOnly,
                 LiveCommandSessionMode.GripperOnly => kind is LiveCommandKind.ReadbackOnly or LiveCommandKind.MoveGripper,
                 LiveCommandSessionMode.TinyMoveJOnly => kind is LiveCommandKind.ReadbackOnly or LiveCommandKind.MoveJ,
@@ -327,6 +311,39 @@ namespace KineTutor3D.App.Fairino
         private static string BuildStateSummary(FairinoRobotState state)
         {
             return $"mode={state.RobotMode}; enabled={state.IsRobotEnabled}; queue={state.MotionQueueLength}; safety={state.SafetyCode}; fault={state.MainErrorCode}/{state.SubErrorCode}; eStop={state.IsEmergencyStop}; collision={state.IsCollisionDetected}; tool={state.ToolId}; user={state.UserId}";
+        }
+
+        private static void ApplyStateChecks(FairinoRobotState state, LiveCommandSafetyGateResult result)
+        {
+            if (state.IsEmergencyStop)
+            {
+                result.Block("emergency stop active");
+            }
+
+            if (state.IsSafetyStop)
+            {
+                result.Block("safety stop active");
+            }
+
+            if (state.IsCollisionDetected)
+            {
+                result.Block("controller collision flag active");
+            }
+
+            if (!state.IsRobotEnabled)
+            {
+                result.Block("servo disabled");
+            }
+
+            if (state.MainErrorCode != 0 || state.SubErrorCode != 0)
+            {
+                result.Block($"fault active main={state.MainErrorCode} sub={state.SubErrorCode}");
+            }
+
+            if (state.MotionQueueLength > 0)
+            {
+                result.Block($"motion queue not empty: {state.MotionQueueLength}");
+            }
         }
     }
 
@@ -362,6 +379,10 @@ namespace KineTutor3D.App.Fairino
         public bool IsPredictedPathCollisionFree { get; set; }
         public bool HasGripperReadback { get; set; }
         public bool TreatMockAsLiveForDebug { get; set; }
+        public bool AllowStateReadbackFailureFallback { get; set; }
+        public bool HasFallbackState { get; set; }
+        public FairinoRobotState FallbackState { get; set; }
+        public string StateReadbackFallbackReason { get; set; } = string.Empty;
     }
 
     public sealed class LiveCommandSafetyGateResult

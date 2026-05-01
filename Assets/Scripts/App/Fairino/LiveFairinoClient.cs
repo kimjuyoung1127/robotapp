@@ -145,16 +145,13 @@ namespace KineTutor3D.App.Fairino
                 return errorTranslator.ToResult(-1);
             }
 
-            var preflight = BestEffortPrepareForLiveMotion();
-            if (!preflight.IsSuccess)
-            {
-                return preflight;
-            }
-
-            var result = InvokeSdk("RobotEnable", (byte)1);
+            var result = InvokeRobotEnableWithDiagnostics(enableServo: true);
             if (result.IsSuccess)
             {
                 enabled = true;
+                // Some controllers refuse auto-mode correction while servo is still off.
+                // Bring servo up first, then normalize drag/auto as a best-effort follow-up.
+                BestEffortPrepareForLiveMotion();
             }
 
             return result;
@@ -167,7 +164,7 @@ namespace KineTutor3D.App.Fairino
                 return errorTranslator.ToResult(-1);
             }
 
-            var result = InvokeSdk("RobotEnable", (byte)0);
+            var result = InvokeRobotEnableWithDiagnostics(enableServo: false);
             if (result.IsSuccess)
             {
                 enabled = false;
@@ -678,6 +675,47 @@ namespace KineTutor3D.App.Fairino
             {
                 Debug.LogError($"[LiveFairinoClient] {methodName} 실패: {ex.Message}");
                 return FairinoResult.Fail(-6, ex.Message);
+            }
+        }
+
+        private FairinoResult InvokeRobotEnableWithDiagnostics(bool enableServo)
+        {
+            var requestedState = enableServo ? 1 : 0;
+            var args = new object[] { (byte)requestedState };
+            var method = ResolveBestMethod("RobotEnable", args);
+            try
+            {
+                var code = InvokeSdkRaw("RobotEnable", args);
+                var errCode = ConvertSdkReturnCode(code, "RobotEnable");
+                if (errCode == 0)
+                {
+                    return FairinoResult.Ok(enableServo ? "서보 ON" : "서보 OFF");
+                }
+
+                var fallbackArgs = new object[] { requestedState };
+                var fallbackMethod = ResolveBestMethod("RobotEnable", fallbackArgs);
+                if (fallbackMethod != null && !string.Equals(fallbackMethod.ToString(), method?.ToString(), StringComparison.Ordinal))
+                {
+                    var fallbackCode = InvokeSdkRaw("RobotEnable", fallbackArgs);
+                    var fallbackErr = ConvertSdkReturnCode(fallbackCode, "RobotEnable");
+                    if (fallbackErr == 0)
+                    {
+                        return FairinoResult.Ok(enableServo ? "서보 ON" : "서보 OFF");
+                    }
+
+                    return FairinoResult.Fail(
+                        fallbackErr,
+                        $"RobotEnable({requestedState}) 실패 · code={fallbackErr} · primary={method} · fallback={fallbackMethod} · connected={connected} · enabled={enabled} · mode={lastRobotMode} · drag={lastDragTeachActive}");
+                }
+
+                return FairinoResult.Fail(
+                    errCode,
+                    $"RobotEnable({requestedState}) 실패 · code={errCode} · method={method} · connected={connected} · enabled={enabled} · mode={lastRobotMode} · drag={lastDragTeachActive}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LiveFairinoClient] RobotEnable 진단 실패: {ex.Message}");
+                return FairinoResult.Fail(-6, $"RobotEnable({requestedState}) 예외 · method={method} · {ex.Message}");
             }
         }
 

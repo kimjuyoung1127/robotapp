@@ -614,7 +614,6 @@ namespace KineTutor3D.UI.RobotControlV3
 
             metaBlock.Add(BuildPopupLine($"승인 대상: {BuildApprovalTargetLabel(commandKind)}"));
             metaBlock.Add(BuildPopupLine($"확인 요약: {FormatApprovalLeadSummary(pendingLiveApprovalSummary)}"));
-            metaBlock.Add(BuildPopupLine($"승인 토큰: {pendingLiveApprovalToken}"));
             body.Insert(0, metaBlock);
         }
 
@@ -689,9 +688,7 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private static string BuildApprovalTargetLabel(string commandKind)
         {
-            return string.Equals(commandKind, "MoveJ", System.StringComparison.OrdinalIgnoreCase)
-                ? "tiny MoveJ 1회"
-                : commandKind;
+            return "이번 연결의 실기 live session";
         }
 
         private static string BuildApprovalTargetHeadline(string commandKind, string summary)

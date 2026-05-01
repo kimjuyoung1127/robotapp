@@ -350,11 +350,15 @@ namespace KineTutor3D.UI.RobotControlV3
             panel.IncrementSummary.text = $"증분: {GetIncrementDegrees():0.#}°";
             panel.SpeedSummary.text = $"속도: {PendantV3LocalState.Normalize(LocalSettingsStore.LoadOrDefault()).SpeedPercent}%";
             panel.Hint.text = useSingleAxisMode
-                ? "단일축 조그에서는 J- / J+ 버튼을 길게 눌러 연속 이동 감각을 확인한다."
-                : "슬라이더나 입력칸으로 목표값을 바꾸고, 입력칸을 누르면 값이 전체 선택된다.";
+                ? CanApply(data)
+                    ? "단일축 조그에서는 J- / J+로 프리뷰를 맞춘 뒤 Apply에서만 실제 관절 적용을 보낸다."
+                    : "단일축 조그는 지금 프리뷰만 바뀐다. 실제 관절 적용은 live 세션에서만 열린다."
+                : CanApply(data)
+                    ? "슬라이더/입력은 항상 프리뷰를 바꾸고, Apply에서만 실제 관절 적용을 보낸다."
+                    : "슬라이더/입력은 지금 프리뷰만 바꾼다. 실제 관절 적용은 아직 잠겨 있다.";
 
             var canPreview = connectionHomeController.CurrentPreviewState is not PendantV3PreviewState.Kind.Disconnected and not PendantV3PreviewState.Kind.AutoReconnect;
-            var canApply = connectionHomeController.CurrentPreviewState == PendantV3PreviewState.Kind.ReadyToJog;
+            var canApply = CanApply(data);
             panel.BtnPreview.SetEnabled(canPreview);
             panel.BtnApply.SetEnabled(canApply);
 
@@ -483,6 +487,11 @@ namespace KineTutor3D.UI.RobotControlV3
 
         private void ApplyCurrentValues()
         {
+            if (!CanApply(connectionHomeController.CurrentPreviewDefinition))
+            {
+                return;
+            }
+
             var target = ToJointAngleArray();
             if (popupCoordinator != null
                 && runtimeController != null
@@ -490,7 +499,14 @@ namespace KineTutor3D.UI.RobotControlV3
             {
                 runtimeController.PreviewJointAngles(target, "관절 조그 적용 후보");
                 runtimeController.PrepareMoveJOperatorApprovalSession();
-                popupCoordinator.OpenMoveConfirmForProduct();
+                if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                {
+                    popupCoordinator.OpenMoveConfirmForProduct();
+                }
+                else
+                {
+                    runtimeController.ExecutePreparedPreviewForProduct();
+                }
                 return;
             }
 
@@ -539,6 +555,14 @@ namespace KineTutor3D.UI.RobotControlV3
         private static float GetIncrementDegrees()
         {
             return PendantV3LocalState.Normalize(LocalSettingsStore.LoadOrDefault()).JogIncrement;
+        }
+
+        private static bool CanApply(RobotControlV3RuntimeSnapshot data)
+        {
+            return data != null
+                && data.StatusKind == RobotControlV3RuntimeStatusKind.ReadyToJog
+                && !data.DryRunEnabled
+                && data.CurrentSessionMode is "live-control" or "tiny-movej-only";
         }
 
         private readonly struct JointAxisSpec

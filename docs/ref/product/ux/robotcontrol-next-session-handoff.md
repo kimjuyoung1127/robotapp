@@ -26,6 +26,7 @@
 - broad arm motion은 열지 않는다.
 - arm live motion은 `tiny joint success pattern` 범위 안에서만 다룬다.
 - gripper live write는 `gripper-only` 세션에서만 다룬다.
+- `Easy Motion` gripper 조작은 `100 / 50 / 0` value selector + `미리보기 적용 / 실제 이동` 2버튼 분리 기준으로 본다.
 - teaching point live는 현재 `single point / two-point once`만 다룬다.
 - 실기 truth 판정은 UI 문구보다 `Artifacts/live/fr5/latest-state.json`, `latest-drift.json`, session ndjson evidence를 우선한다.
 - teaching point/sequence 단계마다 `현재 위치 읽기 -> Sync + RefreshLiveEvidence -> Unity pose와 latest-state 일치 확인`을 끼워 넣는다.
@@ -58,6 +59,7 @@
 ## 현재 open item
 
 - `Easy Motion` gripper slider가 실기를 연속 추종하게 만드는 작업
+- `Easy Motion` preview button / live button 분리 semantics를 실기에서 다시 검증
 - gripper operator confirm/debug flow 단순화
 - tiny joint `true 3deg` 검증 경로
 - teaching point live loop / broad named sequence runtime

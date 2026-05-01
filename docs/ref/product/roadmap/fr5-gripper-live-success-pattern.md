@@ -1,6 +1,6 @@
 # FR5 Gripper Live Success Pattern
 
-Last Updated: 2026-04-29 (KST)
+Last Updated: 2026-05-01 (KST)
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Last Updated: 2026-04-29 (KST)
 - 현재 대상은 `gripper-only` live control이다.
 - arm `tiny MoveJ`와 gripper live는 같은 세션으로 열지 않는다.
 - operator baseline flow는 `연결 + 위치 읽기` 1단계다.
-- operator write flow는 `숫자 입력/프리셋 -> 적용 -> 이동 실행 확인` 1단계 confirm이다.
+- operator write flow는 `값 선택 -> 미리보기 적용 또는 실제 이동` 2버튼 분리다.
 - current truth source는 FR5 controller readback이다.
 - user percent와 SDK raw percent는 아직 `1:1`이 아니다.
 - current branch calibration baseline은 `user 0% -> raw 0`이다.
@@ -49,8 +49,8 @@ Last Updated: 2026-04-29 (KST)
 3. live evidence 확인
 4. gripper readback 재확인
 5. `Easy Motion`에서 목표 퍼센트 입력 또는 preset 선택
-6. `적용`
-7. `이동 실행 확인` popup confirm
+6. `미리보기 적용` 또는 `실제 이동` 중 하나를 명시적으로 고른다
+7. `실제 이동`을 고른 경우에만 `이동 실행 확인` popup confirm
 8. `gripper-only` 세션 write 1회
 9. readback 재확인
 10. 자동 `readback-only` 복귀 확인
@@ -105,10 +105,18 @@ Last Updated: 2026-04-29 (KST)
 ## Current Operator Path
 
 - `BtnConnect` 한 번으로 `연결 + 위치 읽기`
-- `Easy Motion`에서 `100 / 70 / 50` preset 또는 숫자 입력
-- `적용`
-- popup `이동 실행`
+- `Easy Motion`에서 `100 / 50 / 0` quick button 또는 숫자 입력
+- quick button과 숫자 입력은 모두 `draft` 값만 바꾼다
+- `미리보기 적용`은 화면 프리뷰만 갱신하고 실기 write는 보내지 않는다
+- `실제 이동`만 popup confirm과 `gripper-only` live write 경로를 탄다
 - 성공 후 자동 `readback-only` 복귀
+
+## Current UI Separation Rule
+
+- `100 / 50 / 0` quick button은 명시적 value selector다
+- `미리보기 적용`과 `실제 이동`은 같은 버튼이 아니다
+- mock / dryRun / disconnected / readback-only에서는 `실제 이동`이 green truth가 아니라 blocked reason 또는 preview-only 결과를 남기는 것이 정상이다
+- 따라서 mock 검증에서는 `draft 유지`, `preview wording`, `blocked/live wording 분리`를 본다
 
 ## Current Evidence Notes
 
@@ -158,7 +166,8 @@ Last Updated: 2026-04-29 (KST)
 
 1. gripper confirm / debug flow 단순화
 2. completion-grade readback 확인 범위 재정의
-3. `Easy Motion` slider input throttling/commit policy 정리
-4. slider 이동 중 live write cadence 고정
-5. slider value와 readback value 차이 측정
-6. 그다음에만 joint/tcp live slider 설계 검토
+3. `Easy Motion` preview button / live button 분리 semantics를 실기에서 다시 검증
+4. `Easy Motion` slider input throttling/commit policy 정리
+5. slider 이동 중 live write cadence 고정
+6. slider value와 readback value 차이 측정
+7. 그다음에만 joint/tcp live slider 설계 검토

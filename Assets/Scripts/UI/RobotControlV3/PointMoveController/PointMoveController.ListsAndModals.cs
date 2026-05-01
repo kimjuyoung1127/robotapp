@@ -118,6 +118,7 @@ namespace KineTutor3D.UI.RobotControlV3
                 return;
             }
 
+            runtimeController?.EnsureHomePoint1LoopSequenceForProduct();
             sequenceListItems.Clear();
             var names = BuildOrderedSequenceNames();
             for (var index = 0; index < names.Count; index++)
@@ -257,6 +258,11 @@ namespace KineTutor3D.UI.RobotControlV3
             if (string.Equals(sequenceName, RecordedPathSequenceName, System.StringComparison.OrdinalIgnoreCase))
             {
                 return "기록한 경로";
+            }
+
+            if (string.Equals(sequenceName, "HomePoint1Loop", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return "Home ↔ Point1 mixed loop";
             }
 
             return string.IsNullOrWhiteSpace(sequenceName) ? "실행 목록" : sequenceName.Trim();

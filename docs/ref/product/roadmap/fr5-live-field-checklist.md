@@ -35,7 +35,10 @@
 
 - 세션 모드는 `gripper-only`만 허용
 - 정상 하드웨어 설정과 discrete success pattern은 [fr5-gripper-live-success-pattern.md](./fr5-gripper-live-success-pattern.md)만 기준으로 본다
-- operator flow는 `적용 -> 이동 실행 확인` 기준으로 본다
+- operator flow는 `값 선택 -> 미리보기 적용 또는 실제 이동` 기준으로 본다
+- quick button은 현재 `100 / 50 / 0`만 허용한다
+- `미리보기 적용`은 실기 write 없이 preview만 바뀌어야 한다
+- `실제 이동`만 popup confirm과 live write를 탄다
 - slider / input / preset 검증도 같은 SSOT 문서 기준으로만 확장한다
 
 ## Tiny Joint 체크

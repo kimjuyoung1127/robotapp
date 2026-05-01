@@ -779,7 +779,14 @@ namespace KineTutor3D.UI.RobotControlV3
                 SetFeedback(runtimeController.PrepareWaypointSequenceOperatorApproval(selectedSequenceName, loop: false));
                 if (runtimeController.HasPendingWaypointSequenceOperatorApproval())
                 {
-                    popupCoordinator.OpenRunConfirmForProduct();
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenRunConfirmForProduct();
+                    }
+                    else
+                    {
+                        SetFeedback(runtimeController.ExecutePendingWaypointSequenceOperatorCommand());
+                    }
                 }
 
                 ApplyAll();
@@ -804,6 +811,27 @@ namespace KineTutor3D.UI.RobotControlV3
             if (!CanApply())
             {
                 SetFeedback("연결 상태가 준비되지 않아 루프 실행할 수 없다.");
+                return;
+            }
+
+            if (popupCoordinator != null
+                && runtimeController != null
+                && runtimeController.ShouldRouteWaypointSequenceThroughLiveApproval(selectedSequenceName, loop: true))
+            {
+                SetFeedback(runtimeController.PrepareWaypointSequenceOperatorApproval(selectedSequenceName, loop: true));
+                if (runtimeController.HasPendingWaypointSequenceOperatorApproval())
+                {
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenRunConfirmForProduct();
+                    }
+                    else
+                    {
+                        SetFeedback(runtimeController.ExecutePendingWaypointSequenceOperatorCommand());
+                    }
+                }
+
+                ApplyAll();
                 return;
             }
 
@@ -1845,7 +1873,14 @@ namespace KineTutor3D.UI.RobotControlV3
                 SetFeedback(runtimeController.PrepareSavedPointMoveJOperatorApproval(recalledPoint.name, savedJointTarget));
                 if (runtimeController.HasPendingSavedPointOperatorApproval())
                 {
-                    popupCoordinator.OpenMoveConfirmForProduct();
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenMoveConfirmForProduct();
+                    }
+                    else
+                    {
+                        SetFeedback(runtimeController.ExecutePendingSavedPointOperatorCommand());
+                    }
                 }
 
                 ApplyAll();
@@ -1859,7 +1894,14 @@ namespace KineTutor3D.UI.RobotControlV3
                 SetFeedback(runtimeController.PrepareWaypointSequenceOperatorApproval(PointSequenceName, loop: false, recalledPoint.name));
                 if (runtimeController.HasPendingWaypointSequenceOperatorApproval())
                 {
-                    popupCoordinator.OpenRunConfirmForProduct();
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenRunConfirmForProduct();
+                    }
+                    else
+                    {
+                        SetFeedback(runtimeController.ExecutePendingWaypointSequenceOperatorCommand());
+                    }
                 }
 
                 ApplyAll();
@@ -1881,8 +1923,15 @@ namespace KineTutor3D.UI.RobotControlV3
 
             var loopEnabled = runtimeController != null && runtimeController.IsTeachingLoopEnabled;
             var running = runtimeController != null && runtimeController.IsTeachingSequenceRunning;
+            var snapshot = runtimeController != null ? runtimeController.CurrentSnapshot : null;
             panel.BtnLoop.text = loopEnabled ? "반복 ON" : "반복 OFF";
             panel.BtnLoop.EnableInClassList("rc-point-loop-button--active", loopEnabled);
+            if (snapshot != null && snapshot.MixedLiveLoopRunning)
+            {
+                panel.LoopStatus.text = $"반복 실행: {snapshot.MixedLiveLoopCycleCount}사이클 · {snapshot.MixedLiveLoopTarget} · gripper {snapshot.MixedLiveLoopGripperIntent}";
+                return;
+            }
+
             panel.LoopStatus.text = loopEnabled
                 ? running ? "반복 실행: 진행 중 · Stop으로 종료" : "반복 실행: 켜짐 · Run으로 시작"
                 : "반복 실행: 꺼짐";
@@ -2131,8 +2180,15 @@ namespace KineTutor3D.UI.RobotControlV3
                     }
 
                     runtimeController.PrepareSavedPointMoveJOperatorApproval(pointName, savedJointTarget);
-                    popupCoordinator.OpenMoveConfirmForProduct();
-                    SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenMoveConfirmForProduct();
+                        SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+                    }
+                    else
+                    {
+                        SetFeedback(runtimeController.ExecutePendingSavedPointOperatorCommand());
+                    }
                     return;
                 }
 
@@ -2152,8 +2208,16 @@ namespace KineTutor3D.UI.RobotControlV3
                     }
 
                     runtimeController.PrepareMoveJOperatorApprovalSession();
-                    popupCoordinator.OpenMoveConfirmForProduct();
-                    SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+                    if (runtimeController.ShouldRequireLiveApprovalPopupForProduct("MoveJ"))
+                    {
+                        popupCoordinator.OpenMoveConfirmForProduct();
+                        SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+                    }
+                    else
+                    {
+                        runtimeController.ExecutePreparedPreviewForProduct();
+                        SetFeedback(runtimeController.CurrentSnapshot.LastFeedback);
+                    }
                     return;
                 }
 
@@ -2208,7 +2272,12 @@ namespace KineTutor3D.UI.RobotControlV3
         {
             return !string.IsNullOrWhiteSpace(lastFeedback)
                 && lastFeedback != "아직 실행한 명령이 없다."
-                && (lastFeedback.Contains("[Confirm]")
+                && (lastFeedback.Contains("[Sequence")
+                    || lastFeedback.Contains("[Path")
+                    || lastFeedback.Contains("[미리보기]")
+                    || lastFeedback.Contains("프리뷰")
+                    || lastFeedback.Contains("live")
+                    || lastFeedback.Contains("[Confirm]")
                     || lastFeedback.Contains("[Delete]")
                     || lastFeedback.Contains("[Save]")
                     || lastFeedback.Contains("[Bulk]")

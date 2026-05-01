@@ -30,8 +30,7 @@ namespace KineTutor3D.App.Fairino
                 && connectionService != null
                 && !connectionService.IsMockMode
                 && connectionService.Client.IsConnected
-                && connectionService.Client is IFairinoLiveClientDiagnostics { IsReadbackOnly: false }
-                && HasDedicatedTinyMoveJLivePathConfigured();
+                && connectionService.Client is IFairinoLiveClientDiagnostics { IsReadbackOnly: false };
         }
 
         private bool ShouldUseSavedPointMoveJOperatorPath()
@@ -91,7 +90,10 @@ namespace KineTutor3D.App.Fairino
 
         private void ResetLiveSessionModeAfterLiveAttempt(LiveCommandKind kind, FairinoResult result)
         {
-            if (snapshot.DryRunEnabled || kind == LiveCommandKind.ReadbackOnly || currentLiveSessionMode == LiveCommandSessionMode.LiveControl)
+            if (snapshot.DryRunEnabled
+                || kind == LiveCommandKind.ReadbackOnly
+                || currentLiveSessionMode == LiveCommandSessionMode.LiveControl
+                || currentLiveSessionMode == LiveCommandSessionMode.LoopRunning)
             {
                 return;
             }

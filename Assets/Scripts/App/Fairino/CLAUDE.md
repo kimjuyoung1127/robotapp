@@ -17,6 +17,22 @@ Fairino FR5 중심 RobotControl 런타임과 연결 서비스를 담는 폴더�
 - `Teaching/` — points + motion sequence 최소 teaching state
 - `Templates/` — RobotControl 셸이 소비할 템플릿/프리셋 정의
 - `Shell/` — 최상위 셸 composition root
+- `RobotControlV3RuntimeController/` — V3 runtime partial의 panel-first backend 분리 루트
+
+## RobotControlV3RuntimeController 읽는 순서
+1. `RobotControlV3RuntimeController/CLAUDE.md`
+2. 패널에 맞는 subfolder `CLAUDE.md`
+3. 해당 partial 파일
+
+현재 panel-first subfolder:
+- `ConnectionHome/`
+- `EasyMotion/`
+- `JointControl/`
+- `TcpControl/`
+- `PointMove/`
+- `StatusSafety/`
+- `Stage/`
+- `Shared/`
 
 ## 규칙
 1. 실제 기구학 계산은 `RobotKinematicsFacade` 계열에 위임

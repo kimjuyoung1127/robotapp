@@ -141,6 +141,12 @@ namespace KineTutor3D.App.Fairino
                 return true;
             }
 
+            if (effectiveConnectionService.Client is IFairinoLiveClientDiagnostics { IsReadbackOnly: false })
+            {
+                reason = string.Empty;
+                return true;
+            }
+
             if (!ReferenceEquals(effectiveConnectionService, connectionService))
             {
                 reason = string.Empty;
@@ -275,6 +281,12 @@ namespace KineTutor3D.App.Fairino
             return IsGripperActivationReady(status, profile);
         }
 
+        internal static bool IsGripperDiscreteFieldReady(FairinoGripperStatus status)
+        {
+            return status.ActivationFault == 0
+                && status.PositionFault == 0;
+        }
+
         internal static string BuildOperatorGripperNotReadyMessage(FairinoGripperStatus status, bool warmupAttempted)
         {
             var prefix = warmupAttempted
@@ -286,9 +298,14 @@ namespace KineTutor3D.App.Fairino
         private static FairinoResult TryEnsureLiveGripperReady(FairinoConnectionService liveService, FairinoGripperProfile profile)
         {
             var initialStatus = liveService.ReadGripperStatus();
-            if (initialStatus.IsSuccess && IsGripperActivationReady(initialStatus.Value, profile))
+            if (initialStatus.IsSuccess
+                && (IsGripperActivationReady(initialStatus.Value, profile)
+                    || IsGripperDiscreteFieldReady(initialStatus.Value)))
             {
-                return FairinoResult.Ok("gripper already active");
+                return FairinoResult.Ok(
+                    IsGripperActivationReady(initialStatus.Value, profile)
+                        ? "gripper already active"
+                        : "gripper field-ready for discrete live write");
             }
 
             var configure = liveService.ConfigureGripper(profile);
@@ -374,9 +391,14 @@ namespace KineTutor3D.App.Fairino
             while (watch.ElapsedMilliseconds < GripperActivationPollTimeoutMs)
             {
                 lastStatus = liveService.ReadGripperStatus();
-                if (lastStatus.IsSuccess && IsGripperActivationReady(lastStatus.Value, profile))
+                if (lastStatus.IsSuccess
+                    && (IsGripperActivationReady(lastStatus.Value, profile)
+                        || IsGripperDiscreteFieldReady(lastStatus.Value)))
                 {
-                    return FairinoResult.Ok("gripper activation confirmed");
+                    return FairinoResult.Ok(
+                        IsGripperActivationReady(lastStatus.Value, profile)
+                            ? "gripper activation confirmed"
+                            : "gripper field-ready for discrete live write");
                 }
 
                 Thread.Sleep(GripperActivationPollIntervalMs);

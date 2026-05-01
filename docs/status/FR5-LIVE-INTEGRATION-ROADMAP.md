@@ -139,6 +139,11 @@
   - current commanded/raw states were observed as `70 -> raw 88`, `100 -> raw 100`, `50 -> raw 80`
   - popup approval token lifetime now survives live readback updates long enough for one-shot confirm consumption
   - debug verification path was reduced by adding direct popup confirm/cancel bridge helpers
+- Easy Motion preview/live surface split in progress
+  - quick selection is being narrowed to explicit `100 / 50 / 0`
+  - `미리보기 적용` and `실제 이동` are now separate operator intents in code
+  - mock/readback-only should no longer be interpreted as successful live movement by the same button label
+  - 2026-05-01 verification on current branch is mock-only compile/behavior check, not fresh field smoke
 - Common live QA runner scaffold added
   - `RobotControlV3DebugBridge` now has shared QA entrypoints for `gripper`, `joint nudge`, `TCP nudge`, `point move`, and `snapshot`
   - each QA run captures `before/after movement`, approval summary, popup state, refreshed `latest-state/latest-drift`, and session ndjson tails
@@ -260,6 +265,7 @@
   - `MoveJ/MoveL` approval token/target model stays for runtime safety
   - debug/field QA should prefer the new common QA runner so operator-side procedure becomes `run one helper -> inspect one artifact`
 - Unity slider live control is not finished yet.
+  - before continuous follow, `Easy Motion` must keep `preview-only commit` and `live write` clearly separate on the operator surface
   - gripper currently works through discrete button/smoke style writes and readback verification
   - current operator flow still has more approval/debug plumbing than the gripper path probably needs
   - continuous real-time slider-to-hardware following is the next implementation target

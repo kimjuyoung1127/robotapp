@@ -327,13 +327,17 @@ namespace KineTutor3D.App
                     runtime.SetGripperOpen(false);
                     return true;
                 case "BtnEasyGripper100":
-                    runtime.SetGripperPositionPercent(100);
-                    return true;
-                case "BtnEasyGripper70":
-                    runtime.SetGripperPositionPercent(70);
+                    SetEasyMotionGripperInputForDebug(100f, apply: false);
                     return true;
                 case "BtnEasyGripper50":
-                    runtime.SetGripperPositionPercent(50);
+                    SetEasyMotionGripperInputForDebug(50f, apply: false);
+                    return true;
+                case "BtnEasyGripper0":
+                    SetEasyMotionGripperInputForDebug(0f, apply: false);
+                    return true;
+                case "BtnEasyGripperPreviewApply":
+                case "BtnEasyGripperLiveApply":
+                    SetEasyMotionGripperInputForDebug(runtime.CurrentSnapshot.GripperCommandedPositionPercent, apply: true);
                     return true;
                 case "BtnHeaderModeAuto":
                 case "BtnModeAuto":

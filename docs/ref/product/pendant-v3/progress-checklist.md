@@ -105,7 +105,7 @@
 - Point list/select/delete 최소 UX를 연결했다.
 - Point rename/export/persistence cleanup을 연결했다.
 - I/O/Gripper mock/live-gated state facade 1차 연결을 완료했다.
-- Gripper UI는 실조작에 쓰는 열기/닫기/position slider/numeric input/위치 적용만 남기고 DO/ToolDO 버튼과 보조 상태 문구는 제거했다.
+- Gripper UI는 `draft 값 선택`과 `실행 종류`를 분리하는 방향으로 정리 중이다. 현재 `Easy Motion` 기준 quick button은 `100 / 50 / 0`, 실행 버튼은 `미리보기 적용 / 실제 이동`으로 나뉜다.
 - PGEA attached visual prefab 이관/연결을 완료했다.
 - live SDK gripper capability/readback scaffold를 연결했다.
 - Gripper user `position=0`은 UI상 닫힘/contact로 유지하고, `GripperCalibrationProfile`에서 raw SDK percent와 visual input/pose ratio를 분리한다.

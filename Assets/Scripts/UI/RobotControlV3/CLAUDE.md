@@ -42,3 +42,14 @@ Pendant V3 UI Toolkit controller 루트.
 - `PointMoveController`는 실기/mock 준비 로직을 직접 소유하지 않는다.
 - `PointMoveController`가 RobotStage preview, ghost, predicted path를 갱신해야 할 때는 `RobotControlV3RuntimeController` App facade만 호출한다.
 - Live 실기 dispatch는 `RobotControlV3RuntimeController -> RobotControlMotionRuntime -> FairinoConnectionService` 경로를 유지한다.
+
+## RobotControlV3RuntimeController panel-first backend
+- runtime backend를 읽을 때는 `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/App/Fairino/RobotControlV3RuntimeController/CLAUDE.md`부터 본다.
+- 패널별 backend 대응:
+  - `ConnectionHomeController` -> `ConnectionHome/`
+  - `EasyMotionController` -> `EasyMotion/`
+  - `JointJogController` -> `JointControl/`
+  - `TcpJogController` -> `TcpControl/`
+  - `PointMoveController` -> `PointMove/`
+  - `SafetyDiagnosticsController`, `StatusCardController`, `WhyItMovedController` -> `StatusSafety/`
+  - stage render/orientation surface -> `Stage/`

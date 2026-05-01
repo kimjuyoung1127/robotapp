@@ -17,6 +17,7 @@ namespace KineTutor3D.App.Fairino
         public const double TcpDangerMm = 10.0;
         public const double TcpRotWarningDeg = 1.0;
         public const double TcpRotDangerDeg = 5.0;
+        private static readonly TimeSpan MinimumLatestRecordInterval = TimeSpan.FromMilliseconds(100);
 
         private readonly FairinoConnectionService connectionService;
         private readonly Func<FairinoRobotState> displayStateProvider;
@@ -30,6 +31,13 @@ namespace KineTutor3D.App.Fairino
         private int? lastRecordedControllerMode;
         private bool? lastRecordedDragTeach;
         private bool? lastRecordedRobotEnabled;
+        private DateTime lastLatestRecordUtc = DateTime.MinValue;
+        private bool? lastLatestConnected;
+        private bool? lastLatestEnabled;
+        private int lastLatestMode = int.MinValue;
+        private int lastLatestToolId = int.MinValue;
+        private int lastLatestUserId = int.MinValue;
+        private string lastLatestCoordSystem = string.Empty;
 
         public Fr5LiveStateRecorder(
             FairinoConnectionService service,
@@ -119,11 +127,19 @@ namespace KineTutor3D.App.Fairino
                     return drift;
                 }
 
+                var nowUtc = DateTime.UtcNow;
+                if (ShouldSkipLatestRecord(stateRecord, nowUtc))
+                {
+                    liveBlockedReasonSink?.Invoke(drift.severity == "ok" ? string.Empty : drift.liveBlockedReason);
+                    return drift;
+                }
+
                 WriteLatest("latest-state.json", JsonUtility.ToJson(stateRecord, true));
                 AppendSession("readback", JsonUtility.ToJson(stateRecord, false));
                 WriteLatest("latest-drift.json", JsonUtility.ToJson(drift, true));
                 WriteEvent("readback", 0, $"latest-state updated tool={stateRecord.toolId:00} user={stateRecord.userId:00} coord={stateRecord.coordSystem}");
                 WriteControllerTruthEvents(stateRecord);
+                UpdateLatestRecordMetadata(stateRecord, nowUtc);
                 liveBlockedReasonSink?.Invoke(drift.severity == "ok" ? string.Empty : drift.liveBlockedReason);
             }
             catch (Exception ex)
@@ -138,6 +154,45 @@ namespace KineTutor3D.App.Fairino
         private void HandleStateUpdated(FairinoRobotState state)
         {
             RecordState(state);
+        }
+
+        private bool ShouldSkipLatestRecord(Fr5LiveStateRecord stateRecord, DateTime nowUtc)
+        {
+            if (stateRecord == null)
+            {
+                return true;
+            }
+
+            if (lastLatestRecordUtc == DateTime.MinValue)
+            {
+                return false;
+            }
+
+            var significantTruthChanged =
+                lastLatestConnected != stateRecord.connected
+                || lastLatestEnabled != stateRecord.enabled
+                || lastLatestMode != stateRecord.mode
+                || lastLatestToolId != stateRecord.toolId
+                || lastLatestUserId != stateRecord.userId
+                || !string.Equals(lastLatestCoordSystem, stateRecord.coordSystem, StringComparison.OrdinalIgnoreCase);
+
+            if (significantTruthChanged)
+            {
+                return false;
+            }
+
+            return (nowUtc - lastLatestRecordUtc) < MinimumLatestRecordInterval;
+        }
+
+        private void UpdateLatestRecordMetadata(Fr5LiveStateRecord stateRecord, DateTime nowUtc)
+        {
+            lastLatestRecordUtc = nowUtc;
+            lastLatestConnected = stateRecord.connected;
+            lastLatestEnabled = stateRecord.enabled;
+            lastLatestMode = stateRecord.mode;
+            lastLatestToolId = stateRecord.toolId;
+            lastLatestUserId = stateRecord.userId;
+            lastLatestCoordSystem = stateRecord.coordSystem ?? string.Empty;
         }
 
         private void HandleError(FairinoResult result)

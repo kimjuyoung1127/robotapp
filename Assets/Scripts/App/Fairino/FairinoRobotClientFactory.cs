@@ -9,7 +9,6 @@ namespace KineTutor3D.App.Fairino
     public static class FairinoRobotClientFactory
     {
         public const string BridgeUrlEnvironmentVariable = "FAIRINO_BRIDGE_URL";
-        public const string ForceReadbackOnlyEnvironmentVariable = "FAIRINO_FORCE_READBACK_ONLY";
         public const string TinyMoveJLiveEnvironmentVariable = "FAIRINO_ENABLE_TINY_MOVEJ_LIVE";
         public const string LiveGripperSmokeEnvironmentVariable = "FAIRINO_ENABLE_LIVE_GRIPPER_SMOKE";
 
@@ -25,11 +24,6 @@ namespace KineTutor3D.App.Fairino
             if (!report.IsDirectUsable)
             {
                 return new FairinoUnavailableClient(report);
-            }
-
-            if (IsTruthy(Environment.GetEnvironmentVariable(ForceReadbackOnlyEnvironmentVariable)))
-            {
-                return new DirectReadbackFairinoClient(new LiveFairinoClient(translator), report);
             }
 
             // V3 live는 단일 motion-capable 세션을 기본으로 사용한다.

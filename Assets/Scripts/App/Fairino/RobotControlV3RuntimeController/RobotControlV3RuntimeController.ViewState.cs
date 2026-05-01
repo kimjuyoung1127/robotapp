@@ -126,6 +126,15 @@ namespace KineTutor3D.App.Fairino
                     snapshot.QuickControllerMode = BuildControllerSessionSummary(readbackOnlyLive);
                     snapshot.QuickSessionMode = BuildLiveSessionModeSummary(currentLiveSessionMode);
                     snapshot.CurrentSessionMode = currentLiveSessionMode.ToString();
+                    snapshot.MixedLiveLoopRunning = liveWaypointSequenceLooping;
+                    snapshot.MixedLiveLoopCycleCount = liveWaypointSequenceCycleCount;
+                    snapshot.MixedLiveLoopTarget = string.IsNullOrWhiteSpace(liveWaypointCurrentTargetName) ? "대기" : liveWaypointCurrentTargetName;
+                    snapshot.MixedLiveLoopGripperIntent = string.IsNullOrWhiteSpace(liveWaypointCurrentGripperIntent) ? "없음" : liveWaypointCurrentGripperIntent;
+                    snapshot.MixedLiveLoopSummary = liveWaypointSequenceLooping
+                        ? $"mixed live loop {liveWaypointSequenceCycleCount}사이클 · target {snapshot.MixedLiveLoopTarget} · gripper {snapshot.MixedLiveLoopGripperIntent}"
+                        : string.IsNullOrWhiteSpace(liveWaypointBlockedReason)
+                            ? "mixed live loop 대기"
+                            : liveWaypointBlockedReason;
                     snapshot.AutoModeSwitchEnabled = !busyAsyncReadback && ResolveAutoModeSwitchEnabled();
                     snapshot.ManualModeSwitchEnabled = !busyAsyncReadback && ResolveManualModeSwitchEnabled();
                     snapshot.QuickActionLabel = ResolveQuickActionLabel();
@@ -192,11 +201,13 @@ namespace KineTutor3D.App.Fairino
                     snapshot.TcpValues = FormatValues(tcpValues, "0.0");
                     snapshot.CoordOverlayJointLine = $"J: {string.Join("  ", snapshot.JointValues)}";
                     snapshot.CoordOverlayTcpLine = $"T: {string.Join("  ", snapshot.TcpValues)}";
-                    snapshot.PendingCommandSummary = previewUsesJointPose && previewJointAnglesDeg != null
-                        ? "대기 명령: MoveJ"
-                        : previewTcpPose != null
-                            ? "대기 명령: MoveL"
-                            : "대기 중인 명령 없음";
+                    snapshot.PendingCommandSummary = liveWaypointSequenceLooping
+                        ? $"대기 명령: mixed live loop {liveWaypointSequenceCycleCount}사이클 · target {snapshot.MixedLiveLoopTarget} · gripper {snapshot.MixedLiveLoopGripperIntent}"
+                        : previewUsesJointPose && previewJointAnglesDeg != null
+                            ? "대기 명령: MoveJ"
+                            : previewTcpPose != null
+                                ? "대기 명령: MoveL"
+                                : "대기 중인 명령 없음";
                     ApplyRetainedOperatorBlockedReasonToSnapshot();
                     if (string.IsNullOrWhiteSpace(snapshot.LiveBlockedReason)
                         && !string.IsNullOrWhiteSpace(snapshot.LastFeedback)
@@ -210,7 +221,9 @@ namespace KineTutor3D.App.Fairino
                     snapshot.HeaderNextAction = busyAsyncReadback
                         ? $"다음 행동: {activeReadbackLabel} 완료 기다리기"
                         : $"다음 행동: {snapshot.OperatorNextAction}";
-                    snapshot.QuickLiveArm = snapshot.MotionGateStatus;
+                    snapshot.QuickLiveArm = liveWaypointSequenceLooping
+                        ? $"실제 이동: mixed live loop 실행 중 · {snapshot.MixedLiveLoopTarget}"
+                        : snapshot.MotionGateStatus;
                     snapshot.OperatorStatusHeadline = RobotControlV3OperatorStatusCopy.BuildRepresentativeStatus(
                         connectionService.Client.IsConnected,
                         hasCurrentPositionReadComplete,
@@ -242,7 +255,8 @@ namespace KineTutor3D.App.Fairino
                 && !connectionService.IsMockMode
                 && connectionService.Client != null
                 && connectionService.Client.IsConnected
-                && currentLiveSessionMode == LiveCommandSessionMode.LiveControl;
+                && (currentLiveSessionMode == LiveCommandSessionMode.LiveControl
+                    || currentLiveSessionMode == LiveCommandSessionMode.LoopRunning);
         }
 
         private bool ShouldPrioritizeLiveReadbackDisplay()
@@ -252,15 +266,29 @@ namespace KineTutor3D.App.Fairino
 
         private void ClearPendingPreviewForLiveReadback()
         {
+            if (ShouldPreservePreparedLiveContextDuringReadbackFollow())
+            {
+                return;
+            }
+
             previewJointAnglesDeg = null;
             previewTcpPose = null;
             previewTcpVisualJointAnglesDeg = null;
             previewUsesJointPose = false;
             ClearPreparedMotionContext();
-            if (currentLiveSessionMode == LiveCommandSessionMode.LiveControl)
+            if (currentLiveSessionMode == LiveCommandSessionMode.LiveControl
+                || currentLiveSessionMode == LiveCommandSessionMode.LoopRunning)
             {
                 InvalidateLiveApprovalContext();
             }
+        }
+
+        private bool ShouldPreservePreparedLiveContextDuringReadbackFollow()
+        {
+            return pendingLiveApprovalRequired
+                || hasPendingSavedPointOperatorCommand
+                || hasPendingWaypointSequenceOperatorCommand
+                || hasPendingGripperOperatorCommand;
         }
 
         private void ApplyMotionGateSnapshot()
@@ -271,12 +299,12 @@ namespace KineTutor3D.App.Fairino
                 snapshot.MotionGateStatus = "실제 이동: 잠겨 있음";
                 snapshot.MotionGateDetail = BuildReadbackOnlyGateDetail();
                 snapshot.MotionGateWhyLocked = "잠금 이유: 현재 세션은 위치 확인 전용이라 실제 이동이 잠겨 있습니다.";
-                snapshot.MotionGateUnlockWhen = "언제 풀리는지: readback-only가 아닌 세션에서 도구 설정, 작업 기준, 좌표 기준, 최신 기록, 마지막 확인이 모두 준비되면 tiny MoveJ 1회가 열립니다.";
+                snapshot.MotionGateUnlockWhen = "언제 풀리는지: motion-capable 세션에서 도구 설정, 작업 기준, 좌표 기준, 최신 기록, 첫 실기 세션 승인까지 준비되면 실제 제어가 열립니다.";
                 snapshot.MotionGateNextStep = hasCurrentPositionReadComplete
                     ? "다음 행동: latest-state와 latest-drift가 현재 세션 기준으로 갱신됐는지 확인한다."
                     : "다음 행동: 먼저 현재 위치 읽기를 완료해 실기와 화면 위치가 맞는지 확인한다.";
-                snapshot.MotionGateConfirmTarget = "승인 대상: tiny MoveJ 1회";
-                snapshot.MotionGateConfirmNote = "현재 세션은 위치 확인 전용이라 승인 토큰을 발급하지 않습니다.";
+                snapshot.MotionGateConfirmTarget = "승인 대상: 이번 연결의 실기 live session";
+                snapshot.MotionGateConfirmNote = "현재 세션은 위치 확인 전용이라 실기 시작 승인을 발급하지 않습니다.";
                 return;
             }
 
@@ -291,7 +319,7 @@ namespace KineTutor3D.App.Fairino
             snapshot.MotionGateStatus = gate.Status switch
             {
                 LiveCommandGateStatus.Allowed => "실제 이동: 가능",
-                LiveCommandGateStatus.RequiresConfirm => "실제 이동: 마지막 확인 필요",
+                LiveCommandGateStatus.RequiresConfirm => "실제 이동: 첫 세션 승인 필요",
                 LiveCommandGateStatus.ReadbackOnly => "실제 이동: 잠겨 있음",
                 _ => "실제 이동: 아직 차단됨",
             };
@@ -618,12 +646,12 @@ namespace KineTutor3D.App.Fairino
 
             if (gate.Status == LiveCommandGateStatus.Allowed)
             {
-                return "잠금 이유: 없음. tiny MoveJ 1회 기준을 모두 통과했습니다.";
+                return "잠금 이유: 없음. 이번 연결의 실기 live session 승인과 evidence 기준을 모두 통과했습니다.";
             }
 
             if (gate.Status == LiveCommandGateStatus.RequiresConfirm)
             {
-                return "잠금 이유: 마지막 승인 토큰 확인이 남아 있습니다.";
+                return "잠금 이유: 이번 연결에서 아직 첫 실기 시작 승인이 끝나지 않았습니다.";
             }
 
             if (gate.BlockReasons.Count > 0)
@@ -643,18 +671,18 @@ namespace KineTutor3D.App.Fairino
 
             if (gate.Status == LiveCommandGateStatus.Allowed)
             {
-                return "언제 풀리는지: 지금 tiny MoveJ 1회를 저속으로 실행할 수 있습니다.";
+                return "언제 풀리는지: 지금 실기 live session이 열려 있어 관절, 포인트, 그리퍼 live 제어를 계속 실행할 수 있습니다.";
             }
 
             if (gate.Status == LiveCommandGateStatus.RequiresConfirm)
             {
-                return "언제 풀리는지: 승인 토큰 확인이 끝나면 tiny MoveJ 1회가 열립니다.";
+                return "언제 풀리는지: 첫 실기 시작 승인만 끝나면 이번 연결 동안 재확인 없이 live 제어가 열립니다.";
             }
 
             var remaining = BuildRemainingGateChecks(gate);
             return remaining.Count > 0
-                ? $"언제 풀리는지: {string.Join(", ", remaining)} 준비 후 tiny MoveJ 1회가 열립니다."
-                : "언제 풀리는지: 현재 위치 읽기, 최신 기록, 마지막 확인이 모두 준비되면 tiny MoveJ 1회가 열립니다.";
+                ? $"언제 풀리는지: {string.Join(", ", remaining)} 준비 후 실기 live session이 열립니다."
+                : "언제 풀리는지: 현재 위치 읽기, 최신 기록, 첫 실기 시작 승인이 모두 준비되면 실기 live session이 열립니다.";
         }
 
         private string BuildMotionGateNextStep(LiveCommandSafetyGateResult gate)
@@ -671,12 +699,12 @@ namespace KineTutor3D.App.Fairino
 
             if (gate.Status == LiveCommandGateStatus.Allowed)
             {
-                return "다음 행동: tiny MoveJ 1회를 저속으로 실행하고 즉시 재잠금을 확인한다.";
+                return "다음 행동: 실기 live 제어를 실행하고 post-sync evidence를 확인한다.";
             }
 
             if (gate.Status == LiveCommandGateStatus.RequiresConfirm)
             {
-                return "다음 행동: 승인 팝업에서 tiny MoveJ 1회 토큰 확인을 마친다.";
+                return "다음 행동: 승인 팝업에서 이번 연결의 첫 실기 시작 승인만 마친다.";
             }
 
             foreach (var reason in gate.BlockReasons)
@@ -699,9 +727,9 @@ namespace KineTutor3D.App.Fairino
                     case "tiny MoveJ range exceeded":
                         return $"다음 행동: 각 관절 변화량을 {RobotControlMotionRuntime.TinyMoveJMaxJointDeltaDeg:0.#}도 이내로 줄여 다시 미리보기한다.";
                     case "prepared target mismatch":
-                        return "다음 행동: tiny MoveJ 대상을 다시 미리보기하고 동일한 대상으로 승인 절차를 다시 시작한다.";
+                        return "다음 행동: 실기 제어 대상을 다시 준비해 preview와 실행 대상을 맞춘다.";
                     case "dry-run preview artifact missing":
-                        return "다음 행동: tiny MoveJ 미리보기를 먼저 확인한다.";
+                        return "다음 행동: 실행 전에 preview context를 다시 준비한다.";
                     case "production IK guard not cleared":
                         return "다음 행동: tiny MoveJ 자세 계산 안전 확인을 먼저 통과시킨다.";
                     case "boundary data missing or target outside workspace":
@@ -709,13 +737,13 @@ namespace KineTutor3D.App.Fairino
                     case "collision data missing or predicted path unsafe":
                         return "다음 행동: tiny MoveJ 경로 충돌 확인을 먼저 끝낸다.";
                     case "operator approval target mismatch":
-                        return "다음 행동: 승인 뒤 대상이 바뀌었으니 tiny MoveJ를 다시 미리보기하고 새 토큰으로 다시 승인한다.";
+                        return "다음 행동: 연결 세션이 바뀌었거나 승인 뒤 준비 대상이 달라졌다. 현재 세션 기준으로 다시 준비한다.";
                     case "servo disabled":
                         return "다음 행동: 서보 상태를 확인하고 이동 가능 상태로 맞춘다.";
                     case "not connected":
                         return "다음 행동: 실제 로봇 연결을 다시 확인한다.";
                     case "operator confirm token required":
-                        return "다음 행동: 승인 토큰 확인을 마친다.";
+                        return "다음 행동: 이번 연결의 첫 실기 시작 승인만 마친다.";
                 }
 
                 if (reason.StartsWith("fault active", StringComparison.OrdinalIgnoreCase))
@@ -734,19 +762,19 @@ namespace KineTutor3D.App.Fairino
 
         private string BuildMotionGateConfirmTarget(LiveCommandSafetyGateResult gate)
         {
-            var label = "승인 대상: tiny MoveJ 1회";
+            var label = "승인 대상: 이번 연결의 실기 live session";
             var now = DateTime.UtcNow;
             var pendingActive = pendingLiveApprovalUntilUtc > now && pendingLiveApprovalRequired && pendingLiveApprovalKind == LiveCommandKind.MoveJ;
-            var approvedActive = approvedLiveCommandUntilUtc > now && approvedLiveCommandKind == LiveCommandKind.MoveJ;
+            var approvedActive = HasActiveLiveSessionApprovalForProduct();
 
             if (approvedActive)
             {
-                return $"{label} · 1회 승인됨";
+                return $"{label} · 승인 유지 중";
             }
 
             if (pendingActive || gate?.Status == LiveCommandGateStatus.RequiresConfirm)
             {
-                return $"{label} · 토큰 확인 대기";
+                return $"{label} · 시작 승인 대기";
             }
 
             return label;
@@ -756,19 +784,19 @@ namespace KineTutor3D.App.Fairino
         {
             var now = DateTime.UtcNow;
             var pendingActive = pendingLiveApprovalUntilUtc > now && pendingLiveApprovalRequired && pendingLiveApprovalKind == LiveCommandKind.MoveJ;
-            var approvedActive = approvedLiveCommandUntilUtc > now && approvedLiveCommandKind == LiveCommandKind.MoveJ;
+            var approvedActive = HasActiveLiveSessionApprovalForProduct();
 
             if (approvedActive)
             {
-                return "승인 토큰 확인 후 tiny MoveJ 1회만 허용되며, 실행 뒤에는 즉시 다시 잠깁니다.";
+                return "첫 실기 시작 승인 후에는 연결이 유지되는 동안 관절, 포인트, 그리퍼 live 제어를 계속 허용합니다.";
             }
 
             if (pendingActive || gate?.Status == LiveCommandGateStatus.RequiresConfirm)
             {
-                return "토큰은 승인 대상 다음에 나오는 확인값이며, 통과 후 tiny MoveJ 1회만 허용됩니다.";
+                return "이 승인은 이번 연결의 첫 실기 시작에만 필요하며, 통과 후에는 재확인 없이 live 세션을 유지합니다.";
             }
 
-            return "승인 토큰은 모든 조건이 준비된 뒤 tiny MoveJ 1회 직전에만 발급됩니다.";
+            return "첫 실기 제어 전에만 session 승인 토큰을 발급합니다.";
         }
 
         private List<string> BuildRemainingGateChecks(LiveCommandSafetyGateResult gate)
@@ -895,7 +923,7 @@ namespace KineTutor3D.App.Fairino
                 "tiny MoveJ dedicated live path enabled" => "tiny MoveJ 전용 실기 통로가 열려 있습니다.",
                 "tiny MoveJ range guard within 2.0deg" => $"tiny MoveJ 범위가 {RobotControlMotionRuntime.TinyMoveJMaxJointDeltaDeg:0.#}도 이내로 확인됐습니다.",
                 "dry-run simulation" => "실제 로봇 대신 화면에서만 미리보기 중입니다.",
-                "mock client" => "가상 로봇으로 시험 중입니다.",
+                "mock client" => "실기 연결이 아니라 화면 프리뷰 세션입니다.",
                 "not connected" => "먼저 로봇 연결이 필요합니다.",
                 "servo disabled" => "실제 이동 전에는 서보를 켜야 합니다.",
                 "emergency stop active" => "비상 정지 상태입니다.",
@@ -930,7 +958,7 @@ namespace KineTutor3D.App.Fairino
 
             if (connectionService.IsMockMode)
             {
-                return "연습";
+                return "프리뷰";
             }
 
             if (currentState.IsInDragTeach)
@@ -955,12 +983,12 @@ namespace KineTutor3D.App.Fairino
 
             if (connectionService.IsMockMode)
             {
-                return "컨트롤러: 연습 세션";
+                return "컨트롤러: 화면 프리뷰 세션";
             }
 
             var sessionSummary = readbackOnlyLive
-                ? "위치 확인 전용"
-                : "실기 제어";
+                ? "읽기 전용"
+                : "실기 쓰기 가능";
             var changedAt = lastControllerTruthChangedUtc == DateTime.MinValue
                 ? "truth-change=unknown"
                 : $"truth-change={lastControllerTruthChangedUtc.ToLocalTime():HH:mm:ss}";
@@ -972,6 +1000,7 @@ namespace KineTutor3D.App.Fairino
             return mode switch
             {
                 LiveCommandSessionMode.LiveControl => "live-control",
+                LiveCommandSessionMode.LoopRunning => "loop-running",
                 LiveCommandSessionMode.GripperOnly => "gripper-only",
                 LiveCommandSessionMode.TinyMoveJOnly => "tiny-movej-only",
                 _ => "readback-only",
@@ -982,10 +1011,11 @@ namespace KineTutor3D.App.Fairino
         {
             return mode switch
             {
-                LiveCommandSessionMode.LiveControl => "실기 세션: 통합 live 제어",
-                LiveCommandSessionMode.GripperOnly => "실기 세션: gripper-only",
-                LiveCommandSessionMode.TinyMoveJOnly => "실기 세션: tiny-movej-only",
-                _ => "실기 세션: 위치 확인 전용",
+                LiveCommandSessionMode.LiveControl => "실기 세션: live write 가능",
+                LiveCommandSessionMode.LoopRunning => "실기 세션: mixed live loop 실행 중",
+                LiveCommandSessionMode.GripperOnly => "실기 세션: gripper-only live write",
+                LiveCommandSessionMode.TinyMoveJOnly => "실기 세션: joint-only live write",
+                _ => "실기 세션: 읽기 전용",
             };
         }
 
@@ -1050,6 +1080,7 @@ namespace KineTutor3D.App.Fairino
             return sessionMode.Trim().ToLowerInvariant() switch
             {
                 "live-control" or "live" or "unified" => LiveCommandSessionMode.LiveControl,
+                "loop-running" or "loop" or "mixed-live-loop" => LiveCommandSessionMode.LoopRunning,
                 "gripper-only" or "gripper" => LiveCommandSessionMode.GripperOnly,
                 "tiny-movej-only" or "tiny-movej" or "tinymovej-only" or "tinymovej" => LiveCommandSessionMode.TinyMoveJOnly,
                 _ => LiveCommandSessionMode.LiveControl,

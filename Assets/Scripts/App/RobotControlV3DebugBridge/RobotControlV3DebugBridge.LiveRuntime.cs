@@ -97,6 +97,21 @@ namespace KineTutor3D.App
             return GetRuntimeController().GetLiveSessionModeSummaryForDebug();
         }
 
+        public static string GrantLiveSessionApprovalForDebug(string commandKind, int ttlSeconds = 15)
+        {
+            return GetRuntimeController().GrantLiveCommandApprovalForDebug(commandKind, ttlSeconds);
+        }
+
+        public static string GetLiveSessionApprovalStateForDebug()
+        {
+            return $"sessionApproved={GetRuntimeController().HasActiveLiveSessionApprovalForProduct()}; {GetRuntimeController().GetLiveCommandApprovalSummaryForDebug()}";
+        }
+
+        public static string GetLiveEvidenceGateSummaryForDebug()
+        {
+            return GetRuntimeController().GetLiveEvidenceGateSummaryForDebug();
+        }
+
         public static string RefreshLiveEvidenceForDebug()
         {
             return GetRuntimeController().RefreshLiveEvidenceForDebug();
@@ -1120,7 +1135,7 @@ namespace KineTutor3D.App
                 RecallPointMoveForDebug("AUDIT_UI_B");
             }, GetTeachingFunctionUiSummaryForDebug, "[Function From]");
 
-            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnEasyGripper100", "BtnEasyGripper70", "BtnEasyGripper50" })
+            foreach (var buttonName in new[] { "BtnIoGripperOpen", "BtnIoGripperClose", "BtnIoGripperApply", "BtnEasyGripper100", "BtnEasyGripper50", "BtnEasyGripper0", "BtnEasyGripperPreviewApply", "BtnEasyGripperLiveApply" })
             {
                 AddCase(buttonName, () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "status=ReadyToJog");
             }
@@ -1257,8 +1272,10 @@ namespace KineTutor3D.App
 
             AddCase("BtnEasyReady", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetV3RuntimeSummary, "MoveJ");
             AddCase("BtnEasyGripper100", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 100%");
-            AddCase("BtnEasyGripper70", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 70%");
             AddCase("BtnEasyGripper50", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 50%");
+            AddCase("BtnEasyGripper0", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Cmd 0%");
+            AddCase("BtnEasyGripperPreviewApply", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Preview Apply");
+            AddCase("BtnEasyGripperLiveApply", () => { EnsureReady(); Select("NavMotion", "TabEasyMotion", "BottomTabEasyMotion"); }, GetMovementStateSummaryForDebug, "Live Apply");
             AddCase("BtnJoint1Plus", () => { EnsureReady(); Select("NavMotion", "TabJointJog", "BottomTabJointJog"); }, GetMovementStateSummaryForDebug, "MoveJ");
             AddCase("BtnTcp3Plus", () => { EnsureReady(); Select("NavMotion", "TabTcpJog", "BottomTabTcpJog"); }, GetMovementStateSummaryForDebug, "MoveL");
             AddCase("BtnPointPreview", () => { EnsureReady(); Select("NavPoints", "TabTcpJog", "BottomTabPointMove"); SetPointMoveValueForDebug("X", 540f); }, GetMovementStateSummaryForDebug, "Move");

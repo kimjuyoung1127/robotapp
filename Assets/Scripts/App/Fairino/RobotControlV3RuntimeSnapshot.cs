@@ -26,7 +26,7 @@ namespace KineTutor3D.App.Fairino
         public string QuickMode { get; set; } = "모드: --";
         public string QuickSync { get; set; } = "현재 위치 읽음: 아직 안 함";
         public string QuickControllerMode { get; set; } = "컨트롤러: --";
-        public string QuickSessionMode { get; set; } = "실기 세션: 통합 live 제어";
+        public string QuickSessionMode { get; set; } = "실기 세션: 읽기 전용";
         public string QuickLiveArm { get; set; } = "실제 이동: 잠겨 있음";
         public string HeaderNextAction { get; set; } = "다음 행동: 먼저 연결";
         public bool AutoModeSwitchEnabled { get; set; }
@@ -94,12 +94,17 @@ namespace KineTutor3D.App.Fairino
         public string MotionGateStatus { get; set; } = "실제 이동: 잠겨 있음";
         public string MotionGateDetail { get; set; } = "첫 실기 세션은 현재 위치 읽기 evidence부터 확인한다.";
         public string MotionGateWhyLocked { get; set; } = "잠금 이유: 현재 위치 읽기와 최신 기록을 먼저 확인한다.";
-        public string MotionGateUnlockWhen { get; set; } = "언제 풀리는지: 현재 위치 읽음 완료, 최신 기록 확인, confirm 통과 후.";
-        public string MotionGateNextStep { get; set; } = "다음 행동: 현재 위치 읽기 → 잠금 이유 확인 → tiny MoveJ 승인";
-        public string MotionGateConfirmTarget { get; set; } = "승인 대상: tiny MoveJ 1회";
-        public string MotionGateConfirmNote { get; set; } = "토큰은 승인 대상 다음에 나오는 확인값이다.";
+        public string MotionGateUnlockWhen { get; set; } = "언제 풀리는지: 현재 위치 읽음 완료, 최신 기록 확인, 첫 실기 시작 승인 후.";
+        public string MotionGateNextStep { get; set; } = "다음 행동: 현재 위치 읽기 → 잠금 이유 확인 → 실기 세션 승인";
+        public string MotionGateConfirmTarget { get; set; } = "승인 대상: 이번 연결의 실기 live session";
+        public string MotionGateConfirmNote { get; set; } = "토큰은 첫 실기 시작 승인에만 사용한다.";
         public string CurrentSessionMode { get; set; } = "readback-only";
         public bool MotionGateReady { get; set; }
+        public bool MixedLiveLoopRunning { get; set; }
+        public int MixedLiveLoopCycleCount { get; set; }
+        public string MixedLiveLoopTarget { get; set; } = "대기";
+        public string MixedLiveLoopGripperIntent { get; set; } = "없음";
+        public string MixedLiveLoopSummary { get; set; } = "mixed live loop 대기";
         public bool HasGhostPreview { get; set; }
         public bool HasPredictedPath { get; set; }
         public bool HasSelectedPart { get; set; }
@@ -212,6 +217,11 @@ namespace KineTutor3D.App.Fairino
                 MotionGateConfirmNote = MotionGateConfirmNote,
                 CurrentSessionMode = CurrentSessionMode,
                 MotionGateReady = MotionGateReady,
+                MixedLiveLoopRunning = MixedLiveLoopRunning,
+                MixedLiveLoopCycleCount = MixedLiveLoopCycleCount,
+                MixedLiveLoopTarget = MixedLiveLoopTarget,
+                MixedLiveLoopGripperIntent = MixedLiveLoopGripperIntent,
+                MixedLiveLoopSummary = MixedLiveLoopSummary,
                 HasGhostPreview = HasGhostPreview,
                 HasPredictedPath = HasPredictedPath,
                 HasSelectedPart = HasSelectedPart,
