@@ -25,3 +25,12 @@
 
 ## 현재 파일 인덱스
 - `RobotControlV3RuntimeController.LiveApproval.cs`
+  - shared live approval thin anchor partial
+- `RobotControlV3RuntimeController.SessionMode.cs`
+  - session mode and simple routing summary helpers
+- `RobotControlV3RuntimeController.TokenLifecycle.cs`
+  - approval token issuance/confirmation/cancellation and session approval bookkeeping
+- `RobotControlV3RuntimeController.CommandApproval.cs`
+  - pending gripper/saved-point live command preparation and execution
+- `RobotControlV3RuntimeController.LoopApproval.cs`
+  - pending waypoint-sequence approval, loop context, and live sequence execution

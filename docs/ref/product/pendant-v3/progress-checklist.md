@@ -56,11 +56,17 @@
   - `PointMoveController.PointActions.cs`는 thin anchor partial로 축소됐다.
   - `point detail`, `point modal`, `bundle picker modal`은 아직 `PointMoveController.ListsAndModals.cs`에 남겨두고 2차 분리 대상으로 유지한다.
   - 검증: `dotnet build` green
+- `RobotControlV3RuntimeController.LiveApproval.cs` 1차 분리는 완료했다.
+  - 기존 `Shared/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 실제 landed 경계는 `SessionMode`, `TokenLifecycle`, `CommandApproval`, `LoopApproval`이다.
+  - `RobotControlV3RuntimeController.LiveApproval.cs`는 thin anchor partial로 축소됐다.
+  - 이번 패스는 broad veto 삭제가 아니라, 후속 축소를 위한 구조 분리에 집중했다.
+  - 검증: `dotnet build` green
 - 다음 분리 우선순위:
-  1. `RobotControlV3RuntimeController.LiveApproval.cs`
-  2. `PointMoveController.ListsAndModals.cs` second pass
-  3. `RobotControlV3RuntimeController.Teaching.cs`
-  4. `RobotControlV3RuntimeController.PointMove.cs`
+  1. `PointMoveController.ListsAndModals.cs` second pass
+  2. `RobotControlV3RuntimeController.Teaching.cs`
+  3. `RobotControlV3RuntimeController.PointMove.cs`
+  4. `RobotControlV3RuntimeController.Helpers.cs`
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 현재 기준으로는 상대적으로 cohesive한 파일로 유지한다.
 
 ## 2026-04-20 Viewport Note

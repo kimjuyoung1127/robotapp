@@ -45,10 +45,15 @@
    - `PointActions.cs`는 thin anchor partial로 축소
    - `point detail / point modal / bundle picker modal`은 `ListsAndModals`에 남겨둠
    - `dotnet build` green
-4. `RobotControlV3RuntimeController.LiveApproval.cs`
+4. `RobotControlV3RuntimeController.LiveApproval.cs` - completed
+   - same-folder partial split
+   - `SessionMode`, `TokenLifecycle`, `CommandApproval`, `LoopApproval`
+   - `LiveApproval.cs`는 thin anchor partial로 축소
+   - broad veto 삭제 대신 후속 축소를 위한 구조 분리로 잠금
+   - `dotnet build` green
 5. `PointMoveController.ListsAndModals.cs` second pass
 
 ## Notes
 
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 지금은 비교적 응집적이라고 봤다.
-- 이번 잠금 기준 다음 active split은 `RobotControlV3RuntimeController.LiveApproval.cs`다.
+- 이번 잠금 기준 다음 active split은 `PointMoveController.ListsAndModals.cs` second pass다.

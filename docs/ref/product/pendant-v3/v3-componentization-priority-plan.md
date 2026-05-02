@@ -172,29 +172,36 @@
    - Validation:
      - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
 
+4. `RobotControlV3RuntimeController.LiveApproval.cs`
+   - Completed as a same-folder partial split inside `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/App/Fairino/RobotControlV3RuntimeController/Shared`
+   - Result:
+     - `RobotControlV3RuntimeController.LiveApproval.cs` -> thin anchor partial
+     - `RobotControlV3RuntimeController.SessionMode.cs`
+     - `RobotControlV3RuntimeController.TokenLifecycle.cs`
+     - `RobotControlV3RuntimeController.CommandApproval.cs`
+     - `RobotControlV3RuntimeController.LoopApproval.cs`
+   - Scope note:
+     - 이번 패스는 `LiveApproval` 삭제가 아니라, 후속 `diagnostics-first` 축소를 위한 구조 분리다.
+     - broad veto 정책은 아직 유지하고, 세션/토큰/명령/loop 경계만 분리했다.
+   - Validation:
+     - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
+
 ### P1 - Immediate Follow-Up
 
-3. `RobotControlV3RuntimeController.LiveApproval.cs`
-   - Split target:
-     - `SessionMode`
-     - `TokenLifecycle`
-     - `CommandApproval`
-     - `LoopApproval`
+3. `PointMoveController.ListsAndModals.cs`
+   - second-pass modal/detail cleanup
 
 ### P2 - After P0/P1 Stabilize
 
-4. `PointMoveController.ListsAndModals.cs`
-   - second-pass modal/detail cleanup
+4. `RobotControlV3RuntimeController.Teaching.cs`
 
-5. `PopupCoordinatorV3.cs`
+5. `RobotControlV3RuntimeController.PointMove.cs`
 
-6. `EasyMotionController.cs`
+6. `RobotControlV3RuntimeController.Helpers.cs`
 
-7. `RobotControlV3RuntimeController.Teaching.cs`
+7. `PopupCoordinatorV3.cs`
 
-8. `RobotControlV3RuntimeController.PointMove.cs`
-
-9. `RobotControlV3RuntimeController.Helpers.cs`
+8. `EasyMotionController.cs`
 
 ## Safe Execution Rules
 
@@ -208,12 +215,14 @@
 
 ## Suggested Execution Order
 
-1. `PointMoveController.PointActions.cs`
-2. `RobotControlV3RuntimeController.LiveApproval.cs`
-3. `PointMoveController.ListsAndModals.cs` second pass
-4. `RobotControlV3RuntimeController.Teaching.cs`
+1. `PointMoveController.ListsAndModals.cs` second pass
+2. `RobotControlV3RuntimeController.Teaching.cs`
+3. `RobotControlV3RuntimeController.PointMove.cs`
+4. `RobotControlV3RuntimeController.Helpers.cs`
 
 Update:
-- `PointMoveController.PointActions.cs` split is now complete, so the next active starting point is `RobotControlV3RuntimeController.LiveApproval.cs`.
+- `PointMoveController.PointActions.cs` split is complete.
+- `RobotControlV3RuntimeController.LiveApproval.cs` split is also complete.
+- the next active starting point is `PointMoveController.ListsAndModals.cs` second pass.
 
 This is the current recommended order unless a live robot blocker forces a different path.
