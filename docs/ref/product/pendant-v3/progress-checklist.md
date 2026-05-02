@@ -62,11 +62,29 @@
   - `RobotControlV3RuntimeController.LiveApproval.cs`는 thin anchor partial로 축소됐다.
   - 이번 패스는 broad veto 삭제가 아니라, 후속 축소를 위한 구조 분리에 집중했다.
   - 검증: `dotnet build` green
+- `PointMoveController.ListsAndModals.cs` 2차 분리는 완료했다.
+  - 기존 `PointMoveController/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 실제 landed 경계는 `PointDetail`, `PointActionModal`, `BundlePickerModal`이다.
+  - `PointMoveController.ListsAndModals.cs`는 thin anchor partial로 축소됐다.
+  - list 렌더링은 기존 `PointListView / SequenceListView / FunctionListView / BundlePickerListView`에 남기고, 이번 패스는 detail/modal만 분리했다.
+  - 검증: `dotnet build` green
+- `RobotControlV3RuntimeController.Teaching.cs` 1차 분리는 완료했다.
+  - 기존 `PointMove/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 실제 landed 경계는 `TeachingRecording`, `TeachingSequenceRuntime`, `TeachingFunctionBlock`, `TeachingRunnerEvents`다.
+  - `RobotControlV3RuntimeController.Teaching.cs`는 thin anchor partial로 축소됐다.
+  - path recording, teaching runtime, function/block 편집, runner event 경계를 분리했다.
+  - 검증: `dotnet build` green
+- `RobotControlV3RuntimeController.PointMove.cs` 1차 분리는 완료했다.
+  - 기존 `PointMove/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 실제 landed 경계는 `PointMoveSequence`, `PointMoveHomeLoop`, `PointMoveMixedLive`, `PointMovePreview`다.
+  - `RobotControlV3RuntimeController.PointMove.cs`는 thin anchor partial로 축소됐다.
+  - named sequence, Home↔Point1 loop build, mixed live continuation, point preview/apply 경계를 분리했다.
+  - 검증: `dotnet build` green
 - 다음 분리 우선순위:
-  1. `PointMoveController.ListsAndModals.cs` second pass
-  2. `RobotControlV3RuntimeController.Teaching.cs`
-  3. `RobotControlV3RuntimeController.PointMove.cs`
-  4. `RobotControlV3RuntimeController.Helpers.cs`
+  1. `RobotControlV3RuntimeController.Helpers.cs`
+  2. `PopupCoordinatorV3.cs`
+  3. `EasyMotionController.cs`
+  4. `ConnectionHomeController.cs`
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 현재 기준으로는 상대적으로 cohesive한 파일로 유지한다.
 
 ## 2026-04-20 Viewport Note

@@ -26,7 +26,10 @@
 - `PointMoveController.cs`: 루트 필드/상수/public debug surface
 - `PointMoveController.Bootstrap.cs`: 초기화, 패널 생성, 공통 view wiring
 - `PointMoveController.Elements.cs`: 패널 element 바인딩
-- `PointMoveController.ListsAndModals.cs`: point detail, modal, bundle picker confirm/visibility
+- `PointMoveController.ListsAndModals.cs`: point detail/modal anchor partial
+- `PointMoveController.PointDetail.cs`: selected point detail rendering and shared point/detail helper utilities
+- `PointMoveController.PointActionModal.cs`: point action modal visibility, copy, and primary edit/run actions
+- `PointMoveController.BundlePickerModal.cs`: bundle picker modal visibility and confirm flow
 - `PointMoveController.ListViewShared.cs`: 공용 list row helper와 filter helper
 - `PointMoveController.PointListView.cs`: point list 렌더링과 row binding
 - `PointMoveController.SequenceListView.cs`: sequence/block list 렌더링과 row binding

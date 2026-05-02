@@ -186,22 +186,32 @@
    - Validation:
      - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
 
+5. `PointMoveController.ListsAndModals.cs`
+   - Completed as a same-folder partial split inside `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/PointMoveController`
+   - Result:
+     - `PointMoveController.ListsAndModals.cs` -> thin anchor partial
+     - `PointMoveController.PointDetail.cs`
+     - `PointMoveController.PointActionModal.cs`
+     - `PointMoveController.BundlePickerModal.cs`
+   - Scope note:
+     - list rendering은 이미 `PointListView / SequenceListView / FunctionListView / BundlePickerListView`로 분리된 상태를 유지한다.
+     - 이번 패스는 detail/modal만 분리했다.
+   - Validation:
+     - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
+
 ### P1 - Immediate Follow-Up
 
-3. `PointMoveController.ListsAndModals.cs`
-   - second-pass modal/detail cleanup
+3. `RobotControlV3RuntimeController.Teaching.cs`
 
 ### P2 - After P0/P1 Stabilize
 
-4. `RobotControlV3RuntimeController.Teaching.cs`
+4. `RobotControlV3RuntimeController.PointMove.cs`
 
-5. `RobotControlV3RuntimeController.PointMove.cs`
+5. `RobotControlV3RuntimeController.Helpers.cs`
 
-6. `RobotControlV3RuntimeController.Helpers.cs`
+6. `PopupCoordinatorV3.cs`
 
-7. `PopupCoordinatorV3.cs`
-
-8. `EasyMotionController.cs`
+7. `EasyMotionController.cs`
 
 ## Safe Execution Rules
 
@@ -215,14 +225,17 @@
 
 ## Suggested Execution Order
 
-1. `PointMoveController.ListsAndModals.cs` second pass
-2. `RobotControlV3RuntimeController.Teaching.cs`
-3. `RobotControlV3RuntimeController.PointMove.cs`
-4. `RobotControlV3RuntimeController.Helpers.cs`
+1. `RobotControlV3RuntimeController.Helpers.cs`
+2. `PopupCoordinatorV3.cs`
+3. `EasyMotionController.cs`
+4. `ConnectionHomeController.cs`
 
 Update:
 - `PointMoveController.PointActions.cs` split is complete.
 - `RobotControlV3RuntimeController.LiveApproval.cs` split is also complete.
-- the next active starting point is `PointMoveController.ListsAndModals.cs` second pass.
+- `PointMoveController.ListsAndModals.cs` second pass is also complete.
+- `RobotControlV3RuntimeController.Teaching.cs` split is also complete.
+- `RobotControlV3RuntimeController.PointMove.cs` split is also complete.
+- the next active starting point is `RobotControlV3RuntimeController.Helpers.cs`.
 
 This is the current recommended order unless a live robot blocker forces a different path.
