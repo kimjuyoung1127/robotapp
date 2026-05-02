@@ -40,4 +40,6 @@
 - `PointMoveController.FunctionRunLoop.cs`: function dry-run 실행과 teaching loop action
 - `PointMoveController.FunctionView.cs`: function summary/detail/list/loop text rendering
 - `PointMoveController.Motion.cs`: point motion preview/apply와 feedback
-- `PointMoveController.PointActions.cs`: point CRUD/timing/export helpers
+- `PointMoveController.PointActions.cs`: point action anchor partial
+- `PointMoveController.PointCrud.cs`: point CRUD/timing/export/order/inventory helpers
+- `PointMoveController.PointMotionHelpers.cs`: point live sync, validation, popup, saved-joint helper logic

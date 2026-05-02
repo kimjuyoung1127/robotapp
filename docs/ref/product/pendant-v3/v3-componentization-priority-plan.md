@@ -81,17 +81,7 @@
      - run/loop
      - summary/debug
 
-2. `PointMoveController.PointActions`
-   - File: `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/PointMoveController/PointMoveController.PointActions.cs`
-   - Mixed concerns:
-     - point row action
-     - point detail
-     - point modal
-     - bundle picker
-     - CRUD/edit
-     - motion preview/apply helper
-
-3. `PointMoveController.ListsAndModals`
+2. `PointMoveController.ListsAndModals`
    - File: `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/PointMoveController/PointMoveController.ListsAndModals.cs`
    - Current role after first split:
      - point detail
@@ -102,7 +92,7 @@
      - `PointActionModal`
      - `BundlePickerModal`
 
-4. `PopupCoordinatorV3`
+3. `PopupCoordinatorV3`
    - File: `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/PopupCoordinatorV3.cs`
    - Mixed concerns:
      - popup shell
@@ -110,7 +100,7 @@
      - action dispatch
      - overlay/fault suppression
 
-5. `EasyMotionController`
+4. `EasyMotionController`
    - File: `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/EasyMotionController.cs`
    - Mixed concerns:
      - panel shell
@@ -171,16 +161,20 @@
      - Unity asset import/refresh 완료
      - Unity compile check는 IPC recovery 후 재시도 필요
 
+3. `PointMoveController.PointActions.cs`
+   - Completed as a same-folder partial split inside `/Users/family/jason/FR5UNITY/robotapp/Assets/Scripts/UI/RobotControlV3/PointMoveController`
+   - Result:
+     - `PointMoveController.PointActions.cs` -> thin anchor partial
+     - `PointMoveController.PointCrud.cs`
+     - `PointMoveController.PointMotionHelpers.cs`
+   - Scope note:
+     - `point detail`, `point modal`, `bundle picker modal`은 아직 `PointMoveController.ListsAndModals.cs`에 남겨두고 2차 분리 대상으로 유지
+   - Validation:
+     - `dotnet build /Users/family/jason/FR5UNITY/robotapp/robotapp.slnx`
+
 ### P1 - Immediate Follow-Up
 
-3. `PointMoveController.PointActions.cs`
-   - Split target:
-     - `PointDetail`
-     - `PointModalActions`
-     - `BundlePickerActions`
-     - `PointMotionHelpers`
-
-4. `RobotControlV3RuntimeController.LiveApproval.cs`
+3. `RobotControlV3RuntimeController.LiveApproval.cs`
    - Split target:
      - `SessionMode`
      - `TokenLifecycle`
@@ -189,18 +183,18 @@
 
 ### P2 - After P0/P1 Stabilize
 
-5. `PointMoveController.ListsAndModals.cs`
+4. `PointMoveController.ListsAndModals.cs`
    - second-pass modal/detail cleanup
 
-6. `PopupCoordinatorV3.cs`
+5. `PopupCoordinatorV3.cs`
 
-7. `EasyMotionController.cs`
+6. `EasyMotionController.cs`
 
-8. `RobotControlV3RuntimeController.Teaching.cs`
+7. `RobotControlV3RuntimeController.Teaching.cs`
 
-9. `RobotControlV3RuntimeController.PointMove.cs`
+8. `RobotControlV3RuntimeController.PointMove.cs`
 
-10. `RobotControlV3RuntimeController.Helpers.cs`
+9. `RobotControlV3RuntimeController.Helpers.cs`
 
 ## Safe Execution Rules
 
@@ -218,5 +212,8 @@
 2. `RobotControlV3RuntimeController.LiveApproval.cs`
 3. `PointMoveController.ListsAndModals.cs` second pass
 4. `RobotControlV3RuntimeController.Teaching.cs`
+
+Update:
+- `PointMoveController.PointActions.cs` split is now complete, so the next active starting point is `RobotControlV3RuntimeController.LiveApproval.cs`.
 
 This is the current recommended order unless a live robot blocker forces a different path.

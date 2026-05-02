@@ -50,11 +50,17 @@
   - `RobotControlV3RuntimeController.ViewState.cs`는 `ApplyVisualState()` 중심 파일로 축소됐다.
   - 검증: `dotnet build` green
   - Unity compile check는 새 partial import 뒤 IPC가 아직 `not ready` 상태라 재시도 필요
+- `PointMoveController.PointActions.cs` 1차 분리는 완료했다.
+  - 기존 `PointMoveController/` 폴더를 유지한 채 같은 폴더 안 partial로 쪼갰다.
+  - 실제 landed 경계는 `PointCrud`, `PointMotionHelpers`다.
+  - `PointMoveController.PointActions.cs`는 thin anchor partial로 축소됐다.
+  - `point detail`, `point modal`, `bundle picker modal`은 아직 `PointMoveController.ListsAndModals.cs`에 남겨두고 2차 분리 대상으로 유지한다.
+  - 검증: `dotnet build` green
 - 다음 분리 우선순위:
-  1. `PointMoveController.PointActions.cs`
-  2. `RobotControlV3RuntimeController.LiveApproval.cs`
-  3. `PointMoveController.ListsAndModals.cs` second pass
-  4. `RobotControlV3RuntimeController.Teaching.cs`
+  1. `RobotControlV3RuntimeController.LiveApproval.cs`
+  2. `PointMoveController.ListsAndModals.cs` second pass
+  3. `RobotControlV3RuntimeController.Teaching.cs`
+  4. `RobotControlV3RuntimeController.PointMove.cs`
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 현재 기준으로는 상대적으로 cohesive한 파일로 유지한다.
 
 ## 2026-04-20 Viewport Note

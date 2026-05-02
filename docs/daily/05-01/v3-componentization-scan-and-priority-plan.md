@@ -39,11 +39,16 @@
    - `dotnet build` green
    - Unity asset import/refresh 완료
    - Unity compile check는 IPC recovery 후 재시도 필요
-3. `PointMoveController.PointActions.cs`
+3. `PointMoveController.PointActions.cs` - completed
+   - same-folder partial split
+   - `PointCrud`, `PointMotionHelpers`
+   - `PointActions.cs`는 thin anchor partial로 축소
+   - `point detail / point modal / bundle picker modal`은 `ListsAndModals`에 남겨둠
+   - `dotnet build` green
 4. `RobotControlV3RuntimeController.LiveApproval.cs`
 5. `PointMoveController.ListsAndModals.cs` second pass
 
 ## Notes
 
 - `ConnectionHomeController`, `StageRuntime`, `ReadbackAsync`, `PointMoveController.Bootstrap`, `PointMoveController.Sequence`는 지금은 비교적 응집적이라고 봤다.
-- 이번 패스는 문서화만 했고 코드/정책은 바꾸지 않았다.
+- 이번 잠금 기준 다음 active split은 `RobotControlV3RuntimeController.LiveApproval.cs`다.
