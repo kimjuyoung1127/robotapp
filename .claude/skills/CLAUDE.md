@@ -11,6 +11,14 @@ KineTutor3D Claude Code 대화형 개발 스킬 에셋.
   - `test/` — editmode-test-add
   - `ops/` — pre-commit-validate, asmdef-setup, unity-official-docs, debug-success-capture
 - `meta/` — 문서 오케스트레이션 스킬 (sprint-docs-sync)
+  - `meta/` — 범용 운영 스킬 (`task-intake-router`, `change-impact-map`, `evidence-review`, `session-handoff`)
+
+## 빠른 선택
+- 새 요청 분류: `meta/task-intake-router`
+- 영향 범위 축소: `meta/change-impact-map`
+- 완료 전 근거 점검: `meta/evidence-review`
+- 다음 세션 인계: `meta/session-handoff`
+- FR5 도메인 구현/디버그: 기존 `kinetutor-guide/*`
 
 ## 스킬 포맷
 모든 스킬은 `SKILL.md` (YAML front matter + 7개 섹션):

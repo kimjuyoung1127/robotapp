@@ -19,11 +19,13 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 
 ### Session Minimum
 - `AGENTS.md`
+- `harness/REGISTRY.md`
 - `docs/ref/architecture-mermaid.md`
 - `CLAUDE.md`
 
 ### C# Edit Minimum
 - `AGENTS.md`
+- `harness/REGISTRY.md`
 - `docs/ref/architecture-mermaid.md`
 - `CLAUDE.md`
 - `docs/ref/csharp-master-harness.md`
@@ -31,6 +33,7 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 
 ### RobotControlV2 Minimum
 - `AGENTS.md`
+- `harness/REGISTRY.md`
 - `docs/ref/architecture-mermaid.md`
 - `CLAUDE.md`
 - `docs/ref/csharp-master-harness.md`
@@ -41,6 +44,7 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 
 ## Mandatory Navigation Rule
 - Always read the root `AGENTS.md` before exploring files.
+- For new requests or fuzzy scope, read `harness/REGISTRY.md` early and start with the meta routing loop (`task-intake-router` -> `change-impact-map` -> `evidence-review` or `session-handoff`) before broad file chasing.
 - When working inside `Assets/Scripts/App`, `Assets/Scripts/UI`, or `Assets/Scripts/Visualization`, read that folder's `AGENTS.md` first.
 - When creating or editing C# files, read `docs/ref/csharp-master-harness.md` and `docs/ref/code-patterns.md` before patching code.
 - For fast system-level context, read `docs/ref/architecture-mermaid.md` before chasing individual files.
@@ -109,6 +113,13 @@ Use this file for folder responsibility, file-discovery order, and refactor rule
 - Do not replace this repository's loading order, Unity verification loop, or folder-routing rules with an external harness.
 - If a generic rule conflicts with local runtime facts or local docs, prefer local code and local docs.
 - Promote a rule from reusable guidance into local SSOT only after it proves useful here and does not weaken project-specific clarity.
+
+## Meta Ops Loop
+- Request triage: `.claude/commands/intake.md` or `.claude/skills/meta/task-intake-router/SKILL.md`
+- Impact narrowing: `.claude/commands/impact-map.md` or `.claude/skills/meta/change-impact-map/SKILL.md`
+- Completion gate: `.claude/commands/evidence-review.md` or `.claude/skills/meta/evidence-review/SKILL.md`
+- Pause or session transfer: `.claude/commands/handoff.md` or `.claude/skills/meta/session-handoff/SKILL.md`
+- Keep this loop lightweight. It routes to local FR5/V3 SSOT docs and does not replace them.
 
 ## Fast Product Context
 - Current feature inventory and immediate build gaps: `docs/ref/product/roadmap/current-feature-checklist.md`

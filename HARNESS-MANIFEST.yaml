@@ -1,0 +1,60 @@
+version: 1
+name: FR5UNITY-harness-pack
+generated_on: 2026-05-15
+
+entrypoints:
+  primary: AGENTS.md
+  secondary: CLAUDE.md
+  harness_registry: harness/REGISTRY.md
+
+precedence:
+  - code-and-runtime-truth
+  - project-root-agents-md-or-claude-md
+  - harness-registry
+  - active-status-and-roadmap-docs
+  - domain-skills-and-commands
+
+required_files:
+  - AGENTS.md
+  - CLAUDE.md
+  - HARNESS-MANIFEST.yaml
+  - harness/REGISTRY.md
+  - harness/code-health-audit.md
+  - harness/change-class-doc-sync.md
+  - harness/session-retro.md
+  - harness/socratic-review.md
+  - .claude/README.md
+  - .claude/commands/CLAUDE.md
+  - .claude/commands/intake.md
+  - .claude/commands/impact-map.md
+  - .claude/commands/evidence-review.md
+  - .claude/commands/handoff.md
+  - .claude/commands/self-review.md
+  - .claude/skills/CLAUDE.md
+  - .claude/skills/README.md
+  - .claude/skills/meta/task-intake-router/SKILL.md
+  - .claude/skills/meta/change-impact-map/SKILL.md
+  - .claude/skills/meta/evidence-review/SKILL.md
+  - .claude/skills/meta/session-handoff/SKILL.md
+  - scripts/check-skills.sh
+  - scripts/check-harness.sh
+
+portable_assets:
+  - .claude/commands
+  - .claude/skills/meta
+  - harness
+  - scripts/check-skills.sh
+  - scripts/check-harness.sh
+
+validation:
+  scripts:
+    - scripts/check-skills.sh
+    - scripts/check-harness.sh
+  expectations:
+    - required-files-exist
+    - skill-frontmatter-and-sections-pass
+    - registry-and-manifest-stay-in-sync
+
+harness_registry:
+  path: harness/REGISTRY.md
+  philosophy: keep-runtime-truth-local

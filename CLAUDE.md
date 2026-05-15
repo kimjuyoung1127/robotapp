@@ -9,15 +9,16 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 ## 시작 순서
 1. `AGENTS.md` 또는 `CLAUDE.md`
 2. `harness/REGISTRY.md` (하네스 및 자동화 지침 확인)
-3. `docs/ref/architecture-mermaid.md`
-4. `docs/ref/project-flow-code-review.md`
-5. `docs/ref/csharp-master-harness.md` (C# 생성/수정 시 상위 운영 규칙 및 헤더 규격)
-6. `docs/ref/code-patterns.md` (구현 디테일과 패턴)
-7. `docs/status/PRODUCT-DOC-BOARD.md`
-8. `docs/ref/PRD.md`
-9. `docs/ref/WIREFRAME.md`
-10. `docs/ref/PRODUCT-ROADMAP.md`
-11. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시)
+3. 새 요청이거나 범위가 흐리면 `.claude/commands/intake.md` 또는 `.claude/skills/meta/task-intake-router/SKILL.md`
+4. `docs/ref/architecture-mermaid.md`
+5. `docs/ref/project-flow-code-review.md`
+6. `docs/ref/csharp-master-harness.md` (C# 생성/수정 시 상위 운영 규칙 및 헤더 규격)
+7. `docs/ref/code-patterns.md` (구현 디테일과 패턴)
+8. `docs/status/PRODUCT-DOC-BOARD.md`
+9. `docs/ref/PRD.md`
+10. `docs/ref/WIREFRAME.md`
+11. `docs/ref/PRODUCT-ROADMAP.md`
+12. `docs/ref/phase5-implementation-plan.md` (Phase 5 구현/검수 시)
 
 ## 현재 구조 요약
 - 현재 씬 흐름은 `Boot -> Onboarding -> RobotLibrary -> {MathReadiness, Sandbox, RobotControl}` 입니다.
@@ -38,6 +39,7 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 7. 문서와 코드가 다르면 현재 코드와 테스트 결과를 우선합니다.
 8. 하위 폴더 규칙이 바뀌면 가장 가까운 `AGENTS.md` 또는 `CLAUDE.md`를 같이 갱신합니다.
 9. 외부 범용 하네스는 운영 원칙과 템플릿 참고원으로만 사용합니다. 이 저장소의 SSOT는 계속 로컬 `AGENTS.md`, `CLAUDE.md`, `docs/ref/csharp-master-harness.md`입니다.
+10. 새 요청 분류, 영향 범위 축소, 완료 전 근거 점검, 세션 handoff는 `.claude/commands/`와 `.claude/skills/meta/`의 얇은 운영 루프를 사용하되, FR5 live 판단은 항상 로컬 status/ref 문서로 다시 내립니다.
 
 ## RobotControl 구현 규율
 1. `RobotControl`은 full rewrite가 아니라 `구조적 재조립`으로 진행합니다.
@@ -67,6 +69,13 @@ KineTutor3D에서 Claude 계열 에이전트가 가장 먼저 읽는 루트 허�
 5. tiny joint 상세 절차와 narrow verified scope는 `docs/ref/product/roadmap/fr5-tiny-joint-live-success-pattern.md`를 SSOT로 봅니다.
 6. 과거 현장 서사와 시행착오는 `docs/ref/product/roadmap/fr5-live-field-history.md`에만 둡니다. current checklist/handoff에는 다시 섞지 않습니다.
 7. `V1`, `V2`는 active 운영 표면이 아닙니다. 문서에는 `개발 목적`과 `이력`만 남기고, 현재판 판단 근거로 사용하지 않습니다.
+
+## Meta 운영 루프
+1. 요청 분류가 필요하면 `/intake`
+2. cross-module 또는 live-risk 변경 전에는 `/impact-map`
+3. 완료 선언 전에는 `/evidence-review`
+4. 세션을 넘길 때는 `/handoff`
+5. 이 루프는 범용 운영선이고, 실제 truth는 계속 `ACTIVE-WORK-INDEX`, 관련 roadmap, success pattern SSOT에서 확인합니다.
 
 ## Unityctl Quickstart
 - 고정 경로:
